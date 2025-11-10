@@ -9,6 +9,7 @@ interface ToolbarProps {
   onBrushSizeChange: (size: number) => void;
   onUndo: () => void;
   onClear: () => void;
+  disabled?: boolean;
 }
 
 export const Toolbar = ({
@@ -18,9 +19,10 @@ export const Toolbar = ({
   onBrushSizeChange,
   onUndo,
   onClear,
+  disabled = false,
 }: ToolbarProps) => {
   return (
-    <div className="bg-toolbar-bg rounded-2xl p-4 md:p-6 shadow-medium border border-border">
+    <div className="bg-toolbar-bg rounded-2xl p-4 md:p-6 shadow-medium border border-border opacity-90">
       <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
         {/* Drawing Tools */}
         <div className="flex gap-2">
@@ -28,6 +30,7 @@ export const Toolbar = ({
             variant={activeTool === "draw" ? "default" : "outline"}
             size="lg"
             onClick={() => onToolChange("draw")}
+            disabled={disabled}
             className="gap-2 transition-all hover:scale-105"
           >
             <Paintbrush className="w-5 h-5" />
@@ -37,6 +40,7 @@ export const Toolbar = ({
             variant={activeTool === "erase" ? "default" : "outline"}
             size="lg"
             onClick={() => onToolChange("erase")}
+            disabled={disabled}
             className="gap-2 transition-all hover:scale-105"
           >
             <Eraser className="w-5 h-5" />
@@ -53,6 +57,7 @@ export const Toolbar = ({
             min={1}
             max={50}
             step={1}
+            disabled={disabled}
             className="flex-1"
           />
           <span className="text-sm font-medium w-8 text-center">{brushSize}</span>
@@ -64,6 +69,7 @@ export const Toolbar = ({
             variant="secondary"
             size="lg"
             onClick={onUndo}
+            disabled={disabled}
             className="gap-2 transition-all hover:scale-105"
           >
             <Undo className="w-5 h-5" />
@@ -73,6 +79,7 @@ export const Toolbar = ({
             variant="destructive"
             size="lg"
             onClick={onClear}
+            disabled={disabled}
             className="gap-2 transition-all hover:scale-105"
           >
             <Trash2 className="w-5 h-5" />
