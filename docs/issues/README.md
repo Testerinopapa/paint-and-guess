@@ -19,3 +19,11 @@ This directory tracks bugs and issues encountered during development.
 - **Root Cause**: Canvas disposal race condition when game state changes after correct guess
 - **Solution**: Added canvas validation checks and disposal tracking
 
+### Color Palette Wipes Board
+- **Status**: ✅ Fixed
+- **File**: [color-palette-wipes-board.md](./color-palette-wipes-board.md)
+- **Branch**: `fix/color-palette-board-wipe`
+- **Description**: Clicking on a different color in the color palette wipes the entire canvas board, losing all drawings
+- **Root Cause**: Canvas initialization effect included `activeColor` and `brushSize` in dependency array, causing canvas recreation on color change
+- **Solution**: Removed `activeColor` and `brushSize` from canvas initialization dependencies; brush updates handled by separate effect
+

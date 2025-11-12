@@ -104,7 +104,7 @@ export const Canvas = () => {
       }
       setFabricCanvas(null);
     };
-  }, [gameState.isGameActive, gameState.isDrawer, activeColor, brushSize]);
+  }, [gameState.isGameActive, gameState.isDrawer]);
 
   // Update drawing mode and clear canvas when game state changes
   useEffect(() => {
