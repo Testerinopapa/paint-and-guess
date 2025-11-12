@@ -1,9 +1,10 @@
 # Guesser Drawing Not Visible
 
-**Status**: 🔴 Open  
+**Status**: ✅ Fixed  
 **Date Reported**: 2025-11-12  
+**Date Fixed**: 2025-11-12  
 **Priority**: High (Core functionality broken)  
-**Branch**: `fix/guesser-drawing-visibility`
+**Branch**: `fix/guesser-drawing-visibility` (merged to main)
 
 ## Description
 
