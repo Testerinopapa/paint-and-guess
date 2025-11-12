@@ -19,6 +19,8 @@ export const Canvas = ({ onCanvasReady }: CanvasProps = {}) => {
   const [activeTool, setActiveTool] = useState<"draw" | "erase">("draw");
   const { gameState, sendDrawingEvent, clearCanvas } = useGame();
   const isReceivingRef = useRef(false);
+
+  // Initialize canvas - sets up Fabric.js canvas with proper initial state
   const lastRoundRef = useRef<number>(0);
   const canvasInstanceRef = useRef<FabricCanvas | null>(null); // Track canvas for cleanup
 
@@ -106,6 +108,12 @@ export const Canvas = ({ onCanvasReady }: CanvasProps = {}) => {
           isDrawingMode: false,
         });
 
+    canvas.freeDrawingBrush = new PencilBrush(canvas);
+    canvas.freeDrawingBrush.color = activeColor;
+    canvas.freeDrawingBrush.width = brushSize;
+
+    // Ensure immediate setting of drawing mode based on game state to fix HMR issue
+    canvas.isDrawingMode = gameState.isGameActive && gameState.isDrawer;
         // Create initial brush (will be recreated when drawing mode is enabled)
         canvas.freeDrawingBrush = new PencilBrush(canvas);
         canvas.freeDrawingBrush.color = activeColor;
@@ -199,6 +207,12 @@ export const Canvas = ({ onCanvasReady }: CanvasProps = {}) => {
 
     // Cleanup only on unmount
     return () => {
+      window.removeEventListener("resize", handleResize);
+      canvas.dispose();
+    };
+  }, [gameState.isGameActive, gameState.isDrawer, activeColor, brushSize]);
+
+  // Update drawing mode and clear canvas when game state changes
       console.log('[Canvas] 🔄 Component unmounting, cleaning up');
       isMounted = false;
       
@@ -278,6 +292,11 @@ export const Canvas = ({ onCanvasReady }: CanvasProps = {}) => {
   // Handle round changes - clear canvas when new round starts
   useEffect(() => {
     if (!fabricCanvas) return;
+    
+    fabricCanvas.isDrawingMode = gameState.isGameActive && gameState.isDrawer;
+    
+    if (gameState.isGameActive && gameState.isDrawer) {
+      // Clear canvas at the start of each round
     if (!isMultiplayer || !gameState.isGameActive) return;
 
     if (gameState.roundNumber !== lastRoundRef.current) {
@@ -291,8 +310,11 @@ export const Canvas = ({ onCanvasReady }: CanvasProps = {}) => {
     }
   }, [fabricCanvas, gameState.roundNumber, gameState.isGameActive, isMultiplayer]);
 
+  // Update brush properties when tool or color changes
   // Update drawing mode and brush configuration based on game state
   useEffect(() => {
+    if (!fabricCanvas?.freeDrawingBrush) return;
+
     if (!fabricCanvas) {
       console.log('[Canvas] Drawing mode effect: canvas not ready yet', {
         hasCanvas: false,
@@ -407,6 +429,8 @@ export const Canvas = ({ onCanvasReady }: CanvasProps = {}) => {
     console.log('[Canvas] Setting up path:created event handler for drawer');
 
     const handlePathCreated = (e: { path: FabricObject }) => {
+      if (isReceivingRef.current) return; // Prevent echo
+
       if (isReceivingRef.current) {
         console.log('[Canvas] Ignoring path:created (receiving)');
         return; // Prevent echo
