@@ -57,6 +57,8 @@ export const Canvas = () => {
       height: window.innerWidth > 768 ? 600 : 400,
       backgroundColor: "#ffffff",
       isDrawingMode: false,
+      renderOnAddRemove: true, // Ensure rendering happens on add/remove
+      skipTargetFind: !gameState.isDrawer, // Skip target finding for guessers
     });
 
     canvas.freeDrawingBrush = new PencilBrush(canvas);
@@ -65,6 +67,15 @@ export const Canvas = () => {
 
     // Ensure immediate setting of drawing mode based on game state to fix HMR issue
     canvas.isDrawingMode = gameState.isGameActive && gameState.isDrawer;
+
+    // Disable all interactions for guessers
+    if (!gameState.isDrawer) {
+      canvas.selection = false;
+      canvas.defaultCursor = 'default';
+      canvas.hoverCursor = 'default';
+      canvas.moveCursor = 'default';
+      canvas.skipTargetFind = true; // Skip target finding for guessers
+    }
 
     setFabricCanvas(canvas);
 
@@ -113,6 +124,15 @@ export const Canvas = () => {
     
     fabricCanvas!.isDrawingMode = gameState.isGameActive && gameState.isDrawer;
     
+    // Disable all interactions for guessers
+    if (!gameState.isDrawer) {
+      fabricCanvas!.selection = false;
+      fabricCanvas!.defaultCursor = 'default';
+      fabricCanvas!.hoverCursor = 'default';
+      fabricCanvas!.moveCursor = 'default';
+      fabricCanvas!.skipTargetFind = true; // Skip target finding for guessers
+    }
+    
     if (gameState.isGameActive && gameState.isDrawer) {
       // Clear canvas at the start of each round
       try {
@@ -124,6 +144,29 @@ export const Canvas = () => {
       }
     }
   }, [fabricCanvas, gameState.isDrawer, gameState.isGameActive, gameState.roundNumber]);
+
+  // Ensure all objects are non-interactive for guessers
+  useEffect(() => {
+    if (!isCanvasValid(fabricCanvas) || gameState.isDrawer) return;
+
+    // Make all existing objects non-interactive
+    const objects = fabricCanvas!.getObjects();
+    if (objects.length > 0) {
+      objects.forEach((obj) => {
+        obj.selectable = false;
+        obj.evented = false;
+        obj.hoverCursor = 'default';
+        obj.moveCursor = 'default';
+      });
+      fabricCanvas!.selection = false;
+      // Use requestRenderAll for better rendering
+      if (fabricCanvas!.requestRenderAll) {
+        fabricCanvas!.requestRenderAll();
+      } else {
+        fabricCanvas!.renderAll();
+      }
+    }
+  }, [fabricCanvas, gameState.isDrawer]);
 
   // Update brush properties when tool or color changes
   useEffect(() => {
@@ -166,10 +209,22 @@ export const Canvas = () => {
 
   // Receive drawing events (guessers only)
   useEffect(() => {
-    if (!isCanvasValid(fabricCanvas) || gameState.isDrawer || !gameState.isGameActive) return;
+    if (!isCanvasValid(fabricCanvas) || gameState.isDrawer || !gameState.isGameActive) {
+      console.debug("[Canvas] Skipping guesser drawing event setup", {
+        hasCanvas: !!fabricCanvas,
+        isDrawer: gameState.isDrawer,
+        isGameActive: gameState.isGameActive,
+      });
+      return;
+    }
+
+    console.debug("[Canvas] Setting up guesser drawing event listeners");
 
     const handleDrawingEvent = (e: Event) => {
-      if (!isCanvasValid(fabricCanvas)) return; // Check canvas is still valid
+      if (!isCanvasValid(fabricCanvas)) {
+        console.debug("[Canvas] Canvas invalid, skipping drawing event");
+        return; // Check canvas is still valid
+      }
       
       const customEvent = e as CustomEvent;
       const event = customEvent.detail;
@@ -177,12 +232,23 @@ export const Canvas = () => {
       if (event.type === "path" && event.data && !isReceivingRef.current) {
         isReceivingRef.current = true;
         
+        console.debug("[Canvas] Received drawing event for guesser", {
+          hasData: !!event.data,
+          eventType: event.type,
+        });
+        
         try {
           // Get existing objects
           const existingObjects = fabricCanvas!.getObjects().map((obj) => obj.toJSON());
           
           // Add new path to existing objects
           const allObjects = [...existingObjects, event.data];
+          
+          // Make sure the new object data is non-interactive before loading
+          if (event.data) {
+            event.data.selectable = false;
+            event.data.evented = false;
+          }
           
           // Reload canvas with all objects
           fabricCanvas!.loadFromJSON(
@@ -195,13 +261,41 @@ export const Canvas = () => {
                 isReceivingRef.current = false;
                 return;
               }
-              // Make all objects non-interactive
+              // Make all objects non-interactive immediately
               const objects = fabricCanvas!.getObjects();
               objects.forEach((obj) => {
                 obj.selectable = false;
                 obj.evented = false;
+                obj.hoverCursor = 'default';
+                obj.moveCursor = 'default';
+                // Disable object caching to ensure visibility
+                obj.objectCaching = false;
               });
-              fabricCanvas!.renderAll();
+              
+              // Ensure canvas selection is disabled
+              fabricCanvas!.selection = false;
+              
+              // Use requestRenderAll for better rendering (forces repaint)
+              if (fabricCanvas!.requestRenderAll) {
+                fabricCanvas!.requestRenderAll();
+              } else {
+                fabricCanvas!.renderAll();
+              }
+              
+              // Force browser repaint using requestAnimationFrame
+              requestAnimationFrame(() => {
+                if (isCanvasValid(fabricCanvas)) {
+                  if (fabricCanvas!.requestRenderAll) {
+                    fabricCanvas!.requestRenderAll();
+                  } else {
+                    fabricCanvas!.renderAll();
+                  }
+                }
+              });
+              
+              console.debug("[Canvas] Drawing event processed, objects rendered", {
+                objectCount: objects.length,
+              });
               isReceivingRef.current = false;
             }
           );
@@ -213,14 +307,34 @@ export const Canvas = () => {
     };
 
     const handleCanvasCleared = () => {
-      if (!isCanvasValid(fabricCanvas)) return;
+      if (!isCanvasValid(fabricCanvas)) {
+        console.debug("[Canvas] Canvas invalid, skipping clear event");
+        return;
+      }
       if (isReceivingRef.current) return;
       
+      console.debug("[Canvas] Received canvas cleared event for guesser");
       isReceivingRef.current = true;
       try {
         fabricCanvas!.clear();
         fabricCanvas!.backgroundColor = "#ffffff";
-        fabricCanvas!.renderAll();
+        // Use requestRenderAll for better rendering
+        if (fabricCanvas!.requestRenderAll) {
+          fabricCanvas!.requestRenderAll();
+        } else {
+          fabricCanvas!.renderAll();
+        }
+        // Force repaint
+        requestAnimationFrame(() => {
+          if (isCanvasValid(fabricCanvas)) {
+            if (fabricCanvas!.requestRenderAll) {
+              fabricCanvas!.requestRenderAll();
+            } else {
+              fabricCanvas!.renderAll();
+            }
+          }
+        });
+        console.debug("[Canvas] Canvas cleared for guesser");
       } catch (error) {
         console.error("[Canvas] Error clearing canvas from event:", error);
       }
@@ -301,9 +415,9 @@ export const Canvas = () => {
       <div className="rounded-2xl shadow-strong overflow-hidden border-4 border-border bg-canvas-bg relative">
         <canvas ref={canvasRef} />
         {!gameState.isDrawer && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/30 backdrop-blur-[2px] pointer-events-none z-10">
-            <div className="bg-background/90 px-4 py-2 rounded-lg border">
-              <p className="text-lg font-semibold">Watch and guess the word!</p>
+          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 pointer-events-none z-10">
+            <div className="bg-background/90 px-4 py-2 rounded-lg border shadow-lg">
+              <p className="text-sm font-semibold">Watch and guess the word!</p>
             </div>
           </div>
         )}
