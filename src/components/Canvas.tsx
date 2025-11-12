@@ -13,10 +13,44 @@ export const Canvas = () => {
   const [activeTool, setActiveTool] = useState<"draw" | "erase">("draw");
   const { gameState, sendDrawingEvent, clearCanvas } = useGame();
   const isReceivingRef = useRef(false);
+  const isDisposedRef = useRef(false);
+
+  // Helper function to check if canvas is valid and not disposed
+  const isCanvasValid = (canvas: FabricCanvas | null): boolean => {
+    if (!canvas || isDisposedRef.current) {
+      console.debug("[Canvas] Canvas is null or disposed");
+      return false;
+    }
+    // Check if the underlying context exists by accessing the lowerCanvasEl
+    try {
+      const lowerCanvasEl = (canvas as any).lowerCanvasEl;
+      if (!lowerCanvasEl) {
+        console.debug("[Canvas] Canvas lowerCanvasEl is null");
+        return false;
+      }
+      const context = lowerCanvasEl.getContext('2d');
+      if (!context) {
+        console.debug("[Canvas] Canvas context is null");
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.debug("[Canvas] Error checking canvas context:", error);
+      return false;
+    }
+  };
 
   // Initialize canvas - sets up Fabric.js canvas with proper initial state
   useEffect(() => {
     if (!canvasRef.current) return;
+
+    console.debug("[Canvas] Initializing new canvas", {
+      isGameActive: gameState.isGameActive,
+      isDrawer: gameState.isDrawer,
+    });
+
+    // Mark as not disposed before creating new canvas
+    isDisposedRef.current = false;
 
     const canvas = new FabricCanvas(canvasRef.current, {
       width: window.innerWidth > 768 ? 800 : window.innerWidth - 40,
@@ -35,40 +69,65 @@ export const Canvas = () => {
     setFabricCanvas(canvas);
 
     const handleResize = () => {
-      if (window.innerWidth > 768) {
-        canvas.setWidth(800);
-        canvas.setHeight(600);
-      } else {
-        canvas.setWidth(window.innerWidth - 40);
-        canvas.setHeight(400);
+      if (isCanvasValid(canvas)) {
+        if (window.innerWidth > 768) {
+          canvas.setWidth(800);
+          canvas.setHeight(600);
+        } else {
+          canvas.setWidth(window.innerWidth - 40);
+          canvas.setHeight(400);
+        }
       }
     };
 
     window.addEventListener("resize", handleResize);
 
     return () => {
+      console.debug("[Canvas] Disposing canvas");
       window.removeEventListener("resize", handleResize);
-      canvas.dispose();
+      isDisposedRef.current = true;
+      try {
+        canvas.dispose();
+      } catch (error) {
+        console.debug("[Canvas] Error disposing canvas:", error);
+      }
+      setFabricCanvas(null);
     };
   }, [gameState.isGameActive, gameState.isDrawer, activeColor, brushSize]);
 
   // Update drawing mode and clear canvas when game state changes
   useEffect(() => {
-    if (!fabricCanvas) return;
+    if (!isCanvasValid(fabricCanvas)) {
+      console.debug("[Canvas] Skipping clear - canvas not valid", {
+        hasCanvas: !!fabricCanvas,
+        isDisposed: isDisposedRef.current,
+      });
+      return;
+    }
     
-    fabricCanvas.isDrawingMode = gameState.isGameActive && gameState.isDrawer;
+    console.debug("[Canvas] Updating drawing mode and clearing canvas", {
+      isGameActive: gameState.isGameActive,
+      isDrawer: gameState.isDrawer,
+      roundNumber: gameState.roundNumber,
+    });
+    
+    fabricCanvas!.isDrawingMode = gameState.isGameActive && gameState.isDrawer;
     
     if (gameState.isGameActive && gameState.isDrawer) {
       // Clear canvas at the start of each round
-      fabricCanvas.clear();
-      fabricCanvas.backgroundColor = "#ffffff";
-      fabricCanvas.renderAll();
+      try {
+        fabricCanvas!.clear();
+        fabricCanvas!.backgroundColor = "#ffffff";
+        fabricCanvas!.renderAll();
+      } catch (error) {
+        console.error("[Canvas] Error clearing canvas:", error);
+      }
     }
   }, [fabricCanvas, gameState.isDrawer, gameState.isGameActive, gameState.roundNumber]);
 
   // Update brush properties when tool or color changes
   useEffect(() => {
-    if (!fabricCanvas?.freeDrawingBrush) return;
+    if (!isCanvasValid(fabricCanvas) || !fabricCanvas?.freeDrawingBrush) return;
 
     if (activeTool === "erase") {
       fabricCanvas.freeDrawingBrush.color = "#ffffff";
@@ -81,13 +140,14 @@ export const Canvas = () => {
 
   // Send drawing events (drawer only)
   useEffect(() => {
-    if (!fabricCanvas || !gameState.isDrawer || !gameState.isGameActive) return;
+    if (!isCanvasValid(fabricCanvas) || !gameState.isDrawer || !gameState.isGameActive) return;
 
     const handlePathCreated = (e: { path: FabricObject }) => {
       if (isReceivingRef.current) return; // Prevent echo
+      if (!isCanvasValid(fabricCanvas)) return; // Check again in case canvas was disposed
 
       const path = e.path;
-      const pathData = path.toJSON(['selectable', 'evented']);
+      const pathData = path.toJSON();
       
       sendDrawingEvent({
         type: "path",
@@ -95,56 +155,75 @@ export const Canvas = () => {
       });
     };
 
-    fabricCanvas.on("path:created", handlePathCreated);
+    fabricCanvas!.on("path:created", handlePathCreated);
 
     return () => {
-      fabricCanvas.off("path:created", handlePathCreated);
+      if (isCanvasValid(fabricCanvas)) {
+        fabricCanvas!.off("path:created", handlePathCreated);
+      }
     };
   }, [fabricCanvas, gameState.isDrawer, gameState.isGameActive, sendDrawingEvent]);
 
   // Receive drawing events (guessers only)
   useEffect(() => {
-    if (!fabricCanvas || gameState.isDrawer || !gameState.isGameActive) return;
+    if (!isCanvasValid(fabricCanvas) || gameState.isDrawer || !gameState.isGameActive) return;
 
     const handleDrawingEvent = (e: Event) => {
+      if (!isCanvasValid(fabricCanvas)) return; // Check canvas is still valid
+      
       const customEvent = e as CustomEvent;
       const event = customEvent.detail;
       
       if (event.type === "path" && event.data && !isReceivingRef.current) {
         isReceivingRef.current = true;
         
-        // Get existing objects
-        const existingObjects = fabricCanvas.getObjects().map((obj) => obj.toJSON());
-        
-        // Add new path to existing objects
-        const allObjects = [...existingObjects, event.data];
-        
-        // Reload canvas with all objects
-        fabricCanvas.loadFromJSON(
-          {
-            version: fabricCanvas.version || "6.9.0",
-            objects: allObjects,
-          },
-          () => {
-            // Make all objects non-interactive
-            const objects = fabricCanvas.getObjects();
-            objects.forEach((obj) => {
-              obj.selectable = false;
-              obj.evented = false;
-            });
-            fabricCanvas.renderAll();
-            isReceivingRef.current = false;
-          }
-        );
+        try {
+          // Get existing objects
+          const existingObjects = fabricCanvas!.getObjects().map((obj) => obj.toJSON());
+          
+          // Add new path to existing objects
+          const allObjects = [...existingObjects, event.data];
+          
+          // Reload canvas with all objects
+          fabricCanvas!.loadFromJSON(
+            {
+              version: "6.9.0",
+              objects: allObjects,
+            },
+            () => {
+              if (!isCanvasValid(fabricCanvas)) {
+                isReceivingRef.current = false;
+                return;
+              }
+              // Make all objects non-interactive
+              const objects = fabricCanvas!.getObjects();
+              objects.forEach((obj) => {
+                obj.selectable = false;
+                obj.evented = false;
+              });
+              fabricCanvas!.renderAll();
+              isReceivingRef.current = false;
+            }
+          );
+        } catch (error) {
+          console.error("[Canvas] Error handling drawing event:", error);
+          isReceivingRef.current = false;
+        }
       }
     };
 
     const handleCanvasCleared = () => {
+      if (!isCanvasValid(fabricCanvas)) return;
       if (isReceivingRef.current) return;
+      
       isReceivingRef.current = true;
-      fabricCanvas.clear();
-      fabricCanvas.backgroundColor = "#ffffff";
-      fabricCanvas.renderAll();
+      try {
+        fabricCanvas!.clear();
+        fabricCanvas!.backgroundColor = "#ffffff";
+        fabricCanvas!.renderAll();
+      } catch (error) {
+        console.error("[Canvas] Error clearing canvas from event:", error);
+      }
       isReceivingRef.current = false;
     };
 
@@ -164,22 +243,30 @@ export const Canvas = () => {
   };
 
   const handleUndo = () => {
-    if (!fabricCanvas || !gameState.isDrawer) return;
-    const objects = fabricCanvas.getObjects();
-    if (objects.length > 0) {
-      fabricCanvas.remove(objects[objects.length - 1]);
-      fabricCanvas.renderAll();
-      toast.info("Undo");
+    if (!isCanvasValid(fabricCanvas) || !gameState.isDrawer) return;
+    try {
+      const objects = fabricCanvas!.getObjects();
+      if (objects.length > 0) {
+        fabricCanvas!.remove(objects[objects.length - 1]);
+        fabricCanvas!.renderAll();
+        toast.info("Undo");
+      }
+    } catch (error) {
+      console.error("[Canvas] Error undoing:", error);
     }
   };
 
   const handleClear = () => {
-    if (!fabricCanvas || !gameState.isDrawer) return;
-    fabricCanvas.clear();
-    fabricCanvas.backgroundColor = "#ffffff";
-    fabricCanvas.renderAll();
-    clearCanvas();
-    toast.success("Canvas cleared!");
+    if (!isCanvasValid(fabricCanvas) || !gameState.isDrawer) return;
+    try {
+      fabricCanvas!.clear();
+      fabricCanvas!.backgroundColor = "#ffffff";
+      fabricCanvas!.renderAll();
+      clearCanvas();
+      toast.success("Canvas cleared!");
+    } catch (error) {
+      console.error("[Canvas] Error clearing canvas:", error);
+    }
   };
 
   if (!gameState.isGameActive) {
