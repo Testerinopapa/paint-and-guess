@@ -14,7 +14,7 @@ export const Canvas = () => {
   const { gameState, sendDrawingEvent, clearCanvas } = useGame();
   const isReceivingRef = useRef(false);
 
-  // Initialize canvas
+  // Initialize canvas - sets up Fabric.js canvas with proper initial state
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -28,6 +28,9 @@ export const Canvas = () => {
     canvas.freeDrawingBrush = new PencilBrush(canvas);
     canvas.freeDrawingBrush.color = activeColor;
     canvas.freeDrawingBrush.width = brushSize;
+
+    // Ensure immediate setting of drawing mode based on game state to fix HMR issue
+    canvas.isDrawingMode = gameState.isGameActive && gameState.isDrawer;
 
     setFabricCanvas(canvas);
 
@@ -47,27 +50,25 @@ export const Canvas = () => {
       window.removeEventListener("resize", handleResize);
       canvas.dispose();
     };
-  }, []);
+  }, [gameState.isGameActive, gameState.isDrawer, activeColor, brushSize]);
 
   // Update drawing mode and clear canvas when game state changes
   useEffect(() => {
     if (!fabricCanvas) return;
     
-    if (gameState.isGameActive) {
-      fabricCanvas.isDrawingMode = gameState.isDrawer;
-      
+    fabricCanvas.isDrawingMode = gameState.isGameActive && gameState.isDrawer;
+    
+    if (gameState.isGameActive && gameState.isDrawer) {
       // Clear canvas at the start of each round
       fabricCanvas.clear();
       fabricCanvas.backgroundColor = "#ffffff";
       fabricCanvas.renderAll();
-    } else {
-      fabricCanvas.isDrawingMode = false;
     }
   }, [fabricCanvas, gameState.isDrawer, gameState.isGameActive, gameState.roundNumber]);
 
-  // Update brush properties
+  // Update brush properties when tool or color changes
   useEffect(() => {
-    if (!fabricCanvas || !fabricCanvas.freeDrawingBrush) return;
+    if (!fabricCanvas?.freeDrawingBrush) return;
 
     if (activeTool === "erase") {
       fabricCanvas.freeDrawingBrush.color = "#ffffff";
@@ -84,7 +85,7 @@ export const Canvas = () => {
 
     const handlePathCreated = (e: { path: FabricObject }) => {
       if (isReceivingRef.current) return; // Prevent echo
-      
+
       const path = e.path;
       const pathData = path.toJSON(['selectable', 'evented']);
       
