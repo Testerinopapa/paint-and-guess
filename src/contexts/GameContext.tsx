@@ -91,15 +91,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
 
     socket.on("game-started", ({ drawer, roundTime }: { drawer: Player; roundTime: number }) => {
-      setGameState((prev) => ({
-        ...prev,
-        isGameActive: true,
-        currentDrawer: drawer,
-        roundTime,
-        timeLeft: roundTime,
-        isDrawer: drawer.id === socket.id,
-        roundNumber: 1,
-      }));
+      const isDrawer = drawer.id === socket.id;
+      console.log('[GameContext] Game started event received', {
+        drawerId: drawer.id,
+        drawerName: drawer.name,
+        socketId: socket.id,
+        isDrawer,
+        roundTime
+      });
+      
+      setGameState((prev) => {
+        const newState = {
+          ...prev,
+          isGameActive: true,
+          currentDrawer: drawer,
+          roundTime,
+          timeLeft: roundTime,
+          isDrawer,
+          roundNumber: 1,
+        };
+        console.log('[GameContext] Game state updated', newState);
+        return newState;
+      });
       toast.info("Game started!");
     });
 
@@ -113,17 +126,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     socket.on("round-started", ({ drawer, roundTime }: { drawer: Player; roundTime: number }) => {
       let newRoundNumber = 1;
+      const isDrawer = drawer.id === socket.id;
+      
+      console.log('[GameContext] Round started event received', {
+        drawerId: drawer.id,
+        drawerName: drawer.name,
+        socketId: socket.id,
+        isDrawer,
+        roundTime
+      });
+      
       setGameState((prev) => {
         newRoundNumber = prev.roundNumber + 1;
-        return {
+        const newState = {
           ...prev,
           currentDrawer: drawer,
           roundTime,
           timeLeft: roundTime,
-          isDrawer: drawer.id === socket.id,
+          isDrawer,
           roundNumber: newRoundNumber,
           currentWord: null,
         };
+        console.log('[GameContext] Round state updated', newState);
+        return newState;
       });
       setChatMessages([]);
       toast.info(`Round ${newRoundNumber} started!`);

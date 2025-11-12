@@ -14,6 +14,7 @@ export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const { gameState, leaveRoom, startGame, isConnected } = useGame();
+  const [isCanvasReady, setIsCanvasReady] = useState(false);
 
   useEffect(() => {
     if (!isConnected) {
@@ -31,6 +32,10 @@ export default function Room() {
   const handleStartGame = () => {
     if (gameState.players.length < 2) {
       toast.error("Need at least 2 players to start");
+      return;
+    }
+    if (!isCanvasReady) {
+      toast.error("Canvas is not ready yet. Please wait...");
       return;
     }
     startGame();
@@ -59,10 +64,10 @@ export default function Room() {
               <Button
                 onClick={handleStartGame}
                 className="w-full mt-4"
-                disabled={gameState.players.length < 2}
+                disabled={gameState.players.length < 2 || !isCanvasReady}
               >
                 <Play className="w-4 h-4 mr-2" />
-                Start Game
+                {!isCanvasReady ? "Loading Canvas..." : "Start Game"}
               </Button>
             )}
             <Button
@@ -77,7 +82,15 @@ export default function Room() {
 
           {/* Main Canvas Area */}
           <div className="lg:col-span-2">
-            <Canvas />
+            <Canvas onCanvasReady={setIsCanvasReady} />
+            {!isCanvasReady && (
+              <Card className="mt-4 p-4">
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  <p className="text-sm text-muted-foreground">Initializing canvas...</p>
+                </div>
+              </Card>
+            )}
           </div>
 
           {/* Right Sidebar - Chat */}
