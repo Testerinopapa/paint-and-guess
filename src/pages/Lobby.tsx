@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useGame } from "@/contexts/GameContext";
 import { toast } from "sonner";
 import { Users, Plus, LogIn } from "lucide-react";
+import { AvatarSelector } from "@/components/AvatarSelector";
+import { DEFAULT_AVATAR, getStoredAvatar } from "@/lib/avatars";
 
 export default function Lobby() {
   const navigate = useNavigate();
@@ -13,6 +15,9 @@ export default function Lobby() {
   const [roomId, setRoomId] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [roomName, setRoomName] = useState("");
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(() => {
+    return getStoredAvatar() || DEFAULT_AVATAR.id;
+  });
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
 
@@ -29,7 +34,7 @@ export default function Lobby() {
     setIsCreating(true);
     try {
       const newRoomId = await createRoom(roomName);
-      joinRoom(newRoomId, playerName);
+      joinRoom(newRoomId, playerName, selectedAvatar);
       navigate(`/room/${newRoomId}`);
       toast.success("Room created!");
     } catch (error) {
@@ -51,7 +56,7 @@ export default function Lobby() {
 
     setIsJoining(true);
     try {
-      joinRoom(roomId.toUpperCase(), playerName);
+      joinRoom(roomId.toUpperCase(), playerName, selectedAvatar);
       navigate(`/room/${roomId.toUpperCase()}`);
       toast.success("Joined room!");
     } catch (error) {
@@ -90,6 +95,13 @@ export default function Lobby() {
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
                 maxLength={20}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <AvatarSelector
+                selectedAvatar={selectedAvatar}
+                onAvatarChange={setSelectedAvatar}
               />
             </div>
 

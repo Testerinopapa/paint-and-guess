@@ -8,6 +8,7 @@ interface Player {
   name: string;
   score: number;
   isReady: boolean;
+  avatar?: string;
 }
 
 interface GameState {
@@ -27,7 +28,7 @@ interface GameContextType {
   gameState: GameState;
   socket: Socket | null;
   isConnected: boolean;
-  joinRoom: (roomId: string, playerName: string) => void;
+  joinRoom: (roomId: string, playerName: string, avatar?: string) => void;
   createRoom: (roomName: string, isPublic?: boolean) => Promise<string>;
   leaveRoom: () => void;
   startGame: () => void;
@@ -228,9 +229,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     };
   }, [socket, gameState.roundNumber]);
 
-  const joinRoom = (roomId: string, playerName: string) => {
+  const joinRoom = (roomId: string, playerName: string, avatar?: string) => {
     if (!socket) return;
-    socket.emit("join-room", { roomId, playerName });
+    socket.emit("join-room", { roomId, playerName, avatar });
     setGameState((prev) => ({
       ...prev,
       roomId,

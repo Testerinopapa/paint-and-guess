@@ -63,7 +63,7 @@ app.post("/api/rooms", (req, res) => {
 io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);
 
-  socket.on("join-room", ({ roomId, playerName }) => {
+  socket.on("join-room", ({ roomId, playerName, avatar }) => {
     const room = rooms.get(roomId);
     if (!room) {
       socket.emit("error", { message: "Room not found" });
@@ -80,6 +80,7 @@ io.on("connection", (socket) => {
       name: playerName || `Player ${room.players.length + 1}`,
       score: 0,
       isReady: false,
+      avatar: avatar || null,
     };
 
     room.addPlayer(player);

@@ -1,7 +1,9 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Users, Trophy, Pencil } from "lucide-react";
+import { getAvatarEmoji, DEFAULT_AVATAR } from "@/lib/avatars";
 
 export function PlayerList() {
   const { gameState } = useGame();
@@ -25,6 +27,11 @@ export function PlayerList() {
                 {gameState.currentDrawer?.id === player.id && (
                   <Pencil className="w-4 h-4 text-primary" />
                 )}
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="text-lg">
+                    {getAvatarEmoji(player.avatar || DEFAULT_AVATAR.id)}
+                  </AvatarFallback>
+                </Avatar>
                 <span className="font-medium">{player.name}</span>
               </div>
               <div className="flex items-center gap-2">
