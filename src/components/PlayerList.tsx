@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Users, Trophy, Pencil } from "lucide-react";
 import { getAvatarEmoji, DEFAULT_AVATAR } from "@/lib/avatars";
+import { AvatarConfig, decodeAvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
+import { AvatarPreviewDicebear } from "./avatar/preview/AvatarPreviewDicebear";
 
 export function PlayerList() {
   const { gameState } = useGame();
@@ -28,8 +30,26 @@ export function PlayerList() {
                   <Pencil className="w-4 h-4 text-primary" />
                 )}
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="text-lg">
-                    {getAvatarEmoji(player.avatar || DEFAULT_AVATAR.id)}
+                  <AvatarFallback className="text-lg bg-transparent p-0">
+                    {(() => {
+                      // Check if avatar is a config object (new format) or string (old format)
+                      if (!player.avatar) {
+                        return <span>{getAvatarEmoji(DEFAULT_AVATAR.id)}</span>;
+                      }
+                      
+                      if (typeof player.avatar === 'string') {
+                        // Try to decode as JSON config, fallback to emoji ID
+                        const decoded = decodeAvatarConfig(player.avatar);
+                        if (decoded) {
+                          return <AvatarPreviewDicebear config={decoded} size={32} />;
+                        }
+                        // Old emoji format - fallback to emoji
+                        return <span>{getAvatarEmoji(player.avatar)}</span>;
+                      }
+                      
+                      // Already an AvatarConfig object
+                      return <AvatarPreviewDicebear config={player.avatar} size={32} />;
+                    })()}
                   </AvatarFallback>
                 </Avatar>
                 <span className="font-medium">{player.name}</span>

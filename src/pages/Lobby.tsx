@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGame } from "@/contexts/GameContext";
 import { toast } from "sonner";
-import { Users, Plus, LogIn } from "lucide-react";
-import { AvatarSelector } from "@/components/AvatarSelector";
-import { DEFAULT_AVATAR, getStoredAvatar } from "@/lib/avatars";
+import { Users, Plus, LogIn, Settings } from "lucide-react";
+import { AvatarCustomizer } from "@/components/AvatarCustomizer";
+import { AvatarPreviewDicebear } from "@/components/avatar/preview/AvatarPreviewDicebear";
+import { AvatarConfig, loadAvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
+import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 
 export default function Lobby() {
   const navigate = useNavigate();
@@ -15,9 +17,10 @@ export default function Lobby() {
   const [roomId, setRoomId] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [roomName, setRoomName] = useState("");
-  const [selectedAvatar, setSelectedAvatar] = useState<string>(() => {
-    return getStoredAvatar() || DEFAULT_AVATAR.id;
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
+    return safeLoadAvatarConfig() || createDefaultAvatarConfig();
   });
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
 
@@ -34,7 +37,7 @@ export default function Lobby() {
     setIsCreating(true);
     try {
       const newRoomId = await createRoom(roomName);
-      joinRoom(newRoomId, playerName, selectedAvatar);
+      joinRoom(newRoomId, playerName, avatarConfig);
       navigate(`/room/${newRoomId}`);
       toast.success("Room created!");
     } catch (error) {
@@ -56,7 +59,7 @@ export default function Lobby() {
 
     setIsJoining(true);
     try {
-      joinRoom(roomId.toUpperCase(), playerName, selectedAvatar);
+      joinRoom(roomId.toUpperCase(), playerName, avatarConfig);
       navigate(`/room/${roomId.toUpperCase()}`);
       toast.success("Joined room!");
     } catch (error) {
@@ -99,11 +102,29 @@ export default function Lobby() {
             </div>
 
             <div className="space-y-2">
-              <AvatarSelector
-                selectedAvatar={selectedAvatar}
-                onAvatarChange={setSelectedAvatar}
-              />
+              <label className="text-sm font-medium">Avatar</label>
+              <Button
+                variant="outline"
+                onClick={() => setIsCustomizerOpen(true)}
+                className="w-full justify-start gap-3 h-auto py-3"
+              >
+                <div className="h-10 w-10 flex items-center justify-center">
+                  <AvatarPreviewDicebear config={avatarConfig} size={40} />
+                </div>
+                <div className="flex flex-col items-start flex-1">
+                  <span className="text-sm font-medium">{avatarConfig.name}</span>
+                  <span className="text-xs text-muted-foreground">Click to customize</span>
+                </div>
+                <Settings className="ml-auto h-4 w-4 text-muted-foreground" />
+              </Button>
             </div>
+
+            <AvatarCustomizer
+              open={isCustomizerOpen}
+              onOpenChange={setIsCustomizerOpen}
+              onSave={(config) => setAvatarConfig(config)}
+              initialConfig={avatarConfig}
+            />
 
             <div className="grid md:grid-cols-2 gap-4">
               {/* Create Room */}

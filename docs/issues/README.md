@@ -27,3 +27,16 @@ This directory tracks bugs and issues encountered during development.
 - **Root Cause**: Canvas initialization effect included `activeColor` and `brushSize` in dependency array, causing canvas recreation on color change
 - **Solution**: Removed `activeColor` and `brushSize` from canvas initialization dependencies; brush updates handled by separate effect
 
+### Avatar Preview Mismatch with Selection Options
+- **Status**: 🟡 In Progress
+- **File**: [avatar-preview-mismatch.md](./avatar-preview-mismatch.md)
+- **Branch**: `feature/avatar-customization`
+- **Description**: Avatar preview doesn't accurately represent selected customization options. Selecting items like "suit" only changes body color instead of displaying the actual item
+- **Impact**: High - Core feature incomplete, poor user experience
+- **Progress**: 
+  - ✅ Framework research completed (@dicebear/core selected)
+  - ✅ Adapter layer created (`avatarDicebearAdapter.ts`)
+  - ✅ Proof-of-concept component created (`AvatarPreviewDicebear.tsx`)
+  - ✅ Packages installed (`@dicebear/core`, `@dicebear/avataaars`)
+  - ⏳ **Next**: Test integration (set `window.USE_DICEBEAR = true` in console)
+

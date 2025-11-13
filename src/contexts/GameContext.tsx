@@ -2,13 +2,14 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Socket } from "socket.io-client";
 import { useSocket } from "@/hooks/useSocket";
 import { toast } from "sonner";
+import { AvatarConfig, encodeAvatarConfig, decodeAvatarConfig } from "@/lib/avatar/config";
 
 interface Player {
   id: string;
   name: string;
   score: number;
   isReady: boolean;
-  avatar?: string;
+  avatar?: string | AvatarConfig; // Support both old string format and new config
 }
 
 interface GameState {
@@ -28,7 +29,7 @@ interface GameContextType {
   gameState: GameState;
   socket: Socket | null;
   isConnected: boolean;
-  joinRoom: (roomId: string, playerName: string, avatar?: string) => void;
+  joinRoom: (roomId: string, playerName: string, avatar?: string | AvatarConfig) => void;
   createRoom: (roomName: string, isPublic?: boolean) => Promise<string>;
   leaveRoom: () => void;
   startGame: () => void;
@@ -229,9 +230,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     };
   }, [socket, gameState.roundNumber]);
 
-  const joinRoom = (roomId: string, playerName: string, avatar?: string) => {
+  const joinRoom = (roomId: string, playerName: string, avatar?: string | AvatarConfig) => {
     if (!socket) return;
-    socket.emit("join-room", { roomId, playerName, avatar });
+    // Encode avatar config as JSON string if it's an object
+    const avatarData = typeof avatar === 'object' ? encodeAvatarConfig(avatar) : avatar;
+    socket.emit("join-room", { roomId, playerName, avatar: avatarData });
     setGameState((prev) => ({
       ...prev,
       roomId,
