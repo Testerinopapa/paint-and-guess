@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Users, Trophy, Pencil } from "lucide-react";
 import { getAvatarEmoji, DEFAULT_AVATAR } from "@/lib/avatars";
 import { AvatarConfig, decodeAvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
-import { AvatarPreviewDicebear } from "./avatar/preview/AvatarPreviewDicebear";
+import { AvatarPreview } from "./avatar/preview";
 
 export function PlayerList() {
   const { gameState } = useGame();
@@ -41,14 +41,14 @@ export function PlayerList() {
                         // Try to decode as JSON config, fallback to emoji ID
                         const decoded = decodeAvatarConfig(player.avatar);
                         if (decoded) {
-                          return <AvatarPreviewDicebear config={decoded} size={32} />;
+                          return <AvatarPreview config={decoded} size={32} />;
                         }
                         // Old emoji format - fallback to emoji
                         return <span>{getAvatarEmoji(player.avatar)}</span>;
                       }
                       
                       // Already an AvatarConfig object
-                      return <AvatarPreviewDicebear config={player.avatar} size={32} />;
+                      return <AvatarPreview config={player.avatar} size={32} />;
                     })()}
                   </AvatarFallback>
                 </Avatar>

@@ -10,15 +10,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LivePreview } from "./avatar/preview/LivePreview";
+import { AvatarPreview } from "./avatar/preview";
 import { AvatarConfig, createDefaultAvatarConfig, loadAvatarConfig, saveAvatarConfig, cloneAvatarConfig, generateAvatarId } from "@/lib/avatar/config";
 import { validateAvatarConfig, sanitizeAvatarConfig } from "@/lib/avatar/validation";
-import { SkinToneSelector } from "./avatar/categories/SkinToneSelector";
-import { ClothesSelector } from "./avatar/categories/ClothesSelector";
-import { AccessoriesSelector } from "./avatar/categories/AccessoriesSelector";
-import { HairSelector } from "./avatar/categories/HairSelector";
-import { FaceSelector } from "./avatar/categories/FaceSelector";
-import { BodySelector } from "./avatar/categories/BodySelector";
+import {
+  SkinToneSelector,
+  HairSelector,
+  ClothesSelector,
+  AccessoriesSelector,
+  FaceSelector,
+  BodySelector,
+} from "./avatar/categories";
 import { Shuffle, RotateCcw } from "lucide-react";
 import { getAssetsByCategory } from "@/lib/avatar/categories/assets";
 import { toast } from "sonner";
@@ -257,7 +259,7 @@ export function AvatarCustomizer({
           {/* Left Side - Preview */}
             <div className="w-[300px] flex-shrink-0 flex flex-col gap-4">
             <div className="flex-1 flex items-center justify-center bg-muted rounded-lg p-4">
-              <LivePreview config={config} size={200} />
+              <AvatarPreview config={config} size={200} />
             </div>
 
             <div className="space-y-2">

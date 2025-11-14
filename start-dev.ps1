@@ -1,4 +1,4 @@
-# PowerShell script to start both frontend and backend development servers
+# PowerShell script to start frontend and backend development servers
 Write-Host "Starting Paint & Guess development servers..." -ForegroundColor Green
 Write-Host ""
 

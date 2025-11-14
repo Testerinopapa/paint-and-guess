@@ -15,7 +15,7 @@ import {
   cloneAvatarConfig,
   encodeAvatarConfig,
   decodeAvatarConfig,
-} from './avatarConfig';
+} from './avatar/config';
 
 /**
  * Test versioning and migration system

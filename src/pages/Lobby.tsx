@@ -7,7 +7,7 @@ import { useGame } from "@/contexts/GameContext";
 import { toast } from "sonner";
 import { Users, Plus, LogIn, Settings } from "lucide-react";
 import { AvatarCustomizer } from "@/components/AvatarCustomizer";
-import { AvatarPreviewDicebear } from "@/components/avatar/preview/AvatarPreviewDicebear";
+import { AvatarPreview } from "@/components/avatar/preview";
 import { AvatarConfig, loadAvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 
@@ -109,7 +109,7 @@ export default function Lobby() {
                 className="w-full justify-start gap-3 h-auto py-3"
               >
                 <div className="h-10 w-10 flex items-center justify-center">
-                  <AvatarPreviewDicebear config={avatarConfig} size={40} />
+                  <AvatarPreview config={avatarConfig} size={40} />
                 </div>
                 <div className="flex flex-col items-start flex-1">
                   <span className="text-sm font-medium">{avatarConfig.name}</span>

@@ -1,8 +1,8 @@
 import { OptionGrid } from "./OptionGrid";
-import { HAIR_STYLES, HAIR_COLORS, HAIR_COLOR_VALUES } from "@/lib/avatarAssets";
+import { HAIR_STYLES, HAIR_COLORS, HAIR_COLOR_VALUES } from "@/lib/avatar/categories/assets";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { AvatarConfig } from "@/lib/avatarConfig";
+import { AvatarConfig } from "@/lib/avatar/config";
 
 interface HairSelectorProps {
   config: AvatarConfig;
