@@ -1,10 +1,11 @@
 export class GameRoom {
-  constructor({ id, name, isPublic, maxPlayers, roundTime }) {
+  constructor({ id, name, isPublic, maxPlayers, roundTime, wordPack = "classic" }) {
     this.id = id;
     this.name = name;
     this.isPublic = isPublic;
     this.maxPlayers = maxPlayers;
     this.roundTime = roundTime;
+    this.wordPack = wordPack;
     this.players = [];
     this.isGameActive = false;
     this.currentDrawer = null;
@@ -87,6 +88,7 @@ export class GameRoom {
       isPublic: this.isPublic,
       maxPlayers: this.maxPlayers,
       roundTime: this.roundTime,
+      wordPack: this.wordPack,
       players: this.players.map((p) => ({
         id: p.id,
         name: p.name,

@@ -3,7 +3,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import { v4 as uuidv4 } from "uuid";
-import { WORDS } from "./words.js";
+import { WORDS, getWordPacks, getRandomWordFromPack } from "./words.js";
 import { GameRoom } from "./gameRoom.js";
 
 const app = express();
@@ -30,6 +30,11 @@ function getRandomWord() {
   return WORDS[Math.floor(Math.random() * WORDS.length)];
 }
 
+// Get random word from a room's word pack
+function getRandomWordForRoom(room) {
+  return getRandomWordFromPack(room.wordPack || "classic");
+}
+
 // REST API endpoints
 app.get("/api/rooms", (req, res) => {
   const publicRooms = Array.from(rooms.values())
@@ -39,12 +44,25 @@ app.get("/api/rooms", (req, res) => {
       name: room.name,
       players: room.players.length,
       maxPlayers: room.maxPlayers,
+      wordPack: room.wordPack,
     }));
   res.json(publicRooms);
 });
 
+// Get available word packs
+app.get("/api/word-packs", (req, res) => {
+  const packs = getWordPacks().map((pack) => ({
+    id: pack.id,
+    name: pack.name,
+    description: pack.description,
+    icon: pack.icon,
+    wordCount: pack.words.length,
+  }));
+  res.json(packs);
+});
+
 app.post("/api/rooms", (req, res) => {
-  const { name, isPublic = true, maxPlayers = 6, roundTime = 60 } = req.body;
+  const { name, isPublic = true, maxPlayers = 6, roundTime = 60, wordPack = "classic" } = req.body;
   const roomId = generateRoomId();
   
   const room = new GameRoom({
@@ -53,6 +71,7 @@ app.post("/api/rooms", (req, res) => {
     isPublic,
     maxPlayers,
     roundTime,
+    wordPack,
   });
   
   rooms.set(roomId, room);
@@ -126,8 +145,9 @@ io.on("connection", (socket) => {
     if (!room || room.isGameActive) return;
 
     // Only allow starting if player is the first one (room creator) or implement voting
-    room.startGame(getRandomWord);
-    room.currentWord = getRandomWord();
+    const getWord = () => getRandomWordForRoom(room);
+    room.startGame(getWord);
+    room.currentWord = getRandomWordForRoom(room);
 
     io.to(roomId).emit("game-started", {
       drawer: room.currentDrawer,
@@ -307,8 +327,9 @@ io.on("connection", (socket) => {
       }
 
       // Rotate drawer
-      room.nextRound(getRandomWord);
-      room.currentWord = getRandomWord();
+      const getWord = () => getRandomWordForRoom(room);
+      room.nextRound(getWord);
+      room.currentWord = getRandomWordForRoom(room);
 
       io.to(roomId).emit("round-started", {
         drawer: room.currentDrawer,

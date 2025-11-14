@@ -37,8 +37,13 @@ export function AvatarPreviewDrawable({
   const [brushColor, setBrushColor] = useState("#000000");
   const [brushSize, setBrushSize] = useState(3);
 
-  // Generate SVG avatar
+  // Generate SVG avatar (only if no custom image is uploaded)
   const avatarSVG = useMemo(() => {
+    // If custom image is uploaded, skip DiceBear generation
+    if (config.customImageUrl) {
+      return null;
+    }
+    
     try {
       const mapping = avatarConfigToDiceBearOptions(config);
       const style = {
@@ -470,41 +475,44 @@ export function AvatarPreviewDrawable({
           
           drawingsData.objects.forEach((objData: any, index: number) => {
             const loadPromise = new Promise<void>((resolve) => {
-              FabricObject.fromObject(objData, (obj) => {
-                if (!fabricCanvas) {
+              try {
+                // Type assertion to handle Fabric.js type definitions
+                (FabricObject.fromObject as any)(objData, (obj: FabricObject) => {
+                  if (!fabricCanvas) {
+                    resolve();
+                    return;
+                  }
+                  
+                  // Tag loaded objects for tracking
+                  const loadedId = `loaded-${Date.now()}-${index}`;
+                  (obj as any).__debugId = loadedId;
+                  
+                  obj.selectable = false;
+                  obj.evented = false;
+                  
+                  const objectsBeforeAdd = fabricCanvas.getObjects();
+                  fabricCanvas.add(obj);
+                  const objectsAfterAdd = fabricCanvas.getObjects();
+                  
+                  console.log('➕ [AvatarPreviewDrawable] Loaded object', {
+                    index,
+                    loadedId,
+                    type: obj.type,
+                    objectCountBefore: objectsBeforeAdd.length,
+                    objectCountAfter: objectsAfterAdd.length,
+                    objectAdded: objectsAfterAdd.includes(obj),
+                  });
+                  
+                  loadedCount++;
                   resolve();
-                  return;
-                }
-                
-                // Tag loaded objects for tracking
-                const loadedId = `loaded-${Date.now()}-${index}`;
-                (obj as any).__debugId = loadedId;
-                
-                obj.selectable = false;
-                obj.evented = false;
-                
-                const objectsBeforeAdd = fabricCanvas.getObjects();
-                fabricCanvas.add(obj);
-                const objectsAfterAdd = fabricCanvas.getObjects();
-                
-                console.log('➕ [AvatarPreviewDrawable] Loaded object', {
-                  index,
-                  loadedId,
-                  type: obj.type,
-                  objectCountBefore: objectsBeforeAdd.length,
-                  objectCountAfter: objectsAfterAdd.length,
-                  objectAdded: objectsAfterAdd.includes(obj),
                 });
-                
-                loadedCount++;
-                resolve();
-              }, (error) => {
+              } catch (error) {
                 console.error('❌ [AvatarPreviewDrawable] Failed to load object', {
                   index,
                   error,
                 });
                 resolve();
-              });
+              }
             });
             
             loadPromises.push(loadPromise);
@@ -586,11 +594,17 @@ export function AvatarPreviewDrawable({
     toast.success("Drawings cleared");
   };
 
-  // State for background image data URL
+  // State for background image data URL (for DiceBear SVG)
   const [backgroundImageUrl, setBackgroundImageUrl] = useState<string | null>(null);
 
-  // Create data URL for background
+  // Create data URL for background (only for DiceBear SVG, not for custom images)
   useEffect(() => {
+    // If custom image is uploaded, skip SVG processing
+    if (config.customImageUrl || !avatarSVG) {
+      setBackgroundImageUrl(null);
+      return;
+    }
+    
     const svgBlob = new Blob([avatarSVG], { type: "image/svg+xml" });
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -598,7 +612,7 @@ export function AvatarPreviewDrawable({
       setBackgroundImageUrl(dataUrl);
     };
     reader.readAsDataURL(svgBlob);
-  }, [avatarSVG]);
+  }, [avatarSVG, config.customImageUrl]);
 
   return (
     <div 
@@ -616,8 +630,12 @@ export function AvatarPreviewDrawable({
         <div
           className="absolute inset-0 rounded-lg"
           style={{
-            backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : 'none',
-            backgroundSize: 'contain',
+            backgroundImage: config.customImageUrl 
+              ? `url(${config.customImageUrl})` 
+              : backgroundImageUrl 
+                ? `url(${backgroundImageUrl})` 
+                : 'none',
+            backgroundSize: config.customImageUrl ? 'cover' : 'contain',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
             backgroundColor: '#ffffff',
