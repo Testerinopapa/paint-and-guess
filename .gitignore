@@ -26,3 +26,7 @@ dist-ssr
 
 # Development server PID files
 .dev-servers.pid
+
+# Test output
+test-screenshots/
+test-results-*.json

@@ -119,6 +119,14 @@ const CLOTHING_MAP: Record<string, string> = {
   // Additional DiceBear clothing options
   "shirt-vneck": "shirtVNeck",
   "graphic-shirt": "graphicShirt",
+  // More conceptual options (mapped to existing DiceBear types)
+  "polo-shirt": "shirtCrewNeck",
+  blazer: "blazerAndShirt",
+  cardigan: "collarAndSweater",
+  pullover: "collarAndSweater",
+  "long-sleeve-tshirt": "shirtCrewNeck",
+  "crew-neck-sweater": "collarAndSweater",
+  turtleneck: "shirtScoopNeck",
 };
 
 const OUTFIT_MAP: Record<string, string> = {
@@ -128,6 +136,14 @@ const OUTFIT_MAP: Record<string, string> = {
   casual: "shirtCrewNeck",
   formal: "blazerAndSweater",
   overall: "overall",
+  // Additional outfit options (mapped to existing DiceBear types)
+  "business-casual": "blazerAndShirt",
+  workout: "hoodie",
+  professional: "blazerAndSweater",
+  athletic: "graphicShirt",
+  winter: "collarAndSweater",
+  sporty: "graphicShirt",
+  business: "blazerAndShirt",
 };
 
 const GLASSES_MAP: Record<string, string> = {

@@ -166,6 +166,14 @@ export const CLOTHING_TOPS: AssetOption[] = [
   // Additional DiceBear clothing options
   { id: 'shirt-vneck', name: 'V-Neck Shirt', emoji: '👕', colorable: true },
   { id: 'graphic-shirt', name: 'Graphic Shirt', emoji: '👕', colorable: true },
+  // More conceptual options (mapped to existing DiceBear types)
+  { id: 'polo-shirt', name: 'Polo Shirt', emoji: '👕', colorable: true },
+  { id: 'blazer', name: 'Blazer', emoji: '👔', colorable: true },
+  { id: 'cardigan', name: 'Cardigan', emoji: '🧶', colorable: true },
+  { id: 'pullover', name: 'Pullover', emoji: '🧶', colorable: true },
+  { id: 'long-sleeve-tshirt', name: 'Long Sleeve T-Shirt', emoji: '👕', colorable: true },
+  { id: 'crew-neck-sweater', name: 'Crew Neck Sweater', emoji: '🧶', colorable: true },
+  { id: 'turtleneck', name: 'Turtleneck', emoji: '👔', colorable: true },
 ];
 
 /**
@@ -181,6 +189,14 @@ export const CLOTHING_BOTTOMS: AssetOption[] = [
   { id: 'pants', name: 'Pants', emoji: '👖', colorable: true },
   { id: 'skirt', name: 'Skirt', emoji: '👗', colorable: true },
   { id: 'dress', name: 'Dress', emoji: '👗', colorable: true },
+  // Additional bottom options (custom renderer only)
+  { id: 'leggings', name: 'Leggings', emoji: '👖', colorable: true },
+  { id: 'sweatpants', name: 'Sweatpants', emoji: '👖', colorable: true },
+  { id: 'cargo-pants', name: 'Cargo Pants', emoji: '👖', colorable: true },
+  { id: 'capri-pants', name: 'Capri Pants', emoji: '👖', colorable: true },
+  { id: 'mini-skirt', name: 'Mini Skirt', emoji: '👗', colorable: true },
+  { id: 'maxi-dress', name: 'Maxi Dress', emoji: '👗', colorable: true },
+  { id: 'jumpsuit', name: 'Jumpsuit', emoji: '👔', colorable: true },
 ];
 
 /**
@@ -198,6 +214,14 @@ export const CLOTHING_OUTFITS: AssetOption[] = [
   { id: 'casual', name: 'Casual', emoji: '👕', colorable: true },
   { id: 'formal', name: 'Formal', emoji: '👔', colorable: true },
   { id: 'overall', name: 'Overall', emoji: '👔', colorable: true },
+  // Additional outfit options (mapped to existing DiceBear types)
+  { id: 'business-casual', name: 'Business Casual', emoji: '👔', colorable: true },
+  { id: 'workout', name: 'Workout', emoji: '🎽', colorable: true },
+  { id: 'professional', name: 'Professional', emoji: '🤵', colorable: true },
+  { id: 'athletic', name: 'Athletic', emoji: '👕', colorable: true },
+  { id: 'winter', name: 'Winter', emoji: '🧥', colorable: true },
+  { id: 'sporty', name: 'Sporty', emoji: '👕', colorable: true },
+  { id: 'business', name: 'Business', emoji: '👔', colorable: true },
 ];
 
 /**

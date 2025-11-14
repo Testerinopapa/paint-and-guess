@@ -14,15 +14,48 @@ function isValidSkinTone(tone: string): boolean {
     return true;
   }
   // Check if it's a valid preset
-  const validPresets = ['light', 'medium-light', 'medium', 'medium-dark', 'dark'];
+  const validPresets = [
+    'light', 
+    'medium-light', 
+    'medium', 
+    'medium-dark', 
+    'dark',
+    'deep-brown',  // Added in DiceBear selector enhancements
+    'golden',      // Added in DiceBear selector enhancements
+  ];
   return validPresets.includes(tone);
 }
 
 /**
- * Validate color format (hex)
+ * Validate color format (hex only - for clothing, etc.)
  */
 function isValidColor(color: string): boolean {
   return /^#[0-9A-F]{6}$/i.test(color);
+}
+
+/**
+ * Validate hair color format (hex color or preset ID)
+ */
+function isValidHairColor(color: string): boolean {
+  // Check if it's a hex color
+  if (/^#[0-9A-F]{6}$/i.test(color)) {
+    return true;
+  }
+  // Also accept preset IDs for hair colors
+  // This allows preset hair colors like 'black', 'brown', 'blonde', etc.
+  const validHairColorPresets = [
+    'black',
+    'brown',
+    'blonde',
+    'red',
+    'gray',
+    'white',
+    'auburn',      // Added in DiceBear selector enhancements
+    'platinum',    // Added in DiceBear selector enhancements
+    'dark-brown',  // Added in DiceBear selector enhancements
+    'light-brown', // Added in DiceBear selector enhancements
+  ];
+  return validHairColorPresets.includes(color);
 }
 
 /**
@@ -50,7 +83,9 @@ export function validateAvatarConfig(config: unknown): config is AvatarConfig {
   // Validate hair
   if (!c.hair || typeof c.hair !== 'object') return false;
   if (!c.hair.style || typeof c.hair.style !== 'string') return false;
-  if (!isValidColor(c.hair.color)) return false;
+  // Hair color can be hex or preset ID
+  if (!c.hair.color || typeof c.hair.color !== 'string') return false;
+  if (!isValidHairColor(c.hair.color)) return false;
 
   // Validate clothes
   if (!c.clothes || typeof c.clothes !== 'object') return false;
@@ -80,7 +115,7 @@ export function sanitizeAvatarConfig(config: any): AvatarConfig {
     skinTone: isValidSkinTone(config.skinTone) ? config.skinTone : DEFAULT_AVATAR_CONFIG.skinTone,
     hair: {
       style: typeof config.hair?.style === 'string' ? config.hair.style : DEFAULT_AVATAR_CONFIG.hair.style,
-      color: isValidColor(config.hair?.color) ? config.hair.color : DEFAULT_AVATAR_CONFIG.hair.color,
+      color: isValidHairColor(config.hair?.color) ? config.hair.color : DEFAULT_AVATAR_CONFIG.hair.color,
     },
     clothes: {
       top: config.clothes?.top || null,

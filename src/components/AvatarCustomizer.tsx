@@ -340,6 +340,7 @@ export function AvatarCustomizer({
                 <TabsContent value="clothes" className="mt-0">
                   <ClothesSelector
                     config={config}
+                    renderer="dicebear"
                     onUpdate={(updates) =>
                       updateConfig((prev) => ({ clothes: { ...prev.clothes, ...updates } }))
                     }
