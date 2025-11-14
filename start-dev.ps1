@@ -1,6 +1,13 @@
-# PowerShell script to start frontend and backend development servers
+# PowerShell script to start frontend, backend, and DiceBear API servers
 Write-Host "Starting Paint & Guess development servers..." -ForegroundColor Green
 Write-Host ""
+
+# Start DiceBear API server in a new window
+Write-Host "Starting DiceBear API server..." -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd api; npm run dev"
+
+# Wait a moment for API server to start
+Start-Sleep -Seconds 2
 
 # Start backend server in a new window
 Write-Host "Starting backend server..." -ForegroundColor Cyan
@@ -45,8 +52,12 @@ if (-not $chromiumFound) {
 }
 
 Write-Host ""
-Write-Host "Both servers are starting in separate windows." -ForegroundColor Green
+Write-Host "All servers are starting in separate windows." -ForegroundColor Green
+Write-Host "DiceBear API: http://localhost:3000" -ForegroundColor Yellow
 Write-Host "Backend: http://localhost:3001" -ForegroundColor Yellow
 Write-Host "Frontend: http://localhost:8080" -ForegroundColor Yellow
 Write-Host "Browser should open automatically!" -ForegroundColor Green
+Write-Host ""
+Write-Host "Note: Frontend will use hosted DiceBear API by default." -ForegroundColor Cyan
+Write-Host "Set VITE_DICEBEAR_API_URL=http://localhost:3000 in .env to use local API." -ForegroundColor Cyan
 

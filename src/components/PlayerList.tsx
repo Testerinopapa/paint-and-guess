@@ -1,11 +1,11 @@
 import { useGame } from "@/contexts/GameContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Users, Trophy, Pencil } from "lucide-react";
 import { getAvatarEmoji, DEFAULT_AVATAR } from "@/lib/avatars";
 import { AvatarConfig, decodeAvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
-import { AvatarPreview } from "./avatar/preview";
+import { getDiceBearAvatarUrl, getDiceBearAvatarUrlFromSeed } from "@/lib/avatar/dicebear/api";
 
 export function PlayerList() {
   const { gameState } = useGame();
@@ -30,27 +30,59 @@ export function PlayerList() {
                   <Pencil className="w-4 h-4 text-primary" />
                 )}
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="text-lg bg-transparent p-0">
-                    {(() => {
-                      // Check if avatar is a config object (new format) or string (old format)
-                      if (!player.avatar) {
-                        return <span>{getAvatarEmoji(DEFAULT_AVATAR.id)}</span>;
+                  {(() => {
+                    // Check if avatar is a config object (new format) or string (old format)
+                    if (!player.avatar) {
+                      // No avatar - use default emoji
+                      const defaultUrl = getDiceBearAvatarUrlFromSeed(DEFAULT_AVATAR.id, { format: 'png', size: 32 });
+                      return (
+                        <>
+                          <AvatarImage src={defaultUrl} alt={player.name} />
+                          <AvatarFallback className="text-lg bg-transparent p-0">
+                            <span>{getAvatarEmoji(DEFAULT_AVATAR.id)}</span>
+                          </AvatarFallback>
+                        </>
+                      );
+                    }
+                    
+                    if (typeof player.avatar === 'string') {
+                      // Try to decode as JSON config
+                      const decoded = decodeAvatarConfig(player.avatar);
+                      if (decoded) {
+                        // New format - use DiceBear API
+                        const avatarUrl = getDiceBearAvatarUrl(decoded, { format: 'png', size: 32 });
+                        return (
+                          <>
+                            <AvatarImage src={avatarUrl} alt={player.name} />
+                            <AvatarFallback className="text-lg bg-transparent p-0">
+                              <span>{getAvatarEmoji(DEFAULT_AVATAR.id)}</span>
+                            </AvatarFallback>
+                          </>
+                        );
                       }
-                      
-                      if (typeof player.avatar === 'string') {
-                        // Try to decode as JSON config, fallback to emoji ID
-                        const decoded = decodeAvatarConfig(player.avatar);
-                        if (decoded) {
-                          return <AvatarPreview config={decoded} size={32} />;
-                        }
-                        // Old emoji format - fallback to emoji
-                        return <span>{getAvatarEmoji(player.avatar)}</span>;
-                      }
-                      
-                      // Already an AvatarConfig object
-                      return <AvatarPreview config={player.avatar} size={32} />;
-                    })()}
-                  </AvatarFallback>
+                      // Old emoji format - use seed-based generation
+                      const avatarUrl = getDiceBearAvatarUrlFromSeed(player.avatar, { format: 'png', size: 32 });
+                      return (
+                        <>
+                          <AvatarImage src={avatarUrl} alt={player.name} />
+                          <AvatarFallback className="text-lg bg-transparent p-0">
+                            <span>{getAvatarEmoji(player.avatar)}</span>
+                          </AvatarFallback>
+                        </>
+                      );
+                    }
+                    
+                    // Already an AvatarConfig object - use DiceBear API
+                    const avatarUrl = getDiceBearAvatarUrl(player.avatar, { format: 'png', size: 32 });
+                    return (
+                      <>
+                        <AvatarImage src={avatarUrl} alt={player.name} />
+                        <AvatarFallback className="text-lg bg-transparent p-0">
+                          <span>{getAvatarEmoji(DEFAULT_AVATAR.id)}</span>
+                        </AvatarFallback>
+                      </>
+                    );
+                  })()}
                 </Avatar>
                 <span className="font-medium">{player.name}</span>
               </div>

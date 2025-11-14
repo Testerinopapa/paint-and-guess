@@ -8,4 +8,5 @@
 
 export { AvatarPreview } from './AvatarPreview';
 export { AvatarPreviewSVG } from './AvatarPreviewSVG';
+export { AvatarPreviewDiceBear } from './AvatarPreviewDiceBear';
 
