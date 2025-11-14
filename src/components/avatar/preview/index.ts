@@ -7,4 +7,5 @@
  */
 
 export { AvatarPreview } from './AvatarPreview';
+export { AvatarPreviewSVG } from './AvatarPreviewSVG';
 

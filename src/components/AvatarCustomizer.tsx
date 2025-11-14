@@ -19,7 +19,6 @@ import {
   ClothesSelector,
   AccessoriesSelector,
   FaceSelector,
-  BodySelector,
 } from "./avatar/categories";
 import { Shuffle, RotateCcw } from "lucide-react";
 import { getAssetsByCategory } from "@/lib/avatar/categories/assets";
@@ -46,6 +45,9 @@ export function AvatarCustomizer({
     }
     return sanitizeAvatarConfig(loaded);
   });
+
+  // Track active category tab for category-aware emoji display
+  const [activeCategory, setActiveCategory] = useState<string>('skin');
 
   // Use immediate config for live preview sync (no debounce for better UX)
   // The preview will update instantly as users make selections
@@ -86,10 +88,12 @@ export function AvatarCustomizer({
     }
   }, [initialConfig, open]);
 
-  const updateConfig = useCallback((updates: Partial<AvatarConfig>) => {
+  const updateConfig = useCallback((updates: Partial<AvatarConfig> | ((prev: AvatarConfig) => Partial<AvatarConfig>)) => {
     console.debug('[AvatarCustomizer] updateConfig called', { updates });
     setConfig((prev) => {
-      const updated = { ...prev, ...updates };
+      // Handle function updates (for nested object updates)
+      const updateData = typeof updates === 'function' ? updates(prev) : updates;
+      const updated = { ...prev, ...updateData };
       
       // Validate before updating
       if (!validateAvatarConfig(updated)) {
@@ -104,7 +108,7 @@ export function AvatarCustomizer({
       console.debug('[AvatarCustomizer] Config updated', { 
         oldId: prev.id, 
         newId: updated.id,
-        changes: Object.keys(updates)
+        changes: Object.keys(updateData)
       });
       return updated;
     });
@@ -259,7 +263,7 @@ export function AvatarCustomizer({
           {/* Left Side - Preview */}
             <div className="w-[300px] flex-shrink-0 flex flex-col gap-4">
             <div className="flex-1 flex items-center justify-center bg-muted rounded-lg p-4">
-              <AvatarPreview config={config} size={200} />
+              <AvatarPreview config={config} size={200} activeCategory={activeCategory} />
             </div>
 
             <div className="space-y-2">
@@ -303,15 +307,15 @@ export function AvatarCustomizer({
                   tab: value,
                   currentConfigId: config.id 
                 });
+                setActiveCategory(value);
               }}
             >
-              <TabsList className="grid w-full grid-cols-6 mb-4">
+              <TabsList className="grid w-full grid-cols-5 mb-4">
                 <TabsTrigger value="skin">Skin</TabsTrigger>
+                <TabsTrigger value="hair">Hair</TabsTrigger>
                 <TabsTrigger value="clothes">Clothes</TabsTrigger>
                 <TabsTrigger value="accessories">Accessories</TabsTrigger>
-                <TabsTrigger value="hair">Hair</TabsTrigger>
                 <TabsTrigger value="face">Face</TabsTrigger>
-                <TabsTrigger value="body">Body</TabsTrigger>
               </TabsList>
 
               <div className="flex-1 overflow-y-auto pr-2">
@@ -322,11 +326,20 @@ export function AvatarCustomizer({
                   />
                 </TabsContent>
 
+                <TabsContent value="hair" className="mt-0">
+                  <HairSelector
+                    config={config}
+                    onUpdate={(updates) =>
+                      updateConfig((prev) => ({ hair: { ...prev.hair, ...updates } }))
+                    }
+                  />
+                </TabsContent>
+
                 <TabsContent value="clothes" className="mt-0">
                   <ClothesSelector
                     config={config}
                     onUpdate={(updates) =>
-                      updateConfig({ clothes: { ...config.clothes, ...updates } })
+                      updateConfig((prev) => ({ clothes: { ...prev.clothes, ...updates } }))
                     }
                   />
                 </TabsContent>
@@ -335,18 +348,9 @@ export function AvatarCustomizer({
                   <AccessoriesSelector
                     config={config}
                     onUpdate={(updates) =>
-                      updateConfig({
-                        accessories: { ...config.accessories, ...updates },
-                      })
-                    }
-                  />
-                </TabsContent>
-
-                <TabsContent value="hair" className="mt-0">
-                  <HairSelector
-                    config={config}
-                    onUpdate={(updates) =>
-                      updateConfig({ hair: { ...config.hair, ...updates } })
+                      updateConfig((prev) => ({
+                        accessories: { ...prev.accessories, ...updates },
+                      }))
                     }
                   />
                 </TabsContent>
@@ -355,16 +359,7 @@ export function AvatarCustomizer({
                   <FaceSelector
                     config={config}
                     onUpdate={(updates) =>
-                      updateConfig({ face: { ...config.face, ...updates } })
-                    }
-                  />
-                </TabsContent>
-
-                <TabsContent value="body" className="mt-0">
-                  <BodySelector
-                    config={config}
-                    onUpdate={(updates) =>
-                      updateConfig({ body: { ...config.body, ...updates } })
+                      updateConfig((prev) => ({ face: { ...prev.face, ...updates } }))
                     }
                   />
                 </TabsContent>

@@ -209,8 +209,6 @@ export const ACCESSORY_OTHER: AssetOption[] = [
 export const FACE_EYES: AssetOption[] = [
   { id: 'default', name: 'Default', emoji: '👁️' },
   { id: 'happy', name: 'Happy', emoji: '😊' },
-  { id: 'wink', name: 'Wink', emoji: '😉' },
-  { id: 'sleepy', name: 'Sleepy', emoji: '😴' },
   { id: 'surprised', name: 'Surprised', emoji: '😲' },
 ];
 
@@ -223,9 +221,8 @@ export const FACE_EYES: AssetOption[] = [
  */
 export const FACE_EYEBROWS: AssetOption[] = [
   { id: 'default', name: 'Default', emoji: '🤨' },
-  { id: 'thick', name: 'Thick', emoji: '🤨' },
-  { id: 'thin', name: 'Thin', emoji: '🤨' },
-  { id: 'arched', name: 'Arched', emoji: '🤨' },
+  { id: 'raised', name: 'Raised', emoji: '🤨' },
+  { id: 'angry', name: 'Angry', emoji: '🤨' },
 ];
 
 /**
@@ -236,10 +233,9 @@ export const FACE_EYEBROWS: AssetOption[] = [
  * @constant {AssetOption[]} FACE_MOUTH
  */
 export const FACE_MOUTH: AssetOption[] = [
-  { id: 'default', name: 'Default', emoji: '😐' },
   { id: 'smile', name: 'Smile', emoji: '😊' },
-  { id: 'big-smile', name: 'Big Smile', emoji: '😃' },
   { id: 'neutral', name: 'Neutral', emoji: '😐' },
+  { id: 'laugh', name: 'Laugh', emoji: '😃' },
 ];
 
 /**

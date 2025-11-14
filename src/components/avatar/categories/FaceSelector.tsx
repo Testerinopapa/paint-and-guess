@@ -3,7 +3,6 @@ import {
   FACE_EYES,
   FACE_EYEBROWS,
   FACE_MOUTH,
-  FACE_FACIAL_HAIR,
 } from "@/lib/avatar/categories/assets";
 import { Label } from "@/components/ui/label";
 import { AvatarConfig } from "@/lib/avatar/config";
@@ -38,17 +37,6 @@ export function FaceSelector({ config, onUpdate }: FaceSelectorProps) {
     onUpdate({ mouth: id });
   };
 
-  const handleFacialHairSelect = (id: string) => {
-    const newValue = id === config.face.facialHair ? null : id;
-    console.debug('[FaceSelector] Facial hair selected', { 
-      id, 
-      previousFacialHair: config.face.facialHair,
-      newFacialHair: newValue,
-      action: newValue ? 'added' : 'removed'
-    });
-    onUpdate({ facialHair: newValue });
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -57,7 +45,7 @@ export function FaceSelector({ config, onUpdate }: FaceSelectorProps) {
           options={FACE_EYES}
           selectedId={config.face.eyes}
           onSelect={handleEyesSelect}
-          columns={5}
+          columns={3}
           category="face-eyes"
         />
       </div>
@@ -68,7 +56,7 @@ export function FaceSelector({ config, onUpdate }: FaceSelectorProps) {
           options={FACE_EYEBROWS}
           selectedId={config.face.eyebrows}
           onSelect={handleEyebrowsSelect}
-          columns={4}
+          columns={3}
           category="face-eyebrows"
         />
       </div>
@@ -79,19 +67,8 @@ export function FaceSelector({ config, onUpdate }: FaceSelectorProps) {
           options={FACE_MOUTH}
           selectedId={config.face.mouth}
           onSelect={handleMouthSelect}
-          columns={4}
+          columns={3}
           category="face-mouth"
-        />
-      </div>
-
-      <div>
-        <Label className="text-sm font-medium mb-2 block">Facial Hair</Label>
-        <OptionGrid
-          options={FACE_FACIAL_HAIR}
-          selectedId={config.face.facialHair}
-          onSelect={handleFacialHairSelect}
-          columns={4}
-          category="face-facial-hair"
         />
       </div>
     </div>

@@ -49,7 +49,7 @@ export function HairSelector({ config, onUpdate }: HairSelectorProps) {
           options={HAIR_STYLES}
           selectedId={config.hair.style}
           onSelect={handleStyleSelect}
-          columns={4}
+          columns={3}
           category="hair-style"
         />
       </div>

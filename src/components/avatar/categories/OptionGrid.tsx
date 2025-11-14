@@ -14,8 +14,8 @@ export function OptionGrid({
   options,
   selectedId,
   onSelect,
-  columns = 5,
-  showLabels = false,
+  columns = 2,
+  showLabels,
   category,
 }: OptionGridProps) {
 
@@ -29,19 +29,15 @@ export function OptionGrid({
           key={option.id}
           onClick={() => onSelect(option.id)}
           className={cn(
-            "aspect-square rounded-lg border-2 p-2 transition-all hover:scale-110 hover:border-primary flex flex-col items-center justify-center overflow-hidden",
+            "px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+            "border-2 hover:scale-105 active:scale-95",
             selectedId === option.id
-              ? "border-primary bg-primary/10"
-              : "border-border hover:bg-accent"
+              ? "bg-primary text-primary-foreground border-primary shadow-soft"
+              : "bg-card text-card-foreground border-border hover:border-primary/50"
           )}
-          title={option.name}
+          aria-pressed={selectedId === option.id}
         >
-          {option.emoji && (
-            <span className="text-3xl mb-1">{option.emoji}</span>
-          )}
-          {showLabels && (
-            <span className="text-xs text-center mt-1">{option.name}</span>
-          )}
+          {option.name}
         </button>
       ))}
     </div>

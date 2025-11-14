@@ -1,9 +1,4 @@
 import { OptionGrid } from "./OptionGrid";
-import {
-  ACCESSORY_HATS,
-  ACCESSORY_GLASSES,
-  ACCESSORY_OTHER,
-} from "@/lib/avatar/categories/assets";
 import { Label } from "@/components/ui/label";
 import { AvatarConfig } from "@/lib/avatar/config";
 
@@ -12,81 +7,64 @@ interface AccessoriesSelectorProps {
   onUpdate: (updates: Partial<AvatarConfig['accessories']>) => void;
 }
 
+// Simplified accessory options matching reference
+const ACCESSORY_OPTIONS = [
+  { id: 'none', name: 'None', emoji: '' },
+  { id: 'glasses', name: 'Glasses', emoji: '👓' },
+  { id: 'hat', name: 'Hat', emoji: '🎩' },
+  { id: 'earrings', name: 'Earrings', emoji: '💍' },
+];
+
 export function AccessoriesSelector({ config, onUpdate }: AccessoriesSelectorProps) {
-  const handleHatSelect = (id: string) => {
-    const newValue = id === config.accessories.hat ? null : id;
-    console.debug('[AccessoriesSelector] Hat selected', { 
-      id, 
-      previousHat: config.accessories.hat,
-      newHat: newValue,
-      action: newValue ? 'added' : 'removed'
-    });
-    onUpdate({ hat: newValue });
+  // Determine current accessory type
+  const getCurrentAccessory = (): string => {
+    if (config.accessories.glasses) return 'glasses';
+    if (config.accessories.hat) return 'hat';
+    // Check if earrings is in other array
+    if (config.accessories.other && config.accessories.other.includes('earrings')) {
+      return 'earrings';
+    }
+    return 'none';
   };
 
-  const handleGlassesSelect = (id: string) => {
-    const newValue = id === config.accessories.glasses ? null : id;
-    console.debug('[AccessoriesSelector] Glasses selected', { 
+  const handleAccessorySelect = (id: string) => {
+    const newValue = id === getCurrentAccessory() ? 'none' : id;
+    
+    console.debug('[AccessoriesSelector] Accessory selected', { 
       id, 
-      previousGlasses: config.accessories.glasses,
-      newGlasses: newValue,
-      action: newValue ? 'added' : 'removed'
+      newValue,
+      previous: getCurrentAccessory()
     });
-    onUpdate({ glasses: newValue });
-  };
 
-  const handleOtherSelect = (id: string) => {
-    const current = config.accessories.other || [];
-    const updated = current.includes(id)
-      ? current.filter((item) => item !== id)
-      : [...current, id];
-    console.debug('[AccessoriesSelector] Other accessory selected', { 
-      id, 
-      previousOther: current,
-      newOther: updated,
-      action: current.includes(id) ? 'removed' : 'added'
-    });
-    onUpdate({ other: updated });
+    // Clear all accessories first
+    const updates: Partial<AvatarConfig['accessories']> = {
+      hat: null,
+      glasses: null,
+      other: [],
+    };
+
+    // Set the selected accessory
+    if (newValue === 'glasses') {
+      updates.glasses = 'regular'; // Use a default glasses ID
+    } else if (newValue === 'hat') {
+      updates.hat = 'cap'; // Use a default hat ID
+    } else if (newValue === 'earrings') {
+      updates.other = ['earrings'];
+    }
+
+    onUpdate(updates);
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Label className="text-sm font-medium mb-2 block">Hats</Label>
-        <OptionGrid
-          options={ACCESSORY_HATS}
-          selectedId={config.accessories.hat}
-          onSelect={handleHatSelect}
-          columns={5}
-          category="accessory-hat"
-        />
-      </div>
-
-      <div>
-        <Label className="text-sm font-medium mb-2 block">Glasses</Label>
-        <OptionGrid
-          options={ACCESSORY_GLASSES}
-          selectedId={config.accessories.glasses}
-          onSelect={handleGlassesSelect}
-          columns={5}
-          category="accessory-glasses"
-        />
-      </div>
-
-      <div>
-        <Label className="text-sm font-medium mb-2 block">Other Accessories</Label>
-        <OptionGrid
-          options={ACCESSORY_OTHER}
-          selectedId={null}
-          onSelect={handleOtherSelect}
-          columns={5}
-        />
-        {config.accessories.other && config.accessories.other.length > 0 && (
-          <div className="mt-2 text-xs text-muted-foreground">
-            Selected: {config.accessories.other.join(", ")}
-          </div>
-        )}
-      </div>
+    <div className="space-y-3">
+      <Label className="text-sm font-medium">Accessory</Label>
+      <OptionGrid
+        options={ACCESSORY_OPTIONS}
+        selectedId={getCurrentAccessory()}
+        onSelect={handleAccessorySelect}
+        columns={2}
+        category="accessory"
+      />
     </div>
   );
 }

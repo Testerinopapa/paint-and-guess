@@ -137,7 +137,7 @@ export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
   face: {
     eyes: 'default',
     eyebrows: 'default',
-    mouth: 'default',
+    mouth: 'smile',
     facialHair: null,
   },
   body: {
