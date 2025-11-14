@@ -39,6 +39,8 @@ export const SKIN_TONE_PRESETS: AssetOption[] = [
   { id: 'medium', name: 'Medium', emoji: '👨', colorable: true },
   { id: 'medium-dark', name: 'Medium Dark', emoji: '👩', colorable: true },
   { id: 'dark', name: 'Dark', emoji: '👴', colorable: true },
+  { id: 'deep-brown', name: 'Deep Brown', emoji: '👴', colorable: true },
+  { id: 'golden', name: 'Golden', emoji: '👨', colorable: true },
 ];
 
 /**
@@ -55,6 +57,8 @@ export const SKIN_TONE_COLORS: Record<string, string> = {
   medium: '#E0AC69',
   'medium-dark': '#C68642',
   dark: '#8D5524',
+  'deep-brown': '#614335',
+  golden: '#F8D25C',
 };
 
 /**
@@ -74,6 +78,35 @@ export const HAIR_STYLES: AssetOption[] = [
   { id: 'bald', name: 'Bald', emoji: '👨‍🦲' },
   { id: 'bun', name: 'Bun', emoji: '👩‍🦰' },
   { id: 'ponytail', name: 'Ponytail', emoji: '👱‍♀️' },
+  // Additional DiceBear hair styles
+  { id: 'bob', name: 'Bob', emoji: '👩' },
+  { id: 'fro', name: 'Afro', emoji: '👨‍🦱' },
+  { id: 'fro-band', name: 'Afro with Band', emoji: '👨‍🦱' },
+  { id: 'dreads', name: 'Dreadlocks', emoji: '👨' },
+  { id: 'dreads01', name: 'Dreadlocks 1', emoji: '👨' },
+  { id: 'dreads02', name: 'Dreadlocks 2', emoji: '👨' },
+  { id: 'shaggy', name: 'Shaggy', emoji: '👨' },
+  { id: 'shaggy-mullet', name: 'Shaggy Mullet', emoji: '👨' },
+  { id: 'straight01', name: 'Straight 1', emoji: '👩' },
+  { id: 'straight02', name: 'Straight 2', emoji: '👩' },
+  { id: 'straight-and-strand', name: 'Straight & Strand', emoji: '👩' },
+  { id: 'frizzle', name: 'Frizzle', emoji: '👩' },
+  { id: 'short-curly', name: 'Short Curly', emoji: '👨' },
+  { id: 'short-flat', name: 'Short Flat', emoji: '👨' },
+  { id: 'short-round', name: 'Short Round', emoji: '👨' },
+  { id: 'short-waved', name: 'Short Waved', emoji: '👨' },
+  { id: 'sides', name: 'Sides', emoji: '👨' },
+  { id: 'the-caesar', name: 'Caesar', emoji: '👨' },
+  { id: 'the-caesar-and-side-part', name: 'Caesar Side Part', emoji: '👨' },
+  { id: 'big-hair', name: 'Big Hair', emoji: '👩' },
+  { id: 'curvy', name: 'Curvy', emoji: '👩' },
+  { id: 'long-but-not-too-long', name: 'Long (Not Too Long)', emoji: '👩' },
+  { id: 'mia-wallace', name: 'Mia Wallace', emoji: '👩' },
+  { id: 'shaved-sides', name: 'Shaved Sides', emoji: '👨' },
+  { id: 'frida', name: 'Frida', emoji: '👩' },
+  // Head coverings (also in hats, but can be selected as hair style)
+  { id: 'hijab', name: 'Hijab', emoji: '🧕' },
+  { id: 'turban', name: 'Turban', emoji: '👳' },
 ];
 
 /**
@@ -90,6 +123,10 @@ export const HAIR_COLORS: AssetOption[] = [
   { id: 'red', name: 'Red', colorable: true },
   { id: 'gray', name: 'Gray', colorable: true },
   { id: 'white', name: 'White', colorable: true },
+  { id: 'auburn', name: 'Auburn', colorable: true },
+  { id: 'platinum', name: 'Platinum', colorable: true },
+  { id: 'dark-brown', name: 'Dark Brown', colorable: true },
+  { id: 'light-brown', name: 'Light Brown', colorable: true },
 ];
 
 /**
@@ -106,6 +143,10 @@ export const HAIR_COLOR_VALUES: Record<string, string> = {
   red: '#A0522D',
   gray: '#808080',
   white: '#FFFFFF',
+  auburn: '#A55728',
+  platinum: '#E8E1E1',
+  'dark-brown': '#2C1B18',
+  'light-brown': '#B58143',
 };
 
 /**
@@ -122,6 +163,9 @@ export const CLOTHING_TOPS: AssetOption[] = [
   { id: 'jacket', name: 'Jacket', emoji: '🧥', colorable: true },
   { id: 'hoodie', name: 'Hoodie', emoji: '🧥', colorable: true },
   { id: 'sweater', name: 'Sweater', emoji: '🧶', colorable: true },
+  // Additional DiceBear clothing options
+  { id: 'shirt-vneck', name: 'V-Neck Shirt', emoji: '👕', colorable: true },
+  { id: 'graphic-shirt', name: 'Graphic Shirt', emoji: '👕', colorable: true },
 ];
 
 /**
@@ -153,6 +197,7 @@ export const CLOTHING_OUTFITS: AssetOption[] = [
   { id: 'costume', name: 'Costume', emoji: '🎭', colorable: true },
   { id: 'casual', name: 'Casual', emoji: '👕', colorable: true },
   { id: 'formal', name: 'Formal', emoji: '👔', colorable: true },
+  { id: 'overall', name: 'Overall', emoji: '👔', colorable: true },
 ];
 
 /**
@@ -169,6 +214,13 @@ export const ACCESSORY_HATS: AssetOption[] = [
   { id: 'helmet', name: 'Helmet', emoji: '⛑️' },
   { id: 'graduation-cap', name: 'Graduation Cap', emoji: '🎓' },
   { id: 'crown', name: 'Crown', emoji: '👑' },
+  // Additional DiceBear hat options
+  { id: 'winter-hat1', name: 'Winter Hat 1', emoji: '🧢' },
+  { id: 'winter-hat02', name: 'Winter Hat 2', emoji: '🧢' },
+  { id: 'winter-hat03', name: 'Winter Hat 3', emoji: '🧢' },
+  { id: 'winter-hat04', name: 'Winter Hat 4', emoji: '🧢' },
+  { id: 'hijab', name: 'Hijab', emoji: '🧕' },
+  { id: 'turban', name: 'Turban', emoji: '👳' },
 ];
 
 /**
@@ -183,6 +235,13 @@ export const ACCESSORY_GLASSES: AssetOption[] = [
   { id: 'sunglasses', name: 'Sunglasses', emoji: '🕶️' },
   { id: 'goggles', name: 'Goggles', emoji: '🥽' },
   { id: 'monocle', name: 'Monocle', emoji: '🧐' },
+  // Additional DiceBear glasses options
+  { id: 'prescription01', name: 'Prescription 1', emoji: '👓' },
+  { id: 'prescription02', name: 'Prescription 2', emoji: '👓' },
+  { id: 'round', name: 'Round', emoji: '👓' },
+  { id: 'wayfarers', name: 'Wayfarers', emoji: '🕶️' },
+  { id: 'kurt', name: 'Kurt', emoji: '🥽' },
+  { id: 'eyepatch', name: 'Eyepatch', emoji: '👁️' },
 ];
 
 /**
@@ -210,6 +269,16 @@ export const FACE_EYES: AssetOption[] = [
   { id: 'default', name: 'Default', emoji: '👁️' },
   { id: 'happy', name: 'Happy', emoji: '😊' },
   { id: 'surprised', name: 'Surprised', emoji: '😲' },
+  // Additional DiceBear eye options
+  { id: 'closed', name: 'Closed', emoji: '😴' },
+  { id: 'cry', name: 'Cry', emoji: '😢' },
+  { id: 'eye-roll', name: 'Eye Roll', emoji: '🙄' },
+  { id: 'hearts', name: 'Hearts', emoji: '😍' },
+  { id: 'side', name: 'Side', emoji: '👀' },
+  { id: 'squint', name: 'Squint', emoji: '😑' },
+  { id: 'wink', name: 'Wink', emoji: '😉' },
+  { id: 'wink-wacky', name: 'Wink Wacky', emoji: '😜' },
+  { id: 'x-dizzy', name: 'XDizzy', emoji: '😵' },
 ];
 
 /**
@@ -223,6 +292,18 @@ export const FACE_EYEBROWS: AssetOption[] = [
   { id: 'default', name: 'Default', emoji: '🤨' },
   { id: 'raised', name: 'Raised', emoji: '🤨' },
   { id: 'angry', name: 'Angry', emoji: '🤨' },
+  // Additional DiceBear eyebrow options
+  { id: 'angry-natural', name: 'Angry Natural', emoji: '🤨' },
+  { id: 'default-natural', name: 'Default Natural', emoji: '🤨' },
+  { id: 'flat-natural', name: 'Flat Natural', emoji: '🤨' },
+  { id: 'frown-natural', name: 'Frown Natural', emoji: '🤨' },
+  { id: 'raised-excited', name: 'Raised Excited', emoji: '🤨' },
+  { id: 'raised-excited-natural', name: 'Raised Excited Natural', emoji: '🤨' },
+  { id: 'sad-concerned', name: 'Sad Concerned', emoji: '🤨' },
+  { id: 'sad-concerned-natural', name: 'Sad Concerned Natural', emoji: '🤨' },
+  { id: 'unibrow-natural', name: 'Unibrow Natural', emoji: '🤨' },
+  { id: 'up-down', name: 'Up Down', emoji: '🤨' },
+  { id: 'up-down-natural', name: 'Up Down Natural', emoji: '🤨' },
 ];
 
 /**
@@ -236,6 +317,18 @@ export const FACE_MOUTH: AssetOption[] = [
   { id: 'smile', name: 'Smile', emoji: '😊' },
   { id: 'neutral', name: 'Neutral', emoji: '😐' },
   { id: 'laugh', name: 'Laugh', emoji: '😃' },
+  // Additional DiceBear mouth options
+  { id: 'concerned', name: 'Concerned', emoji: '😟' },
+  { id: 'default', name: 'Default', emoji: '😐' },
+  { id: 'disbelief', name: 'Disbelief', emoji: '😲' },
+  { id: 'eating', name: 'Eating', emoji: '😋' },
+  { id: 'grimace', name: 'Grimace', emoji: '😬' },
+  { id: 'sad', name: 'Sad', emoji: '😢' },
+  { id: 'scream-open', name: 'Scream Open', emoji: '😱' },
+  { id: 'serious', name: 'Serious', emoji: '😐' },
+  { id: 'tongue', name: 'Tongue', emoji: '😛' },
+  { id: 'twinkle', name: 'Twinkle', emoji: '😊' },
+  { id: 'vomit', name: 'Vomit', emoji: '🤮' },
 ];
 
 /**
@@ -250,6 +343,12 @@ export const FACE_FACIAL_HAIR: AssetOption[] = [
   { id: 'mustache', name: 'Mustache', emoji: '👨' },
   { id: 'beard', name: 'Beard', emoji: '🧔' },
   { id: 'goatee', name: 'Goatee', emoji: '👨' },
+  // Additional DiceBear facial hair options
+  { id: 'beard-light', name: 'Beard Light', emoji: '🧔' },
+  { id: 'beard-majestic', name: 'Beard Majestic', emoji: '🧔' },
+  { id: 'beard-medium', name: 'Beard Medium', emoji: '🧔' },
+  { id: 'moustache-fancy', name: 'Moustache Fancy', emoji: '👨' },
+  { id: 'moustache-magnum', name: 'Moustache Magnum', emoji: '👨' },
 ];
 
 /**
@@ -279,6 +378,71 @@ export const BODY_SIZES: Array<{ id: string; name: string }> = [
   { id: 'medium', name: 'Medium' },
   { id: 'large', name: 'Large' },
 ];
+
+/**
+ * DiceBear-only: Clothing graphics
+ * 
+ * Graphics that can be applied to graphic shirts.
+ * Only available when using DiceBear renderer.
+ * 
+ * @constant {AssetOption[]} CLOTHING_GRAPHICS
+ */
+export const CLOTHING_GRAPHICS: AssetOption[] = [
+  { id: 'bat', name: 'Bat', emoji: '🦇' },
+  { id: 'bear', name: 'Bear', emoji: '🐻' },
+  { id: 'cumbia', name: 'Cumbia', emoji: '🎵' },
+  { id: 'deer', name: 'Deer', emoji: '🦌' },
+  { id: 'diamond', name: 'Diamond', emoji: '💎' },
+  { id: 'hola', name: 'Hola', emoji: '👋' },
+  { id: 'pizza', name: 'Pizza', emoji: '🍕' },
+  { id: 'resist', name: 'Resist', emoji: '✊' },
+  { id: 'skull', name: 'Skull', emoji: '💀' },
+  { id: 'skull-outline', name: 'Skull Outline', emoji: '💀' },
+];
+
+/**
+ * DiceBear-only: Background style
+ * 
+ * Avatar background shape/style options.
+ * Only available when using DiceBear renderer.
+ * 
+ * @constant {AssetOption[]} BACKGROUND_STYLES
+ */
+export const BACKGROUND_STYLES: AssetOption[] = [
+  { id: 'default', name: 'Square', emoji: '⬜' },
+  { id: 'circle', name: 'Circle', emoji: '⭕' },
+];
+
+/**
+ * DiceBear-only: Background colors
+ * 
+ * Quick-select background color presets.
+ * Only available when using DiceBear renderer.
+ * 
+ * @constant {AssetOption[]} BACKGROUND_COLORS
+ */
+export const BACKGROUND_COLORS: AssetOption[] = [
+  { id: 'transparent', name: 'Transparent', emoji: '⬜', colorable: true },
+  { id: 'blue', name: 'Blue', emoji: '🔵', colorable: true },
+  { id: 'light-blue', name: 'Light Blue', emoji: '🔵', colorable: true },
+  { id: 'dark-blue', name: 'Dark Blue', emoji: '🔵', colorable: true },
+  { id: 'gray', name: 'Gray', emoji: '⚪', colorable: true },
+  { id: 'white', name: 'White', emoji: '⚪', colorable: true },
+];
+
+/**
+ * Color values for background color presets
+ * 
+ * @constant {Record<string, string>} BACKGROUND_COLOR_VALUES
+ */
+export const BACKGROUND_COLOR_VALUES: Record<string, string> = {
+  transparent: 'transparent',
+  blue: '65c9ff',
+  'light-blue': 'b1e2ff',
+  'dark-blue': '25557c',
+  gray: '929598',
+  white: 'ffffff',
+};
 
 /**
  * Get asset option by ID from a category array
@@ -329,6 +493,8 @@ export function getAssetsByCategory(category: string): AssetOption[] {
       return CLOTHING_BOTTOMS;
     case 'clothing-outfit':
       return CLOTHING_OUTFITS;
+    case 'clothing-graphic':
+      return CLOTHING_GRAPHICS;
     case 'accessory-hat':
       return ACCESSORY_HATS;
     case 'accessory-glasses':
@@ -345,6 +511,10 @@ export function getAssetsByCategory(category: string): AssetOption[] {
       return FACE_FACIAL_HAIR;
     case 'body-shape':
       return BODY_SHAPES;
+    case 'background-style':
+      return BACKGROUND_STYLES;
+    case 'background-color':
+      return BACKGROUND_COLORS;
     default:
       return [];
   }

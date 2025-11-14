@@ -3,13 +3,18 @@ import { BODY_SHAPES, BODY_SIZES } from "@/lib/avatar/categories/assets";
 import { Label } from "@/components/ui/label";
 import { AvatarConfig } from "@/lib/avatar/config";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface BodySelectorProps {
   config: AvatarConfig;
   onUpdate: (updates: Partial<AvatarConfig['body']>) => void;
+  renderer?: 'dicebear' | 'custom';
 }
 
-export function BodySelector({ config, onUpdate }: BodySelectorProps) {
+export function BodySelector({ config, onUpdate, renderer = 'dicebear' }: BodySelectorProps) {
+  const isDiceBear = renderer === 'dicebear';
+
   const handleShapeSelect = (id: string) => {
     console.debug('[BodySelector] Shape selected', { 
       id, 
@@ -25,6 +30,18 @@ export function BodySelector({ config, onUpdate }: BodySelectorProps) {
     });
     onUpdate({ size });
   };
+
+  if (isDiceBear) {
+    return (
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          Body shape and size customization is only available with the custom renderer.
+          DiceBear avatars use a standard body shape.
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">

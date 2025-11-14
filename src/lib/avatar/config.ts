@@ -80,6 +80,22 @@ export interface AvatarBody {
 }
 
 /**
+ * DiceBear-only customization options
+ * 
+ * These options are only available when using DiceBear renderer.
+ * 
+ * @interface DiceBearOptions
+ * @property {string | null} clothingGraphic - Graphic to apply to graphic shirts (e.g., 'bat', 'pizza')
+ * @property {'default' | 'circle'} backgroundStyle - Background shape style
+ * @property {string | null} backgroundColor - Background color as hex or preset ID
+ */
+export interface DiceBearOptions {
+  clothingGraphic: string | null;
+  backgroundStyle: 'default' | 'circle';
+  backgroundColor: string | null;
+}
+
+/**
  * Complete avatar configuration
  * 
  * Contains all customization options for a player's avatar.
@@ -94,6 +110,7 @@ export interface AvatarBody {
  * @property {AvatarAccessories} accessories - Accessories customization options
  * @property {AvatarFace} face - Facial features customization options
  * @property {AvatarBody} body - Body shape and size customization options
+ * @property {DiceBearOptions} [dicebear] - DiceBear-only options (optional, only used with DiceBear renderer)
  */
 export interface AvatarConfig {
   id: string;
@@ -104,6 +121,7 @@ export interface AvatarConfig {
   accessories: AvatarAccessories;
   face: AvatarFace;
   body: AvatarBody;
+  dicebear?: DiceBearOptions; // Optional DiceBear-only features
 }
 
 /**
@@ -143,6 +161,11 @@ export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
   body: {
     shape: 'average',
     size: 'medium',
+  },
+  dicebear: {
+    clothingGraphic: null,
+    backgroundStyle: 'default',
+    backgroundColor: null,
   },
 };
 

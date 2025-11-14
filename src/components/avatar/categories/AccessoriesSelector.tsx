@@ -1,70 +1,113 @@
 import { OptionGrid } from "./OptionGrid";
 import { Label } from "@/components/ui/label";
 import { AvatarConfig } from "@/lib/avatar/config";
+import { ACCESSORY_HATS, ACCESSORY_GLASSES, ACCESSORY_OTHER } from "@/lib/avatar/categories/assets";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 
 interface AccessoriesSelectorProps {
   config: AvatarConfig;
   onUpdate: (updates: Partial<AvatarConfig['accessories']>) => void;
+  renderer?: 'dicebear' | 'custom';
 }
 
-// Simplified accessory options matching reference
-const ACCESSORY_OPTIONS = [
-  { id: 'none', name: 'None', emoji: '' },
-  { id: 'glasses', name: 'Glasses', emoji: '👓' },
-  { id: 'hat', name: 'Hat', emoji: '🎩' },
-  { id: 'earrings', name: 'Earrings', emoji: '💍' },
-];
+export function AccessoriesSelector({ config, onUpdate, renderer = 'dicebear' }: AccessoriesSelectorProps) {
+  const isDiceBear = renderer === 'dicebear';
 
-export function AccessoriesSelector({ config, onUpdate }: AccessoriesSelectorProps) {
-  // Determine current accessory type
-  const getCurrentAccessory = (): string => {
-    if (config.accessories.glasses) return 'glasses';
-    if (config.accessories.hat) return 'hat';
-    // Check if earrings is in other array
-    if (config.accessories.other && config.accessories.other.includes('earrings')) {
-      return 'earrings';
-    }
-    return 'none';
+  const handleHatSelect = (id: string | null) => {
+    console.debug('[AccessoriesSelector] Hat selected', { 
+      id, 
+      previousHat: config.accessories.hat 
+    });
+    onUpdate({ hat: id });
   };
 
-  const handleAccessorySelect = (id: string) => {
-    const newValue = id === getCurrentAccessory() ? 'none' : id;
-    
-    console.debug('[AccessoriesSelector] Accessory selected', { 
+  const handleGlassesSelect = (id: string | null) => {
+    console.debug('[AccessoriesSelector] Glasses selected', { 
       id, 
-      newValue,
-      previous: getCurrentAccessory()
+      previousGlasses: config.accessories.glasses 
     });
+    onUpdate({ glasses: id });
+  };
 
-    // Clear all accessories first
-    const updates: Partial<AvatarConfig['accessories']> = {
-      hat: null,
-      glasses: null,
-      other: [],
-    };
-
-    // Set the selected accessory
-    if (newValue === 'glasses') {
-      updates.glasses = 'regular'; // Use a default glasses ID
-    } else if (newValue === 'hat') {
-      updates.hat = 'cap'; // Use a default hat ID
-    } else if (newValue === 'earrings') {
-      updates.other = ['earrings'];
-    }
-
-    onUpdate(updates);
+  const handleOtherToggle = (id: string) => {
+    const current = config.accessories.other || [];
+    const newOther = current.includes(id)
+      ? current.filter(item => item !== id)
+      : [...current, id];
+    
+    console.debug('[AccessoriesSelector] Other accessory toggled', { 
+      id, 
+      newOther 
+    });
+    onUpdate({ other: newOther });
   };
 
   return (
-    <div className="space-y-3">
-      <Label className="text-sm font-medium">Accessory</Label>
-      <OptionGrid
-        options={ACCESSORY_OPTIONS}
-        selectedId={getCurrentAccessory()}
-        onSelect={handleAccessorySelect}
-        columns={2}
-        category="accessory"
-      />
+    <div className="space-y-6">
+      {/* Hats */}
+      <div>
+        <Label className="text-sm font-medium mb-2 block">Hats</Label>
+        <OptionGrid
+          options={[
+            { id: 'none', name: 'None', emoji: '' },
+            ...ACCESSORY_HATS,
+          ]}
+          selectedId={config.accessories.hat || 'none'}
+          onSelect={(id) => handleHatSelect(id === 'none' ? null : id)}
+          columns={3}
+          category="accessory-hat"
+        />
+      </div>
+
+      {/* Glasses */}
+      <div>
+        <Label className="text-sm font-medium mb-2 block">Glasses</Label>
+        <OptionGrid
+          options={[
+            { id: 'none', name: 'None', emoji: '' },
+            ...ACCESSORY_GLASSES,
+          ]}
+          selectedId={config.accessories.glasses || 'none'}
+          onSelect={(id) => handleGlassesSelect(id === 'none' ? null : id)}
+          columns={3}
+          category="accessory-glasses"
+        />
+      </div>
+
+      {/* Other Accessories - Only show for custom renderer */}
+      {!isDiceBear && (
+        <div>
+          <Label className="text-sm font-medium mb-2 block">Other Accessories</Label>
+          <div className="grid grid-cols-4 gap-2">
+            {ACCESSORY_OTHER.map((option) => {
+              const isSelected = (config.accessories.other || []).includes(option.id);
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => handleOtherToggle(option.id)}
+                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 border-2 hover:scale-105 active:scale-95 ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary shadow-soft"
+                      : "bg-card text-card-foreground border-border hover:border-primary/50"
+                  }`}
+                >
+                  {option.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {isDiceBear && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            Jewelry and other accessories are only available with the custom renderer.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }

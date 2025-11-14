@@ -14,4 +14,5 @@ export { ClothesSelector } from './ClothesSelector';
 export { AccessoriesSelector } from './AccessoriesSelector';
 export { FaceSelector } from './FaceSelector';
 export { BodySelector } from './BodySelector';
+export { StyleSelector } from './StyleSelector';
 

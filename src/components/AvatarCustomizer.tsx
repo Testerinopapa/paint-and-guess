@@ -19,6 +19,7 @@ import {
   ClothesSelector,
   AccessoriesSelector,
   FaceSelector,
+  StyleSelector,
 } from "./avatar/categories";
 import { Shuffle, RotateCcw } from "lucide-react";
 import { getAssetsByCategory } from "@/lib/avatar/categories/assets";
@@ -263,7 +264,7 @@ export function AvatarCustomizer({
           {/* Left Side - Preview */}
             <div className="w-[300px] flex-shrink-0 flex flex-col gap-4">
             <div className="flex-1 flex items-center justify-center bg-muted rounded-lg p-4">
-              <AvatarPreview config={config} size={200} activeCategory={activeCategory} />
+              <AvatarPreview config={config} size={200} activeCategory={activeCategory} renderer="dicebear" />
             </div>
 
             <div className="space-y-2">
@@ -310,12 +311,13 @@ export function AvatarCustomizer({
                 setActiveCategory(value);
               }}
             >
-              <TabsList className="grid w-full grid-cols-5 mb-4">
+              <TabsList className="grid w-full grid-cols-6 mb-4">
                 <TabsTrigger value="skin">Skin</TabsTrigger>
                 <TabsTrigger value="hair">Hair</TabsTrigger>
                 <TabsTrigger value="clothes">Clothes</TabsTrigger>
                 <TabsTrigger value="accessories">Accessories</TabsTrigger>
                 <TabsTrigger value="face">Face</TabsTrigger>
+                <TabsTrigger value="style">Style</TabsTrigger>
               </TabsList>
 
               <div className="flex-1 overflow-y-auto pr-2">
@@ -347,6 +349,7 @@ export function AvatarCustomizer({
                 <TabsContent value="accessories" className="mt-0">
                   <AccessoriesSelector
                     config={config}
+                    renderer="dicebear"
                     onUpdate={(updates) =>
                       updateConfig((prev) => ({
                         accessories: { ...prev.accessories, ...updates },
@@ -360,6 +363,24 @@ export function AvatarCustomizer({
                     config={config}
                     onUpdate={(updates) =>
                       updateConfig((prev) => ({ face: { ...prev.face, ...updates } }))
+                    }
+                  />
+                </TabsContent>
+
+                <TabsContent value="style" className="mt-0">
+                  <StyleSelector
+                    config={config}
+                    onUpdate={(updates) =>
+                      updateConfig((prev) => ({
+                        dicebear: {
+                          ...(prev.dicebear || {
+                            clothingGraphic: null,
+                            backgroundStyle: 'default',
+                            backgroundColor: null,
+                          }),
+                          ...updates,
+                        },
+                      }))
                     }
                   />
                 </TabsContent>
