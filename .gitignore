@@ -29,4 +29,5 @@ dist-ssr
 
 # Test output
 test-screenshots/
+test-screenshots-drawable/
 test-results-*.json

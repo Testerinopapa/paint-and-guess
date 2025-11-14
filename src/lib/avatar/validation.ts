@@ -141,6 +141,9 @@ export function sanitizeAvatarConfig(config: any): AvatarConfig {
         ? config.body.size 
         : DEFAULT_AVATAR_CONFIG.body.size,
     },
+    // Preserve optional fields
+    customDrawings: typeof config.customDrawings === 'string' ? config.customDrawings : undefined,
+    dicebear: config.dicebear || undefined,
   };
 
   return sanitized;

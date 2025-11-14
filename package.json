@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test:dicebear": "tsx scripts/test-dicebear-mapping.ts",
-    "test:avatar-crawl": "tsx scripts/test-avatar-crawl.ts"
+    "test:avatar-crawl": "tsx scripts/test-avatar-crawl.ts",
+    "test:drawable-avatar": "tsx scripts/test-drawable-avatar-crawl.ts"
   },
   "dependencies": {
     "@dicebear/avataaars": "^9.2.4",

@@ -111,6 +111,7 @@ export interface DiceBearOptions {
  * @property {AvatarFace} face - Facial features customization options
  * @property {AvatarBody} body - Body shape and size customization options
  * @property {DiceBearOptions} [dicebear] - DiceBear-only options (optional, only used with DiceBear renderer)
+ * @property {string} [customDrawings] - JSON string of Fabric.js canvas drawings (optional, for drawable avatar feature)
  */
 export interface AvatarConfig {
   id: string;
@@ -122,6 +123,7 @@ export interface AvatarConfig {
   face: AvatarFace;
   body: AvatarBody;
   dicebear?: DiceBearOptions; // Optional DiceBear-only features
+  customDrawings?: string; // Optional: JSON string of Fabric.js canvas drawings
 }
 
 /**

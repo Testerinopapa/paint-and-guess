@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AvatarPreview } from "./avatar/preview";
+import { AvatarPreviewDrawable } from "./avatar/preview";
 import { AvatarConfig, createDefaultAvatarConfig, loadAvatarConfig, saveAvatarConfig, cloneAvatarConfig, generateAvatarId } from "@/lib/avatar/config";
 import { validateAvatarConfig, sanitizeAvatarConfig } from "@/lib/avatar/validation";
 import {
@@ -264,7 +264,13 @@ export function AvatarCustomizer({
           {/* Left Side - Preview */}
             <div className="w-[300px] flex-shrink-0 flex flex-col gap-4">
             <div className="flex-1 flex items-center justify-center bg-muted rounded-lg p-4">
-              <AvatarPreview config={config} size={200} activeCategory={activeCategory} renderer="dicebear" />
+              <AvatarPreviewDrawable 
+                config={config} 
+                size={200}
+                onDrawingsChange={(drawingsJson) => {
+                  updateConfig({ customDrawings: drawingsJson || undefined });
+                }}
+              />
             </div>
 
             <div className="space-y-2">
