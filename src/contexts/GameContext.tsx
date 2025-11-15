@@ -321,6 +321,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       console.log(`[GameContext] 🔄 Attempting to reconnect as ${storedPlayerId}`);
     }
     
+    console.log(`[GameContext] 🚪 join-room emit`, {
+      roomId,
+      hasAvatar: Boolean(avatarData),
+      isReconnect: Boolean(storedPlayerId && storedSessionToken),
+    });
+    
     socket.emit("join-room", joinData);
     setGameState((prev) => ({
       ...prev,
@@ -331,6 +337,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const createRoom = async (roomName: string, isPublic = true, wordPack = "classic"): Promise<string> => {
     try {
+      console.log(`[GameContext] 🏠 Creating room`, { roomName, isPublic, wordPack });
       const response = await fetch("http://localhost:3001/api/rooms", {
         method: "POST",
         headers: {
@@ -346,6 +353,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }),
       });
       const data = await response.json();
+      console.log(`[GameContext] ✅ Room created`, { roomId: data.roomId });
       return data.roomId;
     } catch (error) {
       console.error("Failed to create room:", error);
@@ -362,6 +370,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(`room_${gameState.roomId}_sessionToken`);
     }
     
+    console.log(`[GameContext] 🚪 Leaving room`, { roomId: gameState.roomId });
     socket.emit("leave-room");
     setGameState({
       roomId: null,
@@ -382,31 +391,39 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const startGame = () => {
     if (!socket) return;
+    console.log(`[GameContext] 🎮 start-game emit`);
     socket.emit("start-game");
   };
 
   const setReadyState = (isReady: boolean) => {
     if (!socket) return;
+    console.log(`[GameContext] ${isReady ? '✅' : '❌'} set-ready emit`, { isReady });
     socket.emit("set-ready", { isReady });
   };
 
   const sendGuess = (guess: string) => {
     if (!socket) return;
+    console.log(`[GameContext] 🗨️ guess emit`, { guess });
     socket.emit("guess", { guess });
   };
 
   const sendChatMessage = (message: string) => {
     if (!socket) return;
+    console.log(`[GameContext] 💬 chat-message emit`, { message });
     socket.emit("chat-message", { message });
   };
 
   const sendDrawingEvent = (event: any) => {
     if (!socket || !gameState.isDrawer) return;
+    if (event?.type) {
+      console.debug(`[GameContext] ✏️ drawing-event emit`, { type: event.type });
+    }
     socket.emit("drawing-event", event);
   };
 
   const clearCanvas = () => {
     if (!socket || !gameState.isDrawer) return;
+    console.debug(`[GameContext] 🧹 clear-canvas emit`);
     socket.emit("clear-canvas");
   };
 

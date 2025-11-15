@@ -127,6 +127,12 @@ io.on("connection", (socket) => {
 
   socket.on("join-room", async ({ roomId, playerName, avatar, reconnectPlayerId, reconnectToken }) => {
     const room = roomRepository.get(roomId);
+    console.log(`[Server] 🚪 join-room`, {
+      roomId,
+      playerName,
+      hasAvatar: Boolean(avatar),
+      isReconnect: Boolean(reconnectPlayerId && reconnectToken),
+    });
     if (!room) {
       socket.emit("error", { message: "Room not found" });
       return;
@@ -146,11 +152,18 @@ io.on("connection", (socket) => {
         player.socketId = socket.id;
         sessionToken = reconnectToken; // Reuse existing token
         isReconnection = true;
-        console.log(`[Server] 🔄 Player reconnected: ${player.name} (${player.id})`);
+        console.log(`[Server] 🔄 Player reconnected`, {
+          playerId: player.id,
+          name: player.name,
+          socketId: socket.id,
+        });
       } else {
         // Invalid token or player not found - reject reconnection
         socket.emit("error", { message: "Invalid reconnection credentials" });
-        console.log(`[Server] ⛔ Invalid reconnection attempt for player ${reconnectPlayerId}`);
+        console.log(`[Server] ⛔ Invalid reconnection attempt`, {
+          playerId: reconnectPlayerId,
+          hasToken: Boolean(reconnectToken),
+        });
         return;
       }
     } else {
@@ -180,7 +193,12 @@ io.on("connection", (socket) => {
       // Generate session token for this player
       sessionToken = room.generateSessionToken(playerId);
       
-      console.log(`[Server] ➕ New player joined: ${player.name} (${player.id})`);
+      console.log(`[Server] ➕ New player joined`, {
+        playerId: player.id,
+        name: player.name,
+        socketId: player.socketId,
+        roomSize: room.players.length,
+      });
     }
 
     socket.join(roomId);
@@ -285,6 +303,11 @@ io.on("connection", (socket) => {
       io.to(room.currentDrawer.socketId).emit("draw-word", {
         word: room.currentWord,
       });
+      console.log(`[Server] ✉️ draw-word sent to drawer`, {
+        drawerId: room.currentDrawer.id,
+        drawerSocket: room.currentDrawer.socketId,
+        wordLength: room.currentWord?.length ?? 0,
+      });
     } else {
       console.log(`[Server] ⚠️ Drawer ${room.currentDrawer?.name} has no socketId, ending round`);
       await endRound(roomId);
@@ -314,6 +337,14 @@ io.on("connection", (socket) => {
     // Only drawer can send drawing events
     if (playerId !== room.currentDrawer?.id) return;
 
+    if (event?.type) {
+      console.debug(`[Server] ✏️ drawing-event relay`, {
+        type: event.type,
+        roomId,
+        drawerId: playerId,
+      });
+    }
+
     // Broadcast to all other players in room
     socket.to(roomId).emit("drawing-event", event);
   });
@@ -328,6 +359,7 @@ io.on("connection", (socket) => {
 
     if (playerId !== room.currentDrawer?.id) return;
 
+    console.debug(`[Server] 🧹 canvas-cleared broadcast`, { roomId, drawerId: playerId });
     io.to(roomId).emit("canvas-cleared");
   });
 
@@ -368,6 +400,12 @@ io.on("connection", (socket) => {
         const drawerPoints = 75;
         room.currentDrawer.score += drawerPoints;
         room.markDrawerRewarded();
+        console.log(`[Server] 🏆 Points awarded`, {
+          guesserId: player.id,
+          guesserPoints: points,
+          drawerId: room.currentDrawer.id,
+          drawerPoints,
+        });
       }
 
       io.to(roomId).emit("correct-guess", {
@@ -391,6 +429,7 @@ io.on("connection", (socket) => {
       }
     } else {
       // Wrong guess - broadcast to room
+      console.debug(`[Server] 🙊 wrong-guess`, { playerId, guessLength: sanitizedGuess.length });
       io.to(roomId).emit("wrong-guess", {
         player: { id: player.id, name: player.name },
         guess: sanitizedGuess,
@@ -543,6 +582,11 @@ io.on("connection", (socket) => {
       if (room.currentDrawer?.socketId) {
         io.to(room.currentDrawer.socketId).emit("draw-word", {
           word: room.currentWord,
+        });
+        console.log(`[Server] ✉️ draw-word sent (next round)`, {
+          drawerId: room.currentDrawer.id,
+          drawerSocket: room.currentDrawer.socketId,
+          wordLength: room.currentWord?.length ?? 0,
         });
       } else {
         console.log(`[Server] ⚠️ Drawer ${room.currentDrawer?.name} not connected, ending round`);

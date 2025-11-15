@@ -37,7 +37,10 @@ export class RoomRepository {
         const data = await readFile(ROOMS_FILE, "utf-8");
         const roomsData = JSON.parse(data);
         
-        console.log(`[RoomRepository] Loading ${roomsData.length} rooms from disk...`);
+        console.log(`[RoomRepository] 📦 Loading rooms from disk`, {
+          count: roomsData.length,
+          file: ROOMS_FILE,
+        });
         
         // Import GameRoom dynamically to avoid circular dependency
         const { GameRoom } = await import("./gameRoom.js");
@@ -45,17 +48,23 @@ export class RoomRepository {
         for (const roomData of roomsData) {
           const room = GameRoom.fromJSON(roomData);
           this.rooms.set(room.id, room);
-          console.log(`[RoomRepository] ✓ Loaded room ${room.id}: ${room.name} (${room.players.length} players)`);
+          console.log(`[RoomRepository] ✓ Loaded room`, {
+            roomId: room.id,
+            name: room.name,
+            players: room.players.length,
+            isActive: room.isGameActive,
+            round: room.roundNumber,
+          });
         }
         
-        console.log(`[RoomRepository] Successfully loaded ${this.rooms.size} rooms`);
+        console.log(`[RoomRepository] ✅ Rooms loaded`, { count: this.rooms.size });
       } catch (error) {
-        console.error(`[RoomRepository] Failed to load rooms:`, error);
+        console.error(`[RoomRepository] ❌ Failed to load rooms:`, error);
         // Start fresh if file is corrupted
         this.rooms.clear();
       }
     } else {
-      console.log(`[RoomRepository] No existing rooms file, starting fresh`);
+      console.log(`[RoomRepository] ℹ️ No existing rooms file, starting fresh`);
     }
 
     this.initialized = true;
@@ -68,9 +77,12 @@ export class RoomRepository {
     try {
       const roomsData = Array.from(this.rooms.values()).map(room => room.serialize());
       await writeFile(ROOMS_FILE, JSON.stringify(roomsData, null, 2), "utf-8");
-      console.log(`[RoomRepository] Saved ${roomsData.length} rooms to disk`);
+      console.log(`[RoomRepository] 💾 Saved rooms to disk`, {
+        count: roomsData.length,
+        file: ROOMS_FILE,
+      });
     } catch (error) {
-      console.error(`[RoomRepository] Failed to save rooms:`, error);
+      console.error(`[RoomRepository] ❌ Failed to save rooms:`, error);
       throw error;
     }
   }
@@ -101,6 +113,12 @@ export class RoomRepository {
    */
   async set(roomId, room) {
     this.rooms.set(roomId, room);
+    console.log(`[RoomRepository] ✏️ Set room`, {
+      roomId,
+      players: room.players.length,
+      isActive: room.isGameActive,
+      round: room.roundNumber,
+    });
     await this.save();
   }
 
@@ -110,6 +128,7 @@ export class RoomRepository {
   async delete(roomId) {
     const deleted = this.rooms.delete(roomId);
     if (deleted) {
+      console.log(`[RoomRepository] 🗑️ Deleted room`, { roomId });
       await this.save();
     }
     return deleted;
