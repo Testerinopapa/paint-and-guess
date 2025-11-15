@@ -1,4 +1,23 @@
 export class GameRoom {
+  constructor({
+    id,
+    name,
+    isPublic,
+    maxPlayers,
+    roundTime,
+    maxRounds = 6,
+    players = [],
+    isGameActive = false,
+    currentDrawerId = null,
+    currentWord = null,
+    roundNumber = 0,
+    elapsedTime = 0,
+    ownerId = null,
+    wordHistory = [],
+    drawerRewarded = false,
+    isRoundActive = false,
+    roundEndsAt = null,
+  }) {
   constructor({ id, name, isPublic, maxPlayers, roundTime, maxRounds = 6, wordPack = "classic" }) {
     this.id = id;
     this.name = name;
@@ -6,6 +25,20 @@ export class GameRoom {
     this.maxPlayers = maxPlayers;
     this.roundTime = roundTime;
     this.maxRounds = maxRounds;
+    this.players = players.map((player) => ({ ...player }));
+    this.isGameActive = isGameActive;
+    this.currentDrawer = currentDrawerId
+      ? this.players.find((player) => player.id === currentDrawerId) ?? null
+      : null;
+    this.currentWord = currentWord;
+    this.roundNumber = roundNumber;
+    this.elapsedTime = elapsedTime;
+    this.timer = null;
+    this.ownerId = ownerId;
+    this.wordHistory = [...wordHistory];
+    this.drawerRewarded = drawerRewarded;
+    this.isRoundActive = isRoundActive;
+    this.roundEndsAt = roundEndsAt;
     this.wordPack = wordPack;
     this.players = [];
     this.isGameActive = false;
@@ -23,6 +56,11 @@ export class GameRoom {
   addPlayer(player) {
     if (this.players.length >= this.maxPlayers) {
       throw new Error("Room is full");
+    }
+    this.players.push({ ...player });
+
+    if (!this.ownerId) {
+      this.ownerId = player.id;
     }
     this.players.push(player);
 
@@ -45,6 +83,14 @@ export class GameRoom {
       this.ownerId = this.players[0]?.id ?? null;
       console.log(`[GameRoom:${this.id}] 🎖️ Host transferred: ${this.players[0]?.name || 'none'} (${this.ownerId})`);
     }
+
+    if (this.ownerId === playerId) {
+      this.ownerId = this.players[0]?.id ?? null;
+    }
+  }
+
+  getPlayerById(playerId) {
+    return this.players.find((player) => player.id === playerId) ?? null;
     console.log(`[GameRoom:${this.id}] ➖ Player left: ${player?.name || playerId} (${this.players.length}/${this.maxPlayers})`);
   }
 
@@ -74,6 +120,11 @@ export class GameRoom {
     this.roundNumber = 0;
     this.currentDrawer = null;
     this.wordHistory = [];
+    this.players = this.players.map((player) => ({
+      ...player,
+      hasGuessed: false,
+      isReady: false,
+    }));
     this.players.forEach((player) => {
       player.hasGuessed = false;
       player.isReady = false;
@@ -87,9 +138,12 @@ export class GameRoom {
     }
 
     // Reset player guess states
-    this.players.forEach((p) => {
-      p.hasGuessed = false;
-    });
+    this.players = this.players.map((player) => ({
+      ...player,
+      hasGuessed: false,
+    }));
+
+    this.drawerRewarded = false;
 
     this.drawerRewarded = false;
 
@@ -109,6 +163,7 @@ export class GameRoom {
     this.currentWord = getRandomWord();
     this.wordHistory.push(this.currentWord);
     this.isRoundActive = true;
+    this.roundEndsAt = null;
     console.log(`[GameRoom:${this.id}] 🔄 Round ${this.roundNumber}/${this.maxRounds} started! Drawer: ${this.currentDrawer.name}, Word: "${this.currentWord}"`);
   }
 
@@ -119,21 +174,57 @@ export class GameRoom {
     }
     this.elapsedTime = 0;
     this.isRoundActive = false;
+    this.roundEndsAt = null;
     console.log(`[GameRoom:${this.id}] ⏸️ Round ${this.roundNumber}/${this.maxRounds} ended`);
   }
 
   startRoundTimer(onTick) {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
     this.elapsedTime = 0;
     this.isRoundActive = true;
+    this.roundEndsAt = Date.now() + this.roundTime * 1000;
+
+    const tick = () => {
+      const timeLeft = this.getTimeRemainingSeconds();
+      this.elapsedTime = Math.max(0, this.roundTime - timeLeft);
+      Promise.resolve(onTick(timeLeft)).catch((error) => {
+        console.error("Failed to handle round timer tick", error);
+      });
+
     this.timer = setInterval(() => {
       this.elapsedTime++;
       const timeLeft = Math.max(0, this.roundTime - this.elapsedTime);
       onTick(timeLeft);
       
       if (timeLeft === 0) {
-        this.endRound();
+        if (this.timer) {
+          clearInterval(this.timer);
+          this.timer = null;
+        }
       }
-    }, 1000);
+    };
+
+    // Emit an initial tick so clients have the full round time immediately
+    tick();
+
+    this.timer = setInterval(tick, 1000);
+  }
+
+  shouldEndGame() {
+    return this.roundNumber >= this.maxRounds;
+  }
+
+  markDrawerRewarded() {
+    this.drawerRewarded = true;
+  }
+
+  getTimeRemainingSeconds() {
+    if (!this.isRoundActive || !this.roundEndsAt) {
+      return this.roundTime;
+    }
+    return Math.max(0, Math.ceil((this.roundEndsAt - Date.now()) / 1000));
   }
 
   shouldEndGame() {
@@ -174,6 +265,47 @@ export class GameRoom {
         : null,
       roundNumber: this.roundNumber,
     };
+  }
+
+  serialize() {
+    return {
+      id: this.id,
+      name: this.name,
+      isPublic: this.isPublic,
+      maxPlayers: this.maxPlayers,
+      roundTime: this.roundTime,
+      maxRounds: this.maxRounds,
+      players: this.players.map(({ socketId, ...player }) => ({ ...player })),
+      isGameActive: this.isGameActive,
+      ownerId: this.ownerId,
+      currentDrawerId: this.currentDrawer?.id ?? null,
+      currentWord: this.currentWord,
+      roundNumber: this.roundNumber,
+      elapsedTime: this.elapsedTime,
+      wordHistory: [...this.wordHistory],
+      drawerRewarded: this.drawerRewarded,
+      isRoundActive: this.isRoundActive,
+      roundEndsAt: this.roundEndsAt,
+    };
+  }
+
+  static fromState(state) {
+    return new GameRoom(state);
+  }
+
+  resetAfterRestart() {
+    // Clear transient runtime state that cannot be restored without active socket connections
+    this.players = [];
+    this.ownerId = null;
+    this.isGameActive = false;
+    this.currentDrawer = null;
+    this.currentWord = null;
+    this.roundNumber = 0;
+    this.elapsedTime = 0;
+    this.wordHistory = [];
+    this.drawerRewarded = false;
+    this.isRoundActive = false;
+    this.roundEndsAt = null;
   }
 }
 
