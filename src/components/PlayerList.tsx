@@ -20,17 +20,19 @@ export function PlayerList() {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {gameState.players.map((player) => (
-            <div
-              key={player.id}
-              className="flex items-center justify-between p-2 rounded-lg bg-muted"
-            >
-              <div className="flex items-center gap-2">
-                {gameState.currentDrawer?.id === player.id && (
-                  <Pencil className="w-4 h-4 text-primary" />
-                )}
-                <Avatar className="h-8 w-8">
-                  {(() => {
+          {gameState.players.map((player) => {
+            const isHost = gameState.ownerId === player.id;
+            return (
+              <div
+                key={player.id}
+                className="flex items-center justify-between p-2 rounded-lg bg-muted"
+              >
+                <div className="flex items-center gap-2">
+                  {gameState.currentDrawer?.id === player.id && (
+                    <Pencil className="w-4 h-4 text-primary" />
+                  )}
+                  <Avatar className="h-8 w-8">
+                    {(() => {
                     // Check if avatar is a config object (new format) or string (old format)
                     if (!player.avatar) {
                       // No avatar - use default emoji
@@ -84,14 +86,23 @@ export function PlayerList() {
                     );
                   })()}
                 </Avatar>
-                <span className="font-medium">{player.name}</span>
+                <div className="flex flex-col">
+                  <span className="font-medium">{player.name}</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    {isHost && <Badge variant="outline">Host</Badge>}
+                    <Badge variant={player.isReady ? "default" : "secondary"}>
+                      {player.isReady ? "Ready" : "Not Ready"}
+                    </Badge>
+                  </div>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Trophy className="w-4 h-4 text-yellow-500" />
                 <span className="font-bold">{player.score}</span>
               </div>
             </div>
-          ))}
+          );
+          })}
         </div>
       </CardContent>
     </Card>

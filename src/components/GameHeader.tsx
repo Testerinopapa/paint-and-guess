@@ -1,7 +1,6 @@
 import { useGame } from "@/contexts/GameContext";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Timer, Users, Trophy } from "lucide-react";
+import { Timer, Users } from "lucide-react";
 
 export function GameHeader() {
   const { gameState } = useGame();
@@ -38,7 +37,7 @@ export function GameHeader() {
               <div className="flex items-center gap-2 text-primary-foreground">
                 <Users className="w-5 h-5" />
                 <span className="text-lg">
-                  Round {gameState.roundNumber}
+                  Round {gameState.roundNumber} / {gameState.maxRounds}
                 </span>
               </div>
             </div>
