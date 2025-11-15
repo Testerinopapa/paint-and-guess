@@ -124,6 +124,7 @@ export interface AvatarConfig {
   body: AvatarBody;
   dicebear?: DiceBearOptions; // Optional DiceBear-only features
   customDrawings?: string; // Optional: JSON string of Fabric.js canvas drawings
+  customImageUrl?: string; // Optional: Data URL or URL of uploaded custom image (replaces DiceBear avatar)
 }
 
 /**

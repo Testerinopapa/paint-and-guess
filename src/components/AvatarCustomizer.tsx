@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,7 @@ import {
   FaceSelector,
   StyleSelector,
 } from "./avatar/categories";
-import { Shuffle, RotateCcw } from "lucide-react";
+import { Shuffle, RotateCcw, Upload, X } from "lucide-react";
 import { getAssetsByCategory } from "@/lib/avatar/categories/assets";
 import { toast } from "sonner";
 
@@ -49,6 +49,9 @@ export function AvatarCustomizer({
 
   // Track active category tab for category-aware emoji display
   const [activeCategory, setActiveCategory] = useState<string>('skin');
+
+  // File input ref for image upload
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use immediate config for live preview sync (no debounce for better UX)
   // The preview will update instantly as users make selections
@@ -250,6 +253,46 @@ export function AvatarCustomizer({
     setConfig(randomConfig);
   };
 
+  const handleImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    // Convert to data URL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      if (dataUrl) {
+        updateConfig({ customImageUrl: dataUrl });
+        toast.success('Image uploaded successfully!');
+      }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read image file');
+    };
+    reader.readAsDataURL(file);
+  }, [updateConfig]);
+
+  const handleRemoveImage = useCallback(() => {
+    updateConfig({ customImageUrl: undefined });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    toast.success('Image removed');
+  }, [updateConfig]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl w-[95vw] h-[85vh] max-h-[600px] flex flex-col p-0">
@@ -282,6 +325,44 @@ export function AvatarCustomizer({
                 placeholder="My Avatar"
                 maxLength={30}
               />
+            </div>
+
+            {/* Image Upload Controls */}
+            <div className="space-y-2">
+              <Label>Avatar Image</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                id="avatar-image-upload"
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {config.customImageUrl ? 'Change Image' : 'Upload Image'}
+                </Button>
+                {config.customImageUrl && (
+                  <Button
+                    variant="outline"
+                    onClick={handleRemoveImage}
+                    size="icon"
+                    title="Remove uploaded image"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+              {config.customImageUrl && (
+                <p className="text-xs text-muted-foreground">
+                  Using uploaded image instead of DiceBear avatar
+                </p>
+              )}
             </div>
 
             <div className="flex gap-2">

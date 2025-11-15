@@ -242,7 +242,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const createRoom = async (roomName: string, isPublic = true): Promise<string> => {
+  const createRoom = async (roomName: string, isPublic = true, wordPack = "classic"): Promise<string> => {
     try {
       const response = await fetch("http://localhost:3001/api/rooms", {
         method: "POST",
@@ -254,6 +254,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           isPublic,
           maxPlayers: 6,
           roundTime: 60,
+          wordPack,
         }),
       });
       const data = await response.json();

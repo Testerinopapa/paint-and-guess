@@ -143,6 +143,7 @@ export function sanitizeAvatarConfig(config: any): AvatarConfig {
     },
     // Preserve optional fields
     customDrawings: typeof config.customDrawings === 'string' ? config.customDrawings : undefined,
+    customImageUrl: typeof config.customImageUrl === 'string' && config.customImageUrl.startsWith('data:image/') ? config.customImageUrl : undefined,
     dicebear: config.dicebear || undefined,
   };
 
