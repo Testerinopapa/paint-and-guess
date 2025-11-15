@@ -469,10 +469,9 @@ export function AvatarPreviewDrawable({
           const loadPromises: Promise<void>[] = [];
           
           drawingsData.objects.forEach((objData: any, index: number) => {
-            const loadPromise = new Promise<void>((resolve) => {
-              FabricObject.fromObject(objData, (obj) => {
+            const loadPromise = FabricObject.fromObject(objData)
+              .then((obj) => {
                 if (!fabricCanvas) {
-                  resolve();
                   return;
                 }
                 
@@ -497,15 +496,13 @@ export function AvatarPreviewDrawable({
                 });
                 
                 loadedCount++;
-                resolve();
-              }, (error) => {
+              })
+              .catch((error) => {
                 console.error('❌ [AvatarPreviewDrawable] Failed to load object', {
                   index,
                   error,
                 });
-                resolve();
               });
-            });
             
             loadPromises.push(loadPromise);
           });
