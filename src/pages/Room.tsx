@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGame } from "@/contexts/GameContext";
 import { Canvas } from "@/components/Canvas";
@@ -13,7 +13,7 @@ import { toast } from "sonner";
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
-  const { gameState, leaveRoom, startGame, isConnected } = useGame();
+  const { gameState, leaveRoom, startGame, isConnected, setReadyState } = useGame();
 
   useEffect(() => {
     if (!isConnected) {
@@ -33,8 +33,19 @@ export default function Room() {
       toast.error("Need at least 2 players to start");
       return;
     }
+    const allReady = gameState.players.every((player) => player.isReady);
+    if (!allReady) {
+      toast.error("All players must be ready");
+      return;
+    }
     startGame();
   };
+
+  const currentPlayer = gameState.players.find((player) => player.id === gameState.selfId);
+  const isHost = gameState.ownerId === gameState.selfId;
+  const isReady = currentPlayer?.isReady ?? false;
+  const allPlayersReady =
+    gameState.players.length >= 2 && gameState.players.every((player) => player.isReady);
 
   if (!gameState.roomId) {
     return (
@@ -56,14 +67,37 @@ export default function Room() {
           <div className="lg:col-span-1">
             <PlayerList />
             {!gameState.isGameActive && gameState.players.length > 0 && (
-              <Button
-                onClick={handleStartGame}
-                className="w-full mt-4"
-                disabled={gameState.players.length < 2}
-              >
-                <Play className="w-4 h-4 mr-2" />
-                Start Game
-              </Button>
+              <div className="space-y-2 mt-4">
+                <Button
+                  onClick={() => setReadyState(!isReady)}
+                  className="w-full"
+                  variant={isReady ? "secondary" : "default"}
+                >
+                  {isReady ? "Set as Not Ready" : "Ready Up"}
+                </Button>
+                {isHost && (
+                  <Button
+                    onClick={handleStartGame}
+                    className="w-full"
+                    disabled={!allPlayersReady}
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Start Game
+                  </Button>
+                )}
+                {!isHost && (
+                  <Button className="w-full" disabled variant="outline">
+                    Waiting for host to start
+                  </Button>
+                )}
+              </div>
+            )}
+            {!isHost && !gameState.isGameActive && (
+              <p className="text-sm text-muted-foreground mt-2">
+                {allPlayersReady
+                  ? "Ready! Waiting for host to start."
+                  : "Waiting for all players to ready up."}
+              </p>
             )}
             <Button
               onClick={handleLeaveRoom}
