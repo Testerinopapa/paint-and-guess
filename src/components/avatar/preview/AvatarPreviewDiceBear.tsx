@@ -1,4 +1,4 @@
-﻿import { useMemo } from "react";
+import { useMemo } from "react";
 import { createAvatar } from "@dicebear/core";
 import * as avataaars from "@dicebear/avataaars";
 import { AvatarConfig } from "@/lib/avatar/config";

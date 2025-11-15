@@ -47,35 +47,43 @@ export function PlayerList() {
                       );
                     }
                     
+                    // Get avatar config
+                    let avatarConfig: AvatarConfig | null = null;
+                    
                     if (typeof player.avatar === 'string') {
                       // Try to decode as JSON config
-                      const decoded = decodeAvatarConfig(player.avatar);
-                      if (decoded) {
-                        // New format - use DiceBear API
-                        const avatarUrl = getDiceBearAvatarUrl(decoded, { format: 'png', size: 32 });
+                      avatarConfig = decodeAvatarConfig(player.avatar);
+                      if (!avatarConfig) {
+                        // Old emoji format - use seed-based generation
+                        const avatarUrl = getDiceBearAvatarUrlFromSeed(player.avatar, { format: 'png', size: 32 });
                         return (
                           <>
                             <AvatarImage src={avatarUrl} alt={player.name} />
                             <AvatarFallback className="text-lg bg-transparent p-0">
-                              <span>{getAvatarEmoji(DEFAULT_AVATAR.id)}</span>
+                              <span>{getAvatarEmoji(player.avatar)}</span>
                             </AvatarFallback>
                           </>
                         );
                       }
-                      // Old emoji format - use seed-based generation
-                      const avatarUrl = getDiceBearAvatarUrlFromSeed(player.avatar, { format: 'png', size: 32 });
+                    } else {
+                      // Already an AvatarConfig object
+                      avatarConfig = player.avatar;
+                    }
+                    
+                    // Check if custom image is uploaded
+                    if (avatarConfig?.customImageUrl) {
                       return (
                         <>
-                          <AvatarImage src={avatarUrl} alt={player.name} />
+                          <AvatarImage src={avatarConfig.customImageUrl} alt={player.name} />
                           <AvatarFallback className="text-lg bg-transparent p-0">
-                            <span>{getAvatarEmoji(player.avatar)}</span>
+                            <span>{getAvatarEmoji(DEFAULT_AVATAR.id)}</span>
                           </AvatarFallback>
                         </>
                       );
                     }
                     
-                    // Already an AvatarConfig object - use DiceBear API
-                    const avatarUrl = getDiceBearAvatarUrl(player.avatar, { format: 'png', size: 32 });
+                    // Otherwise use DiceBear API
+                    const avatarUrl = getDiceBearAvatarUrl(avatarConfig, { format: 'png', size: 32 });
                     return (
                       <>
                         <AvatarImage src={avatarUrl} alt={player.name} />

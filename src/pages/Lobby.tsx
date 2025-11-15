@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,15 @@ import { AvatarCustomizer } from "@/components/AvatarCustomizer";
 import { AvatarPreview } from "@/components/avatar/preview";
 import { AvatarConfig, loadAvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
+import { cn } from "@/lib/utils";
+
+interface WordPack {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  wordCount: number;
+}
 
 export default function Lobby() {
   const navigate = useNavigate();
@@ -17,12 +26,26 @@ export default function Lobby() {
   const [roomId, setRoomId] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [roomName, setRoomName] = useState("");
+  const [selectedWordPack, setSelectedWordPack] = useState<string>("classic");
+  const [wordPacks, setWordPacks] = useState<WordPack[]>([]);
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
     return safeLoadAvatarConfig() || createDefaultAvatarConfig();
   });
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+
+  useEffect(() => {
+    // Fetch available word packs
+    fetch("http://localhost:3001/api/word-packs")
+      .then((res) => res.json())
+      .then((packs: WordPack[]) => {
+        setWordPacks(packs);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch word packs:", error);
+      });
+  }, []);
 
   const handleCreateRoom = async () => {
     if (!playerName.trim()) {
@@ -36,7 +59,7 @@ export default function Lobby() {
 
     setIsCreating(true);
     try {
-      const newRoomId = await createRoom(roomName);
+      const newRoomId = await createRoom(roomName, true, selectedWordPack);
       joinRoom(newRoomId, playerName, avatarConfig);
       navigate(`/room/${newRoomId}`);
       toast.success("Room created!");
@@ -145,6 +168,39 @@ export default function Lobby() {
                       maxLength={30}
                     />
                   </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Word Pack</label>
+                    <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto p-1">
+                      {wordPacks.map((pack) => (
+                        <button
+                          key={pack.id}
+                          type="button"
+                          onClick={() => setSelectedWordPack(pack.id)}
+                          className={cn(
+                            "p-3 rounded-lg border-2 text-left transition-all hover:bg-accent",
+                            selectedWordPack === pack.id
+                              ? "border-primary bg-primary/10"
+                              : "border-border bg-card"
+                          )}
+                        >
+                          <div className="flex items-start gap-2">
+                            <span className="text-2xl">{pack.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm">{pack.name}</div>
+                              <div className="text-xs text-muted-foreground line-clamp-1">
+                                {pack.description}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {pack.wordCount} words
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
                   <Button
                     onClick={handleCreateRoom}
                     disabled={isCreating}

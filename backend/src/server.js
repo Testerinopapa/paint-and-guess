@@ -9,6 +9,8 @@ import { v4 as uuidv4 } from "uuid";
 import { WORDS } from "./words.js";
 import { RoomStore } from "./store/roomStore.js";
 import { RoomRepository } from "./store/roomRepository.js";
+import { WORDS, getWordPacks, getRandomWordFromPack } from "./words.js";
+import { GameRoom } from "./gameRoom.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -71,6 +73,47 @@ function serializePlayers(players) {
   }));
 }
 
+const MAX_MESSAGE_LENGTH = 200;
+const MAX_NAME_LENGTH = 24;
+const MAX_AVATAR_LENGTH = 2048;
+
+function sanitizeName(name, fallback) {
+  if (typeof name !== "string") {
+    return fallback;
+  }
+  const trimmed = name.trim().slice(0, MAX_NAME_LENGTH);
+  const cleaned = trimmed.replace(/[^\w\s'-]/g, "");
+  return cleaned.length > 0 ? cleaned : fallback;
+}
+
+function sanitizeMessage(message) {
+  if (typeof message !== "string") {
+    return "";
+  }
+  return message.trim().slice(0, MAX_MESSAGE_LENGTH);
+}
+
+function sanitizeAvatar(avatar) {
+  if (typeof avatar !== "string") {
+    return null;
+  }
+  if (avatar.length > MAX_AVATAR_LENGTH) {
+    return null;
+  }
+  return avatar;
+}
+
+function serializePlayers(players) {
+  return players.map((player) => ({
+    id: player.id,
+    name: player.name,
+    score: player.score,
+    isReady: player.isReady,
+    avatar: player.avatar ?? null,
+  }));
+}
+
+// Helper functions
 function generateRoomId() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
@@ -79,6 +122,12 @@ function getRandomWord() {
   return WORDS[Math.floor(Math.random() * WORDS.length)];
 }
 
+// Get random word from a room's word pack
+function getRandomWordForRoom(room) {
+  return getRandomWordFromPack(room.wordPack || "classic");
+}
+
+// REST API endpoints
 app.get("/api/rooms", (req, res) => {
   const publicRooms = roomRepository
     .listPublicRooms()
@@ -88,6 +137,7 @@ app.get("/api/rooms", (req, res) => {
       name: room.name,
       players: room.players.length,
       maxPlayers: room.maxPlayers,
+      wordPack: room.wordPack,
     }));
 
   res.json(publicRooms);
@@ -98,6 +148,23 @@ app.post("/api/rooms", async (req, res) => {
   const roomId = generateRoomId();
 
   const room = await roomRepository.createRoom({
+// Get available word packs
+app.get("/api/word-packs", (req, res) => {
+  const packs = getWordPacks().map((pack) => ({
+    id: pack.id,
+    name: pack.name,
+    description: pack.description,
+    icon: pack.icon,
+    wordCount: pack.words.length,
+  }));
+  res.json(packs);
+});
+
+app.post("/api/rooms", (req, res) => {
+  const { name, isPublic = true, maxPlayers = 6, roundTime = 60, maxRounds = 6, wordPack = "classic" } = req.body;
+  const roomId = generateRoomId();
+
+  const room = new GameRoom({
     id: roomId,
     name: sanitizeName(name, `Room ${roomId}`),
     isPublic,
@@ -106,6 +173,10 @@ app.post("/api/rooms", async (req, res) => {
     maxRounds,
   });
 
+    wordPack,
+  });
+
+  rooms.set(roomId, room);
   res.json({ roomId, ...room.toJSON() });
 });
 
@@ -148,6 +219,16 @@ io.on("connection", (socket) => {
     }
 
     player.socketId = socket.id;
+    const player = {
+      id: socket.id,
+      name: sanitizeName(
+        playerName,
+        `Player ${room.players.length + 1}`
+      ),
+      score: 0,
+      isReady: false,
+      avatar: sanitizeAvatar(avatar),
+    };
 
     socket.join(roomId);
     socket.data.roomId = roomId;
@@ -157,6 +238,7 @@ io.on("connection", (socket) => {
 
     socket.emit("session", { playerId: player.id });
 
+    // Notify room of new player
     const publicPlayer = serializePlayers([player])[0];
     io.to(roomId).emit("player-joined", {
       player: publicPlayer,
@@ -188,6 +270,24 @@ io.on("connection", (socket) => {
         players: serializePlayers(room.players),
         ownerId: room.ownerId,
       });
+  socket.on("leave-room", () => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+
+    const room = rooms.get(roomId);
+    if (room) {
+      room.removePlayer(socket.id);
+      socket.leave(roomId);
+
+      if (room.players.length === 0) {
+        rooms.delete(roomId);
+      } else {
+        io.to(roomId).emit("player-left", {
+          playerId: socket.id,
+          players: serializePlayers(room.players),
+          ownerId: room.ownerId,
+        });
+      }
     }
   });
 
@@ -202,6 +302,23 @@ io.on("connection", (socket) => {
       socket.emit("error", { message: "Only the host can start the game" });
       return;
     }
+    console.log(`[Server] 🎮 start-game request from ${socket.id}, room owner: ${room.ownerId}`);
+    
+    if (room.ownerId !== socket.id) {
+      console.log(`[Server] ⛔ Non-host ${socket.id} tried to start game`);
+      socket.emit("error", { message: "Only the host can start the game" });
+      return;
+    }
+
+    try {
+      const getWord = () => getRandomWordForRoom(room);
+      room.startGame(getWord);
+      console.log(`[Server] ✅ Game started successfully in room ${roomId}`);
+    } catch (error) {
+      console.log(`[Server] ❌ Failed to start game: ${error.message}`);
+      socket.emit("error", { message: error.message });
+      return;
+    }
 
     try {
       room.startGame(getRandomWord);
@@ -214,6 +331,7 @@ io.on("connection", (socket) => {
     const drawer = room.currentDrawer ? serializePlayers([room.currentDrawer])[0] : null;
     io.to(roomId).emit("game-started", {
       drawer,
+      drawer: room.currentDrawer,
       roundTime: room.roundTime,
       roundNumber: room.roundNumber,
     });
@@ -282,6 +400,7 @@ io.on("connection", (socket) => {
     if (!normalizedWord) {
       return;
     }
+    const normalizedWord = room.currentWord.toLowerCase().trim();
 
     if (normalizedGuess === normalizedWord) {
       player.hasGuessed = true;
@@ -289,6 +408,7 @@ io.on("connection", (socket) => {
       const points = Math.max(50, Math.floor(100 * (timeRemaining / room.roundTime)));
       player.score += points;
 
+      // Award drawer points
       if (room.currentDrawer && !room.drawerRewarded) {
         const drawerPoints = 75;
         room.currentDrawer.score += drawerPoints;
@@ -303,6 +423,7 @@ io.on("connection", (socket) => {
       };
 
       io.to(roomId).emit("correct-guess", payload);
+      });
 
       const allGuessed = room.players
         .filter((p) => p.id !== room.currentDrawer?.id)
@@ -332,6 +453,7 @@ io.on("connection", (socket) => {
     const player = room.getPlayerById(playerId);
     if (!player) return;
 
+    // Filter out hints and offensive words (basic MVP filtering)
     const filteredMessage = sanitizeMessage(message);
     if (filteredMessage.length === 0) return;
 
@@ -345,6 +467,43 @@ io.on("connection", (socket) => {
   socket.on("set-ready", async ({ isReady }) => {
     const { roomId, playerId } = socket.data;
     if (!roomId || !playerId) return;
+  socket.on("set-ready", ({ isReady }) => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+
+    const room = rooms.get(roomId);
+    if (!room || room.isGameActive) return;
+
+    const ready = Boolean(isReady);
+    const player = room.players.find((p) => p.id === socket.id);
+    console.log(`[Server] ${ready ? '✅' : '❌'} Player ${player?.name || socket.id} set ready: ${ready}`);
+    room.setPlayerReady(socket.id, ready);
+
+    io.to(roomId).emit("player-ready", {
+      playerId: socket.id,
+      isReady: ready,
+      players: serializePlayers(room.players),
+      ownerId: room.ownerId,
+    });
+  });
+
+  socket.on("disconnect", () => {
+    const roomId = socket.data.roomId;
+    if (!roomId) return;
+
+    const room = rooms.get(roomId);
+    if (room) {
+      room.removePlayer(socket.id);
+      socket.leave(roomId);
+
+      if (room.players.length === 0) {
+        rooms.delete(roomId);
+      } else {
+        io.to(roomId).emit("player-left", {
+          playerId: socket.id,
+          players: serializePlayers(room.players),
+          ownerId: room.ownerId,
+        });
 
     const room = roomRepository.getRoom(roomId);
     if (!room || room.isGameActive) return;
@@ -404,6 +563,9 @@ io.on("connection", (socket) => {
     const revealedWord = room.currentWord;
 
     await roomRepository.saveRoom(room);
+    console.log(`[Server] ⏸️ Ending round ${room.roundNumber} in room ${roomId}`);
+    room.endRound();
+    const revealedWord = room.currentWord;
 
     io.to(roomId).emit("round-ended", {
       word: revealedWord,
@@ -420,6 +582,31 @@ io.on("connection", (socket) => {
       io.to(roomId).emit("game-ended", {
         reason: room.players.length < 2 ? "not enough players" : "maximum rounds reached",
         scores: serializePlayers(room.players),
+
+    if (room.shouldEndGame() || room.players.length < 2) {
+      room.isGameActive = false;
+      room.currentDrawer = null;
+      const reason = room.players.length < 2 ? "not enough players" : "maximum rounds reached";
+      console.log(`[Server] 🏁 Game ended in room ${roomId}: ${reason}`);
+      io.to(roomId).emit("game-ended", {
+        reason,
+        scores: serializePlayers(room.players),
+      });
+      return;
+    }
+
+    console.log(`[Server] ⏳ Starting next round in 3 seconds...`);
+    // Wait 3 seconds before starting next round
+    setTimeout(() => {
+      // Rotate drawer
+      const getWord = () => getRandomWordForRoom(room);
+      room.nextRound(getWord);
+
+      console.log(`[Server] 🔄 Broadcasting round-started for round ${room.roundNumber}`);
+      io.to(roomId).emit("round-started", {
+        drawer: room.currentDrawer,
+        roundTime: room.roundTime,
+        roundNumber: room.roundNumber,
       });
       return;
     }

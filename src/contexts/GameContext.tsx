@@ -124,6 +124,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "player-joined",
       ({ player, players, ownerId }: { player: Player; players: Player[]; ownerId: string | null }) => {
+    socket.on("room-state", (state: any) => {
+      console.log(`[GameContext] 🏠 Room state received. Host: ${state.ownerId}, Players: ${state.players?.length || 0}, Active: ${state.isGameActive}`);
+      setGameState((prev) => ({
+        ...prev,
+        ...state,
+        isDrawer: state.currentDrawer?.id === socket.id,
+      }));
+    });
+
+    socket.on(
+      "player-joined",
+      ({ player, players, ownerId }: { player: Player; players: Player[]; ownerId: string | null }) => {
+        console.log(`[GameContext] ➕ Player joined: ${player.name}. Host: ${ownerId}, Total players: ${players.length}`);
+        setGameState((prev) => ({
+          ...prev,
+          players,
+          ownerId: ownerId ?? prev.ownerId,
+        }));
+        toast.success(`${player.name} joined the room`);
+      }
+    );
+
+    socket.on(
+      "player-left",
+      ({ players, ownerId }: { players: Player[]; ownerId: string | null }) => {
         setGameState((prev) => ({
           ...prev,
           players,
@@ -147,6 +172,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "game-started",
       ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
+      "game-started",
+      ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
+        console.log(`[GameContext] 🎮 Game started! Round: ${roundNumber}, Drawer: ${drawer.name}, isDrawer: ${drawer.id === socket.id}`);
         setGameState((prev) => ({
           ...prev,
           isGameActive: true,
@@ -154,6 +182,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           roundTime,
           timeLeft: roundTime,
           isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
+          isDrawer: drawer.id === socket.id,
           roundNumber,
         }));
         toast.info("Game started!");
@@ -171,12 +200,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "round-started",
       ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
+        console.log(`[GameContext] 🔄 Round ${roundNumber} started! Drawer: ${drawer.name}, isDrawer: ${drawer.id === socket.id}`);
         setGameState((prev) => ({
           ...prev,
           currentDrawer: drawer,
           roundTime,
           timeLeft: roundTime,
           isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
+          isDrawer: drawer.id === socket.id,
           roundNumber,
           currentWord: null,
         }));
@@ -195,6 +226,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "round-ended",
       ({ word, scores, roundNumber }: { word: string; scores: Player[]; roundNumber: number }) => {
+        console.log(`[GameContext] ⏸️ Round ${roundNumber} ended! Word was: "${word}"`);
         setGameState((prev) => ({
           ...prev,
           players: scores,
@@ -225,6 +257,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           ),
         }));
         if (player.id !== gameState.selfId) {
+        if (player.id !== socket.id) {
           toast.success(`${player.name} guessed correctly!`);
         }
       }
@@ -266,6 +299,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
 
     socket.on("player-ready", ({ players, ownerId }: { players: Player[]; ownerId: string | null }) => {
+      const readyCount = players.filter(p => p.isReady).length;
+      console.log(`[GameContext] ${readyCount}/${players.length} players ready. Host: ${ownerId}`);
       setGameState((prev) => ({
         ...prev,
         players,
@@ -276,6 +311,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "game-ended",
       ({ reason, scores }: { reason: string; scores?: Player[] }) => {
+        console.log(`[GameContext] 🏁 Game ended! Reason: ${reason}`);
         setGameState((prev) => ({
           ...prev,
           isGameActive: false,
@@ -324,7 +360,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const createRoom = async (roomName: string, isPublic = true): Promise<string> => {
+  const createRoom = async (roomName: string, isPublic = true, wordPack = "classic"): Promise<string> => {
     try {
       const response = await fetch("http://localhost:3001/api/rooms", {
         method: "POST",
@@ -337,6 +373,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           maxPlayers: 6,
           roundTime: 60,
           maxRounds: 6,
+          wordPack,
         }),
       });
       const data = await response.json();

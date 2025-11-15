@@ -18,6 +18,7 @@ export class GameRoom {
     isRoundActive = false,
     roundEndsAt = null,
   }) {
+  constructor({ id, name, isPublic, maxPlayers, roundTime, maxRounds = 6, wordPack = "classic" }) {
     this.id = id;
     this.name = name;
     this.isPublic = isPublic;
@@ -38,6 +39,18 @@ export class GameRoom {
     this.drawerRewarded = drawerRewarded;
     this.isRoundActive = isRoundActive;
     this.roundEndsAt = roundEndsAt;
+    this.wordPack = wordPack;
+    this.players = [];
+    this.isGameActive = false;
+    this.currentDrawer = null;
+    this.currentWord = null;
+    this.roundNumber = 0;
+    this.elapsedTime = 0;
+    this.timer = null;
+    this.ownerId = null;
+    this.wordHistory = [];
+    this.drawerRewarded = false;
+    this.isRoundActive = false;
   }
 
   addPlayer(player) {
@@ -49,12 +62,26 @@ export class GameRoom {
     if (!this.ownerId) {
       this.ownerId = player.id;
     }
+    this.players.push(player);
+
+    if (!this.ownerId) {
+      this.ownerId = player.id;
+      console.log(`[GameRoom:${this.id}] 🎖️ Host assigned: ${player.name} (${player.id})`);
+    }
+    console.log(`[GameRoom:${this.id}] ➕ Player joined: ${player.name} (${this.players.length}/${this.maxPlayers})`);
   }
 
   removePlayer(playerId) {
+    const player = this.players.find((p) => p.id === playerId);
     this.players = this.players.filter((p) => p.id !== playerId);
     if (this.currentDrawer?.id === playerId) {
       this.currentDrawer = null;
+      console.log(`[GameRoom:${this.id}] 🎨 Drawer disconnected`);
+    }
+
+    if (this.ownerId === playerId) {
+      this.ownerId = this.players[0]?.id ?? null;
+      console.log(`[GameRoom:${this.id}] 🎖️ Host transferred: ${this.players[0]?.name || 'none'} (${this.ownerId})`);
     }
 
     if (this.ownerId === playerId) {
@@ -64,6 +91,7 @@ export class GameRoom {
 
   getPlayerById(playerId) {
     return this.players.find((player) => player.id === playerId) ?? null;
+    console.log(`[GameRoom:${this.id}] ➖ Player left: ${player?.name || playerId} (${this.players.length}/${this.maxPlayers})`);
   }
 
   setPlayerReady(playerId, isReady) {
@@ -72,6 +100,8 @@ export class GameRoom {
       return;
     }
     player.isReady = isReady;
+    const readyCount = this.players.filter(p => p.isReady).length;
+    console.log(`[GameRoom:${this.id}] ${isReady ? '✅' : '❌'} ${player.name} ready: ${isReady} (${readyCount}/${this.players.length} ready)`);
   }
 
   allPlayersReady() {
@@ -85,6 +115,7 @@ export class GameRoom {
     if (!this.allPlayersReady()) {
       throw new Error("All players must be ready");
     }
+    console.log(`[GameRoom:${this.id}] 🎮 Game starting! Players: ${this.players.length}, Max Rounds: ${this.maxRounds}`);
     this.isGameActive = true;
     this.roundNumber = 0;
     this.currentDrawer = null;
@@ -94,6 +125,10 @@ export class GameRoom {
       hasGuessed: false,
       isReady: false,
     }));
+    this.players.forEach((player) => {
+      player.hasGuessed = false;
+      player.isReady = false;
+    });
     this.nextRound(getRandomWord);
   }
 
@@ -107,6 +142,8 @@ export class GameRoom {
       ...player,
       hasGuessed: false,
     }));
+
+    this.drawerRewarded = false;
 
     this.drawerRewarded = false;
 
@@ -127,6 +164,7 @@ export class GameRoom {
     this.wordHistory.push(this.currentWord);
     this.isRoundActive = true;
     this.roundEndsAt = null;
+    console.log(`[GameRoom:${this.id}] 🔄 Round ${this.roundNumber}/${this.maxRounds} started! Drawer: ${this.currentDrawer.name}, Word: "${this.currentWord}"`);
   }
 
   endRound() {
@@ -137,6 +175,7 @@ export class GameRoom {
     this.elapsedTime = 0;
     this.isRoundActive = false;
     this.roundEndsAt = null;
+    console.log(`[GameRoom:${this.id}] ⏸️ Round ${this.roundNumber}/${this.maxRounds} ended`);
   }
 
   startRoundTimer(onTick) {
@@ -154,6 +193,11 @@ export class GameRoom {
         console.error("Failed to handle round timer tick", error);
       });
 
+    this.timer = setInterval(() => {
+      this.elapsedTime++;
+      const timeLeft = Math.max(0, this.roundTime - this.elapsedTime);
+      onTick(timeLeft);
+      
       if (timeLeft === 0) {
         if (this.timer) {
           clearInterval(this.timer);
@@ -183,6 +227,18 @@ export class GameRoom {
     return Math.max(0, Math.ceil((this.roundEndsAt - Date.now()) / 1000));
   }
 
+  shouldEndGame() {
+    const shouldEnd = this.roundNumber >= this.maxRounds;
+    if (shouldEnd) {
+      console.log(`[GameRoom:${this.id}] 🏁 Game ending: Max rounds (${this.maxRounds}) reached`);
+    }
+    return shouldEnd;
+  }
+
+  markDrawerRewarded() {
+    this.drawerRewarded = true;
+  }
+
   toJSON() {
     return {
       id: this.id,
@@ -191,6 +247,7 @@ export class GameRoom {
       maxPlayers: this.maxPlayers,
       roundTime: this.roundTime,
       maxRounds: this.maxRounds,
+      wordPack: this.wordPack,
       players: this.players.map((p) => ({
         id: p.id,
         name: p.name,
