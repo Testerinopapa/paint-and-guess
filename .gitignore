@@ -32,3 +32,6 @@ test-screenshots/
 test-screenshots-drawable/
 test-screenshots-multiplayer/
 test-results-*.json
+
+# Persistent data
+backend/data/

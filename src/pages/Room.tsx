@@ -44,17 +44,24 @@ export default function Room() {
     startGame();
   };
 
-  const currentPlayer = gameState.players.find((player) => player.id === socket?.id);
-  const isHost = gameState.ownerId === socket?.id;
+  // Get stored playerId to identify current player
+  const storedPlayerId = gameState.roomId 
+    ? localStorage.getItem(`room_${gameState.roomId}_playerId`)
+    : null;
+    
+  const currentPlayer = gameState.players.find((player) => 
+    player.id === storedPlayerId
+  );
+  const isHost = gameState.ownerId === storedPlayerId;
   const isReady = currentPlayer?.isReady ?? false;
   const allPlayersReady =
     gameState.players.length >= 2 && gameState.players.every((player) => player.isReady);
 
   useEffect(() => {
-    if (socket?.id && gameState.ownerId) {
-      console.log(`[Room] 🎖️ Host status - You: ${socket.id.substring(0, 8)}..., Host: ${gameState.ownerId.substring(0, 8)}..., isHost: ${isHost}`);
+    if (storedPlayerId && gameState.ownerId) {
+      console.log(`[Room] 🎖️ Host status - You: ${storedPlayerId.substring(0, 8)}..., Host: ${gameState.ownerId.substring(0, 8)}..., isHost: ${isHost}`);
     }
-  }, [isHost, gameState.ownerId, socket?.id]);
+  }, [isHost, gameState.ownerId, storedPlayerId]);
 
   if (!gameState.roomId) {
     return (

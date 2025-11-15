@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 export class GameRoom {
   constructor({ id, name, isPublic, maxPlayers, roundTime, maxRounds = 6, wordPack = "classic" }) {
     this.id = id;
@@ -18,12 +20,44 @@ export class GameRoom {
     this.wordHistory = [];
     this.drawerRewarded = false;
     this.isRoundActive = false;
+    // Session tokens for secure reconnection (playerId -> sessionToken)
+    this.sessionTokens = new Map();
   }
 
+  /**
+   * Generate a session token for a player
+   */
+  generateSessionToken(playerId) {
+    const token = crypto.randomBytes(32).toString("hex");
+    this.sessionTokens.set(playerId, token);
+    return token;
+  }
+
+  /**
+   * Validate a session token for reconnection
+   */
+  validateSessionToken(playerId, token) {
+    const storedToken = this.sessionTokens.get(playerId);
+    return storedToken && storedToken === token;
+  }
+
+  /**
+   * Get a player by their stable ID
+   */
+  getPlayerById(playerId) {
+    return this.players.find((p) => p.id === playerId);
+  }
+
+  /**
+   * Add a new player to the room
+   * Player object should have: id, name, socketId, avatar (optional)
+   */
   addPlayer(player) {
     if (this.players.length >= this.maxPlayers) {
       throw new Error("Room is full");
     }
+
+    // Store the player with all properties intact
     this.players.push(player);
 
     if (!this.ownerId) {
@@ -31,6 +65,22 @@ export class GameRoom {
       console.log(`[GameRoom:${this.id}] 🎖️ Host assigned: ${player.name} (${player.id})`);
     }
     console.log(`[GameRoom:${this.id}] ➕ Player joined: ${player.name} (${this.players.length}/${this.maxPlayers})`);
+    
+    // Return the stored player reference so caller can work with it
+    return player;
+  }
+
+  /**
+   * Update a returning player's socket ID
+   */
+  updatePlayerSocket(playerId, socketId) {
+    const player = this.getPlayerById(playerId);
+    if (player) {
+      player.socketId = socketId;
+      console.log(`[GameRoom:${this.id}] 🔄 Updated socket for ${player.name}: ${socketId}`);
+      return player;
+    }
+    return null;
   }
 
   removePlayer(playerId) {
@@ -148,6 +198,9 @@ export class GameRoom {
     this.drawerRewarded = true;
   }
 
+  /**
+   * Serialize room for network transmission (excludes sensitive data)
+   */
   toJSON() {
     return {
       id: this.id,
@@ -174,6 +227,90 @@ export class GameRoom {
         : null,
       roundNumber: this.roundNumber,
     };
+  }
+
+  /**
+   * Serialize room for persistence (includes all state)
+   */
+  serialize() {
+    return {
+      id: this.id,
+      name: this.name,
+      isPublic: this.isPublic,
+      maxPlayers: this.maxPlayers,
+      roundTime: this.roundTime,
+      maxRounds: this.maxRounds,
+      wordPack: this.wordPack,
+      players: this.players.map((p) => ({
+        id: p.id,
+        name: p.name,
+        score: p.score,
+        isReady: p.isReady,
+        hasGuessed: p.hasGuessed ?? false,
+        avatar: p.avatar ?? null,
+        // Note: socketId is intentionally excluded as it's ephemeral
+      })),
+      isGameActive: this.isGameActive,
+      ownerId: this.ownerId,
+      currentDrawerId: this.currentDrawer?.id ?? null,
+      currentWord: this.currentWord,
+      roundNumber: this.roundNumber,
+      elapsedTime: this.elapsedTime,
+      wordHistory: this.wordHistory,
+      drawerRewarded: this.drawerRewarded,
+      isRoundActive: this.isRoundActive,
+      sessionTokens: Array.from(this.sessionTokens.entries()),
+    };
+  }
+
+  /**
+   * Deserialize room from persistent storage
+   */
+  static fromJSON(data) {
+    const room = new GameRoom({
+      id: data.id,
+      name: data.name,
+      isPublic: data.isPublic,
+      maxPlayers: data.maxPlayers,
+      roundTime: data.roundTime,
+      maxRounds: data.maxRounds,
+      wordPack: data.wordPack,
+    });
+
+    // Restore players (without socketId - they'll reconnect)
+    room.players = data.players.map((p) => ({
+      id: p.id,
+      name: p.name,
+      score: p.score,
+      isReady: p.isReady,
+      hasGuessed: p.hasGuessed ?? false,
+      avatar: p.avatar ?? null,
+      socketId: null, // Will be set on reconnection
+    }));
+
+    // Restore game state
+    room.isGameActive = data.isGameActive ?? false;
+    room.ownerId = data.ownerId;
+    room.roundNumber = data.roundNumber ?? 0;
+    room.elapsedTime = data.elapsedTime ?? 0;
+    room.wordHistory = data.wordHistory ?? [];
+    room.drawerRewarded = data.drawerRewarded ?? false;
+    room.isRoundActive = data.isRoundActive ?? false;
+    room.currentWord = data.currentWord ?? null;
+
+    // Restore current drawer reference
+    if (data.currentDrawerId) {
+      room.currentDrawer = room.players.find((p) => p.id === data.currentDrawerId) ?? null;
+    }
+
+    // Restore session tokens
+    if (data.sessionTokens) {
+      room.sessionTokens = new Map(data.sessionTokens);
+    }
+
+    // Note: timer is NOT restored - it will be restarted when drawer reconnects
+    
+    return room;
   }
 }
 

@@ -76,10 +76,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     socket.on("room-state", (state: any) => {
       console.log(`[GameContext] 🏠 Room state received. Host: ${state.ownerId}, Players: ${state.players?.length || 0}, Active: ${state.isGameActive}`);
+      
+      // Store session credentials in localStorage for reconnection
+      if (state.sessionToken && state.playerId) {
+        localStorage.setItem(`room_${state.id}_playerId`, state.playerId);
+        localStorage.setItem(`room_${state.id}_sessionToken`, state.sessionToken);
+        console.log(`[GameContext] 💾 Stored session credentials for room ${state.id}`);
+      }
+      
       setGameState((prev) => ({
         ...prev,
         ...state,
-        isDrawer: state.currentDrawer?.id === socket.id,
+        // Use persistent playerId instead of socket.id
+        isDrawer: state.currentDrawer?.id === state.playerId,
       }));
     });
 
@@ -110,16 +119,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "game-started",
       ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
-        console.log(`[GameContext] 🎮 Game started! Round: ${roundNumber}, Drawer: ${drawer.name}, isDrawer: ${drawer.id === socket.id}`);
-        setGameState((prev) => ({
-          ...prev,
-          isGameActive: true,
-          currentDrawer: drawer,
-          roundTime,
-          timeLeft: roundTime,
-          isDrawer: drawer.id === socket.id,
-          roundNumber,
-        }));
+        setGameState((prev) => {
+          const storedPlayerId = prev.roomId ? localStorage.getItem(`room_${prev.roomId}_playerId`) : null;
+          const isDrawer = drawer.id === storedPlayerId;
+          console.log(`[GameContext] 🎮 Game started! Round: ${roundNumber}, Drawer: ${drawer.name}, isDrawer: ${isDrawer}`);
+          return {
+            ...prev,
+            isGameActive: true,
+            currentDrawer: drawer,
+            roundTime,
+            timeLeft: roundTime,
+            isDrawer,
+            roundNumber,
+          };
+        });
         toast.info("Game started!");
       }
     );
@@ -135,16 +148,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "round-started",
       ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
-        console.log(`[GameContext] 🔄 Round ${roundNumber} started! Drawer: ${drawer.name}, isDrawer: ${drawer.id === socket.id}`);
-        setGameState((prev) => ({
-          ...prev,
-          currentDrawer: drawer,
-          roundTime,
-          timeLeft: roundTime,
-          isDrawer: drawer.id === socket.id,
-          roundNumber,
-          currentWord: null,
-        }));
+        setGameState((prev) => {
+          const storedPlayerId = prev.roomId ? localStorage.getItem(`room_${prev.roomId}_playerId`) : null;
+          const isDrawer = drawer.id === storedPlayerId;
+          console.log(`[GameContext] 🔄 Round ${roundNumber} started! Drawer: ${drawer.name}, isDrawer: ${isDrawer}`);
+          return {
+            ...prev,
+            currentDrawer: drawer,
+            roundTime,
+            timeLeft: roundTime,
+            isDrawer,
+            roundNumber,
+            currentWord: null,
+          };
+        });
         setChatMessages([]);
         toast.info(`Round ${roundNumber} started!`);
       }
@@ -184,15 +201,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
             type: "correct-guess",
           },
         ]);
-        setGameState((prev) => ({
-          ...prev,
-          players: players ?? prev.players.map((p) =>
-            p.id === player.id ? { ...p, score: p.score + points } : p
-          ),
-        }));
-        if (player.id !== socket.id) {
-          toast.success(`${player.name} guessed correctly!`);
-        }
+        setGameState((prev) => {
+          const storedPlayerId = prev.roomId ? localStorage.getItem(`room_${prev.roomId}_playerId`) : null;
+          if (player.id !== storedPlayerId) {
+            toast.success(`${player.name} guessed correctly!`);
+          }
+          return {
+            ...prev,
+            players: players ?? prev.players.map((p) =>
+              p.id === player.id ? { ...p, score: p.score + points } : p
+            ),
+          };
+        });
       }
     );
 
@@ -280,9 +300,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const joinRoom = (roomId: string, playerName: string, avatar?: string | AvatarConfig) => {
     if (!socket) return;
+    
+    // Check for stored session credentials (for reconnection)
+    const storedPlayerId = localStorage.getItem(`room_${roomId}_playerId`);
+    const storedSessionToken = localStorage.getItem(`room_${roomId}_sessionToken`);
+    
     // Encode avatar config as JSON string if it's an object
     const avatarData = typeof avatar === 'object' ? encodeAvatarConfig(avatar) : avatar;
-    socket.emit("join-room", { roomId, playerName, avatar: avatarData });
+    
+    // Include reconnection credentials if available
+    const joinData: any = { 
+      roomId, 
+      playerName, 
+      avatar: avatarData 
+    };
+    
+    if (storedPlayerId && storedSessionToken) {
+      joinData.reconnectPlayerId = storedPlayerId;
+      joinData.reconnectToken = storedSessionToken;
+      console.log(`[GameContext] 🔄 Attempting to reconnect as ${storedPlayerId}`);
+    }
+    
+    socket.emit("join-room", joinData);
     setGameState((prev) => ({
       ...prev,
       roomId,
@@ -316,6 +355,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const leaveRoom = () => {
     if (!socket) return;
+    
+    // Clear session credentials when leaving
+    if (gameState.roomId) {
+      localStorage.removeItem(`room_${gameState.roomId}_playerId`);
+      localStorage.removeItem(`room_${gameState.roomId}_sessionToken`);
+    }
+    
     socket.emit("leave-room");
     setGameState({
       roomId: null,
