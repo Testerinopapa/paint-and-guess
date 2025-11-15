@@ -470,41 +470,43 @@ export function AvatarPreviewDrawable({
           
           drawingsData.objects.forEach((objData: any, index: number) => {
             const loadPromise = new Promise<void>((resolve) => {
-              FabricObject.fromObject(objData, (obj) => {
-                if (!fabricCanvas) {
+              try {
+                FabricObject.fromObject(objData, (obj) => {
+                  if (!fabricCanvas) {
+                    resolve();
+                    return;
+                  }
+                  
+                  // Tag loaded objects for tracking
+                  const loadedId = `loaded-${Date.now()}-${index}`;
+                  (obj as any).__debugId = loadedId;
+                  
+                  obj.selectable = false;
+                  obj.evented = false;
+                  
+                  const objectsBeforeAdd = fabricCanvas.getObjects();
+                  fabricCanvas.add(obj);
+                  const objectsAfterAdd = fabricCanvas.getObjects();
+                  
+                  console.log('➕ [AvatarPreviewDrawable] Loaded object', {
+                    index,
+                    loadedId,
+                    type: obj.type,
+                    objectCountBefore: objectsBeforeAdd.length,
+                    objectCountAfter: objectsAfterAdd.length,
+                    objectAdded: objectsAfterAdd.includes(obj),
+                  });
+                  
+                  loadedCount++;
                   resolve();
-                  return;
-                }
-                
-                // Tag loaded objects for tracking
-                const loadedId = `loaded-${Date.now()}-${index}`;
-                (obj as any).__debugId = loadedId;
-                
-                obj.selectable = false;
-                obj.evented = false;
-                
-                const objectsBeforeAdd = fabricCanvas.getObjects();
-                fabricCanvas.add(obj);
-                const objectsAfterAdd = fabricCanvas.getObjects();
-                
-                console.log('➕ [AvatarPreviewDrawable] Loaded object', {
-                  index,
-                  loadedId,
-                  type: obj.type,
-                  objectCountBefore: objectsBeforeAdd.length,
-                  objectCountAfter: objectsAfterAdd.length,
-                  objectAdded: objectsAfterAdd.includes(obj),
                 });
-                
-                loadedCount++;
-                resolve();
-              }, (error) => {
+              } catch (error) {
                 console.error('❌ [AvatarPreviewDrawable] Failed to load object', {
                   index,
                   error,
                 });
                 resolve();
-              });
+              }
             });
             
             loadPromises.push(loadPromise);
