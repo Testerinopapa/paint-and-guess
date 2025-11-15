@@ -23,6 +23,8 @@ interface GameState {
   roundNumber: number;
   isDrawer: boolean;
   playerName: string;
+  ownerId: string | null;
+  maxRounds: number;
 }
 
 interface GameContextType {
@@ -33,6 +35,7 @@ interface GameContextType {
   createRoom: (roomName: string, isPublic?: boolean) => Promise<string>;
   leaveRoom: () => void;
   startGame: () => void;
+  setReadyState: (isReady: boolean) => void;
   sendGuess: (guess: string) => void;
   sendChatMessage: (message: string) => void;
   sendDrawingEvent: (event: any) => void;
@@ -63,6 +66,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     roundNumber: 0,
     isDrawer: false,
     playerName: "",
+    ownerId: null,
+    maxRounds: 6,
   });
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
@@ -70,6 +75,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!socket) return;
 
     socket.on("room-state", (state: any) => {
+      console.log(`[GameContext] 🏠 Room state received. Host: ${state.ownerId}, Players: ${state.players?.length || 0}, Active: ${state.isGameActive}`);
       setGameState((prev) => ({
         ...prev,
         ...state,
@@ -77,33 +83,46 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }));
     });
 
-    socket.on("player-joined", ({ player, players }: { player: Player; players: Player[] }) => {
-      setGameState((prev) => ({
-        ...prev,
-        players,
-      }));
-      toast.success(`${player.name} joined the room`);
-    });
+    socket.on(
+      "player-joined",
+      ({ player, players, ownerId }: { player: Player; players: Player[]; ownerId: string | null }) => {
+        console.log(`[GameContext] ➕ Player joined: ${player.name}. Host: ${ownerId}, Total players: ${players.length}`);
+        setGameState((prev) => ({
+          ...prev,
+          players,
+          ownerId: ownerId ?? prev.ownerId,
+        }));
+        toast.success(`${player.name} joined the room`);
+      }
+    );
 
-    socket.on("player-left", ({ players }: { players: Player[] }) => {
-      setGameState((prev) => ({
-        ...prev,
-        players,
-      }));
-    });
+    socket.on(
+      "player-left",
+      ({ players, ownerId }: { players: Player[]; ownerId: string | null }) => {
+        setGameState((prev) => ({
+          ...prev,
+          players,
+          ownerId: ownerId ?? prev.ownerId,
+        }));
+      }
+    );
 
-    socket.on("game-started", ({ drawer, roundTime }: { drawer: Player; roundTime: number }) => {
-      setGameState((prev) => ({
-        ...prev,
-        isGameActive: true,
-        currentDrawer: drawer,
-        roundTime,
-        timeLeft: roundTime,
-        isDrawer: drawer.id === socket.id,
-        roundNumber: 1,
-      }));
-      toast.info("Game started!");
-    });
+    socket.on(
+      "game-started",
+      ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
+        console.log(`[GameContext] 🎮 Game started! Round: ${roundNumber}, Drawer: ${drawer.name}, isDrawer: ${drawer.id === socket.id}`);
+        setGameState((prev) => ({
+          ...prev,
+          isGameActive: true,
+          currentDrawer: drawer,
+          roundTime,
+          timeLeft: roundTime,
+          isDrawer: drawer.id === socket.id,
+          roundNumber,
+        }));
+        toast.info("Game started!");
+      }
+    );
 
     socket.on("draw-word", ({ word }: { word: string }) => {
       setGameState((prev) => ({
@@ -113,23 +132,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
       toast.info(`Your word: ${word}`);
     });
 
-    socket.on("round-started", ({ drawer, roundTime }: { drawer: Player; roundTime: number }) => {
-      let newRoundNumber = 1;
-      setGameState((prev) => {
-        newRoundNumber = prev.roundNumber + 1;
-        return {
+    socket.on(
+      "round-started",
+      ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
+        console.log(`[GameContext] 🔄 Round ${roundNumber} started! Drawer: ${drawer.name}, isDrawer: ${drawer.id === socket.id}`);
+        setGameState((prev) => ({
           ...prev,
           currentDrawer: drawer,
           roundTime,
           timeLeft: roundTime,
           isDrawer: drawer.id === socket.id,
-          roundNumber: newRoundNumber,
+          roundNumber,
           currentWord: null,
-        };
-      });
-      setChatMessages([]);
-      toast.info(`Round ${newRoundNumber} started!`);
-    });
+        }));
+        setChatMessages([]);
+        toast.info(`Round ${roundNumber} started!`);
+      }
+    );
 
     socket.on("round-timer", ({ timeLeft }: { timeLeft: number }) => {
       setGameState((prev) => ({
@@ -138,36 +157,44 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }));
     });
 
-    socket.on("round-ended", ({ word, scores }: { word: string; scores: Player[] }) => {
-      setGameState((prev) => ({
-        ...prev,
-        players: scores,
-        currentWord: word,
-      }));
-      toast.info(`Round ended! The word was: ${word}`);
-    });
-
-    socket.on("correct-guess", ({ player, points, word }: { player: Player; points: number; word: string }) => {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          player,
-          message: `Correctly guessed "${word}"! +${points} points`,
-          timestamp: Date.now(),
-          type: "correct-guess",
-        },
-      ]);
-      setGameState((prev) => ({
-        ...prev,
-        players: prev.players.map((p) =>
-          p.id === player.id ? { ...p, score: p.score + points } : p
-        ),
-      }));
-      if (player.id !== socket.id) {
-        toast.success(`${player.name} guessed correctly!`);
+    socket.on(
+      "round-ended",
+      ({ word, scores, roundNumber }: { word: string; scores: Player[]; roundNumber: number }) => {
+        console.log(`[GameContext] ⏸️ Round ${roundNumber} ended! Word was: "${word}"`);
+        setGameState((prev) => ({
+          ...prev,
+          players: scores,
+          currentWord: word,
+          roundNumber,
+        }));
+        toast.info(`Round ended! The word was: ${word}`);
       }
-    });
+    );
+
+    socket.on(
+      "correct-guess",
+      ({ player, points, word, players }: { player: Player; points: number; word: string; players?: Player[] }) => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            player,
+            message: `Correctly guessed "${word}"! +${points} points`,
+            timestamp: Date.now(),
+            type: "correct-guess",
+          },
+        ]);
+        setGameState((prev) => ({
+          ...prev,
+          players: players ?? prev.players.map((p) =>
+            p.id === player.id ? { ...p, score: p.score + points } : p
+          ),
+        }));
+        if (player.id !== socket.id) {
+          toast.success(`${player.name} guessed correctly!`);
+        }
+      }
+    );
 
     socket.on("wrong-guess", ({ player, guess }: { player: Player; guess: string }) => {
       setChatMessages((prev) => [
@@ -204,12 +231,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new CustomEvent("canvas-cleared"));
     });
 
-    socket.on("game-ended", ({ reason }: { reason: string }) => {
+    socket.on("player-ready", ({ players, ownerId }: { players: Player[]; ownerId: string | null }) => {
+      const readyCount = players.filter(p => p.isReady).length;
+      console.log(`[GameContext] ${readyCount}/${players.length} players ready. Host: ${ownerId}`);
       setGameState((prev) => ({
         ...prev,
-        isGameActive: false,
+        players,
+        ownerId: ownerId ?? prev.ownerId,
       }));
-      toast.info(`Game ended: ${reason}`);
+    });
+
+    socket.on(
+      "game-ended",
+      ({ reason, scores }: { reason: string; scores?: Player[] }) => {
+        console.log(`[GameContext] 🏁 Game ended! Reason: ${reason}`);
+        setGameState((prev) => ({
+          ...prev,
+          isGameActive: false,
+          players: scores ?? prev.players,
+        }));
+        toast.info(`Game ended: ${reason}`);
+      }
+    );
+
+    socket.on("error", ({ message }: { message: string }) => {
+      toast.error(message);
     });
 
     return () => {
@@ -227,6 +273,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       socket.off("drawing-event");
       socket.off("canvas-cleared");
       socket.off("game-ended");
+      socket.off("player-ready");
+      socket.off("error");
     };
   }, [socket, gameState.roundNumber]);
 
@@ -254,6 +302,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           isPublic,
           maxPlayers: 6,
           roundTime: 60,
+          maxRounds: 6,
           wordPack,
         }),
       });
@@ -279,6 +328,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       roundNumber: 0,
       isDrawer: false,
       playerName: "",
+      ownerId: null,
+      maxRounds: 6,
     });
     setChatMessages([]);
   };
@@ -286,6 +337,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const startGame = () => {
     if (!socket) return;
     socket.emit("start-game");
+  };
+
+  const setReadyState = (isReady: boolean) => {
+    if (!socket) return;
+    socket.emit("set-ready", { isReady });
   };
 
   const sendGuess = (guess: string) => {
@@ -318,6 +374,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         createRoom,
         leaveRoom,
         startGame,
+        setReadyState,
         sendGuess,
         sendChatMessage,
         sendDrawingEvent,
