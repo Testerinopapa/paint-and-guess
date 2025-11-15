@@ -4,6 +4,22 @@ import { useSocket } from "@/hooks/useSocket";
 import { toast } from "sonner";
 import { AvatarConfig, encodeAvatarConfig, decodeAvatarConfig } from "@/lib/avatar/config";
 
+const PLAYER_STORAGE_KEY_PREFIX = "paint-and-guess:player:";
+
+function getStoredPlayerId(roomId: string | null) {
+  if (typeof window === "undefined" || !roomId) return null;
+  return window.sessionStorage.getItem(`${PLAYER_STORAGE_KEY_PREFIX}${roomId}`);
+}
+
+function setStoredPlayerId(roomId: string | null, playerId: string | null) {
+  if (typeof window === "undefined" || !roomId) return;
+  if (playerId) {
+    window.sessionStorage.setItem(`${PLAYER_STORAGE_KEY_PREFIX}${roomId}`, playerId);
+  } else {
+    window.sessionStorage.removeItem(`${PLAYER_STORAGE_KEY_PREFIX}${roomId}`);
+  }
+}
+
 interface Player {
   id: string;
   name: string;
@@ -25,6 +41,7 @@ interface GameState {
   playerName: string;
   ownerId: string | null;
   maxRounds: number;
+  selfId: string | null;
 }
 
 interface GameContextType {
@@ -68,34 +85,45 @@ export function GameProvider({ children }: { children: ReactNode }) {
     playerName: "",
     ownerId: null,
     maxRounds: 6,
+    selfId: null,
   });
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
     if (!socket) return;
 
+    socket.on("session", ({ playerId }: { playerId: string }) => {
+      setGameState((prev) => {
+        if (prev.roomId) {
+          setStoredPlayerId(prev.roomId, playerId);
+        }
+        return {
+          ...prev,
+          selfId: playerId,
+          isDrawer: prev.currentDrawer?.id === playerId,
+        };
+      });
+    });
+
     socket.on("room-state", (state: any) => {
-      console.log(`[GameContext] 🏠 Room state received. Host: ${state.ownerId}, Players: ${state.players?.length || 0}, Active: ${state.isGameActive}`);
-      
-      // Store session credentials in localStorage for reconnection
-      if (state.sessionToken && state.playerId) {
-        localStorage.setItem(`room_${state.id}_playerId`, state.playerId);
-        localStorage.setItem(`room_${state.id}_sessionToken`, state.sessionToken);
-        console.log(`[GameContext] 💾 Stored session credentials for room ${state.id}`);
-      }
-      
-      setGameState((prev) => ({
-        ...prev,
-        ...state,
-        // Use persistent playerId instead of socket.id
-        isDrawer: state.currentDrawer?.id === state.playerId,
-      }));
+      setGameState((prev) => {
+        const { id, ...rest } = state;
+        const nextRoomId = id ?? prev.roomId;
+        if (prev.selfId && nextRoomId) {
+          setStoredPlayerId(nextRoomId, prev.selfId);
+        }
+        return {
+          ...prev,
+          ...rest,
+          roomId: nextRoomId,
+          isDrawer: prev.selfId ? rest.currentDrawer?.id === prev.selfId : false,
+        };
+      });
     });
 
     socket.on(
       "player-joined",
       ({ player, players, ownerId }: { player: Player; players: Player[]; ownerId: string | null }) => {
-        console.log(`[GameContext] ➕ Player joined: ${player.name}. Host: ${ownerId}, Total players: ${players.length}`);
         setGameState((prev) => ({
           ...prev,
           players,
@@ -119,20 +147,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "game-started",
       ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
-        setGameState((prev) => {
-          const storedPlayerId = prev.roomId ? localStorage.getItem(`room_${prev.roomId}_playerId`) : null;
-          const isDrawer = drawer.id === storedPlayerId;
-          console.log(`[GameContext] 🎮 Game started! Round: ${roundNumber}, Drawer: ${drawer.name}, isDrawer: ${isDrawer}`);
-          return {
-            ...prev,
-            isGameActive: true,
-            currentDrawer: drawer,
-            roundTime,
-            timeLeft: roundTime,
-            isDrawer,
-            roundNumber,
-          };
-        });
+        setGameState((prev) => ({
+          ...prev,
+          isGameActive: true,
+          currentDrawer: drawer,
+          roundTime,
+          timeLeft: roundTime,
+          isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
+          roundNumber,
+        }));
         toast.info("Game started!");
       }
     );
@@ -148,20 +171,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "round-started",
       ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
-        setGameState((prev) => {
-          const storedPlayerId = prev.roomId ? localStorage.getItem(`room_${prev.roomId}_playerId`) : null;
-          const isDrawer = drawer.id === storedPlayerId;
-          console.log(`[GameContext] 🔄 Round ${roundNumber} started! Drawer: ${drawer.name}, isDrawer: ${isDrawer}`);
-          return {
-            ...prev,
-            currentDrawer: drawer,
-            roundTime,
-            timeLeft: roundTime,
-            isDrawer,
-            roundNumber,
-            currentWord: null,
-          };
-        });
+        setGameState((prev) => ({
+          ...prev,
+          currentDrawer: drawer,
+          roundTime,
+          timeLeft: roundTime,
+          isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
+          roundNumber,
+          currentWord: null,
+        }));
         setChatMessages([]);
         toast.info(`Round ${roundNumber} started!`);
       }
@@ -177,7 +195,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "round-ended",
       ({ word, scores, roundNumber }: { word: string; scores: Player[]; roundNumber: number }) => {
-        console.log(`[GameContext] ⏸️ Round ${roundNumber} ended! Word was: "${word}"`);
         setGameState((prev) => ({
           ...prev,
           players: scores,
@@ -201,18 +218,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
             type: "correct-guess",
           },
         ]);
-        setGameState((prev) => {
-          const storedPlayerId = prev.roomId ? localStorage.getItem(`room_${prev.roomId}_playerId`) : null;
-          if (player.id !== storedPlayerId) {
-            toast.success(`${player.name} guessed correctly!`);
-          }
-          return {
-            ...prev,
-            players: players ?? prev.players.map((p) =>
-              p.id === player.id ? { ...p, score: p.score + points } : p
-            ),
-          };
-        });
+        setGameState((prev) => ({
+          ...prev,
+          players: players ?? prev.players.map((p) =>
+            p.id === player.id ? { ...p, score: p.score + points } : p
+          ),
+        }));
+        if (player.id !== gameState.selfId) {
+          toast.success(`${player.name} guessed correctly!`);
+        }
       }
     );
 
@@ -252,8 +266,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
 
     socket.on("player-ready", ({ players, ownerId }: { players: Player[]; ownerId: string | null }) => {
-      const readyCount = players.filter(p => p.isReady).length;
-      console.log(`[GameContext] ${readyCount}/${players.length} players ready. Host: ${ownerId}`);
       setGameState((prev) => ({
         ...prev,
         players,
@@ -264,7 +276,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "game-ended",
       ({ reason, scores }: { reason: string; scores?: Player[] }) => {
-        console.log(`[GameContext] 🏁 Game ended! Reason: ${reason}`);
         setGameState((prev) => ({
           ...prev,
           isGameActive: false,
@@ -279,6 +290,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
+      socket.off("session");
       socket.off("room-state");
       socket.off("player-joined");
       socket.off("player-left");
@@ -296,42 +308,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
       socket.off("player-ready");
       socket.off("error");
     };
-  }, [socket, gameState.roundNumber]);
+  }, [socket, gameState.roundNumber, gameState.selfId]);
 
   const joinRoom = (roomId: string, playerName: string, avatar?: string | AvatarConfig) => {
     if (!socket) return;
     
-    // Check for stored session credentials (for reconnection)
-    const storedPlayerId = localStorage.getItem(`room_${roomId}_playerId`);
-    const storedSessionToken = localStorage.getItem(`room_${roomId}_sessionToken`);
-    
     // Encode avatar config as JSON string if it's an object
     const avatarData = typeof avatar === 'object' ? encodeAvatarConfig(avatar) : avatar;
-    
-    // Include reconnection credentials if available
-    const joinData: any = { 
-      roomId, 
-      playerName, 
-      avatar: avatarData 
-    };
-    
-    if (storedPlayerId && storedSessionToken) {
-      joinData.reconnectPlayerId = storedPlayerId;
-      joinData.reconnectToken = storedSessionToken;
-      console.log(`[GameContext] 🔄 Attempting to reconnect as ${storedPlayerId}`);
-    }
-    
-    console.log(`[GameContext] 🚪 join-room emit`, {
-      roomId,
-      hasAvatar: Boolean(avatarData),
-      isReconnect: Boolean(storedPlayerId && storedSessionToken),
-    });
-    
-    socket.emit("join-room", joinData);
+    const storedPlayerId = getStoredPlayerId(roomId);
+    socket.emit("join-room", { roomId, playerName, avatar: avatarData, playerId: storedPlayerId });
     setGameState((prev) => ({
       ...prev,
       roomId,
       playerName,
+      selfId: storedPlayerId ?? prev.selfId,
     }));
   };
 
@@ -364,14 +354,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const leaveRoom = () => {
     if (!socket) return;
     
-    // Clear session credentials when leaving
-    if (gameState.roomId) {
-      localStorage.removeItem(`room_${gameState.roomId}_playerId`);
-      localStorage.removeItem(`room_${gameState.roomId}_sessionToken`);
-    }
-    
     console.log(`[GameContext] 🚪 Leaving room`, { roomId: gameState.roomId });
     socket.emit("leave-room");
+    setStoredPlayerId(gameState.roomId, null);
     setGameState({
       roomId: null,
       players: [],
@@ -385,6 +370,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       playerName: "",
       ownerId: null,
       maxRounds: 6,
+      selfId: null,
     });
     setChatMessages([]);
   };
@@ -397,7 +383,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const setReadyState = (isReady: boolean) => {
     if (!socket) return;
-    console.log(`[GameContext] ${isReady ? '✅' : '❌'} set-ready emit`, { isReady });
     socket.emit("set-ready", { isReady });
   };
 
@@ -457,4 +442,3 @@ export function useGame() {
   }
   return context;
 }
-

@@ -2,10 +2,13 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import path from "path";
+import fs from "fs/promises";
+import { fileURLToPath } from "url";
 import { v4 as uuidv4 } from "uuid";
 import { WORDS, getWordPacks, getRandomWordFromPack } from "./words.js";
-import { GameRoom } from "./gameRoom.js";
-import { roomRepository } from "./roomRepository.js";
+import { RoomStore } from "./store/roomStore.js";
+import { RoomRepository } from "./store/roomRepository.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -19,12 +22,31 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
-// Initialize room repository
-await roomRepository.init();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const dataDir = path.join(__dirname, "..", "data");
+await fs.mkdir(dataDir, { recursive: true });
+
+const roomStore = new RoomStore(path.join(dataDir, "rooms.db"));
+const roomRepository = new RoomRepository(roomStore);
+await roomRepository.initialize();
+
+async function persistRoom(room) {
+  room.pruneDisconnectedPlayers(PLAYER_DISCONNECT_GRACE_PERIOD_MS);
+
+  if (room.players.length === 0) {
+    await roomRepository.deleteRoom(room.id);
+    return false;
+  }
+
+  await roomRepository.saveRoom(room);
+  return true;
+}
 
 const MAX_MESSAGE_LENGTH = 200;
 const MAX_NAME_LENGTH = 24;
 const MAX_AVATAR_LENGTH = 2048;
+const PLAYER_DISCONNECT_GRACE_PERIOD_MS = 2 * 60 * 1000;
 
 function sanitizeName(name, fallback) {
   if (typeof name !== "string") {
@@ -53,16 +75,17 @@ function sanitizeAvatar(avatar) {
 }
 
 function serializePlayers(players) {
-  return players.map((player) => ({
-    id: player.id,
-    name: player.name,
-    score: player.score,
-    isReady: player.isReady,
-    avatar: player.avatar ?? null,
-  }));
+  return players
+    .filter((player) => player && player.connected)
+    .map((player) => ({
+      id: player.id,
+      name: player.name,
+      score: player.score,
+      isReady: player.isReady,
+      avatar: player.avatar ?? null,
+    }));
 }
 
-// Helper functions
 function generateRoomId() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
@@ -79,15 +102,16 @@ function getRandomWordForRoom(room) {
 // REST API endpoints
 app.get("/api/rooms", (req, res) => {
   const publicRooms = roomRepository
-    .getPublic()
+    .listPublicRooms()
     .filter((room) => !room.isGameActive)
     .map((room) => ({
       id: room.id,
       name: room.name,
-      players: room.players.length,
+      players: room.getActivePlayerCount(),
       maxPlayers: room.maxPlayers,
       wordPack: room.wordPack,
     }));
+
   res.json(publicRooms);
 });
 
@@ -107,7 +131,7 @@ app.post("/api/rooms", async (req, res) => {
   const { name, isPublic = true, maxPlayers = 6, roundTime = 60, maxRounds = 6, wordPack = "classic" } = req.body;
   const roomId = generateRoomId();
 
-  const room = new GameRoom({
+  const room = await roomRepository.createRoom({
     id: roomId,
     name: sanitizeName(name, `Room ${roomId}`),
     isPublic,
@@ -117,167 +141,121 @@ app.post("/api/rooms", async (req, res) => {
     wordPack,
   });
 
-  await roomRepository.set(roomId, room);
   res.json({ roomId, ...room.toJSON() });
 });
 
-// Socket.io connection handling
 io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);
 
-  socket.on("join-room", async ({ roomId, playerName, avatar, reconnectPlayerId, reconnectToken }) => {
-    const room = roomRepository.get(roomId);
-    console.log(`[Server] 🚪 join-room`, {
-      roomId,
-      playerName,
-      hasAvatar: Boolean(avatar),
-      isReconnect: Boolean(reconnectPlayerId && reconnectToken),
-    });
+  socket.on("join-room", async ({ roomId, playerName, avatar, playerId: reconnectId }) => {
+    const room = roomRepository.getRoom(roomId);
     if (!room) {
       socket.emit("error", { message: "Room not found" });
       return;
     }
 
-    let player;
-    let sessionToken;
-    let isReconnection = false;
+    room.pruneDisconnectedPlayers(PLAYER_DISCONNECT_GRACE_PERIOD_MS);
 
-    // Check if this is a reconnection attempt
-    if (reconnectPlayerId && reconnectToken) {
-      const existingPlayer = room.getPlayerById(reconnectPlayerId);
-      
-      if (existingPlayer && room.validateSessionToken(reconnectPlayerId, reconnectToken)) {
-        // Valid reconnection
-        player = existingPlayer;
-        player.socketId = socket.id;
-        sessionToken = reconnectToken; // Reuse existing token
-        isReconnection = true;
-        console.log(`[Server] 🔄 Player reconnected`, {
-          playerId: player.id,
-          name: player.name,
-          socketId: socket.id,
-        });
-      } else {
-        // Invalid token or player not found - reject reconnection
-        socket.emit("error", { message: "Invalid reconnection credentials" });
-        console.log(`[Server] ⛔ Invalid reconnection attempt`, {
-          playerId: reconnectPlayerId,
-          hasToken: Boolean(reconnectToken),
-        });
-        return;
+    const existingPlayerId = typeof reconnectId === "string" ? reconnectId : null;
+    const existingPlayer = existingPlayerId ? room.getPlayerById(existingPlayerId) : null;
+
+    if (!existingPlayer && room.getActivePlayerCount() >= room.maxPlayers) {
+      socket.emit("error", { message: "Room is full" });
+      return;
+    }
+
+    let playerRecord;
+
+    if (existingPlayer) {
+      if (existingPlayer.connected && existingPlayer.socketId && existingPlayer.socketId !== socket.id) {
+        const previousSocket = io.sockets.sockets.get(existingPlayer.socketId);
+        if (previousSocket) {
+          previousSocket.data.roomId = null;
+          previousSocket.data.playerId = null;
+          previousSocket.disconnect(true);
+        }
       }
+
+      existingPlayer.name = sanitizeName(playerName, existingPlayer.name);
+      existingPlayer.avatar = sanitizeAvatar(avatar);
+      existingPlayer.isReady = false;
+      existingPlayer.hasGuessed = false;
+      playerRecord = existingPlayer;
     } else {
-      // New player joining
-      if (room.players.length >= room.maxPlayers) {
-        socket.emit("error", { message: "Room is full" });
-        return;
-      }
-
-      // Generate stable player ID
-      const playerId = uuidv4();
-
-      player = {
-        id: playerId,
-        socketId: socket.id,
-        name: sanitizeName(
-          playerName,
-          `Player ${room.players.length + 1}`
-        ),
+      const activeCount = room.getActivePlayerCount();
+      const newPlayer = {
+        id: uuidv4(),
+        name: sanitizeName(playerName, `Player ${activeCount + 1}`),
         score: 0,
         isReady: false,
         avatar: sanitizeAvatar(avatar),
+        hasGuessed: false,
+        socketId: socket.id,
       };
-
-      room.addPlayer(player);
-      
-      // Generate session token for this player
-      sessionToken = room.generateSessionToken(playerId);
-      
-      console.log(`[Server] ➕ New player joined`, {
-        playerId: player.id,
-        name: player.name,
-        socketId: player.socketId,
-        roomSize: room.players.length,
-      });
+      room.addPlayer(newPlayer);
+      playerRecord = room.getPlayerById(newPlayer.id);
     }
+
+    room.markPlayerConnected(playerRecord.id, socket.id);
 
     socket.join(roomId);
     socket.data.roomId = roomId;
-    socket.data.playerId = player.id;
+    socket.data.playerId = playerRecord.id;
 
-    // Save room state
-    await roomRepository.set(roomId, room);
+    await persistRoom(room);
 
-    if (!isReconnection) {
-      // Notify room of new player
-      const publicPlayer = serializePlayers([player])[0];
-      io.to(roomId).emit("player-joined", {
-        player: publicPlayer,
-        players: serializePlayers(room.players),
-        ownerId: room.ownerId,
+    socket.emit("session", { playerId: playerRecord.id });
+
+    const publicPlayer =
+      serializePlayers([playerRecord])[0] ??
+      ({
+        id: playerRecord.id,
+        name: playerRecord.name,
+        score: playerRecord.score,
+        isReady: playerRecord.isReady,
+        avatar: playerRecord.avatar ?? null,
       });
-    }
-
-    // Send current room state and session credentials to the player
-    socket.emit("room-state", {
-      ...room.toJSON(),
-      sessionToken, // Send session token for reconnection
-      playerId: player.id, // Send stable player ID
+    io.to(roomId).emit("player-joined", {
+      player: publicPlayer,
+      players: serializePlayers(room.players),
+      ownerId: room.ownerId,
     });
 
-    // If reconnecting and game is active, restore drawer state
-    if (isReconnection && room.isGameActive && room.currentDrawer?.id === player.id) {
-      console.log(`[Server] 🎨 Drawer reconnected, sending word: ${room.currentWord}`);
-      socket.emit("draw-word", { word: room.currentWord });
-      
-      // Restart round timer if round is active
-      if (room.isRoundActive && !room.timer) {
-        room.startRoundTimer((timeLeft) => {
-          io.to(roomId).emit("round-timer", { timeLeft });
-          if (timeLeft === 0) {
-            endRound(roomId);
-          }
-        });
-      }
-    }
+    socket.emit("room-state", room.toJSON());
   });
 
   socket.on("leave-room", async () => {
-    const roomId = socket.data.roomId;
-    const playerId = socket.data.playerId;
-    if (!roomId) return;
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
 
-    const room = roomRepository.get(roomId);
-    if (room) {
-      room.removePlayer(playerId);
-      socket.leave(roomId);
+    const room = roomRepository.getRoom(roomId);
+    if (!room) return;
 
-      if (room.players.length === 0) {
-        await roomRepository.delete(roomId);
-        console.log(`[Server] 🗑️ Deleted empty room: ${roomId}`);
-      } else {
-        await roomRepository.set(roomId, room);
-        io.to(roomId).emit("player-left", {
-          playerId: playerId,
-          players: serializePlayers(room.players),
-          ownerId: room.ownerId,
-        });
-      }
+    room.removePlayer(playerId);
+    socket.leave(roomId);
+    socket.data.roomId = null;
+    socket.data.playerId = null;
+
+    const kept = await persistRoom(room);
+    if (!kept) {
+      return;
     }
+
+    io.to(roomId).emit("player-left", {
+      playerId,
+      players: serializePlayers(room.players),
+      ownerId: room.ownerId,
+    });
   });
 
   socket.on("start-game", async () => {
-    const roomId = socket.data.roomId;
-    const playerId = socket.data.playerId;
-    if (!roomId) return;
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
 
-    const room = roomRepository.get(roomId);
+    const room = roomRepository.getRoom(roomId);
     if (!room || room.isGameActive) return;
 
-    console.log(`[Server] 🎮 start-game request from player ${playerId}, room owner: ${room.ownerId}`);
-    
     if (room.ownerId !== playerId) {
-      console.log(`[Server] ⛔ Non-host ${playerId} tried to start game`);
       socket.emit("error", { message: "Only the host can start the game" });
       return;
     }
@@ -285,76 +263,51 @@ io.on("connection", (socket) => {
     try {
       const getWord = () => getRandomWordForRoom(room);
       room.startGame(getWord);
-      console.log(`[Server] ✅ Game started successfully in room ${roomId}`);
+      await persistRoom(room);
     } catch (error) {
-      console.log(`[Server] ❌ Failed to start game: ${error.message}`);
       socket.emit("error", { message: error.message });
       return;
     }
 
+    const drawer = serializePlayers([room.currentDrawer])[0] ?? null;
     io.to(roomId).emit("game-started", {
-      drawer: room.currentDrawer,
+      drawer,
       roundTime: room.roundTime,
       roundNumber: room.roundNumber,
     });
 
-    // Send word only to drawer (use socketId)
     if (room.currentDrawer?.socketId) {
       io.to(room.currentDrawer.socketId).emit("draw-word", {
         word: room.currentWord,
       });
-      console.log(`[Server] ✉️ draw-word sent to drawer`, {
-        drawerId: room.currentDrawer.id,
-        drawerSocket: room.currentDrawer.socketId,
-        wordLength: room.currentWord?.length ?? 0,
-      });
-    } else {
-      console.log(`[Server] ⚠️ Drawer ${room.currentDrawer?.name} has no socketId, ending round`);
-      await endRound(roomId);
-      return;
     }
 
-    // Save room state
-    await roomRepository.set(roomId, room);
-
-    // Start round timer
-    room.startRoundTimer((timeLeft) => {
+    room.startRoundTimer(async (timeLeft) => {
       io.to(roomId).emit("round-timer", { timeLeft });
+      await persistRoom(room);
       if (timeLeft === 0) {
-        endRound(roomId);
+        await endRound(roomId);
       }
     });
   });
 
   socket.on("drawing-event", (event) => {
-    const roomId = socket.data.roomId;
-    const playerId = socket.data.playerId;
-    if (!roomId) return;
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
 
-    const room = roomRepository.get(roomId);
+    const room = roomRepository.getRoom(roomId);
     if (!room || !room.isGameActive) return;
 
-    // Only drawer can send drawing events
     if (playerId !== room.currentDrawer?.id) return;
 
-    if (event?.type) {
-      console.debug(`[Server] ✏️ drawing-event relay`, {
-        type: event.type,
-        roomId,
-        drawerId: playerId,
-      });
-    }
-
-    // Broadcast to all other players in room
     socket.to(roomId).emit("drawing-event", event);
   });
 
   socket.on("clear-canvas", () => {
-    const roomId = socket.data.roomId;
-    const playerId = socket.data.playerId;
-    if (!roomId) return;
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
 
-    const room = roomRepository.get(roomId);
+    const room = roomRepository.getRoom(roomId);
     if (!room || !room.isGameActive) return;
 
     if (playerId !== room.currentDrawer?.id) return;
@@ -364,20 +317,17 @@ io.on("connection", (socket) => {
   });
 
   socket.on("guess", async ({ guess }) => {
-    const roomId = socket.data.roomId;
-    const playerId = socket.data.playerId;
-    if (!roomId) return;
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
 
-    const room = roomRepository.get(roomId);
+    const room = roomRepository.getRoom(roomId);
     if (!room || !room.isGameActive) return;
 
-    // Drawer can't guess
     if (playerId === room.currentDrawer?.id) return;
 
     const player = room.getPlayerById(playerId);
-    if (!player) return;
+    if (!player || !player.connected) return;
 
-    // Check if already guessed correctly
     if (player.hasGuessed) return;
 
     const sanitizedGuess = sanitizeMessage(guess);
@@ -386,50 +336,45 @@ io.on("connection", (socket) => {
     }
 
     const normalizedGuess = sanitizedGuess.toLowerCase();
-    const normalizedWord = room.currentWord.toLowerCase().trim();
+    const normalizedWord = room.currentWord?.toLowerCase().trim();
+
+    if (!normalizedWord) {
+      return;
+    }
 
     if (normalizedGuess === normalizedWord) {
-      // Correct guess!
       player.hasGuessed = true;
-      const timeRemaining = room.roundTime - room.elapsedTime;
+      const timeRemaining = room.getTimeRemainingSeconds();
       const points = Math.max(50, Math.floor(100 * (timeRemaining / room.roundTime)));
       player.score += points;
 
-      // Award drawer points
-      if (room.currentDrawer && !room.drawerRewarded) {
+      if (room.currentDrawer && room.currentDrawer.connected && !room.drawerRewarded) {
         const drawerPoints = 75;
         room.currentDrawer.score += drawerPoints;
         room.markDrawerRewarded();
-        console.log(`[Server] 🏆 Points awarded`, {
-          guesserId: player.id,
-          guesserPoints: points,
-          drawerId: room.currentDrawer.id,
-          drawerPoints,
-        });
       }
 
-      io.to(roomId).emit("correct-guess", {
+      const payload = {
         player: { id: player.id, name: player.name },
         points,
         word: room.currentWord,
         players: serializePlayers(room.players),
-      });
+      };
 
-      // Check if all players guessed
-      const allGuessed = room.players
+      io.to(roomId).emit("correct-guess", payload);
+
+      const allGuessed = room
+        .getActivePlayers()
         .filter((p) => p.id !== room.currentDrawer?.id)
         .every((p) => p.hasGuessed);
 
-      // Save updated scores
-      await roomRepository.set(roomId, room);
-
       if (allGuessed) {
-        // Everyone guessed - end round early
-        endRound(roomId);
+        await endRound(roomId);
+        return;
       }
+
+      await persistRoom(room);
     } else {
-      // Wrong guess - broadcast to room
-      console.debug(`[Server] 🙊 wrong-guess`, { playerId, guessLength: sanitizedGuess.length });
       io.to(roomId).emit("wrong-guess", {
         player: { id: player.id, name: player.name },
         guess: sanitizedGuess,
@@ -438,17 +383,15 @@ io.on("connection", (socket) => {
   });
 
   socket.on("chat-message", ({ message }) => {
-    const roomId = socket.data.roomId;
-    const playerId = socket.data.playerId;
-    if (!roomId) return;
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
 
-    const room = roomRepository.get(roomId);
+    const room = roomRepository.getRoom(roomId);
     if (!room) return;
 
     const player = room.getPlayerById(playerId);
-    if (!player) return;
+    if (!player || !player.connected) return;
 
-    // Filter out hints and offensive words (basic MVP filtering)
     const filteredMessage = sanitizeMessage(message);
     if (filteredMessage.length === 0) return;
 
@@ -460,22 +403,22 @@ io.on("connection", (socket) => {
   });
 
   socket.on("set-ready", async ({ isReady }) => {
-    const roomId = socket.data.roomId;
-    const playerId = socket.data.playerId;
-    if (!roomId) return;
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
 
-    const room = roomRepository.get(roomId);
+    const room = roomRepository.getRoom(roomId);
     if (!room || room.isGameActive) return;
 
-    const ready = Boolean(isReady);
     const player = room.getPlayerById(playerId);
-    console.log(`[Server] ${ready ? '✅' : '❌'} Player ${player?.name || playerId} set ready: ${ready}`);
+    if (!player || !player.connected) return;
+
+    const ready = Boolean(isReady);
     room.setPlayerReady(playerId, ready);
 
-    await roomRepository.set(roomId, room);
+    await persistRoom(room);
 
     io.to(roomId).emit("player-ready", {
-      playerId: playerId,
+      playerId,
       isReady: ready,
       players: serializePlayers(room.players),
       ownerId: room.ownerId,
@@ -483,41 +426,28 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    const roomId = socket.data.roomId;
-    const playerId = socket.data.playerId;
-    if (!roomId) return;
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
 
-    const room = roomRepository.get(roomId);
-    if (room) {
-      const player = room.getPlayerById(playerId);
-      
-      // Clear socketId but keep player in room for potential reconnection
-      if (player) {
-        player.socketId = null;
-        console.log(`[Server] 🔌 Player disconnected: ${player.name} (${playerId}), room: ${roomId}`);
-      }
+    const room = roomRepository.getRoom(roomId);
+    if (!room) return;
 
-      socket.leave(roomId);
+    room.markPlayerDisconnected(playerId);
+    socket.leave(roomId);
+    socket.data.roomId = null;
+    socket.data.playerId = null;
 
-      // Only delete room if all players are disconnected and no active game
-      const allDisconnected = room.players.every(p => !p.socketId);
-      if (allDisconnected && !room.isGameActive) {
-        await roomRepository.delete(roomId);
-        console.log(`[Server] 🗑️ Deleted room ${roomId} (all players disconnected)`);
-      } else {
-        await roomRepository.set(roomId, room);
-        
-        // Notify other players (but don't remove from player list yet)
-        io.to(roomId).emit("player-disconnected", {
-          playerId: playerId,
-          playerName: player?.name,
-        });
+    const kept = await persistRoom(room);
 
-        // If drawer disconnected during active round, pause/end round
-        if (room.isGameActive && room.currentDrawer?.id === playerId && room.isRoundActive) {
-          console.log(`[Server] ⚠️ Drawer disconnected during active round, ending round`);
-          endRound(roomId);
-        }
+    if (kept) {
+      io.to(roomId).emit("player-left", {
+        playerId,
+        players: serializePlayers(room.players),
+        ownerId: room.ownerId,
+      });
+
+      if (room.isGameActive && room.currentDrawer?.id === playerId) {
+        await endRound(roomId);
       }
     }
 
@@ -525,85 +455,91 @@ io.on("connection", (socket) => {
   });
 
   async function endRound(roomId) {
-    const room = roomRepository.get(roomId);
+    const room = roomRepository.getRoom(roomId);
     if (!room) return;
 
     if (!room.isGameActive || !room.isRoundActive) {
       return;
     }
 
-    console.log(`[Server] ⏸️ Ending round ${room.roundNumber} in room ${roomId}`);
     room.endRound();
     const revealedWord = room.currentWord;
+    room.currentWord = null;
 
-    // Send round results
+    const keptAfterEnd = await persistRoom(room);
+
+    if (!keptAfterEnd) {
+      return;
+    }
+
     io.to(roomId).emit("round-ended", {
       word: revealedWord,
       scores: serializePlayers(room.players),
       roundNumber: room.roundNumber,
     });
 
-    room.currentWord = null;
-
-    // Save room state
-    await roomRepository.set(roomId, room);
-
-    // Count connected players
-    const connectedPlayers = room.players.filter(p => p.socketId);
-    
-    if (room.shouldEndGame() || connectedPlayers.length < 2) {
+    if (room.shouldEndGame()) {
       room.isGameActive = false;
       room.currentDrawer = null;
-      const reason = connectedPlayers.length < 2 ? "not enough players" : "maximum rounds reached";
-      console.log(`[Server] 🏁 Game ended in room ${roomId}: ${reason}`);
+      const keptAfterFinish = await persistRoom(room);
+      if (!keptAfterFinish) {
+        return;
+      }
       io.to(roomId).emit("game-ended", {
-        reason,
+        reason: room.getActivePlayerCount() < 2 ? "not enough players" : "maximum rounds reached",
         scores: serializePlayers(room.players),
       });
-      await roomRepository.set(roomId, room);
       return;
     }
 
-    console.log(`[Server] ⏳ Starting next round in 3 seconds...`);
-    // Wait 3 seconds before starting next round
     setTimeout(async () => {
-      // Rotate drawer
-      const getWord = () => getRandomWordForRoom(room);
-      room.nextRound(getWord);
+      try {
+        const getWord = () => getRandomWordForRoom(room);
+        room.nextRound(getWord);
+        const keptDuringSetup = await persistRoom(room);
+        if (!keptDuringSetup) {
+          return;
+        }
 
-      console.log(`[Server] 🔄 Broadcasting round-started for round ${room.roundNumber}`);
-      io.to(roomId).emit("round-started", {
-        drawer: room.currentDrawer,
-        roundTime: room.roundTime,
-        roundNumber: room.roundNumber,
-      });
+        const drawer = serializePlayers([room.currentDrawer])[0] ?? null;
+        io.to(roomId).emit("round-started", {
+          drawer,
+          roundTime: room.roundTime,
+          roundNumber: room.roundNumber,
+        });
 
-      // Send word only to drawer (use socketId)
-      if (room.currentDrawer?.socketId) {
+        if (!room.currentDrawer?.socketId) {
+          await endRound(roomId);
+          return;
+        }
+
         io.to(room.currentDrawer.socketId).emit("draw-word", {
           word: room.currentWord,
         });
-        console.log(`[Server] ✉️ draw-word sent (next round)`, {
-          drawerId: room.currentDrawer.id,
-          drawerSocket: room.currentDrawer.socketId,
-          wordLength: room.currentWord?.length ?? 0,
+
+        room.startRoundTimer(async (timeLeft) => {
+          io.to(roomId).emit("round-timer", { timeLeft });
+          const keptDuringTimer = await persistRoom(room);
+          if (!keptDuringTimer) {
+            return;
+          }
+          if (timeLeft === 0) {
+            await endRound(roomId);
+          }
         });
-      } else {
-        console.log(`[Server] ⚠️ Drawer ${room.currentDrawer?.name} not connected, ending round`);
-        await endRound(roomId);
-        return;
-      }
-
-      // Save room state
-      await roomRepository.set(roomId, room);
-
-      // Start round timer
-      room.startRoundTimer((timeLeft) => {
-        io.to(roomId).emit("round-timer", { timeLeft });
-        if (timeLeft === 0) {
-          endRound(roomId);
+      } catch (error) {
+        console.error("Failed to start next round", error);
+        room.isGameActive = false;
+        room.currentDrawer = null;
+        const keptAfterError = await persistRoom(room);
+        if (!keptAfterError) {
+          return;
         }
-      });
+        io.to(roomId).emit("game-ended", {
+          reason: "error",
+          scores: serializePlayers(room.players),
+        });
+      }
     }, 3000);
   }
 });
@@ -613,4 +549,3 @@ httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📡 Socket.io ready for connections`);
 });
-
