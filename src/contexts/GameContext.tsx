@@ -75,6 +75,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!socket) return;
 
     socket.on("room-state", (state: any) => {
+      console.log(`[GameContext] 🏠 Room state received. Host: ${state.ownerId}, Players: ${state.players?.length || 0}, Active: ${state.isGameActive}`);
       setGameState((prev) => ({
         ...prev,
         ...state,
@@ -85,6 +86,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "player-joined",
       ({ player, players, ownerId }: { player: Player; players: Player[]; ownerId: string | null }) => {
+        console.log(`[GameContext] ➕ Player joined: ${player.name}. Host: ${ownerId}, Total players: ${players.length}`);
         setGameState((prev) => ({
           ...prev,
           players,
@@ -108,6 +110,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "game-started",
       ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
+        console.log(`[GameContext] 🎮 Game started! Round: ${roundNumber}, Drawer: ${drawer.name}, isDrawer: ${drawer.id === socket.id}`);
         setGameState((prev) => ({
           ...prev,
           isGameActive: true,
@@ -132,6 +135,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "round-started",
       ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
+        console.log(`[GameContext] 🔄 Round ${roundNumber} started! Drawer: ${drawer.name}, isDrawer: ${drawer.id === socket.id}`);
         setGameState((prev) => ({
           ...prev,
           currentDrawer: drawer,
@@ -156,6 +160,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "round-ended",
       ({ word, scores, roundNumber }: { word: string; scores: Player[]; roundNumber: number }) => {
+        console.log(`[GameContext] ⏸️ Round ${roundNumber} ended! Word was: "${word}"`);
         setGameState((prev) => ({
           ...prev,
           players: scores,
@@ -227,6 +232,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
 
     socket.on("player-ready", ({ players, ownerId }: { players: Player[]; ownerId: string | null }) => {
+      const readyCount = players.filter(p => p.isReady).length;
+      console.log(`[GameContext] ${readyCount}/${players.length} players ready. Host: ${ownerId}`);
       setGameState((prev) => ({
         ...prev,
         players,
@@ -237,6 +244,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on(
       "game-ended",
       ({ reason, scores }: { reason: string; scores?: Player[] }) => {
+        console.log(`[GameContext] 🏁 Game ended! Reason: ${reason}`);
         setGameState((prev) => ({
           ...prev,
           isGameActive: false,

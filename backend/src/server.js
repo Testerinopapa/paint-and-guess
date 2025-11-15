@@ -171,14 +171,19 @@ io.on("connection", (socket) => {
     const room = rooms.get(roomId);
     if (!room || room.isGameActive) return;
 
+    console.log(`[Server] 🎮 start-game request from ${socket.id}, room owner: ${room.ownerId}`);
+    
     if (room.ownerId !== socket.id) {
+      console.log(`[Server] ⛔ Non-host ${socket.id} tried to start game`);
       socket.emit("error", { message: "Only the host can start the game" });
       return;
     }
 
     try {
       room.startGame(getRandomWord);
+      console.log(`[Server] ✅ Game started successfully in room ${roomId}`);
     } catch (error) {
+      console.log(`[Server] ❌ Failed to start game: ${error.message}`);
       socket.emit("error", { message: error.message });
       return;
     }
@@ -321,6 +326,8 @@ io.on("connection", (socket) => {
     if (!room || room.isGameActive) return;
 
     const ready = Boolean(isReady);
+    const player = room.players.find((p) => p.id === socket.id);
+    console.log(`[Server] ${ready ? '✅' : '❌'} Player ${player?.name || socket.id} set ready: ${ready}`);
     room.setPlayerReady(socket.id, ready);
 
     io.to(roomId).emit("player-ready", {
@@ -367,6 +374,7 @@ io.on("connection", (socket) => {
       return;
     }
 
+    console.log(`[Server] ⏸️ Ending round ${room.roundNumber} in room ${roomId}`);
     room.endRound();
     const revealedWord = room.currentWord;
 
@@ -382,18 +390,22 @@ io.on("connection", (socket) => {
     if (room.shouldEndGame() || room.players.length < 2) {
       room.isGameActive = false;
       room.currentDrawer = null;
+      const reason = room.players.length < 2 ? "not enough players" : "maximum rounds reached";
+      console.log(`[Server] 🏁 Game ended in room ${roomId}: ${reason}`);
       io.to(roomId).emit("game-ended", {
-        reason: room.players.length < 2 ? "not enough players" : "maximum rounds reached",
+        reason,
         scores: serializePlayers(room.players),
       });
       return;
     }
 
+    console.log(`[Server] ⏳ Starting next round in 3 seconds...`);
     // Wait 3 seconds before starting next round
     setTimeout(() => {
       // Rotate drawer
       room.nextRound(getRandomWord);
 
+      console.log(`[Server] 🔄 Broadcasting round-started for round ${room.roundNumber}`);
       io.to(roomId).emit("round-started", {
         drawer: room.currentDrawer,
         roundTime: room.roundTime,
