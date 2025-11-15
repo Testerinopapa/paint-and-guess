@@ -4,22 +4,6 @@ import { useSocket } from "@/hooks/useSocket";
 import { toast } from "sonner";
 import { AvatarConfig, encodeAvatarConfig, decodeAvatarConfig } from "@/lib/avatar/config";
 
-const PLAYER_STORAGE_KEY_PREFIX = "paint-and-guess:player:";
-
-function getStoredPlayerId(roomId: string | null) {
-  if (typeof window === "undefined" || !roomId) return null;
-  return window.sessionStorage.getItem(`${PLAYER_STORAGE_KEY_PREFIX}${roomId}`);
-}
-
-function setStoredPlayerId(roomId: string | null, playerId: string | null) {
-  if (typeof window === "undefined" || !roomId) return;
-  if (playerId) {
-    window.sessionStorage.setItem(`${PLAYER_STORAGE_KEY_PREFIX}${roomId}`, playerId);
-  } else {
-    window.sessionStorage.removeItem(`${PLAYER_STORAGE_KEY_PREFIX}${roomId}`);
-  }
-}
-
 interface Player {
   id: string;
   name: string;
@@ -41,7 +25,6 @@ interface GameState {
   playerName: string;
   ownerId: string | null;
   maxRounds: number;
-  selfId: string | null;
 }
 
 interface GameContextType {
@@ -85,45 +68,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     playerName: "",
     ownerId: null,
     maxRounds: 6,
-    selfId: null,
   });
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("session", ({ playerId }: { playerId: string }) => {
-      setGameState((prev) => {
-        if (prev.roomId) {
-          setStoredPlayerId(prev.roomId, playerId);
-        }
-        return {
-          ...prev,
-          selfId: playerId,
-          isDrawer: prev.currentDrawer?.id === playerId,
-        };
-      });
-    });
-
-    socket.on("room-state", (state: any) => {
-      setGameState((prev) => {
-        const { id, ...rest } = state;
-        const nextRoomId = id ?? prev.roomId;
-        if (prev.selfId && nextRoomId) {
-          setStoredPlayerId(nextRoomId, prev.selfId);
-        }
-        return {
-          ...prev,
-          ...rest,
-          roomId: nextRoomId,
-          isDrawer: prev.selfId ? rest.currentDrawer?.id === prev.selfId : false,
-        };
-      });
-    });
-
-    socket.on(
-      "player-joined",
-      ({ player, players, ownerId }: { player: Player; players: Player[]; ownerId: string | null }) => {
     socket.on("room-state", (state: any) => {
       console.log(`[GameContext] 🏠 Room state received. Host: ${state.ownerId}, Players: ${state.players?.length || 0}, Active: ${state.isGameActive}`);
       setGameState((prev) => ({
@@ -154,24 +104,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
           players,
           ownerId: ownerId ?? prev.ownerId,
         }));
-        toast.success(`${player.name} joined the room`);
       }
     );
 
     socket.on(
-      "player-left",
-      ({ players, ownerId }: { players: Player[]; ownerId: string | null }) => {
-        setGameState((prev) => ({
-          ...prev,
-          players,
-          ownerId: ownerId ?? prev.ownerId,
-        }));
-      }
-    );
-
-    socket.on(
-      "game-started",
-      ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
       "game-started",
       ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
         console.log(`[GameContext] 🎮 Game started! Round: ${roundNumber}, Drawer: ${drawer.name}, isDrawer: ${drawer.id === socket.id}`);
@@ -181,7 +117,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
           currentDrawer: drawer,
           roundTime,
           timeLeft: roundTime,
-          isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
           isDrawer: drawer.id === socket.id,
           roundNumber,
         }));
@@ -206,7 +141,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
           currentDrawer: drawer,
           roundTime,
           timeLeft: roundTime,
-          isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
           isDrawer: drawer.id === socket.id,
           roundNumber,
           currentWord: null,
@@ -256,7 +190,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
             p.id === player.id ? { ...p, score: p.score + points } : p
           ),
         }));
-        if (player.id !== gameState.selfId) {
         if (player.id !== socket.id) {
           toast.success(`${player.name} guessed correctly!`);
         }
@@ -326,7 +259,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
-      socket.off("session");
       socket.off("room-state");
       socket.off("player-joined");
       socket.off("player-left");
@@ -344,19 +276,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
       socket.off("player-ready");
       socket.off("error");
     };
-  }, [socket, gameState.roundNumber, gameState.selfId]);
+  }, [socket, gameState.roundNumber]);
 
   const joinRoom = (roomId: string, playerName: string, avatar?: string | AvatarConfig) => {
     if (!socket) return;
     // Encode avatar config as JSON string if it's an object
     const avatarData = typeof avatar === 'object' ? encodeAvatarConfig(avatar) : avatar;
-    const storedPlayerId = getStoredPlayerId(roomId);
-    socket.emit("join-room", { roomId, playerName, avatar: avatarData, playerId: storedPlayerId });
+    socket.emit("join-room", { roomId, playerName, avatar: avatarData });
     setGameState((prev) => ({
       ...prev,
       roomId,
       playerName,
-      selfId: storedPlayerId ?? prev.selfId,
     }));
   };
 
@@ -387,7 +317,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const leaveRoom = () => {
     if (!socket) return;
     socket.emit("leave-room");
-    setStoredPlayerId(gameState.roomId, null);
     setGameState({
       roomId: null,
       players: [],
@@ -401,7 +330,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       playerName: "",
       ownerId: null,
       maxRounds: 6,
-      selfId: null,
     });
     setChatMessages([]);
   };

@@ -13,7 +13,6 @@ import { toast } from "sonner";
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
-  const { gameState, leaveRoom, startGame, isConnected, setReadyState } = useGame();
   const { gameState, leaveRoom, startGame, isConnected, socket, setReadyState } = useGame();
 
   useEffect(() => {
@@ -37,14 +36,6 @@ export default function Room() {
     }
     const allReady = gameState.players.every((player) => player.isReady);
     if (!allReady) {
-      toast.error("All players must be ready");
-      return;
-    }
-    startGame();
-  };
-
-  const currentPlayer = gameState.players.find((player) => player.id === gameState.selfId);
-  const isHost = gameState.ownerId === gameState.selfId;
       console.log(`[Room] ⚠️ Not all players ready: ${gameState.players.filter(p => p.isReady).length}/${gameState.players.length}`);
       toast.error("All players must be ready");
       return;
@@ -87,7 +78,6 @@ export default function Room() {
             {!gameState.isGameActive && gameState.players.length > 0 && (
               <div className="space-y-2 mt-4">
                 <Button
-                  onClick={() => setReadyState(!isReady)}
                   onClick={() => {
                     console.log(`[Room] ${!isReady ? '✅' : '❌'} Ready button clicked - setting ready to: ${!isReady}`);
                     setReadyState(!isReady);
