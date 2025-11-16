@@ -35,5 +35,8 @@ test-results-*.json
 
 # Persistent data
 backend/data/
+backend/prisma/data/
 
 rooms.db
+*.db
+*.db-journal
