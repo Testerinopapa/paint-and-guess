@@ -9,7 +9,17 @@ Backend server for the Paint & Guess multiplayer game.
 npm install
 ```
 
-2. Start the development server:
+2. Run the Prisma migrations (this also creates the local SQLite database):
+```bash
+npm run db:migrate
+```
+
+3. Generate the Prisma client (automatically done on install, but handy after schema edits):
+```bash
+npm run db:generate
+```
+
+4. Start the development server:
 ```bash
 npm run dev
 ```
@@ -19,6 +29,13 @@ The server will run on `http://localhost:3001` by default.
 ## Environment Variables
 
 - `PORT` - Server port (default: 3001)
+- `DATABASE_URL` - Optional Prisma connection string. Defaults to the bundled SQLite file at `file:./data/rooms.db` when omitted.
+
+You can inspect the database locally with:
+
+```bash
+npm run db:studio
+```
 
 ## API Endpoints
 
