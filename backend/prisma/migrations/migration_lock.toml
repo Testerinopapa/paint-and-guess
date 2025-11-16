@@ -1,0 +1,6 @@
+# This file is managed by Prisma Migrate.
+# It keeps track of the migration history for deployments.
+
+provider = "sqlite"
+
+

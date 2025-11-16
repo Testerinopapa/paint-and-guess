@@ -19,6 +19,23 @@ The server will run on `http://localhost:3001` by default.
 ## Environment Variables
 
 - `PORT` - Server port (default: 3001)
+- `DATABASE_URL` - Prisma database URL (SQLite). If unset, defaults to `file:backend/data/rooms.db`.
+
+## Prisma setup
+
+This backend uses Prisma + SQLite to persist rooms.
+
+1. Generate Prisma client:
+```bash
+npm run prisma:generate
+```
+
+2. Apply migrations (creates the `Room` table if missing):
+```bash
+npm run prisma:migrate
+```
+
+Optional: set a custom database path using `DATABASE_URL` (defaults to `file:backend/data/rooms.db`).
 
 ## API Endpoints
 
