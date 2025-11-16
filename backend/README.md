@@ -31,11 +31,31 @@ npm run prisma:generate
 ```
 
 2. Apply migrations (creates the `Room` table if missing):
+
+**Option A: Create a `.env` file** (recommended)
+Create `backend/.env` with:
+```
+DATABASE_URL="file:./data/rooms.db"
+```
+
+Then run:
 ```bash
 npm run prisma:migrate
 ```
 
-Optional: set a custom database path using `DATABASE_URL` (defaults to `file:backend/data/rooms.db`).
+**Option B: Set environment variable inline**
+
+On Windows (PowerShell):
+```powershell
+$env:DATABASE_URL="file:./data/rooms.db"; npm run prisma:migrate
+```
+
+On Linux/Mac:
+```bash
+DATABASE_URL="file:./data/rooms.db" npm run prisma:migrate
+```
+
+**Note:** The server will automatically use `file:./data/rooms.db` if `DATABASE_URL` is not set, but Prisma CLI requires it to be explicitly set for migrations.
 
 ## API Endpoints
 

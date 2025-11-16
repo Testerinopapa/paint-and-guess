@@ -4,8 +4,22 @@ export class PrismaRoomStore {
   constructor() {}
 
   async getAllRooms() {
-    const rows = await prisma.room.findMany();
-    return rows.map((r) => this.#ensureParsed(r));
+    try {
+      const rows = await prisma.room.findMany();
+      return rows.map((r) => this.#ensureParsed(r));
+    } catch (error) {
+      if (
+        error.code === "P2021" ||
+        error.message?.includes("file is not a database") ||
+        error.message?.includes("no such table") ||
+        error.message?.includes("does not exist")
+      ) {
+        throw new Error(
+          "Database not initialized. Please run: cd backend && npm run prisma:migrate (with DATABASE_URL set)"
+        );
+      }
+      throw error;
+    }
   }
 
   async getRoom(roomId) {

@@ -29,7 +29,30 @@ await fs.mkdir(dataDir, { recursive: true });
 
 const roomStore = new PrismaRoomStore();
 const roomRepository = new RoomRepository(roomStore);
-await roomRepository.initialize();
+
+try {
+  await roomRepository.initialize();
+} catch (error) {
+  if (
+    error.code === "P2021" ||
+    error.message?.includes("Database not initialized") ||
+    error.message?.includes("file is not a database") ||
+    error.message?.includes("does not exist")
+  ) {
+    console.error(`\n❌ [Startup] Database initialization failed!`);
+    console.error(`   Error: ${error.message}`);
+    console.error(`\n   The database table doesn't exist. Please run migrations:`);
+    console.error(`\n   Option 1: Create .env file (recommended)`);
+    console.error(`   Create backend/.env with: DATABASE_URL="file:./data/rooms.db"`);
+    console.error(`   Then run: npm run prisma:migrate`);
+    console.error(`\n   Option 2: Set environment variable inline`);
+    console.error(`   PowerShell: $env:DATABASE_URL="file:./data/rooms.db"; npm run prisma:migrate`);
+    console.error(`   Bash: DATABASE_URL="file:./data/rooms.db" npm run prisma:migrate`);
+    console.error(`\n   After running the migration, restart the server.\n`);
+    process.exit(1);
+  }
+  throw error;
+}
 
 console.log(`[Startup] Store type: PrismaRoomStore`);
 process.on("unhandledRejection", (reason) => {
