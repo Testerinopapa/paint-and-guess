@@ -148,18 +148,33 @@ io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);
 
   socket.on("join-room", async ({ roomId, playerName, avatar, playerId: reconnectId }) => {
+    console.log(`[Server] 🚪 join-room`, {
+      roomId,
+      playerName,
+      socketId: socket.id,
+      reconnectId: reconnectId || 'none',
+      isReconnect: Boolean(reconnectId),
+    });
+
     const room = roomRepository.getRoom(roomId);
     if (!room) {
+      console.log(`[Server] ❌ Room ${roomId} not found`);
       socket.emit("error", { message: "Room not found" });
       return;
     }
 
+    const beforePrune = room.players.length;
     room.pruneDisconnectedPlayers(PLAYER_DISCONNECT_GRACE_PERIOD_MS);
+    const afterPrune = room.players.length;
+    if (beforePrune !== afterPrune) {
+      console.log(`[Server] 🧹 Pruned ${beforePrune - afterPrune} disconnected players from room ${roomId}`);
+    }
 
     const existingPlayerId = typeof reconnectId === "string" ? reconnectId : null;
     const existingPlayer = existingPlayerId ? room.getPlayerById(existingPlayerId) : null;
 
     if (!existingPlayer && room.getActivePlayerCount() >= room.maxPlayers) {
+      console.log(`[Server] ❌ Room ${roomId} is full (${room.getActivePlayerCount()}/${room.maxPlayers})`);
       socket.emit("error", { message: "Room is full" });
       return;
     }
@@ -167,7 +182,9 @@ io.on("connection", (socket) => {
     let playerRecord;
 
     if (existingPlayer) {
+      console.log(`[Server] 🔄 Reconnecting player ${existingPlayerId} (${existingPlayer.name})`);
       if (existingPlayer.connected && existingPlayer.socketId && existingPlayer.socketId !== socket.id) {
+        console.log(`[Server] 🔌 Disconnecting previous socket ${existingPlayer.socketId} for player ${existingPlayerId}`);
         const previousSocket = io.sockets.sockets.get(existingPlayer.socketId);
         if (previousSocket) {
           previousSocket.data.roomId = null;
@@ -192,15 +209,38 @@ io.on("connection", (socket) => {
         hasGuessed: false,
         socketId: socket.id,
       };
+      console.log(`[Server] ➕ New player joining: ${newPlayer.id} (${newPlayer.name})`);
       room.addPlayer(newPlayer);
       playerRecord = room.getPlayerById(newPlayer.id);
     }
 
     room.markPlayerConnected(playerRecord.id, socket.id);
+    console.log(`[Server] ✅ Player ${playerRecord.id} connected: ${playerRecord.name}, active: ${room.getActivePlayerCount()}/${room.maxPlayers}`);
 
     socket.join(roomId);
     socket.data.roomId = roomId;
     socket.data.playerId = playerRecord.id;
+
+    // If this was a reconnection of the current drawer during an active round, resend word and ensure timer runs
+    if (existingPlayer && room.isGameActive && room.currentDrawer?.id === playerRecord.id) {
+      if (room.currentWord && room.currentDrawer?.socketId) {
+        io.to(room.currentDrawer.socketId).emit("draw-word", { word: room.currentWord });
+        console.log(`[Server] ✉️ draw-word resent to reconnected drawer`, {
+          drawerId: room.currentDrawer.id,
+          drawerSocket: room.currentDrawer.socketId,
+          wordLength: room.currentWord?.length ?? 0,
+        });
+      }
+      if (room.isRoundActive && !room.timer) {
+        room.startRoundTimer(async (timeLeft) => {
+          io.to(roomId).emit("round-timer", { timeLeft });
+          await persistRoom(room);
+          if (timeLeft === 0) {
+            await endRound(roomId);
+          }
+        });
+      }
+    }
 
     await persistRoom(room);
 
@@ -427,15 +467,30 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", async () => {
     const { roomId, playerId } = socket.data;
-    if (!roomId || !playerId) return;
+    if (!roomId || !playerId) {
+      console.log(`[Server] 🔌 Client disconnected: ${socket.id} (not in a room)`);
+      return;
+    }
 
     const room = roomRepository.getRoom(roomId);
-    if (!room) return;
+    if (!room) {
+      console.log(`[Server] 🔌 Client disconnected: ${socket.id}, room ${roomId} not found`);
+      return;
+    }
+
+    const player = room.getPlayerById(playerId);
+    const wasDrawer = room.currentDrawer?.id === playerId;
+    const activeBefore = room.getActivePlayerCount();
+
+    console.log(`[Server] 🔌 Player disconnecting: ${playerId} (${player?.name || 'unknown'}), wasDrawer: ${wasDrawer}, activeBefore: ${activeBefore}`);
 
     room.markPlayerDisconnected(playerId);
     socket.leave(roomId);
     socket.data.roomId = null;
     socket.data.playerId = null;
+
+    const activeAfter = room.getActivePlayerCount();
+    console.log(`[Server] 📊 Room ${roomId} state: ${activeAfter}/${room.players.length} active (was ${activeBefore}), gameActive: ${room.isGameActive}`);
 
     const kept = await persistRoom(room);
 
@@ -446,12 +501,15 @@ io.on("connection", (socket) => {
         ownerId: room.ownerId,
       });
 
-      if (room.isGameActive && room.currentDrawer?.id === playerId) {
+      if (room.isGameActive && wasDrawer) {
+        console.log(`[Server] ⚠️ Drawer disconnected during active game, ending round`);
         await endRound(roomId);
       }
+    } else {
+      console.log(`[Server] 🗑️ Room ${roomId} deleted (no players left)`);
     }
 
-    console.log(`Client disconnected: ${socket.id}`);
+    console.log(`[Server] ✅ Disconnect handled for ${socket.id}`);
   });
 
   async function endRound(roomId) {

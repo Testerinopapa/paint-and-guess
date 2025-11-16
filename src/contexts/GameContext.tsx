@@ -93,9 +93,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!socket) return;
 
     socket.on("session", ({ playerId }: { playerId: string }) => {
+      console.log(`[GameContext] 🔑 Session received: playerId=${playerId.substring(0, 8)}...`);
       setGameState((prev) => {
         if (prev.roomId) {
           setStoredPlayerId(prev.roomId, playerId);
+          console.log(`[GameContext] 💾 Stored playerId in sessionStorage for room ${prev.roomId}`);
         }
         return {
           ...prev,
@@ -106,17 +108,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
 
     socket.on("room-state", (state: any) => {
+      console.log(`[GameContext] 🏠 Room state received`, {
+        roomId: state.id,
+        players: state.players?.length || 0,
+        isGameActive: state.isGameActive,
+        roundNumber: state.roundNumber,
+        ownerId: state.ownerId ? `${state.ownerId.substring(0, 8)}...` : 'none',
+        currentDrawer: state.currentDrawer?.name || 'none',
+      });
+      
       setGameState((prev) => {
         const { id, ...rest } = state;
         const nextRoomId = id ?? prev.roomId;
         if (prev.selfId && nextRoomId) {
           setStoredPlayerId(nextRoomId, prev.selfId);
         }
+        const isDrawer = prev.selfId ? rest.currentDrawer?.id === prev.selfId : false;
+        console.log(`[GameContext] 📊 Updated game state: isDrawer=${isDrawer}, selfId=${prev.selfId ? `${prev.selfId.substring(0, 8)}...` : 'none'}`);
         return {
           ...prev,
           ...rest,
           roomId: nextRoomId,
-          isDrawer: prev.selfId ? rest.currentDrawer?.id === prev.selfId : false,
+          isDrawer,
         };
       });
     });
@@ -316,6 +329,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     // Encode avatar config as JSON string if it's an object
     const avatarData = typeof avatar === 'object' ? encodeAvatarConfig(avatar) : avatar;
     const storedPlayerId = getStoredPlayerId(roomId);
+    const isReconnect = Boolean(storedPlayerId);
+    
+    console.log(`[GameContext] 🚪 Joining room ${roomId}`, {
+      playerName,
+      isReconnect,
+      storedPlayerId: storedPlayerId ? `${storedPlayerId.substring(0, 8)}...` : 'none',
+      hasAvatar: Boolean(avatarData),
+    });
+    
     socket.emit("join-room", { roomId, playerName, avatar: avatarData, playerId: storedPlayerId });
     setGameState((prev) => ({
       ...prev,

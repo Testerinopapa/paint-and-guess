@@ -16,7 +16,9 @@
     "test:avatar-crawl": "tsx scripts/test-avatar-crawl.ts",
     "test:drawable-avatar": "tsx scripts/test-drawable-avatar-crawl.ts",
     "test:multiplayer": "tsx scripts/test-multiplayer-host-controls.ts",
-    "test:multiplayer:debug": "tsx scripts/debug-multiplayer-crawler.ts"
+    "test:multiplayer:debug": "tsx scripts/debug-multiplayer-crawler.ts",
+    "test:multiplayer:reconnection": "tsx scripts/test-multiplayer-reconnection-migration.ts",
+    "test:persistence": "tsx scripts/test-multiplayer-reconnection-migration.ts"
   },
   "dependencies": {
     "@dicebear/avataaars": "^9.2.4",

@@ -101,9 +101,11 @@ export class GameRoom {
   markPlayerConnected(playerId, socketId) {
     const player = this.getPlayerById(playerId);
     if (!player) {
+      console.log(`[GameRoom:${this.id}] ⚠️ markPlayerConnected: player ${playerId} not found`);
       return;
     }
 
+    const wasConnected = player.connected;
     player.connected = true;
     player.socketId = socketId;
     player.lastSeen = Date.now();
@@ -111,14 +113,24 @@ export class GameRoom {
 
     if (this.currentDrawer?.id === playerId) {
       this.currentDrawer = player;
+      console.log(`[GameRoom:${this.id}] 🎨 Drawer ${player.name} reconnected`);
+    }
+
+    if (!wasConnected) {
+      console.log(`[GameRoom:${this.id}] ✅ Player ${player.name} (${playerId}) connected, active: ${this.getActivePlayerCount()}/${this.maxPlayers}`);
     }
   }
 
   markPlayerDisconnected(playerId) {
     const player = this.getPlayerById(playerId);
     if (!player) {
+      console.log(`[GameRoom:${this.id}] ⚠️ markPlayerDisconnected: player ${playerId} not found`);
       return;
     }
+
+    const wasDrawer = this.currentDrawer?.id === playerId;
+    const wasOwner = this.ownerId === playerId;
+    const activeBefore = this.getActivePlayerCount();
 
     player.connected = false;
     player.socketId = null;
@@ -126,13 +138,18 @@ export class GameRoom {
     player.hasGuessed = false;
     player.lastSeen = Date.now();
 
-    if (this.currentDrawer?.id === playerId) {
+    if (wasDrawer) {
       this.currentDrawer = null;
+      console.log(`[GameRoom:${this.id}] 🎨 Drawer ${player.name} disconnected`);
     }
 
-    if (this.ownerId === playerId) {
+    if (wasOwner) {
       this.#ensureOwner();
+      console.log(`[GameRoom:${this.id}] 🎖️ Owner ${player.name} disconnected, new owner: ${this.ownerId ? this.getPlayerById(this.ownerId)?.name : 'none'}`);
     }
+
+    const activeAfter = this.getActivePlayerCount();
+    console.log(`[GameRoom:${this.id}] 🔌 Player ${player.name} (${playerId}) disconnected, active: ${activeAfter}/${this.players.length} (was ${activeBefore})`);
   }
 
   pruneDisconnectedPlayers(gracePeriodMs) {
@@ -142,6 +159,7 @@ export class GameRoom {
 
     const cutoff = Date.now() - gracePeriodMs;
     const initialLength = this.players.length;
+    const prunedPlayers = [];
 
     this.players = this.players.filter((player) => {
       if (player.connected) {
@@ -149,18 +167,26 @@ export class GameRoom {
       }
 
       if (!player.lastSeen) {
+        prunedPlayers.push(player.name);
         return false;
       }
 
-      return player.lastSeen >= cutoff;
+      const shouldKeep = player.lastSeen >= cutoff;
+      if (!shouldKeep) {
+        prunedPlayers.push(player.name);
+      }
+      return shouldKeep;
     });
 
     if (this.players.length !== initialLength) {
+      console.log(`[GameRoom:${this.id}] 🧹 Pruned ${initialLength - this.players.length} players: ${prunedPlayers.join(', ')}`);
       if (this.currentDrawer && !this.players.find((p) => p.id === this.currentDrawer.id)) {
         this.currentDrawer = null;
+        console.log(`[GameRoom:${this.id}] 🎨 Drawer was pruned`);
       }
       if (this.ownerId && !this.players.find((p) => p.id === this.ownerId)) {
         this.#ensureOwner();
+        console.log(`[GameRoom:${this.id}] 🎖️ Owner was pruned, new owner: ${this.ownerId ? this.getPlayerById(this.ownerId)?.name : 'none'}`);
       }
     }
   }
