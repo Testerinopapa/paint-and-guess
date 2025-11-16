@@ -7,7 +7,7 @@ import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { v4 as uuidv4 } from "uuid";
 import { WORDS, getWordPacks, getRandomWordFromPack } from "./words.js";
-import { RoomStore } from "./store/roomStore.js";
+import { PrismaRoomStore } from "./store/prismaRoomStore.js";
 import { RoomRepository } from "./store/roomRepository.js";
 
 const app = express();
@@ -27,9 +27,22 @@ const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, "..", "data");
 await fs.mkdir(dataDir, { recursive: true });
 
-const roomStore = new RoomStore(path.join(dataDir, "rooms.db"));
+const roomStore = new PrismaRoomStore();
 const roomRepository = new RoomRepository(roomStore);
 await roomRepository.initialize();
+
+console.log(`[Startup] Store type: PrismaRoomStore`);
+process.on("unhandledRejection", (reason) => {
+  console.error("[Process] UnhandledRejection:", reason);
+});
+try {
+  const totalRooms = await roomStore.count?.();
+  if (typeof totalRooms === "number") {
+    console.log(`[Startup] Rooms in database: ${totalRooms}`);
+  }
+} catch (e) {
+  console.warn(`[Startup] Failed to query rooms count`, e);
+}
 
 async function persistRoom(room) {
   room.pruneDisconnectedPlayers(PLAYER_DISCONNECT_GRACE_PERIOD_MS);
@@ -128,20 +141,60 @@ app.get("/api/word-packs", (req, res) => {
 });
 
 app.post("/api/rooms", async (req, res) => {
-  const { name, isPublic = true, maxPlayers = 6, roundTime = 60, maxRounds = 6, wordPack = "classic" } = req.body;
-  const roomId = generateRoomId();
+  try {
+    const { name, isPublic = true, maxPlayers = 6, roundTime = 60, maxRounds = 6, wordPack = "classic" } = req.body;
+    const roomId = generateRoomId();
 
-  const room = await roomRepository.createRoom({
-    id: roomId,
-    name: sanitizeName(name, `Room ${roomId}`),
-    isPublic,
-    maxPlayers,
-    roundTime,
-    maxRounds,
-    wordPack,
-  });
+    const room = await roomRepository.createRoom({
+      id: roomId,
+      name: sanitizeName(name, `Room ${roomId}`),
+      isPublic,
+      maxPlayers,
+      roundTime,
+      maxRounds,
+      wordPack,
+    });
 
-  res.json({ roomId, ...room.toJSON() });
+    res.json({ roomId, ...room.toJSON() });
+  } catch (error) {
+    console.error(`[HTTP] Failed to create room`, error);
+    res.status(500).json({ message: "Failed to create room", error: String(error?.message || error) });
+  }
+});
+
+// Health and debug endpoints
+app.get("/api/health", async (req, res) => {
+  try {
+    const dbRooms = await (roomStore.count?.() ?? null);
+    const memoryRooms = roomRepository.getRooms().length;
+    res.json({
+      status: "ok",
+      store: "prisma",
+      databaseUrl: process.env.DATABASE_URL ?? null,
+      rooms: {
+        inMemory: memoryRooms,
+        inDatabase: dbRooms,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: String(error?.message || error) });
+  }
+});
+
+app.get("/api/debug/rooms", async (req, res) => {
+  try {
+    const list = roomRepository.getRooms().map((r) => ({
+      id: r.id,
+      name: r.name,
+      players: r.players.length,
+      isGameActive: r.isGameActive,
+      roundNumber: r.roundNumber,
+    }));
+    const idsInDb = await (roomStore.listIds?.() ?? []);
+    res.json({ inMemory: list, inDatabase: idsInDb });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: String(error?.message || error) });
+  }
 });
 
 io.on("connection", (socket) => {
