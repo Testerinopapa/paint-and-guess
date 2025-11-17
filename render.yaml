@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: paint-and-guess-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run prisma:generate
+    startCommand: npm run prisma:migrate && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/var/data/rooms.db
+      - key: CLIENT_ORIGINS
+        value: https://paint-and-guess-frontend.onrender.com
+    disk:
+      name: rooms-db
+      mountPath: /var/data
+      sizeGB: 1
+
+  - type: static
+    name: paint-and-guess-frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://paint-and-guess-backend.onrender.com
+      - key: VITE_SOCKET_URL
+        value: https://paint-and-guess-backend.onrender.com

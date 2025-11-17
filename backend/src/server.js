@@ -49,6 +49,37 @@ const logger = {
   debug: (message, metadata) => logAtLevel("debug", message, metadata),
 };
 
+function normalizeOrigins(origins) {
+  if (!origins) {
+    return [];
+  }
+
+  const values = Array.isArray(origins) ? origins : String(origins).split(",");
+
+  return values
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function parseOrigins(rawOrigins, fallback) {
+  const parsedOrigins = normalizeOrigins(rawOrigins);
+  if (parsedOrigins.includes("*")) {
+    return true;
+  }
+
+  if (parsedOrigins.length > 0) {
+    return parsedOrigins;
+  }
+
+  const parsedFallback = normalizeOrigins(fallback);
+
+  if (parsedFallback.includes("*")) {
+    return true;
+  }
+
+  return parsedFallback.length ? parsedFallback : undefined;
+}
+
 function parseEnvNumber(name, defaultValue) {
   const raw = process.env[name];
   if (raw === undefined) {
@@ -63,28 +94,37 @@ function parseEnvNumber(name, defaultValue) {
 }
 
 const PLAYER_STALE_HEARTBEAT_MS = parseEnvNumber("PLAYER_STALE_HEARTBEAT_MS", 45_000);
-const PLAYER_DISCONNECT_GRACE_PERIOD_MS = parseEnvNumber("PLAYER_DISCONNECT_GRACE_PERIOD_MS", 2 * 60 * 1000);
+const PLAYER_DISCONNECT_GRACE_PERIOD_MS = parseEnvNumber(
+  "PLAYER_DISCONNECT_GRACE_PERIOD_MS",
+  2 * 60 * 1000
+);
 const ROOM_SWEEP_INTERVAL_MS = parseEnvNumber("ROOM_SWEEP_INTERVAL_MS", 30_000);
 const CLIENT_HEARTBEAT_EVENT = "heartbeat";
 const HEARTBEAT_ACK_EVENT = "heartbeat-ack";
+const clientOrigins = parseOrigins(
+  process.env.CLIENT_ORIGINS,
+  parseOrigins(process.env.CLIENT_ORIGIN, ["http://localhost:8080"])
+);
 
 logger.info("[Config] Loaded runtime configuration", {
   logLevel: configuredLogLevel,
   playerStaleHeartbeatMs: PLAYER_STALE_HEARTBEAT_MS,
   playerDisconnectGracePeriodMs: PLAYER_DISCONNECT_GRACE_PERIOD_MS,
   roomSweepIntervalMs: ROOM_SWEEP_INTERVAL_MS,
+  clientOrigins,
 });
 
 const app = express();
 const httpServer = createServer(app);
+const corsOptions = {
+  origin: clientOrigins,
+  methods: ["GET", "POST"],
+};
 const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:8080",
-    methods: ["GET", "POST"],
-  },
+  cors: corsOptions,
 });
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const __filename = fileURLToPath(import.meta.url);
@@ -277,6 +317,65 @@ function scheduleRoomSweeps() {
 const MAX_MESSAGE_LENGTH = 200;
 const MAX_NAME_LENGTH = 24;
 const MAX_AVATAR_LENGTH = 2048;
+const MAX_AVATAR_FIELD_LENGTH = 256;
+const MAX_AVATAR_ARRAY_LENGTH = 50;
+const MAX_AVATAR_DEPTH = 4;
+
+const PROFANITY_LIST = [
+  "anal",
+  "arse",
+  "ass",
+  "asshole",
+  "bastard",
+  "bitch",
+  "bollocks",
+  "boner",
+  "choad",
+  "chode",
+  "clit",
+  "cock",
+  "cuck",
+  "cum",
+  "cunt",
+  "damn",
+  "dick",
+  "dildo",
+  "dyke",
+  "fag",
+  "fuck",
+  "goddamn",
+  "hell",
+  "jizz",
+  "kike",
+  "labia",
+  "muff",
+  "nigger",
+  "penis",
+  "piss",
+  "pube",
+  "pussy",
+  "queef",
+  "shit",
+  "slut",
+  "spic",
+  "twat",
+  "vagina",
+  "whore",
+];
+
+const PROFANITY_REPLACEMENT = "★";
+
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function censorProfanity(text) {
+  if (typeof text !== "string") return "";
+  return PROFANITY_LIST.reduce((result, word) => {
+    const pattern = new RegExp(`\\b${escapeRegExp(word)}\\b`, "gi");
+    return result.replace(pattern, PROFANITY_REPLACEMENT.repeat(word.length));
+  }, text);
+}
 
 function sanitizeName(name, fallback) {
   if (typeof name !== "string") {
@@ -284,24 +383,85 @@ function sanitizeName(name, fallback) {
   }
   const trimmed = name.trim().slice(0, MAX_NAME_LENGTH);
   const cleaned = trimmed.replace(/[^\w\s'-]/g, "");
-  return cleaned.length > 0 ? cleaned : fallback;
+  const filtered = censorProfanity(cleaned);
+  return filtered.length > 0 ? filtered : fallback;
 }
 
 function sanitizeMessage(message) {
   if (typeof message !== "string") {
     return "";
   }
-  return message.trim().slice(0, MAX_MESSAGE_LENGTH);
+  const trimmed = message.trim().slice(0, MAX_MESSAGE_LENGTH);
+  const filtered = censorProfanity(trimmed);
+  return filtered;
+}
+
+function sanitizeAvatarValue(value, depth = 0) {
+  if (depth > MAX_AVATAR_DEPTH) return null;
+
+  if (typeof value === "string") {
+    const trimmed = value.trim().slice(0, MAX_AVATAR_FIELD_LENGTH);
+    return trimmed.length ? trimmed : null;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value
+      .slice(0, MAX_AVATAR_ARRAY_LENGTH)
+      .map((item) => sanitizeAvatarValue(item, depth + 1))
+      .filter((item) => item !== null);
+  }
+
+  if (value && typeof value === "object") {
+    return Object.entries(value).reduce((acc, [key, val]) => {
+      if (typeof key !== "string" || key.length === 0 || key.length > MAX_AVATAR_FIELD_LENGTH) {
+        return acc;
+      }
+      const sanitizedVal = sanitizeAvatarValue(val, depth + 1);
+      if (sanitizedVal !== null) {
+        acc[key] = sanitizedVal;
+      }
+      return acc;
+    }, {});
+  }
+
+  return null;
 }
 
 function sanitizeAvatar(avatar) {
   if (typeof avatar !== "string") {
     return null;
   }
-  if (avatar.length > MAX_AVATAR_LENGTH) {
+
+  const trimmed = avatar.trim();
+  if (!trimmed || trimmed.length > MAX_AVATAR_LENGTH) {
     return null;
   }
-  return avatar;
+
+  // Allow simple URLs and data URLs as-is after trimming
+  if (/^(https?:\/\/|data:image\/)/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    const normalized = sanitizeAvatarValue(parsed);
+    if (!normalized || typeof normalized !== "object") {
+      return null;
+    }
+    const encoded = JSON.stringify(normalized);
+    return encoded.length <= MAX_AVATAR_LENGTH ? encoded : null;
+  } catch (error) {
+    logger.warn("[Sanitize] Avatar rejected due to invalid JSON", { error: error?.message });
+    return null;
+  }
 }
 
 function serializePlayers(players) {
@@ -455,6 +615,30 @@ io.on("connection", (socket) => {
     const existingPlayerId = typeof reconnectId === "string" ? reconnectId : null;
     const existingPlayer = existingPlayerId ? room.getPlayerById(existingPlayerId) : null;
 
+    const activeCount = room.getActivePlayerCount();
+    const sanitizedName = sanitizeName(playerName, existingPlayer ? existingPlayer.name : `Player ${activeCount + 1}`);
+    const sanitizedAvatar = sanitizeAvatar(avatar);
+
+    if (!existingPlayer) {
+      const duplicateName = room.players.find(
+        (player) => player.connected && player.name.toLowerCase() === sanitizedName.toLowerCase(),
+      );
+      if (duplicateName) {
+        console.log(`[Server] ❌ Duplicate name rejected: ${sanitizedName}`);
+        socket.emit("error", { message: "That name is already in use in this room" });
+        return;
+      }
+    } else {
+      const conflictingName = room.players.find(
+        (player) => player.id !== existingPlayer.id && player.connected && player.name.toLowerCase() === sanitizedName.toLowerCase(),
+      );
+      if (conflictingName) {
+        console.log(`[Server] ❌ Reconnect rename rejected: ${sanitizedName}`);
+        socket.emit("error", { message: "That name is already in use in this room" });
+        return;
+      }
+    }
+
     if (!existingPlayer && room.getActivePlayerCount() >= room.maxPlayers) {
       console.log(`[Server] ❌ Room ${roomId} is full (${room.getActivePlayerCount()}/${room.maxPlayers})`);
       socket.emit("error", { message: "Room is full" });
@@ -475,19 +659,18 @@ io.on("connection", (socket) => {
         }
       }
 
-      existingPlayer.name = sanitizeName(playerName, existingPlayer.name);
-      existingPlayer.avatar = sanitizeAvatar(avatar);
+      existingPlayer.name = sanitizedName;
+      existingPlayer.avatar = sanitizedAvatar;
       existingPlayer.isReady = false;
       existingPlayer.hasGuessed = false;
       playerRecord = existingPlayer;
     } else {
-      const activeCount = room.getActivePlayerCount();
       const newPlayer = {
         id: uuidv4(),
-        name: sanitizeName(playerName, `Player ${activeCount + 1}`),
+        name: sanitizedName,
         score: 0,
         isReady: false,
-        avatar: sanitizeAvatar(avatar),
+        avatar: sanitizedAvatar,
         hasGuessed: false,
         socketId: socket.id,
       };

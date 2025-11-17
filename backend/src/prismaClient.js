@@ -24,6 +24,9 @@ if (!path.isAbsolute(dbPath)) {
   dbPath = path.resolve(dataDir, dbPath);
 }
 
+const dbDir = path.dirname(dbPath);
+fs.mkdirSync(dbDir, { recursive: true });
+
 // Check if old JSON file exists and warn
 const oldJsonPath = path.join(dataDir, "rooms.json");
 if (fs.existsSync(oldJsonPath)) {
