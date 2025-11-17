@@ -4,6 +4,22 @@ import { useSocket } from "@/hooks/useSocket";
 import { toast } from "sonner";
 import { AvatarConfig, encodeAvatarConfig, decodeAvatarConfig } from "@/lib/avatar/config";
 
+const PLAYER_STORAGE_KEY_PREFIX = "paint-and-guess:player:";
+
+function getStoredPlayerId(roomId: string | null) {
+  if (typeof window === "undefined" || !roomId) return null;
+  return window.sessionStorage.getItem(`${PLAYER_STORAGE_KEY_PREFIX}${roomId}`);
+}
+
+function setStoredPlayerId(roomId: string | null, playerId: string | null) {
+  if (typeof window === "undefined" || !roomId) return;
+  if (playerId) {
+    window.sessionStorage.setItem(`${PLAYER_STORAGE_KEY_PREFIX}${roomId}`, playerId);
+  } else {
+    window.sessionStorage.removeItem(`${PLAYER_STORAGE_KEY_PREFIX}${roomId}`);
+  }
+}
+
 interface Player {
   id: string;
   name: string;
@@ -23,6 +39,9 @@ interface GameState {
   roundNumber: number;
   isDrawer: boolean;
   playerName: string;
+  ownerId: string | null;
+  maxRounds: number;
+  selfId: string | null;
 }
 
 interface GameContextType {
@@ -33,6 +52,7 @@ interface GameContextType {
   createRoom: (roomName: string, isPublic?: boolean) => Promise<string>;
   leaveRoom: () => void;
   startGame: () => void;
+  setReadyState: (isReady: boolean) => void;
   sendGuess: (guess: string) => void;
   sendChatMessage: (message: string) => void;
   sendDrawingEvent: (event: any) => void;
@@ -63,47 +83,92 @@ export function GameProvider({ children }: { children: ReactNode }) {
     roundNumber: 0,
     isDrawer: false,
     playerName: "",
+    ownerId: null,
+    maxRounds: 6,
+    selfId: null,
   });
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
+    if (!socket || !gameState.roomId || !isConnected) return;
+
+    const heartbeat = window.setInterval(() => {
+      socket.emit("heartbeat");
+    }, 15000);
+
+    return () => window.clearInterval(heartbeat);
+  }, [socket, gameState.roomId, isConnected]);
+
+  useEffect(() => {
     if (!socket) return;
 
+    socket.on("session", ({ playerId }: { playerId: string }) => {
+      setGameState((prev) => {
+        if (prev.roomId) {
+          setStoredPlayerId(prev.roomId, playerId);
+        }
+        return {
+          ...prev,
+          selfId: playerId,
+          isDrawer: prev.currentDrawer?.id === playerId,
+        };
+      });
+    });
+
     socket.on("room-state", (state: any) => {
-      setGameState((prev) => ({
-        ...prev,
-        ...state,
-        isDrawer: state.currentDrawer?.id === socket.id,
-      }));
+      setGameState((prev) => {
+        const { id, ...rest } = state;
+        const nextRoomId = id ?? prev.roomId;
+        if (prev.selfId && nextRoomId) {
+          setStoredPlayerId(nextRoomId, prev.selfId);
+        }
+        return {
+          ...prev,
+          ...rest,
+          roomId: nextRoomId,
+          isDrawer: prev.selfId ? rest.currentDrawer?.id === prev.selfId : false,
+        };
+      });
     });
 
-    socket.on("player-joined", ({ player, players }: { player: Player; players: Player[] }) => {
-      setGameState((prev) => ({
-        ...prev,
-        players,
-      }));
-      toast.success(`${player.name} joined the room`);
-    });
+    socket.on(
+      "player-joined",
+      ({ player, players, ownerId }: { player: Player; players: Player[]; ownerId: string | null }) => {
+        setGameState((prev) => ({
+          ...prev,
+          players,
+          ownerId: ownerId ?? prev.ownerId,
+        }));
+        toast.success(`${player.name} joined the room`);
+      }
+    );
 
-    socket.on("player-left", ({ players }: { players: Player[] }) => {
-      setGameState((prev) => ({
-        ...prev,
-        players,
-      }));
-    });
+    socket.on(
+      "player-left",
+      ({ players, ownerId }: { players: Player[]; ownerId: string | null }) => {
+        setGameState((prev) => ({
+          ...prev,
+          players,
+          ownerId: ownerId ?? prev.ownerId,
+        }));
+      }
+    );
 
-    socket.on("game-started", ({ drawer, roundTime }: { drawer: Player; roundTime: number }) => {
-      setGameState((prev) => ({
-        ...prev,
-        isGameActive: true,
-        currentDrawer: drawer,
-        roundTime,
-        timeLeft: roundTime,
-        isDrawer: drawer.id === socket.id,
-        roundNumber: 1,
-      }));
-      toast.info("Game started!");
-    });
+    socket.on(
+      "game-started",
+      ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
+        setGameState((prev) => ({
+          ...prev,
+          isGameActive: true,
+          currentDrawer: drawer,
+          roundTime,
+          timeLeft: roundTime,
+          isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
+          roundNumber,
+        }));
+        toast.info("Game started!");
+      }
+    );
 
     socket.on("draw-word", ({ word }: { word: string }) => {
       setGameState((prev) => ({
@@ -113,23 +178,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
       toast.info(`Your word: ${word}`);
     });
 
-    socket.on("round-started", ({ drawer, roundTime }: { drawer: Player; roundTime: number }) => {
-      let newRoundNumber = 1;
-      setGameState((prev) => {
-        newRoundNumber = prev.roundNumber + 1;
-        return {
+    socket.on(
+      "round-started",
+      ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
+        setGameState((prev) => ({
           ...prev,
           currentDrawer: drawer,
           roundTime,
           timeLeft: roundTime,
-          isDrawer: drawer.id === socket.id,
-          roundNumber: newRoundNumber,
+          isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
+          roundNumber,
           currentWord: null,
-        };
-      });
-      setChatMessages([]);
-      toast.info(`Round ${newRoundNumber} started!`);
-    });
+        }));
+        setChatMessages([]);
+        toast.info(`Round ${roundNumber} started!`);
+      }
+    );
 
     socket.on("round-timer", ({ timeLeft }: { timeLeft: number }) => {
       setGameState((prev) => ({
@@ -138,36 +202,43 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }));
     });
 
-    socket.on("round-ended", ({ word, scores }: { word: string; scores: Player[] }) => {
-      setGameState((prev) => ({
-        ...prev,
-        players: scores,
-        currentWord: word,
-      }));
-      toast.info(`Round ended! The word was: ${word}`);
-    });
-
-    socket.on("correct-guess", ({ player, points, word }: { player: Player; points: number; word: string }) => {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          player,
-          message: `Correctly guessed "${word}"! +${points} points`,
-          timestamp: Date.now(),
-          type: "correct-guess",
-        },
-      ]);
-      setGameState((prev) => ({
-        ...prev,
-        players: prev.players.map((p) =>
-          p.id === player.id ? { ...p, score: p.score + points } : p
-        ),
-      }));
-      if (player.id !== socket.id) {
-        toast.success(`${player.name} guessed correctly!`);
+    socket.on(
+      "round-ended",
+      ({ word, scores, roundNumber }: { word: string; scores: Player[]; roundNumber: number }) => {
+        setGameState((prev) => ({
+          ...prev,
+          players: scores,
+          currentWord: word,
+          roundNumber,
+        }));
+        toast.info(`Round ended! The word was: ${word}`);
       }
-    });
+    );
+
+    socket.on(
+      "correct-guess",
+      ({ player, points, word, players }: { player: Player; points: number; word: string; players?: Player[] }) => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            player,
+            message: `Correctly guessed "${word}"! +${points} points`,
+            timestamp: Date.now(),
+            type: "correct-guess",
+          },
+        ]);
+        setGameState((prev) => ({
+          ...prev,
+          players: players ?? prev.players.map((p) =>
+            p.id === player.id ? { ...p, score: p.score + points } : p
+          ),
+        }));
+        if (player.id !== gameState.selfId) {
+          toast.success(`${player.name} guessed correctly!`);
+        }
+      }
+    );
 
     socket.on("wrong-guess", ({ player, guess }: { player: Player; guess: string }) => {
       setChatMessages((prev) => [
@@ -204,15 +275,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
       window.dispatchEvent(new CustomEvent("canvas-cleared"));
     });
 
-    socket.on("game-ended", ({ reason }: { reason: string }) => {
+    socket.on("player-ready", ({ players, ownerId }: { players: Player[]; ownerId: string | null }) => {
       setGameState((prev) => ({
         ...prev,
-        isGameActive: false,
+        players,
+        ownerId: ownerId ?? prev.ownerId,
       }));
-      toast.info(`Game ended: ${reason}`);
+    });
+
+    socket.on(
+      "game-ended",
+      ({ reason, scores }: { reason: string; scores?: Player[] }) => {
+        setGameState((prev) => ({
+          ...prev,
+          isGameActive: false,
+          players: scores ?? prev.players,
+        }));
+        toast.info(`Game ended: ${reason}`);
+      }
+    );
+
+    socket.on("error", ({ message }: { message: string }) => {
+      toast.error(message);
     });
 
     return () => {
+      socket.off("session");
       socket.off("room-state");
       socket.off("player-joined");
       socket.off("player-left");
@@ -227,18 +315,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
       socket.off("drawing-event");
       socket.off("canvas-cleared");
       socket.off("game-ended");
+      socket.off("player-ready");
+      socket.off("error");
     };
-  }, [socket, gameState.roundNumber]);
+  }, [socket, gameState.roundNumber, gameState.selfId]);
 
   const joinRoom = (roomId: string, playerName: string, avatar?: string | AvatarConfig) => {
     if (!socket) return;
     // Encode avatar config as JSON string if it's an object
     const avatarData = typeof avatar === 'object' ? encodeAvatarConfig(avatar) : avatar;
-    socket.emit("join-room", { roomId, playerName, avatar: avatarData });
+    const storedPlayerId = getStoredPlayerId(roomId);
+    socket.emit("join-room", { roomId, playerName, avatar: avatarData, playerId: storedPlayerId });
     setGameState((prev) => ({
       ...prev,
       roomId,
       playerName,
+      selfId: storedPlayerId ?? prev.selfId,
     }));
   };
 
@@ -254,6 +346,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           isPublic,
           maxPlayers: 6,
           roundTime: 60,
+          maxRounds: 6,
         }),
       });
       const data = await response.json();
@@ -267,6 +360,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const leaveRoom = () => {
     if (!socket) return;
     socket.emit("leave-room");
+    setStoredPlayerId(gameState.roomId, null);
     setGameState({
       roomId: null,
       players: [],
@@ -278,6 +372,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       roundNumber: 0,
       isDrawer: false,
       playerName: "",
+      ownerId: null,
+      maxRounds: 6,
+      selfId: null,
     });
     setChatMessages([]);
   };
@@ -285,6 +382,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const startGame = () => {
     if (!socket) return;
     socket.emit("start-game");
+  };
+
+  const setReadyState = (isReady: boolean) => {
+    if (!socket) return;
+    socket.emit("set-ready", { isReady });
   };
 
   const sendGuess = (guess: string) => {
@@ -317,6 +419,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         createRoom,
         leaveRoom,
         startGame,
+        setReadyState,
         sendGuess,
         sendChatMessage,
         sendDrawingEvent,

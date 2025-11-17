@@ -9,7 +9,18 @@ Backend server for the Paint & Guess multiplayer game.
 npm install
 ```
 
-2. Start the development server:
+2. Run the Prisma migrations (this also creates the local SQLite database). For production, point `DATABASE_URL` at Postgres first:
+```bash
+export DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/paint_and_guess"
+npm run db:migrate
+```
+
+3. Generate the Prisma client (automatically done on install, but handy after schema edits):
+```bash
+npm run db:generate
+```
+
+4. Start the development server:
 ```bash
 npm run dev
 ```
@@ -19,6 +30,19 @@ The server will run on `http://localhost:3001` by default.
 ## Environment Variables
 
 - `PORT` - Server port (default: 3001)
+- `DATABASE_URL` - Optional Prisma connection string. Defaults to the bundled SQLite file at `file:./data/rooms.db` when omitted.
+  For production, supply a Postgres URL.
+- `LOG_LEVEL` - One of `error`, `warn`, `info`, `debug` (default: `info`)
+- `PLAYER_STALE_HEARTBEAT_MS` - Time before a connected player is marked disconnected if no heartbeat arrives (default: 45000)
+- `PLAYER_DISCONNECT_GRACE_PERIOD_MS` - Additional grace period before fully pruning disconnected players from a room (default: 120000)
+- `ROOM_SWEEP_INTERVAL_MS` - How often the server sweeps rooms to prune stale sessions (default: 30000)
+- `REDIS_URL` - Optional. If set, Socket.IO will broadcast using the Redis adapter so multiple backend instances stay in sync.
+
+You can inspect the database locally with:
+
+```bash
+npm run db:studio
+```
 
 ## API Endpoints
 
@@ -76,4 +100,11 @@ Create a new room.
 5. Round ends when time expires or all players guess correctly
 6. Next round starts with a new drawer
 7. Game continues until players leave
+
+## Operational notes
+
+- The server emits and expects heartbeat pings every 15 seconds to keep player `lastSeen` data fresh. Players that stop heartbeating are marked disconnected after `PLAYER_STALE_HEARTBEAT_MS` and are pruned after `PLAYER_DISCONNECT_GRACE_PERIOD_MS`.
+- A background sweep runs every `ROOM_SWEEP_INTERVAL_MS` to persist any rooms with changed connectivity state and remove empty rooms automatically.
+- For production, point `DATABASE_URL` at a managed Postgres instance and run `npm run db:migrate` before deploying. The defaults remain SQLite for local development convenience.
+- If you horizontally scale the backend, set `REDIS_URL` so sockets and room broadcasts are shared across instances.
 

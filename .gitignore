@@ -31,3 +31,7 @@ dist-ssr
 test-screenshots/
 test-screenshots-drawable/
 test-results-*.json
+
+# Backend persistence artifacts
+backend/data/
+backend/prisma/dev.db
