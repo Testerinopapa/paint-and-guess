@@ -35,6 +35,32 @@ The server will run on `http://localhost:3001` by default.
 - `PLAYER_DISCONNECT_GRACE_PERIOD_MS` - Additional grace period for disconnected players before their slot is reclaimed (default: `120000`).
 - `ROOM_SWEEP_INTERVAL_MS` - Frequency for background sweeps that persist room state and prune stale players (default: `30000`).
 
+### Redis Configuration (Optional - for horizontal scaling)
+
+Redis is **optional** and only needed for horizontal scaling (multiple server instances). If Redis is not configured, the server runs in single-instance mode.
+
+- `REDIS_ENABLED` - Set to `"true"` to enable Redis (default: `false`). Alternatively, set `REDIS_URL` to enable.
+- `REDIS_URL` - Full Redis connection URL (e.g., `redis://localhost:6379` or `redis://:password@host:6379/0`). If set, overrides individual settings below.
+- `REDIS_HOST` - Redis host (default: `localhost`)
+- `REDIS_PORT` - Redis port (default: `6379`)
+- `REDIS_PASSWORD` - Redis password (optional)
+- `REDIS_DB` - Redis database number (default: `0`)
+
+**Example configuration:**
+```bash
+# Option 1: Using REDIS_URL (recommended)
+REDIS_URL="redis://localhost:6379"
+
+# Option 2: Using individual settings
+REDIS_ENABLED="true"
+REDIS_HOST="localhost"
+REDIS_PORT="6379"
+REDIS_PASSWORD="your-password"  # Optional
+REDIS_DB="0"
+```
+
+**Note:** When Redis is enabled, Socket.io will use the Redis adapter to enable horizontal scaling across multiple server instances. All instances must connect to the same Redis server.
+
 ## Prisma setup
 
 This backend uses Prisma + SQLite to persist rooms.
@@ -133,4 +159,42 @@ Create a new room.
 - Clients send heartbeat pings every ~15 seconds. The backend marks players as disconnected if no heartbeat arrives within `PLAYER_STALE_HEARTBEAT_MS`, and removes them entirely after the grace period. This keeps room capacity accurate even when browsers disconnect abruptly.
 - A background sweep runs every `ROOM_SWEEP_INTERVAL_MS` to persist rooms to the database, broadcast stale disconnects, and delete empty rooms automatically.
 - Inspect or edit the SQLite database with `npm run prisma:studio`.
+
+## Horizontal Scaling with Redis
+
+To run multiple server instances for horizontal scaling:
+
+1. **Set up Redis** (local or cloud):
+   ```bash
+   # Using Docker
+   docker run -d -p 6379:6379 redis:7-alpine
+   ```
+
+2. **Configure environment variables** on all server instances:
+   ```bash
+   REDIS_ENABLED="true"
+   REDIS_HOST="localhost"  # or your Redis host
+   REDIS_PORT="6379"
+   ```
+
+3. **Start multiple server instances**:
+   ```bash
+   # Terminal 1
+   PORT=3001 npm start
+   
+   # Terminal 2
+   PORT=3002 npm start
+   
+   # Terminal 3
+   PORT=3003 npm start
+   ```
+
+4. **Use a load balancer** (nginx, HAProxy, etc.) to distribute traffic across instances.
+
+**Important:** All server instances must:
+- Connect to the same Redis server
+- Connect to the same database (PostgreSQL recommended for production)
+- Have the same environment configuration
+
+The Redis adapter enables Socket.io to broadcast events across all server instances, so players connected to different servers can still communicate in the same rooms.
 

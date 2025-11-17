@@ -1,6 +1,7 @@
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
 import cors from "cors";
 import path from "path";
 import fs from "fs/promises";
@@ -9,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import { WORDS, getWordPacks, getRandomWordFromPack } from "./words.js";
 import { PrismaRoomStore } from "./store/prismaRoomStore.js";
 import { RoomRepository } from "./store/roomRepository.js";
+import { initializeRedis, getRedisSubscriber, getRedisPublisher, isRedisEnabled, shutdownRedis } from "./redisClient.js";
 
 const LOG_LEVELS = {
   error: 0,
@@ -77,11 +79,39 @@ logger.info("[Config] Loaded runtime configuration", {
 
 const app = express();
 const httpServer = createServer(app);
+
+// Initialize Redis adapter if enabled (with timeout to prevent hanging)
+let redisAdapter = null;
+const redisInitPromise = initializeRedis().catch((error) => {
+  // Error already logged in initializeRedis
+  return null;
+});
+
+// Wait for Redis init with timeout - don't block startup too long
+try {
+  const redisConnections = await Promise.race([
+    redisInitPromise,
+    new Promise((resolve) => setTimeout(() => resolve(null), 2500)), // 2.5 second max wait
+  ]);
+  
+  if (redisConnections) {
+    const pubClient = getRedisPublisher();
+    const subClient = getRedisSubscriber();
+    if (pubClient && subClient) {
+      redisAdapter = createAdapter(pubClient, subClient);
+      logger.info("[Server] Redis adapter initialized for horizontal scaling");
+    }
+  }
+} catch (error) {
+  logger.warn("[Server] Redis initialization failed, continuing without adapter", error);
+}
+
 const io = new Server(httpServer, {
   cors: {
     origin: "http://localhost:8080",
     methods: ["GET", "POST"],
   },
+  adapter: redisAdapter || undefined, // Use Redis adapter if available
 });
 
 app.use(cors());
@@ -388,6 +418,10 @@ app.get("/api/health", async (req, res) => {
       status: "ok",
       store: "prisma",
       databaseUrl: process.env.DATABASE_URL ?? null,
+      redis: {
+        enabled: isRedisEnabled(),
+        adapter: redisAdapter ? "active" : "none",
+      },
       rooms: {
         inMemory: memoryRooms,
         inDatabase: dbRooms,
@@ -961,11 +995,21 @@ function cleanupIntervals() {
   }
 }
 
-process.on("SIGINT", cleanupIntervals);
-process.on("SIGTERM", cleanupIntervals);
+async function cleanup() {
+  cleanupIntervals();
+  await shutdownRedis();
+}
+
+process.on("SIGINT", cleanup);
+process.on("SIGTERM", cleanup);
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📡 Socket.io ready for connections`);
+  if (isRedisEnabled()) {
+    console.log(`🔴 Redis adapter: ENABLED (horizontal scaling active)`);
+  } else {
+    console.log(`⚪ Redis adapter: DISABLED (single-instance mode)`);
+  }
 });
