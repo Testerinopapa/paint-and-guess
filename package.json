@@ -19,7 +19,8 @@
     "test:multiplayer:debug": "tsx scripts/debug-multiplayer-crawler.ts",
     "test:multiplayer:reconnection": "tsx scripts/test-multiplayer-reconnection-migration.ts",
     "test:persistence": "tsx scripts/test-multiplayer-reconnection-migration.ts",
-    "test:persistence:prisma": "tsx scripts/debug-prisma-persistence-crawler.ts"
+    "test:persistence:prisma": "tsx scripts/debug-prisma-persistence-crawler.ts",
+    "test:heartbeat": "tsx scripts/test-heartbeat-sweep.ts"
   },
   "dependencies": {
     "@dicebear/avataaars": "^9.2.4",

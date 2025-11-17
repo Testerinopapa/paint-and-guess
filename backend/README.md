@@ -9,7 +9,17 @@ Backend server for the Paint & Guess multiplayer game.
 npm install
 ```
 
-2. Start the development server:
+2. Apply migrations (creates the SQLite database/table if missing):
+```bash
+npm run prisma:migrate
+```
+
+3. Generate the Prisma client (handy after schema edits):
+```bash
+npm run prisma:generate
+```
+
+4. Start the development server:
 ```bash
 npm run dev
 ```
@@ -20,6 +30,10 @@ The server will run on `http://localhost:3001` by default.
 
 - `PORT` - Server port (default: 3001)
 - `DATABASE_URL` - Prisma database URL (SQLite). If unset, defaults to `file:backend/data/rooms.db`.
+- `LOG_LEVEL` - One of `error`, `warn`, `info`, `debug`. Controls console verbosity (default: `info`).
+- `PLAYER_STALE_HEARTBEAT_MS` - Milliseconds before a connected player is marked disconnected if no heartbeat is received (default: `45000`).
+- `PLAYER_DISCONNECT_GRACE_PERIOD_MS` - Additional grace period for disconnected players before their slot is reclaimed (default: `120000`).
+- `ROOM_SWEEP_INTERVAL_MS` - Frequency for background sweeps that persist room state and prune stale players (default: `30000`).
 
 ## Prisma setup
 
@@ -113,4 +127,10 @@ Create a new room.
 5. Round ends when time expires or all players guess correctly
 6. Next round starts with a new drawer
 7. Game continues until players leave
+
+## Operational Notes
+
+- Clients send heartbeat pings every ~15 seconds. The backend marks players as disconnected if no heartbeat arrives within `PLAYER_STALE_HEARTBEAT_MS`, and removes them entirely after the grace period. This keeps room capacity accurate even when browsers disconnect abruptly.
+- A background sweep runs every `ROOM_SWEEP_INTERVAL_MS` to persist rooms to the database, broadcast stale disconnects, and delete empty rooms automatically.
+- Inspect or edit the SQLite database with `npm run prisma:studio`.
 

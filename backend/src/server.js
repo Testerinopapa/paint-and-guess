@@ -10,6 +10,71 @@ import { WORDS, getWordPacks, getRandomWordFromPack } from "./words.js";
 import { PrismaRoomStore } from "./store/prismaRoomStore.js";
 import { RoomRepository } from "./store/roomRepository.js";
 
+const LOG_LEVELS = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  debug: 3,
+};
+
+const configuredLogLevel = (process.env.LOG_LEVEL ?? "info").toLowerCase();
+const ACTIVE_LOG_LEVEL = LOG_LEVELS[configuredLogLevel] ?? LOG_LEVELS.info;
+
+function logAtLevel(level, message, metadata) {
+  if ((LOG_LEVELS[level] ?? LOG_LEVELS.info) > ACTIVE_LOG_LEVEL) {
+    return;
+  }
+  const prefix = `[${level.toUpperCase()}]`;
+  const payload = metadata ? [message, metadata] : [message];
+  switch (level) {
+    case "error":
+      console.error(prefix, ...payload);
+      break;
+    case "warn":
+      console.warn(prefix, ...payload);
+      break;
+    case "debug":
+      console.debug(prefix, ...payload);
+      break;
+    default:
+      console.log(prefix, ...payload);
+      break;
+  }
+}
+
+const logger = {
+  error: (message, metadata) => logAtLevel("error", message, metadata),
+  warn: (message, metadata) => logAtLevel("warn", message, metadata),
+  info: (message, metadata) => logAtLevel("info", message, metadata),
+  debug: (message, metadata) => logAtLevel("debug", message, metadata),
+};
+
+function parseEnvNumber(name, defaultValue) {
+  const raw = process.env[name];
+  if (raw === undefined) {
+    return defaultValue;
+  }
+  const value = Number(raw);
+  if (Number.isFinite(value) && value >= 0) {
+    return value;
+  }
+  console.warn(`[Config] Invalid ${name}="${raw}", falling back to ${defaultValue}`);
+  return defaultValue;
+}
+
+const PLAYER_STALE_HEARTBEAT_MS = parseEnvNumber("PLAYER_STALE_HEARTBEAT_MS", 45_000);
+const PLAYER_DISCONNECT_GRACE_PERIOD_MS = parseEnvNumber("PLAYER_DISCONNECT_GRACE_PERIOD_MS", 2 * 60 * 1000);
+const ROOM_SWEEP_INTERVAL_MS = parseEnvNumber("ROOM_SWEEP_INTERVAL_MS", 30_000);
+const CLIENT_HEARTBEAT_EVENT = "heartbeat";
+const HEARTBEAT_ACK_EVENT = "heartbeat-ack";
+
+logger.info("[Config] Loaded runtime configuration", {
+  logLevel: configuredLogLevel,
+  playerStaleHeartbeatMs: PLAYER_STALE_HEARTBEAT_MS,
+  playerDisconnectGracePeriodMs: PLAYER_DISCONNECT_GRACE_PERIOD_MS,
+  roomSweepIntervalMs: ROOM_SWEEP_INTERVAL_MS,
+});
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -30,8 +95,13 @@ await fs.mkdir(dataDir, { recursive: true });
 const roomStore = new PrismaRoomStore();
 const roomRepository = new RoomRepository(roomStore);
 
+let roomSweepTimer = null;
+let sweepInProgress = false;
+
 try {
   await roomRepository.initialize();
+  await sweepRooms("startup");
+  scheduleRoomSweeps();
 } catch (error) {
   if (
     error.code === "P2021" ||
@@ -68,6 +138,7 @@ try {
 }
 
 async function persistRoom(room) {
+  room.markStalePlayersDisconnected(PLAYER_STALE_HEARTBEAT_MS);
   room.pruneDisconnectedPlayers(PLAYER_DISCONNECT_GRACE_PERIOD_MS);
 
   if (room.players.length === 0) {
@@ -79,10 +150,133 @@ async function persistRoom(room) {
   return true;
 }
 
+async function sweepRooms(trigger = "interval") {
+  if (sweepInProgress) {
+    logger.debug(`[Sweeper] Skipping ${trigger} run (already running)`);
+    return;
+  }
+
+  sweepInProgress = true;
+  const startedAt = Date.now();
+  const rooms = roomRepository.getRooms();
+  let roomsTouched = 0;
+  let roomsDeleted = 0;
+
+  logger.debug(`[Sweeper] Starting ${trigger} run`, {
+    totalRooms: rooms.length,
+    staleThresholdMs: PLAYER_STALE_HEARTBEAT_MS,
+    gracePeriodMs: PLAYER_DISCONNECT_GRACE_PERIOD_MS,
+  });
+
+  try {
+    for (const room of rooms) {
+      const roomBefore = {
+        totalPlayers: room.players.length,
+        activePlayers: room.getActivePlayerCount(),
+        gameActive: room.isGameActive,
+      };
+
+      logger.debug(`[Sweeper] Checking room ${room.id}`, {
+        name: room.name,
+        ...roomBefore,
+      });
+
+      const stalePlayers = room.markStalePlayersDisconnected(PLAYER_STALE_HEARTBEAT_MS);
+      const pruned = room.pruneDisconnectedPlayers(PLAYER_DISCONNECT_GRACE_PERIOD_MS);
+
+      const roomAfter = {
+        totalPlayers: room.players.length,
+        activePlayers: room.getActivePlayerCount(),
+      };
+
+      if (!stalePlayers.length && !pruned) {
+        logger.debug(`[Sweeper] Room ${room.id} unchanged`, roomAfter);
+        continue;
+      }
+
+      roomsTouched++;
+      logger.info(`[Sweeper] Room ${room.id} updated`, {
+        name: room.name,
+        before: roomBefore,
+        after: roomAfter,
+        stalePlayersCount: stalePlayers.length,
+        stalePlayerNames: stalePlayers.map((p) => p.name),
+        pruned,
+      });
+
+      const playersPayload = serializePlayers(room.players);
+      for (const player of stalePlayers) {
+        logger.debug(`[Sweeper] Broadcasting player-left for stale player`, {
+          roomId: room.id,
+          playerId: player.id,
+          playerName: player.name,
+        });
+        io.to(room.id).emit("player-left", {
+          playerId: player.id,
+          players: playersPayload,
+          ownerId: room.ownerId,
+        });
+      }
+
+      const kept = await persistRoom(room);
+      if (!kept) {
+        roomsDeleted++;
+        logger.info(`[Sweeper] Room ${room.id} deleted (empty)`, { name: room.name });
+      }
+    }
+
+    const duration = Date.now() - startedAt;
+    if (roomsTouched > 0) {
+      logger.info(`[Sweeper] ${trigger} run updated rooms`, {
+        roomsTouched,
+        roomsDeleted,
+        roomsChecked: rooms.length,
+        durationMs: duration,
+      });
+    } else {
+      logger.debug(`[Sweeper] ${trigger} run finished with no changes`, {
+        roomsChecked: rooms.length,
+        durationMs: duration,
+      });
+    }
+  } catch (error) {
+    logger.error(`[Sweeper] ${trigger} run failed`, error);
+  } finally {
+    sweepInProgress = false;
+  }
+}
+
+function scheduleRoomSweeps() {
+  if (ROOM_SWEEP_INTERVAL_MS <= 0) {
+    logger.warn("[Sweeper] Disabled - interval is set to 0", {
+      intervalMs: ROOM_SWEEP_INTERVAL_MS,
+    });
+    return;
+  }
+
+  if (roomSweepTimer) {
+    logger.warn("[Sweeper] Sweeps already scheduled, skipping");
+    return;
+  }
+
+  logger.info("[Sweeper] Scheduling background sweeps", {
+    intervalMs: ROOM_SWEEP_INTERVAL_MS,
+    nextSweepIn: `${ROOM_SWEEP_INTERVAL_MS}ms`,
+  });
+
+  roomSweepTimer = setInterval(() => {
+    logger.debug("[Sweeper] Interval timer triggered");
+    sweepRooms("interval").catch((error) => logger.error("[Sweeper] Interval run crashed", error));
+  }, ROOM_SWEEP_INTERVAL_MS);
+
+  logger.info("[Sweeper] Background sweeps scheduled", {
+    intervalMs: ROOM_SWEEP_INTERVAL_MS,
+  });
+}
+
 const MAX_MESSAGE_LENGTH = 200;
 const MAX_NAME_LENGTH = 24;
 const MAX_AVATAR_LENGTH = 2048;
-const PLAYER_DISCONNECT_GRACE_PERIOD_MS = 2 * 60 * 1000;
 
 function sanitizeName(name, fallback) {
   if (typeof name !== "string") {
@@ -239,11 +433,23 @@ io.on("connection", (socket) => {
       return;
     }
 
+    const stalePlayers = room.markStalePlayersDisconnected(PLAYER_STALE_HEARTBEAT_MS);
     const beforePrune = room.players.length;
     room.pruneDisconnectedPlayers(PLAYER_DISCONNECT_GRACE_PERIOD_MS);
     const afterPrune = room.players.length;
     if (beforePrune !== afterPrune) {
       console.log(`[Server] 🧹 Pruned ${beforePrune - afterPrune} disconnected players from room ${roomId}`);
+    }
+
+    if (stalePlayers.length) {
+      const playersPayload = serializePlayers(room.players);
+      for (const player of stalePlayers) {
+        io.to(roomId).emit("player-left", {
+          playerId: player.id,
+          players: playersPayload,
+          ownerId: room.ownerId,
+        });
+      }
     }
 
     const existingPlayerId = typeof reconnectId === "string" ? reconnectId : null;
@@ -541,6 +747,76 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on(CLIENT_HEARTBEAT_EVENT, async () => {
+    const heartbeatReceivedAt = Date.now();
+    socket.data.lastHeartbeatAt = heartbeatReceivedAt;
+    const { roomId, playerId } = socket.data;
+
+    logger.debug(`[Heartbeat] Received heartbeat`, {
+      socketId: socket.id,
+      roomId: roomId || "none",
+      playerId: playerId || "none",
+      timestamp: heartbeatReceivedAt,
+    });
+
+    if (!roomId || !playerId) {
+      logger.debug(`[Heartbeat] Socket not in a room`, { socketId: socket.id });
+      socket.emit(HEARTBEAT_ACK_EVENT, { serverTime: heartbeatReceivedAt, status: "idle" });
+      return;
+    }
+
+    const room = roomRepository.getRoom(roomId);
+    if (!room) {
+      logger.warn(`[Heartbeat] Room not found`, { socketId: socket.id, roomId, playerId });
+      socket.emit(HEARTBEAT_ACK_EVENT, { serverTime: heartbeatReceivedAt, status: "room-missing" });
+      return;
+    }
+
+    const player = room.getPlayerById(playerId);
+    if (!player) {
+      logger.warn(`[Heartbeat] Player not found in room`, {
+        socketId: socket.id,
+        roomId,
+        playerId,
+      });
+      socket.emit(HEARTBEAT_ACK_EVENT, { serverTime: heartbeatReceivedAt, status: "player-missing" });
+      return;
+    }
+
+    const wasConnected = player.connected;
+    const previousLastSeen = player.lastSeen ?? 0;
+    const timeSinceLastSeen = previousLastSeen > 0 ? heartbeatReceivedAt - previousLastSeen : null;
+
+    logger.debug(`[Heartbeat] Processing heartbeat for player`, {
+      roomId,
+      playerId,
+      playerName: player.name,
+      wasConnected,
+      previousLastSeen: previousLastSeen || "never",
+      timeSinceLastSeen: timeSinceLastSeen ? `${timeSinceLastSeen}ms` : "N/A",
+    });
+
+    room.markPlayerHeartbeat(playerId);
+
+    if (!wasConnected && player.connected) {
+      logger.info(`[Heartbeat] Player revived via heartbeat`, {
+        roomId,
+        playerId,
+        playerName: player.name,
+        timeSinceLastSeen: timeSinceLastSeen ? `${timeSinceLastSeen}ms` : "N/A",
+      });
+      const revivedPlayer = serializePlayers([player])[0] ?? null;
+      await persistRoom(room);
+      io.to(roomId).emit("player-joined", {
+        player: revivedPlayer,
+        players: serializePlayers(room.players),
+        ownerId: room.ownerId,
+      });
+    }
+
+    socket.emit(HEARTBEAT_ACK_EVENT, { serverTime: heartbeatReceivedAt, roomId, playerId });
+  });
+
   socket.on("disconnect", async () => {
     const { roomId, playerId } = socket.data;
     if (!roomId || !playerId) {
@@ -677,6 +953,16 @@ io.on("connection", (socket) => {
     }, 3000);
   }
 });
+
+function cleanupIntervals() {
+  if (roomSweepTimer) {
+    clearInterval(roomSweepTimer);
+    roomSweepTimer = null;
+  }
+}
+
+process.on("SIGINT", cleanupIntervals);
+process.on("SIGTERM", cleanupIntervals);
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {

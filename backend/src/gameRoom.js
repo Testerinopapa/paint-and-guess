@@ -1,5 +1,3 @@
-import crypto from "crypto";
-
 export class GameRoom {
   constructor({
     id,
@@ -152,28 +150,165 @@ export class GameRoom {
     console.log(`[GameRoom:${this.id}] 🔌 Player ${player.name} (${playerId}) disconnected, active: ${activeAfter}/${this.players.length} (was ${activeBefore})`);
   }
 
-  pruneDisconnectedPlayers(gracePeriodMs) {
-    if (!gracePeriodMs) {
-      return;
+  markPlayerHeartbeat(playerId) {
+    const player = this.getPlayerById(playerId);
+    if (!player) {
+      console.log(`[GameRoom:${this.id}] ⚠️ markPlayerHeartbeat: player ${playerId} not found`);
+      return false;
     }
 
-    const cutoff = Date.now() - gracePeriodMs;
+    const previousLastSeen = player.lastSeen ?? 0;
+    const now = Date.now();
+    const timeSinceLastSeen = previousLastSeen > 0 ? now - previousLastSeen : null;
+    player.lastSeen = now;
+
+    console.debug(
+      `[GameRoom:${this.id}] ❤️ Heartbeat from ${player.name} (${playerId})`,
+      {
+        wasConnected: player.connected,
+        previousLastSeen: previousLastSeen || "never",
+        timeSinceLastSeen: timeSinceLastSeen ? `${timeSinceLastSeen}ms` : "N/A",
+        activePlayers: `${this.getActivePlayerCount()}/${this.players.length}`,
+      }
+    );
+
+    if (!player.connected) {
+      player.connected = true;
+      console.log(
+        `[GameRoom:${this.id}] ❤️‍🩹 Heartbeat revived player ${player.name} (${playerId}), active: ${this.getActivePlayerCount()}/${this.players.length}`
+      );
+      this.#ensureOwner();
+    }
+
+    return previousLastSeen === 0 || player.lastSeen - previousLastSeen > 0;
+  }
+
+  markStalePlayersDisconnected(staleThresholdMs) {
+    if (!staleThresholdMs) {
+      return [];
+    }
+
+    const now = Date.now();
+    const cutoff = now - staleThresholdMs;
+    let changed = false;
+    const stalePlayers = [];
+
+    console.debug(`[GameRoom:${this.id}] Checking for stale players`, {
+      thresholdMs: staleThresholdMs,
+      cutoffTime: new Date(cutoff).toISOString(),
+      totalPlayers: this.players.length,
+    });
+
+    this.players = this.players.map((player) => {
+      const lastSeen = player.lastSeen ?? 0;
+      const timeSinceLastSeen = lastSeen > 0 ? now - lastSeen : null;
+
+      if (player.connected && lastSeen > 0 && lastSeen < cutoff) {
+        changed = true;
+        const staleInfo = {
+          id: player.id,
+          name: player.name,
+          lastSeen: new Date(lastSeen).toISOString(),
+          timeSinceLastSeen: `${timeSinceLastSeen}ms`,
+          wasDrawer: this.currentDrawer?.id === player.id,
+        };
+        stalePlayers.push({ id: player.id, name: player.name });
+
+        console.debug(`[GameRoom:${this.id}] Marking player as stale`, staleInfo);
+
+        const wasDrawer = this.currentDrawer?.id === player.id;
+        if (wasDrawer) {
+          this.currentDrawer = null;
+          console.log(`[GameRoom:${this.id}] 🎨 Drawer ${player.name} marked stale`);
+        }
+
+        return {
+          ...player,
+          connected: false,
+          socketId: null,
+          isReady: false,
+          hasGuessed: false,
+        };
+      } else if (player.connected) {
+        console.debug(`[GameRoom:${this.id}] Player still active`, {
+          playerId: player.id,
+          playerName: player.name,
+          lastSeen: new Date(lastSeen).toISOString(),
+          timeSinceLastSeen: timeSinceLastSeen ? `${timeSinceLastSeen}ms` : "N/A",
+        });
+      }
+      return player;
+    });
+
+    if (changed) {
+      console.log(
+        `[GameRoom:${this.id}] ⏱️ Marked ${stalePlayers.length} stale players disconnected: ${stalePlayers
+          .map((player) => player.name)
+          .join(", ")}`
+      );
+      const ownerIsConnected = this.ownerId ? this.getPlayerById(this.ownerId)?.connected : false;
+      if (!ownerIsConnected) {
+        this.#ensureOwner();
+      }
+    } else {
+      console.debug(`[GameRoom:${this.id}] No stale players found`);
+    }
+
+    return stalePlayers;
+  }
+
+  pruneDisconnectedPlayers(gracePeriodMs) {
+    if (!gracePeriodMs) {
+      return false;
+    }
+
+    const now = Date.now();
+    const cutoff = now - gracePeriodMs;
     const initialLength = this.players.length;
     const prunedPlayers = [];
+
+    console.debug(`[GameRoom:${this.id}] Checking for players to prune`, {
+      gracePeriodMs,
+      cutoffTime: new Date(cutoff).toISOString(),
+      totalPlayers: initialLength,
+      disconnectedPlayers: this.players.filter((p) => !p.connected).length,
+    });
 
     this.players = this.players.filter((player) => {
       if (player.connected) {
         return true;
       }
 
-      if (!player.lastSeen) {
+      const lastSeen = player.lastSeen ?? 0;
+      const timeSinceLastSeen = lastSeen > 0 ? now - lastSeen : null;
+
+      if (!lastSeen) {
+        console.debug(`[GameRoom:${this.id}] Pruning player (no lastSeen)`, {
+          playerId: player.id,
+          playerName: player.name,
+        });
         prunedPlayers.push(player.name);
         return false;
       }
 
-      const shouldKeep = player.lastSeen >= cutoff;
+      const shouldKeep = lastSeen >= cutoff;
       if (!shouldKeep) {
+        console.debug(`[GameRoom:${this.id}] Pruning player (grace period expired)`, {
+          playerId: player.id,
+          playerName: player.name,
+          lastSeen: new Date(lastSeen).toISOString(),
+          timeSinceLastSeen: `${timeSinceLastSeen}ms`,
+          gracePeriodMs,
+        });
         prunedPlayers.push(player.name);
+      } else {
+        console.debug(`[GameRoom:${this.id}] Keeping disconnected player (within grace period)`, {
+          playerId: player.id,
+          playerName: player.name,
+          lastSeen: new Date(lastSeen).toISOString(),
+          timeSinceLastSeen: `${timeSinceLastSeen}ms`,
+          remainingGraceMs: lastSeen - cutoff,
+        });
       }
       return shouldKeep;
     });
@@ -188,7 +323,12 @@ export class GameRoom {
         this.#ensureOwner();
         console.log(`[GameRoom:${this.id}] 🎖️ Owner was pruned, new owner: ${this.ownerId ? this.getPlayerById(this.ownerId)?.name : 'none'}`);
       }
+      return true;
+    } else {
+      console.debug(`[GameRoom:${this.id}] No players pruned`);
     }
+
+    return false;
   }
 
   getActivePlayerCount() {
