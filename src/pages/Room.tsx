@@ -5,8 +5,8 @@ import { Canvas } from "@/components/Canvas";
 import { Chat } from "@/components/Chat";
 import { PlayerList } from "@/components/PlayerList";
 import { GameHeader } from "@/components/GameHeader";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Card } from "@/shared/ui/card";
 import { LogOut, Play } from "lucide-react";
 import { toast } from "sonner";
 

@@ -1,7 +1,7 @@
 import { useGame } from "@/contexts/GameContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Badge } from "@/shared/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/shared/ui/avatar";
 import { Users, Trophy, Pencil } from "lucide-react";
 import { getAvatarEmoji, DEFAULT_AVATAR } from "@/lib/avatars";
 import { AvatarConfig, decodeAvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";

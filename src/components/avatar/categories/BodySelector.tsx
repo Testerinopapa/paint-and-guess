@@ -1,9 +1,9 @@
 import { OptionGrid } from "./OptionGrid";
 import { BODY_SHAPES, BODY_SIZES } from "@/lib/avatar/categories/assets";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/shared/ui/label";
 import { AvatarConfig } from "@/lib/avatar/config";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/shared/ui/button";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Info } from "lucide-react";
 
 interface BodySelectorProps {

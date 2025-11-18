@@ -13,8 +13,8 @@ import { AvatarConfig } from "@/lib/avatar/config";
 import { createAvatar } from "@dicebear/core";
 import * as avataaars from "@dicebear/avataaars";
 import { avatarConfigToDiceBearOptions } from "@/lib/avatar/dicebear/mapper";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
 import { Pencil, X, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 

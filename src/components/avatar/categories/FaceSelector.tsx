@@ -4,7 +4,7 @@ import {
   FACE_EYEBROWS,
   FACE_MOUTH,
 } from "@/lib/avatar/categories/assets";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/shared/ui/label";
 import { AvatarConfig } from "@/lib/avatar/config";
 
 interface FaceSelectorProps {

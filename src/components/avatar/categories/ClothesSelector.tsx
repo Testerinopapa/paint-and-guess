@@ -1,13 +1,13 @@
 import { OptionGrid } from "./OptionGrid";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Input } from "@/shared/ui/input";
 import { AvatarConfig } from "@/lib/avatar/config";
 import {
   CLOTHING_TOPS,
   CLOTHING_BOTTOMS,
   CLOTHING_OUTFITS,
 } from "@/lib/avatar/categories/assets";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Info } from "lucide-react";
 
 interface ClothesSelectorProps {

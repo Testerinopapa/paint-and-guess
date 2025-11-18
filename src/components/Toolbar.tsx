@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+import { Button } from "@/shared/ui/button";
+import { Slider } from "@/shared/ui/slider";
 import { Paintbrush, Eraser, Undo, Trash2 } from "lucide-react";
 
 interface ToolbarProps {

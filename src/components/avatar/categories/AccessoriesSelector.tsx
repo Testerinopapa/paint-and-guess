@@ -1,8 +1,8 @@
 import { OptionGrid } from "./OptionGrid";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/shared/ui/label";
 import { AvatarConfig } from "@/lib/avatar/config";
 import { ACCESSORY_HATS, ACCESSORY_GLASSES, ACCESSORY_OTHER } from "@/lib/avatar/categories/assets";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { Info } from "lucide-react";
 
 interface AccessoriesSelectorProps {
