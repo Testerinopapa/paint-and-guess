@@ -1,5 +1,5 @@
-import { Header } from "@/components/Header";
-import { Canvas } from "@/components/Canvas";
+import { Header } from "@/games/paint-and-guess/components/Header";
+import { Canvas } from "@/games/paint-and-guess/components/Canvas";
 
 const Index = () => {
   return (
