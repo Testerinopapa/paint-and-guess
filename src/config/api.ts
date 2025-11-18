@@ -3,7 +3,7 @@ function normalizeUrl(url?: string) {
   return url.replace(/\/$/, "");
 }
 
-const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3001";
+const fallbackOrigin = "http://localhost:3001";
 
 export const API_BASE_URL = normalizeUrl(import.meta.env.VITE_API_BASE_URL) || fallbackOrigin;
 export const SOCKET_URL = normalizeUrl(import.meta.env.VITE_SOCKET_URL) || API_BASE_URL;
