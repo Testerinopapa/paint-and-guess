@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useGame } from "@/contexts/GameContext";
+import { useGame } from "@/games/paint-and-guess";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

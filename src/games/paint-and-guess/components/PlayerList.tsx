@@ -1,4 +1,4 @@
-import { useGame } from "@/contexts/GameContext";
+import { useGame } from "@/games/paint-and-guess";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";

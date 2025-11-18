@@ -1,9 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Socket } from "socket.io-client";
-import { useSocket } from "@/hooks/useSocket";
 import { toast } from "sonner";
-import { AvatarConfig, encodeAvatarConfig, decodeAvatarConfig } from "@/lib/avatar/config";
+import { AvatarConfig, encodeAvatarConfig } from "@/lib/avatar/config";
 import { apiPath } from "@/config/api";
+import { useSocket } from "@/games/paint-and-guess/hooks/useSocket";
 
 const PLAYER_STORAGE_KEY_PREFIX = "paint-and-guess:player:";
 
