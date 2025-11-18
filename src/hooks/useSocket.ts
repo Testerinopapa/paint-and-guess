@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
+import { SOCKET_URL } from "@/config/api";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:3001";
 const HEARTBEAT_INTERVAL_MS = Number(import.meta.env.VITE_SOCKET_HEARTBEAT_INTERVAL_MS ?? 15000) || 15000;
 
 export function useSocket() {
