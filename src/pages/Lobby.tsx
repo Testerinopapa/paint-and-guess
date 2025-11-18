@@ -11,6 +11,7 @@ import { AvatarPreview } from "@/components/avatar/preview";
 import { AvatarConfig, loadAvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 import { cn } from "@/lib/utils";
+import { apiPath } from "@/config/api";
 
 interface WordPack {
   id: string;
@@ -37,7 +38,7 @@ export default function Lobby() {
 
   useEffect(() => {
     // Fetch available word packs
-    fetch("http://localhost:3001/api/word-packs")
+    fetch(apiPath("/api/word-packs"))
       .then((res) => res.json())
       .then((packs: WordPack[]) => {
         setWordPacks(packs);

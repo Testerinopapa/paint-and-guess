@@ -5,7 +5,16 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dataDir = path.join(__dirname, "..", "data");
+const configuredDataDir =
+  process.env.ROOMS_DATA_DIR ||
+  process.env.RENDER_DISK_PATH ||
+  process.env.RENDER_PERSISTENT_DISK_PATH ||
+  path.join(__dirname, "..", "data");
+
+const dataDir = path.isAbsolute(configuredDataDir)
+  ? configuredDataDir
+  : path.resolve(path.join(__dirname, ".."), configuredDataDir);
+
 fs.mkdirSync(dataDir, { recursive: true });
 
 const defaultDatabaseUrl = `file:${path.join(dataDir, "rooms.db")}`;

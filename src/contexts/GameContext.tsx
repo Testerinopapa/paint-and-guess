@@ -3,6 +3,7 @@ import { Socket } from "socket.io-client";
 import { useSocket } from "@/hooks/useSocket";
 import { toast } from "sonner";
 import { AvatarConfig, encodeAvatarConfig, decodeAvatarConfig } from "@/lib/avatar/config";
+import { apiPath } from "@/config/api";
 
 const PLAYER_STORAGE_KEY_PREFIX = "paint-and-guess:player:";
 
@@ -350,7 +351,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const createRoom = async (roomName: string, isPublic = true, wordPack = "classic"): Promise<string> => {
     try {
       console.log(`[GameContext] 🏠 Creating room`, { roomName, isPublic, wordPack });
-      const response = await fetch("http://localhost:3001/api/rooms", {
+      const response = await fetch(apiPath("/api/rooms"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
