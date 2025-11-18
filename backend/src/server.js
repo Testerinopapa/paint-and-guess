@@ -106,15 +106,39 @@ try {
   logger.warn("[Server] Redis initialization failed, continuing without adapter", error);
 }
 
-const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:8080",
-    methods: ["GET", "POST"],
+const corsOrigins = (process.env.ALLOWED_ORIGINS ?? "http://localhost:8080,http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+if (process.env.RENDER_EXTERNAL_URL) {
+  corsOrigins.push(process.env.RENDER_EXTERNAL_URL);
+}
+
+const normalizedOrigins = Array.from(
+  new Set(
+    corsOrigins.map((origin) => origin.replace(/\/$/, ""))
+  )
+);
+
+const corsConfig = {
+  origin: (origin, callback) => {
+    const normalizedOrigin = origin?.replace(/\/$/, "");
+    if (!origin || normalizedOrigins.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
   },
+  methods: ["GET", "POST", "OPTIONS"],
+  credentials: true,
+};
+
+const io = new Server(httpServer, {
+  cors: corsConfig,
   adapter: redisAdapter || undefined, // Use Redis adapter if available
 });
 
-app.use(cors());
+app.use(cors(corsConfig));
 app.use(express.json());
 
 const __filename = fileURLToPath(import.meta.url);
