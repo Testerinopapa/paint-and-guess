@@ -11,6 +11,7 @@ import { WORDS, getWordPacks, getRandomWordFromPack } from "./words.js";
 import { PrismaRoomStore } from "./store/prismaRoomStore.js";
 import { RoomRepository } from "./store/roomRepository.js";
 import { initializeRedis, getRedisSubscriber, getRedisPublisher, isRedisEnabled, shutdownRedis } from "./redisClient.js";
+import { loadGameRegistry } from "./gameRegistry.js";
 
 const LOG_LEVELS = {
   error: 0,
@@ -397,6 +398,45 @@ app.get("/api/rooms", (req, res) => {
     }));
 
   res.json(publicRooms);
+});
+
+app.get("/api/games/registry", async (req, res) => {
+  const requestStart = Date.now();
+  const forceRefresh = req.query.refresh === "true";
+  const clientIp = req.ip || req.socket.remoteAddress;
+  
+  logger.debug("[HTTP] Game registry request", {
+    forceRefresh,
+    clientIp,
+    query: req.query,
+  });
+
+  try {
+    const registry = await loadGameRegistry({ forceRefresh });
+    const duration = Date.now() - requestStart;
+    
+    logger.info("[HTTP] Game registry served", {
+      source: registry.source,
+      entryCount: registry.entries?.length ?? 0,
+      duration: `${duration}ms`,
+      forceRefresh,
+    });
+    
+    res.json(registry);
+  } catch (error) {
+    const duration = Date.now() - requestStart;
+    logger.error("[HTTP] Failed to load game registry", {
+      error: error.message,
+      stack: error.stack,
+      duration: `${duration}ms`,
+      forceRefresh,
+    });
+    res.status(500).json({ 
+      status: "error", 
+      message: "Failed to load registry",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
 });
 
 // Get available word packs
