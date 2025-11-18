@@ -21,14 +21,14 @@ services:
       mountPath: /var/data
       sizeGB: 1
 
-  - type: static
+  - type: web
     name: paint-and-guess-frontend
     env: static
+    plan: free
     buildCommand: npm install && npm run build
-    publishPath: dist
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_BASE_URL
         value: https://paint-and-guess-backend.onrender.com
       - key: VITE_SOCKET_URL
         value: https://paint-and-guess-backend.onrender.com
-
