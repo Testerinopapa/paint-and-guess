@@ -7,6 +7,7 @@ import path from "path";
 import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import { v4 as uuidv4 } from "uuid";
+import { getRegistryResponse } from "./gameRegistry.js";
 import { WORDS, getWordPacks, getRandomWordFromPack } from "./words.js";
 import { PrismaRoomStore } from "./store/prismaRoomStore.js";
 import { RoomRepository } from "./store/roomRepository.js";
@@ -140,6 +141,16 @@ const io = new Server(httpServer, {
 
 app.use(cors(corsConfig));
 app.use(express.json());
+
+app.get("/api/games", async (req, res) => {
+  try {
+    const registry = await getRegistryResponse();
+    res.json(registry);
+  } catch (error) {
+    console.error("[registry] Failed to serve registry", error);
+    res.status(500).json({ error: "Unable to load game registry" });
+  }
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

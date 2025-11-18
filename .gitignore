@@ -36,6 +36,7 @@ test-results-*.json
 # Persistent data
 backend/data/
 backend/prisma/data/
+!backend/data/game-registry.json
 
 rooms.db
 *.db
