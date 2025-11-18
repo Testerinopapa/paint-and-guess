@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Canvas as FabricCanvas, PencilBrush, FabricObject } from "fabric";
 import { Toolbar } from "./Toolbar";
 import { ColorPalette } from "./ColorPalette";
-import { useGame } from "@/contexts/GameContext";
+import { useGame } from "@/games/paint-and-guess";
 import { toast } from "sonner";
 
 export const Canvas = () => {

@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useGame } from "@/contexts/GameContext";
-import { Canvas } from "@/components/Canvas";
-import { Chat } from "@/components/Chat";
-import { PlayerList } from "@/components/PlayerList";
-import { GameHeader } from "@/components/GameHeader";
+import { useGame } from "@/games/paint-and-guess";
+import { Canvas } from "@/games/paint-and-guess/components/Canvas";
+import { Chat } from "@/games/paint-and-guess/components/Chat";
+import { PlayerList } from "@/games/paint-and-guess/components/PlayerList";
+import { GameHeader } from "@/games/paint-and-guess/components/GameHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LogOut, Play } from "lucide-react";

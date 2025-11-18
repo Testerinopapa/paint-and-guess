@@ -1,4 +1,4 @@
-import { useGame } from "@/contexts/GameContext";
+import { useGame } from "@/games/paint-and-guess";
 import { Badge } from "@/components/ui/badge";
 import { Timer, Users } from "lucide-react";
 
