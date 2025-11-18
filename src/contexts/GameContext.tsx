@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Socket } from "socket.io-client";
-import { useSocket } from "@/hooks/useSocket";
+import { useSocket } from "@/shared/lib/hooks/useSocket";
 import { toast } from "sonner";
 import { AvatarConfig, encodeAvatarConfig, decodeAvatarConfig } from "@/lib/avatar/config";
 import { apiPath } from "@/config/api";

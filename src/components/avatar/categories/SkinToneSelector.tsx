@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { OptionGrid } from "./OptionGrid";
 import { SKIN_TONE_PRESETS, SKIN_TONE_COLORS } from "@/lib/avatar/categories/assets";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
 
 interface SkinToneSelectorProps {
   selectedTone: string;
