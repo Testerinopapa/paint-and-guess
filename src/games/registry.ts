@@ -2,12 +2,14 @@ import { fallbackGameRegistry } from "@/games/registry/fallback";
 import { gameRegistryPayloadSchema, type GameRegistryEntry, type GameRegistryPayload } from "@/games/registry/schema";
 import { isFeatureEnabled } from "@/lib/featureFlags";
 
+const metaEnv = typeof import.meta !== "undefined" ? (import.meta as { env?: Record<string, unknown> }) : undefined;
+
 const DEFAULT_TIMEOUT_MS = 5000;
 const CACHE_TTL_MS = 60 * 1000;
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+const apiBaseUrl = (metaEnv?.env?.VITE_API_BASE_URL as string | undefined) ?? "";
 const registryEndpoint = `${apiBaseUrl || ""}/api/games/registry`;
 
-const DEBUG = import.meta.env.DEV || import.meta.env.MODE === "development";
+const DEBUG = Boolean(metaEnv?.env?.DEV || metaEnv?.env?.MODE === "development");
 
 function debugLog(message: string, ...args: unknown[]) {
   if (DEBUG) {

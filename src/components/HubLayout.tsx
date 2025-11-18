@@ -2,12 +2,18 @@ import { NavLink, Outlet } from "react-router-dom";
 import { PaintBucket, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const navigation = [
+type NavigationItem = { label: string; to: string };
+
+type HubLayoutProps = {
+  navigation?: NavigationItem[];
+};
+
+const fallbackNavigation: NavigationItem[] = [
   { label: "All Games", to: "/" },
   { label: "Paint & Guess", to: "/games/paint-and-guess" },
 ];
 
-const HubLayout = () => {
+const HubLayout = ({ navigation = fallbackNavigation }: HubLayoutProps) => {
   return (
     <div className="min-h-screen bg-background text-foreground flex">
       <aside className="hidden md:flex md:w-64 border-r bg-muted/30 flex-col p-6 gap-6">

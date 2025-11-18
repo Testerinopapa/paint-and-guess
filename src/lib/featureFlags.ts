@@ -1,6 +1,7 @@
 type FlagRecord = Record<string, boolean>;
 
-const DEBUG = import.meta.env.DEV || import.meta.env.MODE === "development";
+const metaEnv = typeof import.meta !== "undefined" ? (import.meta as { env?: Record<string, unknown> }) : undefined;
+const DEBUG = Boolean(metaEnv?.env?.DEV || metaEnv?.env?.MODE === "development");
 
 function debugLog(message: string, ...args: unknown[]) {
   if (DEBUG) {
