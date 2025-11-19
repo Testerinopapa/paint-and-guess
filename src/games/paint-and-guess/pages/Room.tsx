@@ -5,6 +5,7 @@ import { Canvas } from "@/games/paint-and-guess/components/Canvas";
 import { Chat } from "@/games/paint-and-guess/components/Chat";
 import { PlayerList } from "@/games/paint-and-guess/components/PlayerList";
 import { GameHeader } from "@/games/paint-and-guess/components/GameHeader";
+import GameLayout from "@/games/paint-and-guess/components/GameLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LogOut, Play } from "lucide-react";
@@ -47,20 +48,27 @@ export default function Room() {
   const allPlayersReady =
     gameState.players.length >= 2 && gameState.players.every((player) => player.isReady);
 
+  const actionSlot = (
+    <Button onClick={handleLeaveRoom} variant="outline" className="gap-2">
+      <LogOut className="w-4 h-4" />
+      Leave Room
+    </Button>
+  );
+
   if (!gameState.roomId) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <GameLayout title="Paint & Guess" description="Loading your room" actionSlot={actionSlot}>
         <Card className="p-6">
           <p>Loading room...</p>
         </Card>
-      </div>
+      </GameLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <GameLayout title="Paint & Guess" description={`Room ${roomId ?? gameState.roomId}`} actionSlot={actionSlot}>
       <GameHeader />
-      
+
       <div className="container mx-auto p-4">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           {/* Left Sidebar - Players */}
@@ -99,11 +107,7 @@ export default function Room() {
                   : "Waiting for all players to ready up."}
               </p>
             )}
-            <Button
-              onClick={handleLeaveRoom}
-              variant="outline"
-              className="w-full mt-2"
-            >
+            <Button onClick={handleLeaveRoom} variant="outline" className="w-full mt-2">
               <LogOut className="w-4 h-4 mr-2" />
               Leave Room
             </Button>
@@ -120,6 +124,6 @@ export default function Room() {
           </div>
         </div>
       </div>
-    </div>
+    </GameLayout>
   );
 }
