@@ -18,6 +18,10 @@ export type HubGame = NormalizedGameEntry & {
   derivedRoute: string;
   isEnabled: boolean;
   PreviewComponent?: React.ComponentType;
+  navLabel: string;
+  navCategory: string;
+  navPriority: number;
+  navHidden: boolean;
 };
 
 function debugLog(message: string, detail?: Record<string, unknown>) {
@@ -47,15 +51,22 @@ function getPreviewComponent(entry: NormalizedGameEntry) {
 
 function attachPlugin(entry: NormalizedGameEntry): HubGame {
   debugLog("Attaching plugin metadata", { id: entry.id, status: entry.status, flagCount: entry.featureFlags.length });
+  const displayName = localizeCopy(entry.name);
+  const displayDescription = localizeCopy(entry.description);
+  const navCategory = entry.navigation?.category ?? entry.category?.[0] ?? "uncategorized";
   return {
     ...entry,
-    displayName: localizeCopy(entry.name),
-    displayDescription: localizeCopy(entry.description),
+    displayName,
+    displayDescription,
     derivedRoute: entry.route.path,
     isEnabled:
       entry.featureFlags.every((flag) => isFeatureEnabled(flag)) &&
       matchesTargeting(entry.visibleIf ?? []),
     PreviewComponent: getPreviewComponent(entry),
+    navLabel: entry.navigation?.label ?? displayName ?? entry.id,
+    navCategory,
+    navPriority: entry.navigation?.priority ?? 0,
+    navHidden: entry.navigation?.hidden ?? false,
   };
 }
 

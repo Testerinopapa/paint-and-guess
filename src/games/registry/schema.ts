@@ -40,6 +40,14 @@ export const registryEntrySchema = z
     }),
     featureFlags: z.array(z.string()).default([]),
     visibleIf: z.array(z.string()).default(["public"]),
+    navigation: z
+      .object({
+        label: z.string().optional(),
+        category: z.string().optional(),
+        priority: z.number().int().optional(),
+        hidden: z.boolean().default(false),
+      })
+      .default({}),
     route: z
       .object({
         slug: z.string().optional(),
