@@ -1,71 +1,79 @@
 import { z } from "zod";
 
-export const gameStatusSchema = z.enum(["available", "coming-soon", "prototype", "retired"]);
-export const gameModeSchema = z.enum(["singleplayer", "party", "live-multiplayer", "async", "coop"]);
+export const gameStatusSchema = z.enum(["alpha", "beta", "stable", "deprecated"]);
+export const monetizationSchema = z.enum(["free", "iap", "premium", "subscription"]);
 
-export const ctaSchema = z.object({
-  label: z.string(),
-  href: z.string().optional(),
-  to: z.string().optional(),
-  external: z.boolean().optional(),
+const localizedStringSchema = z.object({
+  default: z.string(),
+  locales: z.record(z.string().min(2), z.string()).optional(),
 });
 
-export const gameHubHighlightSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  icon: z.string().optional(),
+export const registryEntrySchema = z
+  .object({
+    id: z.string().min(1),
+    version: z.string().default("0.0.1"),
+    name: localizedStringSchema,
+    description: localizedStringSchema,
+    status: gameStatusSchema,
+    supportedPlayers: z
+      .object({
+        min: z.number().int().positive(),
+        max: z.number().int().positive(),
+        recommended: z.number().int().positive().optional(),
+      })
+      .refine((value) => value.max >= value.min, {
+        message: "max players must be greater than or equal to min players",
+      }),
+    monetization: monetizationSchema,
+    category: z.array(z.string()).default([]),
+    schedule: z
+      .object({
+        startsAt: z.string().datetime().optional(),
+        endsAt: z.string().datetime().optional(),
+      })
+      .optional(),
+    badges: z.array(z.string()).default([]),
+    assets: z.object({
+      thumbnail: z.string(),
+      trailerUrl: z.string().url().optional(),
+      patchNotesUrl: z.string().url().optional(),
+    }),
+    featureFlags: z.array(z.string()).default([]),
+    visibleIf: z.array(z.string()).default(["public"]),
+    route: z
+      .object({
+        slug: z.string().optional(),
+        path: z.string().optional(),
+      })
+      .default({}),
+    metrics: z
+      .object({
+        concurrentUsers: z.number().int().nonnegative().optional(),
+        uptimePercentage: z.number().min(0).max(100).optional(),
+      })
+      .optional(),
+    plugin: z
+      .object({
+        previewComponent: z.string().optional(),
+        moduleId: z.string().optional(),
+      })
+      .optional(),
+  })
+  .transform((entry) => {
+    const slug = entry.route.slug ?? entry.id;
+    const path = entry.route.path ?? `/games/${slug}`;
+    return {
+      ...entry,
+      route: { slug, path },
+    };
+  });
+
+export const registryResponseSchema = z.object({
+  updatedAt: z.string().datetime(),
+  entries: z.array(registryEntrySchema),
+  source: z.enum(["cms", "fallback", "cache", "git"]).default("fallback"),
 });
 
-export const gameHubChecklistSchema = z.object({
-  label: z.string(),
-  complete: z.boolean().default(false),
-});
-
-export const gameHubEntrySchema = z.object({
-  heroEyebrow: z.string().optional(),
-  heroTitle: z.string(),
-  heroDescription: z.string(),
-  heroImage: z.string().optional(),
-  primaryCta: ctaSchema.optional(),
-  secondaryCta: ctaSchema.optional(),
-  highlights: z.array(gameHubHighlightSchema).default([]),
-  checklist: z.array(gameHubChecklistSchema).default([]),
-});
-
-export const gameRegistryEntrySchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  shortDescription: z.string().optional(),
-  status: gameStatusSchema.default("coming-soon"),
-  thumbnail: z.string().default("/placeholder.svg"),
-  route: z.string().default("#"),
-  featureFlag: z.string().optional(),
-  tags: z.array(z.string()).default([]),
-  technologies: z.array(z.string()).default([]),
-  modes: z.array(gameModeSchema).default(["party"]),
-  players: z
-    .object({
-      min: z.number().int().nonnegative().optional(),
-      max: z.number().int().nonnegative().optional(),
-    })
-    .default({}),
-  estimatedDurationMinutes: z.number().int().positive().optional(),
-  cta: ctaSchema.optional(),
-  metadata: z.record(z.unknown()).default({}),
-  hub: gameHubEntrySchema.optional(),
-});
-
-export const gameRegistryPayloadSchema = z.object({
-  updatedAt: z.coerce.date().default(() => new Date()),
-  source: z.string().default("runtime"),
-  entries: z.array(gameRegistryEntrySchema),
-});
-
-export type GameRegistryPayload = z.infer<typeof gameRegistryPayloadSchema> & {
-  updatedAt: string;
-};
-export type GameRegistryEntry = z.infer<typeof gameRegistryEntrySchema>;
-export type GameHubEntry = z.infer<typeof gameHubEntrySchema>;
-export type GameStatus = z.infer<typeof gameStatusSchema>;
+export type NormalizedGameEntry = z.infer<typeof registryEntrySchema>;
+export type RegistryResponse = z.infer<typeof registryResponseSchema>;
 

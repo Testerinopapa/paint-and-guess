@@ -1,7 +1,0 @@
-[2025-11-18T18:07:19.801Z] 🌐 GET http://localhost:8080/api/games/registry → 200
-[2025-11-18T18:07:22.882Z] 🌐 GET http://localhost:8080/api/games/registry → 200
-[2025-11-18T18:07:25.326Z] 🌐 GET http://localhost:8080/api/games/registry → 200
-[2025-11-18T18:07:29.612Z] 🌐 GET http://localhost:8080/api/games/registry → 200
-[2025-11-18T18:07:32.358Z] 🌐 GET http://localhost:8080/api/games/registry → 200
-[2025-11-18T18:07:35.836Z] 🌐 GET http://localhost:8080/api/games/registry → 200
-[2025-11-18T18:07:39.682Z] 🌐 GET http://localhost:8080/api/games/registry → 200

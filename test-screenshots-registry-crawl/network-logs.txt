@@ -1,0 +1,18 @@
+[2025-11-19T01:23:08.783Z] 🌐 GET http://localhost:8080/api/games
+[2025-11-19T01:23:08.795Z] 🌐 GET http://localhost:8080/api/games → 200
+[2025-11-19T01:24:44.320Z] 🌐 GET http://localhost:8080/api/games
+[2025-11-19T01:24:44.334Z] 🌐 GET http://localhost:8080/api/games → 200
+[2025-11-19T01:24:48.889Z] 🌐 GET http://localhost:8080/api/games
+[2025-11-19T01:24:48.913Z] 🌐 GET http://localhost:8080/api/games → 200
+[2025-11-19T01:24:52.427Z] 🌐 GET http://localhost:3001/api/word-packs
+[2025-11-19T01:24:52.544Z] 🌐 GET http://localhost:3001/api/word-packs → 200
+[2025-11-19T01:24:58.409Z] 🌐 GET http://localhost:8080/api/games
+[2025-11-19T01:24:58.491Z] 🌐 GET http://localhost:8080/api/games → 200
+[2025-11-19T01:25:01.660Z] 🌐 GET http://localhost:8080/api/games
+[2025-11-19T01:25:01.677Z] 🌐 GET http://localhost:8080/api/games → 200
+[2025-11-19T01:25:04.840Z] 🌐 GET http://localhost:8080/api/games
+[2025-11-19T01:25:04.844Z] 🌐 GET http://localhost:8080/api/games → 200
+[2025-11-19T01:25:07.945Z] 🌐 GET http://localhost:8080/api/games
+[2025-11-19T01:25:07.955Z] 🌐 GET http://localhost:8080/api/games → 200
+[2025-11-19T01:25:10.936Z] 🌐 GET http://localhost:8080/api/games
+[2025-11-19T01:25:10.955Z] 🌐 GET http://localhost:8080/api/games → 200

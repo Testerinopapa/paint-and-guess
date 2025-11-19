@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "localhost",
     port: Number(process.env.PORT) || 8080,
+    proxy: {
+      "/api": {
+        target: process.env.VITE_BACKEND_URL || "http://localhost:3001",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

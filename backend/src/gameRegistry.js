@@ -5,76 +5,136 @@ import { z } from "zod";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const GAME_REGISTRY_PATH = path.join(__dirname, "..", "data", "game-registry.json");
-const CACHE_TTL_MS = 60 * 1000;
+const registryPath = path.join(__dirname, "..", "data", "game-registry.json");
 
-const gameRegistryEntrySchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
-  description: z.string().min(1),
-  shortDescription: z.string().optional(),
-  status: z.enum(["available", "coming-soon", "prototype", "retired"]).default("coming-soon"),
-  route: z.string().default("#"),
-  thumbnail: z.string().default("/placeholder.svg"),
-  featureFlag: z.string().optional(),
-  modes: z.array(z.string()).default([]),
-  players: z
-    .object({
-      min: z.number().int().nonnegative().optional(),
-      max: z.number().int().nonnegative().optional(),
-    })
-    .partial()
-    .default({}),
-  estimatedDurationMinutes: z.number().int().positive().optional(),
-  tags: z.array(z.string()).default([]),
-  technologies: z.array(z.string()).default([]),
-  cta: z
-    .object({
-      label: z.string(),
-      href: z.string(),
-    })
-    .optional(),
-  metadata: z.record(z.unknown()).default({}),
+const statusSchema = z.enum(["alpha", "beta", "stable", "deprecated"]);
+const monetizationSchema = z.enum(["free", "iap", "premium", "subscription"]);
+
+const localizedStringSchema = z.object({
+  default: z.string(),
+  locales: z.record(z.string().min(2), z.string()).optional(),
 });
 
-const gameRegistrySchema = z.object({
-  updatedAt: z.coerce.date().default(() => new Date()),
-  source: z.string().default("git"),
-  entries: z.array(gameRegistryEntrySchema),
+const gameEntrySchema = z
+  .object({
+    id: z.string(),
+    version: z.string(),
+    name: localizedStringSchema,
+    description: localizedStringSchema,
+    status: statusSchema,
+    supportedPlayers: z.object({
+      min: z.number().int(),
+      max: z.number().int(),
+      recommended: z.number().int().optional(),
+    }),
+    monetization: monetizationSchema,
+    category: z.array(z.string()).default([]),
+    assets: z.object({
+      thumbnail: z.string(),
+      trailerUrl: z.string().url().optional(),
+      patchNotesUrl: z.string().url().optional(),
+    }),
+    schedule: z
+      .object({
+        startsAt: z.string().datetime().optional(),
+        endsAt: z.string().datetime().optional(),
+      })
+      .optional(),
+    badges: z.array(z.string()).default([]),
+    featureFlags: z.array(z.string()).default([]),
+    visibleIf: z.array(z.string()).default([]),
+    route: z
+      .object({
+        slug: z.string().optional(),
+        path: z.string().optional(),
+      })
+      .default({}),
+    metrics: z
+      .object({
+        concurrentUsers: z.number().int().optional(),
+        uptimePercentage: z.number().optional(),
+      })
+      .optional(),
+  })
+  .transform((entry) => {
+    const slug = entry.route.slug ?? entry.id;
+    const routePath = entry.route.path ?? `/games/${slug}`;
+    return {
+      ...entry,
+      route: { slug, path: routePath },
+    };
+  });
+
+const registrySchema = z.object({
+  updatedAt: z.string().datetime(),
+  entries: z.array(gameEntrySchema),
+  source: z.enum(["cms", "fallback", "git"]).default("git"),
 });
 
-const fallbackRegistry = {
+const fallbackRegistry = registrySchema.parse({
   updatedAt: new Date().toISOString(),
   source: "fallback",
   entries: [
     {
       id: "paint-and-guess",
-      name: "Paint & Guess",
-      status: "available",
-      description: "Draw prompts, guess quickly, and keep the energy high in live multiplayer rooms.",
-      shortDescription: "Live party doodling",
-      route: "/games/paint-and-guess",
-      thumbnail: "/placeholder.svg",
-      featureFlag: "games.paintAndGuess",
-      modes: ["party", "live-multiplayer"],
-      players: { min: 2, max: 12 },
-      estimatedDurationMinutes: 20,
-      tags: ["featured", "live"],
-      technologies: ["React", "Fabric.js", "Socket.io"],
-      metadata: {
-        latencyBudgetMs: 200,
+      version: "1.1.0",
+      name: { default: "Paint & Guess" },
+      description: { default: "Draw prompts, guess sketches, and keep the points flowing." },
+      status: "stable",
+      supportedPlayers: { min: 2, max: 12, recommended: 6 },
+      monetization: "free",
+      category: ["party", "drawing"],
+      assets: {
+        thumbnail: "/placeholder.svg",
+        patchNotesUrl: "https://example.com/paint-and-guess/patch-notes",
       },
-      cta: {
-        label: "Play now",
-        href: "/games/paint-and-guess",
+      badges: ["hot"],
+      route: { slug: "paint-and-guess" },
+      metrics: { concurrentUsers: 1200, uptimePercentage: 99.9 },
+    },
+    {
+      id: "mystery-mashup",
+      version: "0.3.0",
+      name: { default: "Mystery Mashup" },
+      description: { default: "A surprise party experience is brewing. Stay tuned!" },
+      status: "beta",
+      supportedPlayers: { min: 3, max: 8 },
+      monetization: "premium",
+      category: ["mystery"],
+      schedule: { startsAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3).toISOString() },
+      badges: ["beta", "limited"],
+      assets: {
+        thumbnail: "/placeholder.svg",
+        trailerUrl: "https://example.com/mystery-mashup/trailer",
       },
+      featureFlags: ["feature:mystery_beta"],
+      visibleIf: ["cohort:beta"],
+      route: { slug: "mystery-mashup" },
+    },
+    {
+      id: "trivia-trails",
+      version: "0.1.0",
+      name: { default: "Trivia Trails", locales: { es: "Rutas de Trivias" } },
+      description: {
+        default: "Battle your friends with rapid-fire questions soon.",
+        locales: { es: "Enfrenta a tus amigos con preguntas rápidas muy pronto." },
+      },
+      status: "alpha",
+      supportedPlayers: { min: 2, max: 6, recommended: 4 },
+      monetization: "iap",
+      category: ["trivia"],
+      badges: ["new"],
+      assets: { thumbnail: "/placeholder.svg" },
+      featureFlags: ["feature:trivia_alpha"],
+      visibleIf: ["internal"],
+      route: { slug: "trivia-trails" },
     },
   ],
-};
+});
 
 let cachedRegistry = null;
-let lastLoadedAt = 0;
-
+let cachedAt = 0;
+const CACHE_TTL_MS = 60_000;
 const DEBUG = process.env.LOG_LEVEL === "debug" || process.env.NODE_ENV === "development";
 
 function debugLog(message, ...args) {
@@ -83,131 +143,72 @@ function debugLog(message, ...args) {
   }
 }
 
-async function readRegistryFromDisk() {
-  debugLog(`Reading registry from disk: ${GAME_REGISTRY_PATH}`);
-  const startTime = Date.now();
+async function loadGitRegistry() {
   try {
-    const payload = await fs.readFile(GAME_REGISTRY_PATH, "utf-8");
-    const parseTime = Date.now() - startTime;
-    debugLog(`File read completed in ${parseTime}ms, size: ${payload.length} bytes`);
-    const parsed = JSON.parse(payload);
-    debugLog(`JSON parsed successfully, entries count: ${parsed.entries?.length ?? 0}`);
-    return parsed;
+    const file = await fs.readFile(registryPath, "utf-8");
+    const data = JSON.parse(file);
+    return registrySchema.parse({ ...data, source: "git" });
   } catch (error) {
-    console.error(`[GameRegistry] Failed to read registry file: ${GAME_REGISTRY_PATH}`, {
-      error: error.message,
-      code: error.code,
-    });
-    throw error;
+    console.warn("[GameRegistry] Unable to read git-managed registry, using fallback", error);
+    return fallbackRegistry;
   }
 }
 
-export async function loadGameRegistry({ forceRefresh = false } = {}) {
+async function getRegistryInternal(forceRefresh = false) {
   const now = Date.now();
-  const cacheAge = now - lastLoadedAt;
-  const isCacheValid = cachedRegistry && cacheAge < CACHE_TTL_MS;
-
-  debugLog(`loadGameRegistry called`, {
-    forceRefresh,
-    hasCache: !!cachedRegistry,
-    cacheAge: `${cacheAge}ms`,
-    cacheValid: isCacheValid,
-    cacheTTL: `${CACHE_TTL_MS}ms`,
-  });
-
-  if (!forceRefresh && isCacheValid) {
-    debugLog(`Returning cached registry (age: ${cacheAge}ms)`, {
-      source: cachedRegistry.source,
-      entryCount: cachedRegistry.entries?.length ?? 0,
-    });
+  if (!forceRefresh && cachedRegistry && now - cachedAt < CACHE_TTL_MS) {
+    debugLog("Serving registry from cache", { source: cachedRegistry.source, age: `${now - cachedAt}ms` });
     return cachedRegistry;
   }
 
   if (forceRefresh) {
-    debugLog(`Force refresh requested, clearing cache`);
-  } else if (cachedRegistry) {
-    debugLog(`Cache expired (age: ${cacheAge}ms > TTL: ${CACHE_TTL_MS}ms), reloading`);
+    debugLog("Force refresh requested, clearing cache");
   }
 
-  try {
-    const rawData = await readRegistryFromDisk();
-    debugLog(`Validating registry schema...`);
-    const validationStart = Date.now();
-    const parsed = gameRegistrySchema.parse(rawData);
-    const validationTime = Date.now() - validationStart;
-    debugLog(`Schema validation passed in ${validationTime}ms`, {
-      entryCount: parsed.entries.length,
-      source: parsed.source,
-      updatedAt: parsed.updatedAt,
-    });
+  const registry = await loadGitRegistry();
+  cachedRegistry = registry;
+  cachedAt = now;
+  debugLog("Registry cached", {
+    entryCount: registry.entries.length,
+    entryIds: registry.entries.map((entry) => entry.id),
+  });
+  return registry;
+}
 
-    cachedRegistry = {
-      ...parsed,
-      updatedAt: parsed.updatedAt.toISOString(),
-    };
-    lastLoadedAt = Date.now();
-    debugLog(`Registry loaded and cached successfully`, {
-      source: cachedRegistry.source,
-      entryCount: cachedRegistry.entries.length,
-      entryIds: cachedRegistry.entries.map((e) => e.id),
-    });
-    return cachedRegistry;
-  } catch (error) {
-    if (error.name === "ZodError") {
-      console.error(`[GameRegistry] Schema validation failed:`, {
-        errors: error.errors.map((e) => ({
-          path: e.path.join("."),
-          message: e.message,
-        })),
-      });
-    } else {
-      console.error(`[GameRegistry] Unexpected error loading registry:`, {
-        error: error.message,
-        stack: error.stack,
-      });
-    }
+export async function getRegistry() {
+  return getRegistryInternal(false);
+}
 
-    console.warn(`[GameRegistry] Falling back to bundled registry`);
-    try {
-      const parsedFallback = gameRegistrySchema.parse(fallbackRegistry);
-      cachedRegistry = {
-        ...parsedFallback,
-        updatedAt: parsedFallback.updatedAt.toISOString(),
-        source: "fallback",
-      };
-      lastLoadedAt = Date.now();
-      debugLog(`Fallback registry loaded`, {
-        entryCount: cachedRegistry.entries.length,
-        entryIds: cachedRegistry.entries.map((e) => e.id),
-      });
-      return cachedRegistry;
-    } catch (fallbackError) {
-      console.error(`[GameRegistry] CRITICAL: Fallback registry also failed validation!`, fallbackError);
-      throw new Error("Both primary and fallback registries failed validation");
-    }
-  }
+export async function getRegistryResponse() {
+  const registry = await getRegistryInternal(false);
+  return {
+    updatedAt: registry.updatedAt,
+    source: registry.source,
+    entries: registry.entries,
+  };
+}
+
+export async function loadGameRegistry({ forceRefresh = false } = {}) {
+  const registry = await getRegistryInternal(forceRefresh);
+  return {
+    updatedAt: registry.updatedAt,
+    source: registry.source,
+    entries: registry.entries,
+  };
 }
 
 export async function refreshGameRegistry() {
-  debugLog(`refreshGameRegistry called, clearing cache`);
   cachedRegistry = null;
-  lastLoadedAt = 0;
-  return loadGameRegistry({ forceRefresh: true });
+  cachedAt = 0;
+  return getRegistryInternal(true);
 }
 
 export async function getGameEntryById(gameId) {
-  debugLog(`getGameEntryById called`, { gameId });
-  const registry = await loadGameRegistry();
-  const entry = registry.entries.find((entry) => entry.id === gameId) ?? null;
-  if (entry) {
-    debugLog(`Game entry found`, { gameId, name: entry.name });
-  } else {
-    debugLog(`Game entry not found`, { gameId, availableIds: registry.entries.map((e) => e.id) });
-  }
-  return entry;
+  const registry = await getRegistryInternal(false);
+  return registry.entries.find((entry) => entry.id === gameId) ?? null;
 }
 
 export function getRegistryPath() {
-  return GAME_REGISTRY_PATH;
+  return registryPath;
 }
 

@@ -6,7 +6,16 @@ import { BrowserRouter } from "react-router-dom";
 import { GameProvider } from "@/games/paint-and-guess";
 import AppRoutes from "@/router";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 60 seconds
+      gcTime: 5 * 60 * 1000, // 5 minutes (garbage collection time, formerly cacheTime)
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

@@ -1,59 +1,50 @@
-import { paintAndGuessHubEntry } from "@/games/paint-and-guess/hubEntry";
-import type { GameRegistryPayload } from "./schema";
+import { registryResponseSchema } from "./schema";
+import { getPaintPreviewEntry } from "@/games/paint-and-guess/hubEntry";
 
-export const fallbackGameRegistry: GameRegistryPayload = {
-  updatedAt: new Date().toISOString(),
+const now = new Date().toISOString();
+
+export const fallbackRegistry = registryResponseSchema.parse({
+  updatedAt: now,
   source: "fallback",
   entries: [
-    {
-      id: "paint-and-guess",
-      name: "Paint & Guess",
-      description: "Draw prompts, guess in real-time, and keep the momentum high for every round.",
-      shortDescription: "Multiplayer drawing chaos",
-      status: "available",
-      route: "/games/paint-and-guess",
-      thumbnail: "/placeholder.svg",
-      featureFlag: "games.paintAndGuess",
-      tags: ["featured", "multiplayer"],
-      technologies: ["React", "Fabric.js", "Socket.io"],
-      modes: ["party", "live-multiplayer"],
-      players: { min: 2, max: 12 },
-      estimatedDurationMinutes: 20,
-      cta: { label: "Play now", to: "/games/paint-and-guess" },
-      hub: paintAndGuessHubEntry,
-    },
+    getPaintPreviewEntry(),
     {
       id: "mystery-mashup",
-      name: "Mystery Mashup",
-      description: "A rotating selection of prototypes for brave playtesters.",
-      shortDescription: "Weekly experiments",
-      status: "prototype",
-      route: "#",
-      thumbnail: "/placeholder.svg",
-      featureFlag: "games.mysteryMashup",
-      tags: ["prototype"],
-      technologies: ["React"],
-      modes: ["party"],
-      players: { min: 3, max: 6 },
-      estimatedDurationMinutes: 10,
-      cta: { label: "Request access" },
+      version: "0.3.0",
+      name: { default: "Mystery Mashup" },
+      description: { default: "A surprise party experience is brewing. Stay tuned!" },
+      status: "beta",
+      supportedPlayers: { min: 3, max: 8 },
+      monetization: "premium",
+      category: ["mystery"],
+      schedule: { startsAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3).toISOString() },
+      badges: ["beta", "limited"],
+      assets: {
+        thumbnail: "/placeholder.svg",
+        trailerUrl: "https://example.com/mystery-mashup/trailer",
+      },
+      featureFlags: ["feature:mystery_beta"],
+      visibleIf: ["cohort:beta"],
+      route: { slug: "mystery-mashup" },
     },
     {
       id: "trivia-trails",
-      name: "Trivia Trails",
-      description: "A branching trivia adventure with meaningful team choices.",
-      shortDescription: "Choose-your-path trivia",
-      status: "coming-soon",
-      route: "#",
-      thumbnail: "/placeholder.svg",
-      featureFlag: "games.triviaTrails",
-      tags: ["trivia", "co-op"],
-      technologies: ["React"],
-      modes: ["party", "coop"],
-      players: { min: 1, max: 6 },
-      estimatedDurationMinutes: 25,
-      cta: { label: "Notify me" },
+      version: "0.1.0",
+      name: { default: "Trivia Trails", locales: { es: "Rutas de Trivias" } },
+      description: {
+        default: "Battle your friends with rapid-fire questions soon.",
+        locales: { es: "Enfrenta a tus amigos con preguntas rápidas muy pronto." },
+      },
+      status: "alpha",
+      supportedPlayers: { min: 2, max: 6, recommended: 4 },
+      monetization: "iap",
+      category: ["trivia"],
+      badges: ["new"],
+      assets: { thumbnail: "/placeholder.svg" },
+      featureFlags: ["feature:trivia_alpha"],
+      visibleIf: ["internal"],
+      route: { slug: "trivia-trails" },
     },
   ],
-};
+});
 

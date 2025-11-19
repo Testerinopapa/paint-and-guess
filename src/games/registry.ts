@@ -1,198 +1,139 @@
-import { fallbackGameRegistry } from "@/games/registry/fallback";
-import { gameRegistryPayloadSchema, type GameRegistryEntry, type GameRegistryPayload } from "@/games/registry/schema";
-import { isFeatureEnabled } from "@/lib/featureFlags";
+import { useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { matchesTargeting, isFeatureEnabled } from "@/lib/featureFlags";
+import { fallbackRegistry } from "./registry/fallback";
+import { NormalizedGameEntry, RegistryResponse, registryResponseSchema } from "./registry/schema";
+import { getPaintPreviewComponent } from "@/games/paint-and-guess/hubEntry";
 
-const DEFAULT_TIMEOUT_MS = 5000;
+const registryEndpoint = import.meta.env.VITE_GAME_REGISTRY_URL ?? "/api/games";
 const CACHE_TTL_MS = 60 * 1000;
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
-const registryEndpoint = `${apiBaseUrl || ""}/api/games/registry`;
+const DEBUG = import.meta.env.DEV || import.meta.env.VITE_GAME_REGISTRY_DEBUG === "true";
 
-const DEBUG = import.meta.env.DEV || import.meta.env.MODE === "development";
-
-function debugLog(message: string, ...args: unknown[]) {
-  if (DEBUG) {
-    console.debug(`[Registry] ${message}`, ...args);
-  }
-}
-
-let cachedRegistry: GameRegistryPayload | null = null;
+let cachedRegistry: RegistryResponse | null = null;
 let cacheTimestamp = 0;
 
-async function fetchWithTimeout(input: RequestInfo | URL, timeout = DEFAULT_TIMEOUT_MS) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-  try {
-    debugLog(`Fetching registry from: ${input}`, { timeout: `${timeout}ms` });
-    const fetchStart = Date.now();
-    const response = await fetch(input, { signal: controller.signal });
-    const fetchDuration = Date.now() - fetchStart;
-    debugLog(`Fetch completed`, {
-      status: response.status,
-      statusText: response.statusText,
-      duration: `${fetchDuration}ms`,
-      ok: response.ok,
-    });
-    return response;
-  } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
-      debugLog(`Fetch timeout after ${timeout}ms`);
-      throw new Error(`Registry request timed out after ${timeout}ms`);
-    }
-    throw error;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
+export type HubGame = NormalizedGameEntry & {
+  displayName: string;
+  displayDescription: string;
+  derivedRoute: string;
+  isEnabled: boolean;
+  PreviewComponent?: React.ComponentType;
+};
 
-async function requestRegistry(): Promise<GameRegistryPayload> {
-  debugLog(`Requesting registry from API`, { endpoint: registryEndpoint });
-  const requestStart = Date.now();
-  
-  try {
-    const response = await fetchWithTimeout(registryEndpoint);
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => "Unable to read error response");
-      console.error(`[Registry] API request failed`, {
-        status: response.status,
-        statusText: response.statusText,
-        errorText: errorText.substring(0, 200),
-      });
-      throw new Error(`Registry request failed with status ${response.status}: ${response.statusText}`);
-    }
-
-    const parseStart = Date.now();
-    const payload = await response.json();
-    const parseDuration = Date.now() - parseStart;
-    debugLog(`Response parsed in ${parseDuration}ms`, {
-      hasEntries: Array.isArray(payload.entries),
-      entryCount: payload.entries?.length ?? 0,
-    });
-
-    debugLog(`Validating registry schema...`);
-    const validationStart = Date.now();
-    const parsed = gameRegistryPayloadSchema.parse(payload);
-    const validationDuration = Date.now() - validationStart;
-    debugLog(`Schema validation passed in ${validationDuration}ms`, {
-      entryCount: parsed.entries.length,
-      source: parsed.source,
-    });
-
-    const totalDuration = Date.now() - requestStart;
-    debugLog(`Registry request completed successfully`, {
-      totalDuration: `${totalDuration}ms`,
-      source: parsed.source,
-      entryCount: parsed.entries.length,
-    });
-
-    return {
-      ...parsed,
-      updatedAt: parsed.updatedAt.toISOString(),
-    };
-  } catch (error) {
-    const totalDuration = Date.now() - requestStart;
-    if (error instanceof Error) {
-      console.error(`[Registry] Request failed after ${totalDuration}ms`, {
-        error: error.message,
-        endpoint: registryEndpoint,
-      });
-    }
-    throw error;
-  }
-}
-
-export async function loadGameRegistry(options: { forceRefresh?: boolean } = {}): Promise<GameRegistryPayload> {
-  const now = Date.now();
-  const cacheAge = cachedRegistry ? now - cacheTimestamp : Infinity;
-  const shouldUseCache = !options.forceRefresh && cachedRegistry && cacheAge < CACHE_TTL_MS;
-
-  debugLog(`loadGameRegistry called`, {
-    forceRefresh: options.forceRefresh,
-    hasCache: !!cachedRegistry,
-    cacheAge: cachedRegistry ? `${cacheAge}ms` : "N/A",
-    cacheValid: shouldUseCache,
-    cacheTTL: `${CACHE_TTL_MS}ms`,
-  });
-
-  if (shouldUseCache && cachedRegistry) {
-    debugLog(`Returning cached registry`, {
-      source: cachedRegistry.source,
-      entryCount: cachedRegistry.entries.length,
-      cacheAge: `${cacheAge}ms`,
-    });
-    return cachedRegistry;
-  }
-
-  if (options.forceRefresh) {
-    debugLog(`Force refresh requested, bypassing cache`);
-  } else if (cachedRegistry) {
-    debugLog(`Cache expired (age: ${cacheAge}ms > TTL: ${CACHE_TTL_MS}ms), fetching fresh registry`);
+function debugLog(message: string, detail?: Record<string, unknown>) {
+  if (!DEBUG) return;
+  if (detail) {
+    console.debug(`[registry] ${message}`, detail);
   } else {
-    debugLog(`No cache available, fetching registry`);
-  }
-
-  try {
-    const registry = await requestRegistry();
-    cachedRegistry = registry;
-    cacheTimestamp = Date.now();
-    debugLog(`Registry cached successfully`, {
-      source: registry.source,
-      entryCount: registry.entries.length,
-      entryIds: registry.entries.map((e) => e.id),
-    });
-    return registry;
-  } catch (error) {
-    console.warn("[Registry] Falling back to bundled registry", {
-      error: error instanceof Error ? error.message : String(error),
-      endpoint: registryEndpoint,
-    });
-    debugLog(`Using fallback registry`, {
-      entryCount: fallbackGameRegistry.entries.length,
-      entryIds: fallbackGameRegistry.entries.map((e) => e.id),
-    });
-    cachedRegistry = fallbackGameRegistry;
-    cacheTimestamp = Date.now();
-    return fallbackGameRegistry;
+    console.debug(`[registry] ${message}`);
   }
 }
 
-export function getVisibleGames(entries: GameRegistryEntry[]): GameRegistryEntry[] {
-  debugLog(`getVisibleGames called`, { totalEntries: entries.length });
-  const visible = entries.filter((entry) => {
-    if (entry.featureFlag && !isFeatureEnabled(entry.featureFlag)) {
-      debugLog(`Game filtered by feature flag`, {
-        gameId: entry.id,
-        featureFlag: entry.featureFlag,
-        enabled: isFeatureEnabled(entry.featureFlag),
-      });
-      return false;
-    }
-    if (entry.status === "retired") {
-      debugLog(`Game filtered by status`, { gameId: entry.id, status: entry.status });
-      return false;
-    }
-    return true;
+function localizeCopy(localized: { default: string; locales?: Record<string, string> }) {
+  if (!localized.locales) return localized.default;
+  if (typeof navigator === "undefined") return localized.default;
+  const locale = navigator.language;
+  if (localized.locales[locale]) return localized.locales[locale];
+  const base = locale.split("-")[0];
+  return localized.locales[base] ?? localized.default;
+}
+
+function getPreviewComponent(entry: NormalizedGameEntry) {
+  if (entry.plugin?.previewComponent === "paintPreview") {
+    return getPaintPreviewComponent();
+  }
+  return undefined;
+}
+
+function attachPlugin(entry: NormalizedGameEntry): HubGame {
+  debugLog("Attaching plugin metadata", { id: entry.id, status: entry.status, flagCount: entry.featureFlags.length });
+  return {
+    ...entry,
+    displayName: localizeCopy(entry.name),
+    displayDescription: localizeCopy(entry.description),
+    derivedRoute: entry.route.path,
+    isEnabled:
+      entry.featureFlags.every((flag) => isFeatureEnabled(flag)) &&
+      matchesTargeting(entry.visibleIf ?? []),
+    PreviewComponent: getPreviewComponent(entry),
+  };
+}
+
+async function fetchRegistryFromCms(): Promise<RegistryResponse> {
+  debugLog("Requesting registry from endpoint", { endpoint: registryEndpoint });
+  const response = await fetch(registryEndpoint, { cache: "no-store" });
+  if (!response.ok) {
+    debugLog("Registry request failed", { status: response.status, statusText: response.statusText });
+    throw new Error(`Failed to load registry: ${response.status}`);
+  }
+  const payload = await response.json();
+  const parsed = registryResponseSchema.parse(payload);
+  debugLog("Registry request succeeded", { entryCount: parsed.entries.length, source: parsed.source });
+  return { ...parsed, source: parsed.source ?? "cms" };
+}
+
+function getFreshRegistry(): Promise<RegistryResponse> {
+  const now = Date.now();
+  if (cachedRegistry && now - cacheTimestamp < CACHE_TTL_MS) {
+    debugLog("Returning cached CMS registry", {
+      age: `${now - cacheTimestamp}ms`,
+      entryCount: cachedRegistry.entries.length,
+    });
+    return Promise.resolve(cachedRegistry);
+  }
+
+  return fetchRegistryFromCms()
+    .then((registry) => {
+      cachedRegistry = registry;
+      cacheTimestamp = now;
+      debugLog("Cached CMS registry payload", { entryCount: registry.entries.length, updatedAt: registry.updatedAt });
+      return registry;
+    })
+    .catch((error) => {
+      debugLog("Falling back to baked registry", { error: error instanceof Error ? error.message : String(error) });
+      console.warn("[registry] Falling back to baked config", error);
+      cachedRegistry = fallbackRegistry;
+      cacheTimestamp = now;
+      return fallbackRegistry;
+    });
+}
+
+export async function loadGameRegistry() {
+  const registry = await getFreshRegistry();
+  debugLog("Preparing hub entries", { entryCount: registry.entries.length, source: registry.source });
+  return {
+    entries: registry.entries.map(attachPlugin),
+    source: registry.source ?? "fallback",
+    updatedAt: registry.updatedAt,
+  };
+}
+
+const fallbackGames = fallbackRegistry.entries.map(attachPlugin);
+
+export function useGameRegistry() {
+  const query = useQuery({
+    queryKey: ["game-registry"],
+    queryFn: loadGameRegistry,
+    staleTime: CACHE_TTL_MS,
   });
-  debugLog(`getVisibleGames result`, {
-    total: entries.length,
-    visible: visible.length,
-    filtered: entries.length - visible.length,
-    visibleIds: visible.map((e) => e.id),
-  });
-  return visible;
+
+  useEffect(() => {
+    if (!DEBUG) return;
+    debugLog("Query state updated", {
+      status: query.status,
+      isFetching: query.isFetching,
+      error: query.error instanceof Error ? query.error.message : query.error ?? null,
+    });
+  }, [query.status, query.isFetching, query.error]);
+
+  return useMemo(
+    () => ({
+      ...query,
+      games: query.data?.entries ?? fallbackGames,
+      source: query.data?.source ?? fallbackRegistry.source,
+      updatedAt: query.data?.updatedAt ?? fallbackRegistry.updatedAt,
+    }),
+    [query],
+  );
 }
-
-export function getCachedRegistry(): GameRegistryPayload {
-  return cachedRegistry ?? fallbackGameRegistry;
-}
-
-export function getGameById(id: string): GameRegistryEntry | undefined {
-  const registry = getCachedRegistry();
-  return registry.entries.find((entry) => entry.id === id);
-}
-
-export const gameRegistry = fallbackGameRegistry.entries;
-
-export type { GameRegistryEntry, GameRegistryPayload };
-
-export default gameRegistry;
 

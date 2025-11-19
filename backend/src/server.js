@@ -11,7 +11,7 @@ import { WORDS, getWordPacks, getRandomWordFromPack } from "./words.js";
 import { PrismaRoomStore } from "./store/prismaRoomStore.js";
 import { RoomRepository } from "./store/roomRepository.js";
 import { initializeRedis, getRedisSubscriber, getRedisPublisher, isRedisEnabled, shutdownRedis } from "./redisClient.js";
-import { loadGameRegistry } from "./gameRegistry.js";
+import { getRegistryResponse, loadGameRegistry } from "./gameRegistry.js";
 
 const LOG_LEVELS = {
   error: 0,
@@ -141,6 +141,16 @@ const io = new Server(httpServer, {
 
 app.use(cors(corsConfig));
 app.use(express.json());
+
+app.get("/api/games", async (req, res) => {
+  try {
+    const registry = await getRegistryResponse();
+    res.json(registry);
+  } catch (error) {
+    console.error("[registry] Failed to serve registry", error);
+    res.status(500).json({ status: "error", message: "Unable to load game registry" });
+  }
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
