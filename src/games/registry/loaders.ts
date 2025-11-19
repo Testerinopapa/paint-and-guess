@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import type { NormalizedGameEntry } from "./schema";
+import { createRegistryKeyVariants, extractGameId, getFileExtension } from "./moduleKeys";
 
 export type GameRouteModule = {
   Lobby?: ComponentType;
@@ -12,10 +13,21 @@ export type GameRouteLoader = () => Promise<GameRouteModule>;
 
 type LoaderRegistry = Record<string, GameRouteLoader>;
 
-const moduleLoaders: LoaderRegistry = {
-  "paint-and-guess": () => import("@/games/paint-and-guess/router"),
-  "@/games/paint-and-guess": () => import("@/games/paint-and-guess/router"),
-};
+const routeModuleImports = import.meta.glob<GameRouteModule>("../*/router.{ts,tsx}");
+
+const moduleLoaders: LoaderRegistry = Object.entries(routeModuleImports).reduce((registry, [path, loader]) => {
+  const gameId = extractGameId(path);
+  if (!gameId) return registry;
+
+  const extension = getFileExtension(path);
+  for (const key of createRegistryKeyVariants(gameId)) {
+    registry[key] = loader;
+  }
+  for (const key of createRegistryKeyVariants(gameId, { resource: "router", extension })) {
+    registry[key] = loader;
+  }
+  return registry;
+}, {} as LoaderRegistry);
 
 function resolveModuleKey(entry?: NormalizedGameEntry) {
   return entry?.plugin?.moduleId ?? entry?.id;

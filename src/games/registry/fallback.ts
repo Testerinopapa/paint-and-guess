@@ -1,5 +1,6 @@
 import { registryResponseSchema } from "./schema";
 import { getPaintPreviewEntry } from "@/games/paint-and-guess/hubEntry";
+import { getWordRallyEntry } from "@/games/word-rally/hubEntry";
 
 const now = new Date().toISOString();
 
@@ -8,6 +9,7 @@ export const fallbackRegistry = registryResponseSchema.parse({
   source: "fallback",
   entries: [
     getPaintPreviewEntry(),
+    getWordRallyEntry(),
     {
       id: "mystery-mashup",
       version: "0.3.0",

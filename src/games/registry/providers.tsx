@@ -1,15 +1,29 @@
 import type { ReactNode, ComponentType } from "react";
 import type { NormalizedGameEntry } from "./schema";
-import { GameProvider as PaintAndGuessProvider } from "@/games/paint-and-guess";
+import { createRegistryKeyVariants, extractGameId } from "./moduleKeys";
 
 export type GameProviderComponent = ComponentType<{ children: ReactNode }>;
 
 type ProviderRegistry = Record<string, GameProviderComponent>;
 
-const providerRegistry: ProviderRegistry = {
-  "paint-and-guess": PaintAndGuessProvider,
-  "@/games/paint-and-guess": PaintAndGuessProvider,
+type ProviderModule = {
+  GameProvider?: GameProviderComponent;
 };
+
+const providerModules = import.meta.glob<ProviderModule>("../*/index.{ts,tsx}", { eager: true });
+
+const providerRegistry: ProviderRegistry = Object.entries(providerModules).reduce((registry, [path, module]) => {
+  if (!module.GameProvider) return registry;
+
+  const gameId = extractGameId(path);
+  if (!gameId) return registry;
+
+  for (const key of createRegistryKeyVariants(gameId)) {
+    registry[key] = module.GameProvider;
+  }
+
+  return registry;
+}, {} as ProviderRegistry);
 
 function getProviderKey(entry: NormalizedGameEntry) {
   return entry.plugin?.providerComponent ?? entry.plugin?.moduleId ?? entry.id;
