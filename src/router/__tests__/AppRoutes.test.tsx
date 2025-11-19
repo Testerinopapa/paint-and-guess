@@ -6,6 +6,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import AppRoutes from "../index";
 
+const crashFlags = {
+  lobby: false,
+  index: false,
+  room: false,
+};
+
 // Inform React testing utilities that act() is available.
 // @ts-expect-error global flag used for suppressing act warnings
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -24,9 +30,18 @@ vi.mock("@/pages/AllGames", () => ({
 
 // Mock the router module that's lazy-loaded
 vi.mock("@/games/paint-and-guess/router", () => ({
-  Lobby: () => <div data-testid="paint-lobby">Paint &amp; Guess Lobby</div>,
-  Index: () => <div data-testid="paint-single">Paint &amp; Guess Single</div>,
-  Room: () => <div data-testid="paint-room">Paint &amp; Guess Room</div>,
+  Lobby: () => {
+    if (crashFlags.lobby) throw new Error("lobby crashed");
+    return <div data-testid="paint-lobby">Paint &amp; Guess Lobby</div>;
+  },
+  Index: () => {
+    if (crashFlags.index) throw new Error("index crashed");
+    return <div data-testid="paint-single">Paint &amp; Guess Single</div>;
+  },
+  Room: () => {
+    if (crashFlags.room) throw new Error("room crashed");
+    return <div data-testid="paint-room">Paint &amp; Guess Room</div>;
+  },
   NotFound: () => <div data-testid="not-found">Not Found</div>,
 }));
 
@@ -141,6 +156,9 @@ async function renderWithRoute(path: string) {
 
 afterEach(() => {
   vi.clearAllMocks();
+  crashFlags.lobby = false;
+  crashFlags.index = false;
+  crashFlags.room = false;
 });
 
 describe("AppRoutes provider wiring", () => {
@@ -172,6 +190,38 @@ describe("AppRoutes provider wiring", () => {
 
     expect(app.container.querySelector('[data-testid="paint-and-guess-provider"]')).toBeNull();
     expect(app.container.querySelector('[data-testid="all-games"]')).not.toBeNull();
+
+    app.unmount();
+  });
+});
+
+describe("AppRoutes game error boundaries", () => {
+  it("surfaces crashes inside a single game route without blocking siblings", async () => {
+    crashFlags.index = true;
+    const app = await renderWithRoute("/games/paint-and-guess/single");
+
+    expect(app.container.textContent).toContain("Something went wrong");
+    expect(app.container.querySelector('[data-testid="paint-single"]')).toBeNull();
+
+    crashFlags.index = false;
+    await app.renderAt("/games/paint-and-guess/room/recoverable-room");
+
+    expect(app.container.querySelector('[data-testid="paint-room"]')).not.toBeNull();
+    expect(app.container.textContent).not.toContain("Something went wrong");
+
+    app.unmount();
+  });
+
+  it("isolates crashing game routes from hub navigation", async () => {
+    crashFlags.room = true;
+    const app = await renderWithRoute("/games/paint-and-guess/room/broken-room");
+
+    expect(app.container.textContent).toContain("Something went wrong");
+
+    await app.renderAt("/");
+
+    expect(app.container.querySelector('[data-testid="all-games"]')).not.toBeNull();
+    expect(app.container.textContent).not.toContain("Something went wrong");
 
     app.unmount();
   });
