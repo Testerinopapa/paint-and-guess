@@ -1,7 +1,8 @@
-import { Navigate, Outlet, Route, Routes, useParams } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { Suspense, lazy, useMemo, type ComponentType, type ReactNode } from "react";
 import { useGameRegistry } from "@/games/registry";
 import { getGameRouteLoader, type GameRouteLoader } from "@/games/registry/loaders";
+import { SharedGameBoundary } from "@/games/registry/boundaries";
 
 const HubLayout = lazy(() => import("@/components/HubLayout"));
 const AllGames = lazy(() => import("@/pages/AllGames"));
@@ -18,6 +19,14 @@ const GameProviderBoundary = ({ slug, children }: { slug: string; children: Reac
 
   if (!Provider) return <>{children}</>;
   return <Provider>{children}</Provider>;
+};
+
+const GameBoundary = ({ slug, children }: { slug: string; children: ReactNode }) => {
+  const location = useLocation();
+  const { games } = useGameRegistry();
+  const Boundary = useMemo(() => games.find((game) => game.route.slug === slug)?.Boundary ?? SharedGameBoundary, [games, slug]);
+
+  return <Boundary resetKeys={[location.pathname]}>{children}</Boundary>;
 };
 
 const RouteFallback = () => (
@@ -90,25 +99,31 @@ const AppRoutes = () => {
             <Route
               index
               element={
-                <Suspense fallback={<RouteFallback />}>
-                  <paintAndGuessRoutes.Lobby />
-                </Suspense>
+                  <GameBoundary slug="paint-and-guess">
+                    <Suspense fallback={<RouteFallback />}>
+                      <paintAndGuessRoutes.Lobby />
+                    </Suspense>
+                  </GameBoundary>
               }
             />
             <Route
               path="single"
               element={
-                <Suspense fallback={<RouteFallback />}>
-                  <paintAndGuessRoutes.Index />
-                </Suspense>
+                  <GameBoundary slug="paint-and-guess">
+                    <Suspense fallback={<RouteFallback />}>
+                      <paintAndGuessRoutes.Index />
+                    </Suspense>
+                  </GameBoundary>
               }
             />
             <Route
               path="room/:roomId"
               element={
-                <Suspense fallback={<RouteFallback />}>
-                  <paintAndGuessRoutes.Room />
-                </Suspense>
+                  <GameBoundary slug="paint-and-guess">
+                    <Suspense fallback={<RouteFallback />}>
+                      <paintAndGuessRoutes.Room />
+                    </Suspense>
+                  </GameBoundary>
               }
             />
           </Route>
@@ -120,9 +135,11 @@ const AppRoutes = () => {
       <Route
         path="*"
         element={
-          <Suspense fallback={<RouteFallback />}>
-            <paintAndGuessRoutes.NotFound />
-          </Suspense>
+          <GameBoundary slug="paint-and-guess">
+            <Suspense fallback={<RouteFallback />}>
+              <paintAndGuessRoutes.NotFound />
+            </Suspense>
+          </GameBoundary>
         }
       />
     </Routes>
