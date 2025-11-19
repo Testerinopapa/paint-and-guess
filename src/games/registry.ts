@@ -1,9 +1,10 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, type ComponentType } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { matchesTargeting, isFeatureEnabled } from "@/lib/featureFlags";
 import { fallbackRegistry } from "./registry/fallback";
 import { NormalizedGameEntry, RegistryResponse, registryResponseSchema } from "./registry/schema";
 import { getPaintPreviewComponent } from "@/games/paint-and-guess/hubEntry";
+import { resolveProvider, type GameProviderComponent } from "@/games/registry/providers";
 
 const registryEndpoint = import.meta.env.VITE_GAME_REGISTRY_URL ?? "/api/games";
 const CACHE_TTL_MS = 60 * 1000;
@@ -17,7 +18,8 @@ export type HubGame = NormalizedGameEntry & {
   displayDescription: string;
   derivedRoute: string;
   isEnabled: boolean;
-  PreviewComponent?: React.ComponentType;
+  PreviewComponent?: ComponentType;
+  Provider?: GameProviderComponent;
   navLabel: string;
   navCategory: string;
   navPriority: number;
@@ -50,6 +52,10 @@ function getPreviewComponent(entry: NormalizedGameEntry) {
   return undefined;
 }
 
+function getProviderComponent(entry: NormalizedGameEntry) {
+  return resolveProvider(entry);
+}
+
 function attachPlugin(entry: NormalizedGameEntry): HubGame {
   debugLog("Attaching plugin metadata", { id: entry.id, status: entry.status, flagCount: entry.featureFlags.length });
   const displayName = localizeCopy(entry.name);
@@ -64,6 +70,7 @@ function attachPlugin(entry: NormalizedGameEntry): HubGame {
       entry.featureFlags.every((flag) => isFeatureEnabled(flag)) &&
       matchesTargeting(entry.visibleIf ?? []),
     PreviewComponent: getPreviewComponent(entry),
+    Provider: getProviderComponent(entry),
     navLabel: entry.navigation?.label ?? displayName ?? entry.id,
     navCategory,
     navPriority: entry.navigation?.priority ?? 0,
