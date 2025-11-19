@@ -22,6 +22,17 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes(path.resolve(__dirname, "src/games/paint-and-guess"))) {
+            return "game-paint-and-guess";
+          }
+        },
+      },
+    },
+  },
   test: {
     environment: "jsdom",
     setupFiles: "./vitest.setup.ts",

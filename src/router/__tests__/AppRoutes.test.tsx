@@ -22,25 +22,22 @@ vi.mock("@/pages/AllGames", () => ({
   default: () => <div data-testid="all-games">All Games Hub</div>,
 }));
 
-vi.mock("@/games/paint-and-guess/pages/Index", () => ({
-  __esModule: true,
-  default: () => <div data-testid="paint-single">Paint &amp; Guess Single</div>,
+// Mock the router module that's lazy-loaded
+vi.mock("@/games/paint-and-guess/router", () => ({
+  Lobby: () => <div data-testid="paint-lobby">Paint &amp; Guess Lobby</div>,
+  Index: () => <div data-testid="paint-single">Paint &amp; Guess Single</div>,
+  Room: () => <div data-testid="paint-room">Paint &amp; Guess Room</div>,
+  NotFound: () => <div data-testid="not-found">Not Found</div>,
 }));
 
-vi.mock("@/games/paint-and-guess/pages/Lobby", () => ({
-  __esModule: true,
-  default: () => <div data-testid="paint-lobby">Paint &amp; Guess Lobby</div>,
-}));
-
-vi.mock("@/games/paint-and-guess/pages/Room", () => ({
-  __esModule: true,
-  default: () => <div data-testid="paint-room">Paint &amp; Guess Room</div>,
-}));
-
-vi.mock("@/games/paint-and-guess/pages/NotFound", () => ({
-  __esModule: true,
-  default: () => <div data-testid="not-found">Not Found</div>,
-}));
+// Mock the loaders to return our mocked router
+vi.mock("@/games/registry/loaders", async () => {
+  const actual = await vi.importActual("@/games/registry/loaders");
+  return {
+    ...actual,
+    getGameRouteLoader: () => () => import("@/games/paint-and-guess/router"),
+  };
+});
 
 function createProvider(id: string) {
   return function Provider({ children }: { children: ReactNode }) {
@@ -119,7 +116,11 @@ async function renderWithRoute(path: string) {
         </QueryClientProvider>,
       );
     });
-    // Flush any pending updates
+    // Wait for Suspense to resolve and lazy components to load
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+    // Flush any remaining updates
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
