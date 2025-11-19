@@ -1,10 +1,12 @@
-import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useParams } from "react-router-dom";
+import { useMemo, type ReactNode } from "react";
 import HubLayout from "@/components/HubLayout";
 import AllGames from "@/pages/AllGames";
 import Index from "@/games/paint-and-guess/pages/Index";
 import Lobby from "@/games/paint-and-guess/pages/Lobby";
 import NotFound from "@/games/paint-and-guess/pages/NotFound";
 import Room from "@/games/paint-and-guess/pages/Room";
+import { useGameRegistry } from "@/games/registry";
 
 const RoomRedirect = () => {
   const { roomId } = useParams();
@@ -12,13 +14,27 @@ const RoomRedirect = () => {
   return <Navigate to={`/games/paint-and-guess/room/${roomId}`} replace />;
 };
 
+const GameProviderBoundary = ({ slug, children }: { slug: string; children: ReactNode }) => {
+  const { games } = useGameRegistry();
+  const Provider = useMemo(() => games.find((game) => game.route.slug === slug)?.Provider, [games, slug]);
+
+  if (!Provider) return <>{children}</>;
+  return <Provider>{children}</Provider>;
+};
+
+const PaintAndGuessRoutes = () => (
+  <GameProviderBoundary slug="paint-and-guess">
+    <Outlet />
+  </GameProviderBoundary>
+);
+
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<HubLayout />}>
         <Route index element={<AllGames />} />
         <Route path="games">
-          <Route path="paint-and-guess">
+          <Route path="paint-and-guess" element={<PaintAndGuessRoutes />}>
             <Route index element={<Lobby />} />
             <Route path="single" element={<Index />} />
             <Route path="room/:roomId" element={<Room />} />
