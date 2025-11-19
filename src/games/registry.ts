@@ -18,6 +18,10 @@ export type HubGame = NormalizedGameEntry & {
   derivedRoute: string;
   isEnabled: boolean;
   PreviewComponent?: React.ComponentType;
+  navLabel: string;
+  navCategory: string;
+  navPriority: number;
+  navHidden: boolean;
 };
 
 function debugLog(message: string, detail?: Record<string, unknown>) {
@@ -29,13 +33,14 @@ function debugLog(message: string, detail?: Record<string, unknown>) {
   }
 }
 
-function localizeCopy(localized: { default: string; locales?: Record<string, string> }) {
-  if (!localized.locales) return localized.default;
-  if (typeof navigator === "undefined") return localized.default;
+function localizeCopy(localized: { default?: string; locales?: Record<string, string> }) {
+  const fallback = localized.default ?? "";
+  if (!localized.locales) return fallback;
+  if (typeof navigator === "undefined") return fallback;
   const locale = navigator.language;
   if (localized.locales[locale]) return localized.locales[locale];
   const base = locale.split("-")[0];
-  return localized.locales[base] ?? localized.default;
+  return localized.locales[base] ?? fallback;
 }
 
 function getPreviewComponent(entry: NormalizedGameEntry) {
@@ -47,15 +52,22 @@ function getPreviewComponent(entry: NormalizedGameEntry) {
 
 function attachPlugin(entry: NormalizedGameEntry): HubGame {
   debugLog("Attaching plugin metadata", { id: entry.id, status: entry.status, flagCount: entry.featureFlags.length });
+  const displayName = localizeCopy(entry.name);
+  const displayDescription = localizeCopy(entry.description);
+  const navCategory = entry.navigation?.category ?? entry.category?.[0] ?? "uncategorized";
   return {
     ...entry,
-    displayName: localizeCopy(entry.name),
-    displayDescription: localizeCopy(entry.description),
+    displayName,
+    displayDescription,
     derivedRoute: entry.route.path,
     isEnabled:
       entry.featureFlags.every((flag) => isFeatureEnabled(flag)) &&
       matchesTargeting(entry.visibleIf ?? []),
     PreviewComponent: getPreviewComponent(entry),
+    navLabel: entry.navigation?.label ?? displayName ?? entry.id,
+    navCategory,
+    navPriority: entry.navigation?.priority ?? 0,
+    navHidden: entry.navigation?.hidden ?? false,
   };
 }
 

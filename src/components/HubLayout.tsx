@@ -1,13 +1,43 @@
+import { useMemo } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { PaintBucket, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useGameRegistry } from "@/games/registry";
+import type { HubGame } from "@/games/registry";
 
-const navigation = [
-  { label: "All Games", to: "/" },
-  { label: "Paint & Guess", to: "/games/paint-and-guess" },
-];
+type NavigationLink = {
+  label: string;
+  to: string;
+  category: string;
+  priority: number;
+};
+
+export function buildNavigationLinks(games: HubGame[]): NavigationLink[] {
+  const derivedLinks = games
+    .filter((game) => game.isEnabled && !game.navHidden)
+    .map((game) => ({
+      label: game.navLabel ?? game.displayName ?? game.id,
+      to: game.derivedRoute ?? game.route.path,
+      category: game.navCategory ?? game.category?.[0] ?? "uncategorized",
+      priority: game.navPriority ?? 0,
+    }))
+    .sort((a, b) => {
+      const categorySort = a.category.localeCompare(b.category);
+      if (categorySort !== 0) return categorySort;
+      if (b.priority !== a.priority) return b.priority - a.priority;
+      return a.label.localeCompare(b.label);
+    });
+
+  return [
+    { label: "All Games", to: "/", category: "hub", priority: Number.POSITIVE_INFINITY },
+    ...derivedLinks,
+  ];
+}
 
 const HubLayout = () => {
+  const { games } = useGameRegistry();
+  const navigation = useMemo(() => buildNavigationLinks(games), [games]);
+
   return (
     <div className="min-h-screen bg-background text-foreground flex">
       <aside className="hidden md:flex md:w-64 border-r bg-muted/30 flex-col p-6 gap-6">

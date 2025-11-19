@@ -1,0 +1,15 @@
+d9f2605 Use registry metadata to generate routes dynamically
+0e1661f Add structured game registry with backend endpoint #16
+ff9d215 Add game registry for hub page #15
+9d725b7 Refactor shared UI and lib structure #14
+7017d3d Add hub layout and modularize paint-and-guess
+724ef8f fallbackOrigin tweak
+aacddb8 render yaml tweak #3
+140e454 render yaml tweak #2
+84a61b3 Render yaml tweak
+768ffd6 Add Render deployment configuration
+cad765a Fixed Redis
+3d8bc4c feat: implement heartbeat sweeps and room persistence with comprehensive debugging
+dbf8847 chore: add prisma:db:push script and update .gitignore for Prisma database files
+bcd8b25 Fix: Prisma server tweak
+72ac25f Merge feat/prisma-persistence: Prisma persistence + diagnostics

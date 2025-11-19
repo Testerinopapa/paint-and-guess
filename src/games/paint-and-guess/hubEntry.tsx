@@ -19,6 +19,10 @@ export function getPaintPreviewEntry(): NormalizedGameEntry {
       thumbnail: "/placeholder.svg",
       patchNotesUrl: "https://example.com/paint-and-guess/patch-notes",
     },
+    navigation: {
+      category: "featured",
+      priority: 100,
+    },
     visibleIf: ["public"],
     route: { slug: "paint-and-guess" },
     featureFlags: [],

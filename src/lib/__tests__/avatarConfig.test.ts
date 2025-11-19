@@ -35,9 +35,19 @@ const localStorageMock = (() => {
   };
 })();
 
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-});
+// Mock window and localStorage for Node.js environment
+if (typeof window === 'undefined') {
+  (globalThis as any).window = {
+    localStorage: localStorageMock,
+  };
+  (globalThis as any).localStorage = localStorageMock;
+} else {
+  Object.defineProperty(window, 'localStorage', {
+    value: localStorageMock,
+    writable: true,
+    configurable: true,
+  });
+}
 
 describe('Avatar Config System', () => {
   beforeEach(() => {
