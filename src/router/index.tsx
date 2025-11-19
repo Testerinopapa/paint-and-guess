@@ -1,5 +1,6 @@
 import { Navigate, Outlet, Route, Routes, useLocation, useParams } from "react-router-dom";
-import { Suspense, lazy, useMemo, type ComponentType, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useMemo, type ComponentType, type ReactNode } from "react";
+import { toast } from "sonner";
 import { useGameRegistry } from "@/games/registry";
 import { getGameRouteLoader, type GameRouteLoader } from "@/games/registry/loaders";
 import { SharedGameBoundary } from "@/games/registry/boundaries";
@@ -50,11 +51,28 @@ function createLazyGameComponent(
   });
 }
 
+const GameRouteContainer = ({ slug, children }: { slug: string; children: ReactNode }) => (
+  <GameBoundary slug={slug}>
+    <Suspense fallback={<RouteFallback />}>{children}</Suspense>
+  </GameBoundary>
+);
+
+const NotFoundRedirect = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    toast.info("We couldn't find that page. Taking you back to the hub.");
+    console.warn("Redirecting unknown route to hub:", location.pathname);
+  }, [location.pathname]);
+
+  return <Navigate to="/" replace />;
+};
+
 const PaintAndGuessRoutes = ({ loader }: { loader: GameRouteLoader }) => (
   <GameProviderBoundary slug="paint-and-guess">
-    <Suspense fallback={<RouteFallback />}>
+    <GameRouteContainer slug="paint-and-guess">
       <Outlet />
-    </Suspense>
+    </GameRouteContainer>
   </GameProviderBoundary>
 );
 
@@ -96,52 +114,16 @@ const AppRoutes = () => {
         />
         <Route path="games">
           <Route path="paint-and-guess" element={<PaintAndGuessRoutes loader={paintAndGuessLoader} />}>
-            <Route
-              index
-              element={
-                  <GameBoundary slug="paint-and-guess">
-                    <Suspense fallback={<RouteFallback />}>
-                      <paintAndGuessRoutes.Lobby />
-                    </Suspense>
-                  </GameBoundary>
-              }
-            />
-            <Route
-              path="single"
-              element={
-                  <GameBoundary slug="paint-and-guess">
-                    <Suspense fallback={<RouteFallback />}>
-                      <paintAndGuessRoutes.Index />
-                    </Suspense>
-                  </GameBoundary>
-              }
-            />
-            <Route
-              path="room/:roomId"
-              element={
-                  <GameBoundary slug="paint-and-guess">
-                    <Suspense fallback={<RouteFallback />}>
-                      <paintAndGuessRoutes.Room />
-                    </Suspense>
-                  </GameBoundary>
-              }
-            />
+            <Route index element={<paintAndGuessRoutes.Lobby />} />
+            <Route path="single" element={<paintAndGuessRoutes.Index />} />
+            <Route path="room/:roomId" element={<paintAndGuessRoutes.Room />} />
           </Route>
         </Route>
       </Route>
 
       <Route path="/single" element={<Navigate to="/games/paint-and-guess/single" replace />} />
       <Route path="/room/:roomId" element={<RoomRedirect />} />
-      <Route
-        path="*"
-        element={
-          <GameBoundary slug="paint-and-guess">
-            <Suspense fallback={<RouteFallback />}>
-              <paintAndGuessRoutes.NotFound />
-            </Suspense>
-          </GameBoundary>
-        }
-      />
+      <Route path="*" element={<NotFoundRedirect />} />
     </Routes>
   );
 };
