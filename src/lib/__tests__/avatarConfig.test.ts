@@ -172,13 +172,16 @@ describe('Avatar Config System', () => {
     });
 
     it('should handle corrupted data gracefully', () => {
-      localStorage.setItem('paint-and-guess-avatar-config', 'invalid json');
+      // Get the storage key that would be used (with tab ID)
+      const tabId = sessionStorage.getItem('paint-and-guess-tab-id') || 'test-tab';
+      const storageKey = `paint-and-guess-avatar-config-${tabId}`;
+      sessionStorage.setItem(storageKey, 'invalid json');
       
       const loaded = loadAvatarConfig();
       
       expect(loaded).toBeNull();
       // Should clear corrupted data
-      expect(localStorage.getItem('paint-and-guess-avatar-config')).toBeNull();
+      expect(sessionStorage.getItem(storageKey)).toBeNull();
     });
 
     it('should migrate legacy format (version 0)', () => {
@@ -187,14 +190,17 @@ describe('Avatar Config System', () => {
         ...DEFAULT_AVATAR_CONFIG,
         name: 'Legacy Avatar',
       };
-      localStorage.setItem('paint-and-guess-avatar-config', JSON.stringify(legacyConfig));
+      // Get the storage key that would be used (with tab ID)
+      const tabId = sessionStorage.getItem('paint-and-guess-tab-id') || 'test-tab';
+      const storageKey = `paint-and-guess-avatar-config-${tabId}`;
+      sessionStorage.setItem(storageKey, JSON.stringify(legacyConfig));
 
       const loaded = loadAvatarConfig();
 
       // Should migrate to new format
       expect(loaded).not.toBeNull();
       // Should have saved migrated version
-      const saved = localStorage.getItem('paint-and-guess-avatar-config');
+      const saved = sessionStorage.getItem(storageKey);
       expect(saved).toBeTruthy();
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -209,13 +215,16 @@ describe('Avatar Config System', () => {
         config: DEFAULT_AVATAR_CONFIG,
         timestamp: Date.now(),
       };
-      localStorage.setItem('paint-and-guess-avatar-config', JSON.stringify(oldVersioned));
+      // Get the storage key that would be used (with tab ID)
+      const tabId = sessionStorage.getItem('paint-and-guess-tab-id') || 'test-tab';
+      const storageKey = `paint-and-guess-avatar-config-${tabId}`;
+      sessionStorage.setItem(storageKey, JSON.stringify(oldVersioned));
 
       const loaded = loadAvatarConfig();
 
       expect(loaded).not.toBeNull();
       // Should have saved migrated version
-      const saved = localStorage.getItem('paint-and-guess-avatar-config');
+      const saved = sessionStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
         expect(parsed.version).toBe(1);
@@ -226,7 +235,10 @@ describe('Avatar Config System', () => {
       const config = createDefaultAvatarConfig();
       saveAvatarConfig(config);
 
-      const saved = localStorage.getItem('paint-and-guess-avatar-config');
+      // Get the storage key that would be used (with tab ID)
+      const tabId = sessionStorage.getItem('paint-and-guess-tab-id') || 'test-tab';
+      const storageKey = `paint-and-guess-avatar-config-${tabId}`;
+      const saved = sessionStorage.getItem(storageKey);
       expect(saved).toBeTruthy();
       
       if (saved) {

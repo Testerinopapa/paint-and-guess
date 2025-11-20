@@ -173,10 +173,40 @@ export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
 };
 
 /**
- * localStorage key for storing avatar configuration
- * @constant {string} AVATAR_STORAGE_KEY
+ * SessionStorage key for storing tab identifier
+ * @constant {string} TAB_ID_KEY
  */
-const AVATAR_STORAGE_KEY = 'paint-and-guess-avatar-config';
+const TAB_ID_KEY = 'paint-and-guess-tab-id';
+
+/**
+ * Get or generate a unique identifier for the current browser tab
+ * This ID persists for the tab's lifetime (until tab is closed)
+ * 
+ * @returns {string} Unique tab identifier
+ */
+function getTabId(): string {
+  if (typeof window === 'undefined') return 'default';
+  
+  // Try to get existing tab ID from sessionStorage
+  let tabId = sessionStorage.getItem(TAB_ID_KEY);
+  
+  if (!tabId) {
+    // Generate a new unique ID for this tab
+    tabId = `tab-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    sessionStorage.setItem(TAB_ID_KEY, tabId);
+  }
+  
+  return tabId;
+}
+
+/**
+ * Get the storage key for avatar configuration (includes tab ID)
+ * @returns {string} Storage key with tab identifier
+ */
+function getAvatarStorageKey(): string {
+  const tabId = getTabId();
+  return `paint-and-guess-avatar-config-${tabId}`;
+}
 
 /**
  * Current version of the avatar config storage format
@@ -283,7 +313,8 @@ export function loadAvatarConfig(): AvatarConfig | null {
   if (typeof window === 'undefined') return null;
   
   try {
-    const stored = localStorage.getItem(AVATAR_STORAGE_KEY);
+    const storageKey = getAvatarStorageKey();
+    const stored = sessionStorage.getItem(storageKey);
     if (!stored) return null;
     
     const data = JSON.parse(stored);
@@ -313,7 +344,8 @@ export function loadAvatarConfig(): AvatarConfig | null {
     console.error('Failed to load avatar config:', error);
     // Clear corrupted data
     try {
-      localStorage.removeItem(AVATAR_STORAGE_KEY);
+      const storageKey = getAvatarStorageKey();
+      sessionStorage.removeItem(storageKey);
     } catch {
       // Ignore errors during cleanup
     }
@@ -355,10 +387,11 @@ export function saveAvatarConfig(config: AvatarConfig): void {
       console.warn('Avatar config is large:', sizeInMB.toFixed(2), 'MB');
     }
     
-    localStorage.setItem(AVATAR_STORAGE_KEY, json);
+    const storageKey = getAvatarStorageKey();
+    sessionStorage.setItem(storageKey, json);
   } catch (error: any) {
     if (error.name === 'QuotaExceededError') {
-      console.error('localStorage quota exceeded. Avatar config not saved.');
+      console.error('sessionStorage quota exceeded. Avatar config not saved.');
       // Could implement a cleanup strategy here
     } else {
       console.error('Failed to save avatar config:', error);

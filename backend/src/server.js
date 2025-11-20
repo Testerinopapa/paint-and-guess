@@ -855,6 +855,28 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("update-avatar", async ({ avatar }) => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
+
+    const room = roomRepository.getRoom(roomId);
+    if (!room) return;
+
+    const player = room.getPlayerById(playerId);
+    if (!player || !player.connected) return;
+
+    player.avatar = sanitizeAvatar(avatar);
+    await persistRoom(room);
+
+    console.log(`[Server] 🎨 Player avatar updated: ${playerId} (${player.name})`);
+
+    io.to(roomId).emit("player-avatar-updated", {
+      playerId,
+      avatar: player.avatar,
+      players: serializePlayers(room.players),
+    });
+  });
+
   socket.on(CLIENT_HEARTBEAT_EVENT, async () => {
     const heartbeatReceivedAt = Date.now();
     socket.data.lastHeartbeatAt = heartbeatReceivedAt;

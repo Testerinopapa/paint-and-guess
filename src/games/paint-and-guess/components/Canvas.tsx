@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Canvas as FabricCanvas, PencilBrush, FabricObject } from "fabric";
 import { Toolbar } from "./Toolbar";
 import { ColorPalette } from "./ColorPalette";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 export const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [activeColor, setActiveColor] = useState("#000000");
   const [brushSize, setBrushSize] = useState(5);
@@ -14,28 +15,74 @@ export const Canvas = () => {
   const { gameState, sendDrawingEvent, clearCanvas } = useGame();
   const isReceivingRef = useRef(false);
   const isDisposedRef = useRef(false);
+  const canvasReadyRef = useRef(false);
+  
+  // Calculate optimal canvas size based on container dimensions
+  const calculateCanvasSize = useCallback(() => {
+    if (!containerRef.current) {
+      // Fallback to window size if container not ready
+      const isMobile = window.innerWidth <= 768;
+      return {
+        width: isMobile ? Math.min(window.innerWidth - 40, 400) : 800,
+        height: isMobile ? 300 : 600,
+      };
+    }
+
+    const container = containerRef.current;
+    const containerRect = container.getBoundingClientRect();
+    
+    // Account for toolbar and color palette space
+    // Toolbar: ~80px, Color palette: ~200px (only for drawer), padding: ~48px total
+    const verticalSpaceForUI = gameState.isDrawer ? 280 : 80;
+    const horizontalPadding = 32; // 16px on each side
+    
+    const availableWidth = containerRect.width - horizontalPadding;
+    const availableHeight = containerRect.height - verticalSpaceForUI;
+    
+    // Target aspect ratio (4:3 for drawing canvas)
+    const targetAspectRatio = 4 / 3;
+    
+    // Calculate dimensions that fit within available space while maintaining aspect ratio
+    let width = availableWidth;
+    let height = width / targetAspectRatio;
+    
+    // If height exceeds available space, scale down based on height
+    if (height > availableHeight) {
+      height = availableHeight;
+      width = height * targetAspectRatio;
+    }
+    
+    // Ensure minimum sizes
+    const minWidth = 300;
+    const minHeight = 225;
+    
+    width = Math.max(width, minWidth);
+    height = Math.max(height, minHeight);
+    
+    // Round to integers for crisp rendering
+    return {
+      width: Math.floor(width),
+      height: Math.floor(height),
+    };
+  }, [gameState.isDrawer]);
 
   // Helper function to check if canvas is valid and not disposed
   const isCanvasValid = (canvas: FabricCanvas | null): boolean => {
     if (!canvas || isDisposedRef.current) {
-      console.debug("[Canvas] Canvas is null or disposed");
       return false;
     }
     // Check if the underlying context exists by accessing the lowerCanvasEl
     try {
       const lowerCanvasEl = (canvas as any).lowerCanvasEl;
       if (!lowerCanvasEl) {
-        console.debug("[Canvas] Canvas lowerCanvasEl is null");
         return false;
       }
       const context = lowerCanvasEl.getContext('2d');
       if (!context) {
-        console.debug("[Canvas] Canvas context is null");
         return false;
       }
       return true;
     } catch (error) {
-      console.debug("[Canvas] Error checking canvas context:", error);
       return false;
     }
   };
@@ -51,10 +98,15 @@ export const Canvas = () => {
 
     // Mark as not disposed before creating new canvas
     isDisposedRef.current = false;
+    canvasReadyRef.current = false;
+
+    // Calculate initial size based on container
+    // If container not ready yet, use fallback and resize will fix it
+    const { width, height } = calculateCanvasSize();
 
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: window.innerWidth > 768 ? 800 : window.innerWidth - 40,
-      height: window.innerWidth > 768 ? 600 : 400,
+      width,
+      height,
       backgroundColor: "#ffffff",
       isDrawingMode: false,
       renderOnAddRemove: true, // Ensure rendering happens on add/remove
@@ -77,42 +129,87 @@ export const Canvas = () => {
       canvas.skipTargetFind = true; // Skip target finding for guessers
     }
 
+    // Set canvas in state - Fabric.js should have lowerCanvasEl ready immediately
+    // since the canvas element is connected to DOM
     setFabricCanvas(canvas);
+    
+    // Verify it's ready in the next frame
+    requestAnimationFrame(() => {
+      const lowerCanvasEl = (canvas as any).lowerCanvasEl;
+      if (lowerCanvasEl && lowerCanvasEl.getContext) {
+        canvasReadyRef.current = true;
+      } else {
+        // If still not ready, something went wrong
+        console.warn("[Canvas] lowerCanvasEl not available after initialization");
+      }
+    });
 
-    const handleResize = () => {
+    // Use ResizeObserver to watch container size changes (more efficient than window resize)
+    const resizeObserver = new ResizeObserver(() => {
       if (isCanvasValid(canvas)) {
-        if (window.innerWidth > 768) {
-          canvas.setWidth(800);
-          canvas.setHeight(600);
-        } else {
-          canvas.setWidth(window.innerWidth - 40);
-          canvas.setHeight(400);
-        }
+        const { width, height } = calculateCanvasSize();
+        canvas.setWidth(width);
+        canvas.setHeight(height);
+        canvas.renderAll();
+      }
+    });
+
+    // Observe the container for size changes
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    // Also do an initial resize after a short delay to ensure container is measured
+    const initialResizeTimeout = setTimeout(() => {
+      if (isCanvasValid(canvas)) {
+        const { width, height } = calculateCanvasSize();
+        canvas.setWidth(width);
+        canvas.setHeight(height);
+        canvas.renderAll();
+      }
+    }, 100);
+
+    // Also listen to window resize as fallback
+    const handleWindowResize = () => {
+      if (isCanvasValid(canvas)) {
+        const { width, height } = calculateCanvasSize();
+        canvas.setWidth(width);
+        canvas.setHeight(height);
+        canvas.renderAll();
       }
     };
 
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleWindowResize);
 
     return () => {
       console.debug("[Canvas] Disposing canvas");
-      window.removeEventListener("resize", handleResize);
+      clearTimeout(initialResizeTimeout);
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", handleWindowResize);
       isDisposedRef.current = true;
+      
+      // Clear the canvas state first to prevent other effects from using it
+      setFabricCanvas(null);
+      
+      // Then dispose the canvas
       try {
-        canvas.dispose();
+        if (canvas && (canvas as any).lowerCanvasEl) {
+          canvas.dispose();
+        }
       } catch (error) {
         console.debug("[Canvas] Error disposing canvas:", error);
       }
-      setFabricCanvas(null);
     };
-  }, [gameState.isGameActive, gameState.isDrawer]);
+  }, [gameState.isGameActive, gameState.isDrawer, calculateCanvasSize]); // Include calculateCanvasSize to recalc when role changes
 
   // Update drawing mode and clear canvas when game state changes
   useEffect(() => {
+    if (!fabricCanvas || isDisposedRef.current) {
+      return;
+    }
+
     if (!isCanvasValid(fabricCanvas)) {
-      console.debug("[Canvas] Skipping clear - canvas not valid", {
-        hasCanvas: !!fabricCanvas,
-        isDisposed: isDisposedRef.current,
-      });
+      // Canvas not ready yet, skip this update
       return;
     }
     
@@ -399,8 +496,8 @@ export const Canvas = () => {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 p-4 md:p-8">
-      <div className="w-full max-w-4xl">
+    <div ref={containerRef} className="flex flex-col items-center gap-6 p-4 md:p-8 h-full w-full min-w-0">
+      <div className="w-full min-w-0 max-w-full">
         <Toolbar
           activeTool={activeTool}
           brushSize={brushSize}
@@ -412,19 +509,21 @@ export const Canvas = () => {
         />
       </div>
       
-      <div className="rounded-2xl shadow-strong overflow-hidden border-4 border-border bg-canvas-bg relative">
-        <canvas ref={canvasRef} />
-        {!gameState.isDrawer && (
-          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 pointer-events-none z-10">
-            <div className="bg-background/90 px-4 py-2 rounded-lg border shadow-lg">
-              <p className="text-sm font-semibold">Watch and guess the word!</p>
+      <div className="flex-1 flex items-center justify-center w-full min-h-0 min-w-0">
+        <div className="rounded-2xl shadow-strong overflow-hidden border-4 border-border bg-canvas-bg relative">
+          <canvas ref={canvasRef} />
+          {!gameState.isDrawer && (
+            <div className="absolute top-2 left-1/2 transform -translate-x-1/2 pointer-events-none z-10">
+              <div className="bg-background/90 px-4 py-2 rounded-lg border shadow-lg">
+                <p className="text-sm font-semibold">Watch and guess the word!</p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {gameState.isDrawer && (
-        <div className="w-full max-w-4xl">
+        <div className="w-full min-w-0 max-w-full">
           <ColorPalette activeColor={activeColor} onColorChange={setActiveColor} />
         </div>
       )}

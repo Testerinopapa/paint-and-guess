@@ -54,6 +54,7 @@ interface GameContextType {
   leaveRoom: () => void;
   startGame: () => void;
   setReadyState: (isReady: boolean) => void;
+  updateAvatar: (avatar: string | AvatarConfig) => void;
   sendGuess: (guess: string) => void;
   sendChatMessage: (message: string) => void;
   sendDrawingEvent: (event: any) => void;
@@ -299,6 +300,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
     );
 
+    socket.on(
+      "player-avatar-updated",
+      ({ playerId, avatar, players }: { playerId: string; avatar: string | AvatarConfig; players: Player[] }) => {
+        setGameState((prev) => {
+          const updatedSelfId = prev.selfId;
+          if (playerId === updatedSelfId) {
+            console.log(`[GameContext] 🎨 Your avatar was updated`);
+          } else {
+            const player = players.find((p) => p.id === playerId);
+            if (player) {
+              console.log(`[GameContext] 🎨 Player ${player.name} updated their avatar`);
+            }
+          }
+          return {
+            ...prev,
+            players,
+          };
+        });
+      }
+    );
+
     socket.on("error", ({ message }: { message: string }) => {
       toast.error(message);
     });
@@ -320,6 +342,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       socket.off("canvas-cleared");
       socket.off("game-ended");
       socket.off("player-ready");
+      socket.off("player-avatar-updated");
       socket.off("error");
     };
   }, [socket, gameState.roundNumber, gameState.selfId]);
@@ -409,6 +432,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.emit("set-ready", { isReady });
   };
 
+  const updateAvatar = (avatar: string | AvatarConfig) => {
+    if (!socket || !gameState.roomId) return;
+    
+    // Encode avatar config as JSON string if it's an object
+    const avatarData = typeof avatar === 'object' ? encodeAvatarConfig(avatar) : avatar;
+    
+    console.log(`[GameContext] 🎨 Updating avatar`, {
+      roomId: gameState.roomId,
+      hasAvatar: Boolean(avatarData),
+    });
+    
+    socket.emit("update-avatar", { avatar: avatarData });
+  };
+
   const sendGuess = (guess: string) => {
     if (!socket) return;
     console.log(`[GameContext] 🗨️ guess emit`, { guess });
@@ -446,6 +483,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         leaveRoom,
         startGame,
         setReadyState,
+        updateAvatar,
         sendGuess,
         sendChatMessage,
         sendDrawingEvent,

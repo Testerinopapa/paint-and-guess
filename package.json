@@ -22,7 +22,8 @@
     "test:persistence:prisma": "tsx scripts/debug-prisma-persistence-crawler.ts",
     "test:heartbeat": "tsx scripts/test-heartbeat-sweep.ts",
     "test:registry": "tsx scripts/test-game-registry.ts",
-    "crawl:registry": "tsx scripts/crawl-game-registry.ts"
+    "crawl:registry": "tsx scripts/crawl-game-registry.ts",
+    "crawl:four-players": "tsx scripts/four-player-game-crawler.ts"
   },
   "dependencies": {
     "@dicebear/avataaars": "^9.2.4",

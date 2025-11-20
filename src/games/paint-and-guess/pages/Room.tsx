@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LogOut, Play } from "lucide-react";
 import { toast } from "sonner";
+import { AvatarConfig } from "@/lib/avatar/config";
 
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
-  const { gameState, leaveRoom, startGame, isConnected, setReadyState } = useGame();
+  const { gameState, leaveRoom, startGame, isConnected, setReadyState, updateAvatar } = useGame();
 
   useEffect(() => {
     if (!isConnected) {
@@ -21,6 +22,19 @@ export default function Room() {
       return;
     }
   }, [isConnected, navigate]);
+
+  // Listen for avatar updates from HubLayout sidebar
+  useEffect(() => {
+    const handleAvatarUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<AvatarConfig>).detail;
+      if (detail && gameState.roomId) {
+        updateAvatar(detail);
+      }
+    };
+
+    window.addEventListener("avatar-config-updated", handleAvatarUpdate);
+    return () => window.removeEventListener("avatar-config-updated", handleAvatarUpdate);
+  }, [gameState.roomId, updateAvatar]);
 
   const handleLeaveRoom = () => {
     leaveRoom();
@@ -61,10 +75,10 @@ export default function Room() {
     <div className="min-h-screen bg-background">
       <GameHeader />
       
-      <div className="container mx-auto p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
           {/* Left Sidebar - Players */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 flex flex-col">
             <PlayerList />
             {!gameState.isGameActive && gameState.players.length > 0 && (
               <div className="space-y-2 mt-4">
@@ -110,7 +124,7 @@ export default function Room() {
           </div>
 
           {/* Main Canvas Area */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 min-h-0">
             <Canvas />
           </div>
 
