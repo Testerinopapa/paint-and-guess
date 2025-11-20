@@ -33,6 +33,7 @@ export function getPaintPreviewEntry(): NormalizedGameEntry {
     plugin: {
       previewComponent: "paintPreview",
       moduleId: "@/games/paint-and-guess",
+      providerComponent: "paint-and-guess",
     },
   };
 }

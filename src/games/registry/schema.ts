@@ -64,6 +64,7 @@ export const registryEntrySchema = z
       .object({
         previewComponent: z.string().optional(),
         moduleId: z.string().optional(),
+        providerComponent: z.string().optional(),
       })
       .optional(),
   })
