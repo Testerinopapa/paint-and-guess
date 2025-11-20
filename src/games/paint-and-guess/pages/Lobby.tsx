@@ -9,7 +9,7 @@ import { Users, Plus, LogIn } from "lucide-react";
 import { AvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 import { cn } from "@/lib/utils";
-import { apiPath } from "@/config/api";
+import { paintAndGuessApiPath } from "@/config/api";
 
 interface WordPack {
   id: string;
@@ -35,7 +35,7 @@ export default function Lobby() {
 
   useEffect(() => {
     // Fetch available word packs
-    fetch(apiPath("/api/word-packs"))
+    fetch(paintAndGuessApiPath("/word-packs"))
       .then((res) => res.json())
       .then((packs: WordPack[]) => {
         setWordPacks(packs);

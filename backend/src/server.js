@@ -81,6 +81,14 @@ logger.info("[Config] Loaded runtime configuration", {
 const app = express();
 const httpServer = createServer(app);
 
+const API_BASE_PATH = "/api/v1";
+const PAINT_AND_GUESS_BASE_PATH = `${API_BASE_PATH}/paint-and-guess`;
+
+function namespacedPath(basePath, routePath) {
+  if (!routePath) return basePath;
+  return `${basePath}${routePath.startsWith("/") ? routePath : `/${routePath}`}`;
+}
+
 // Initialize Redis adapter if enabled (with timeout to prevent hanging)
 let redisAdapter = null;
 const redisInitPromise = initializeRedis().catch((error) => {
@@ -142,7 +150,7 @@ const io = new Server(httpServer, {
 app.use(cors(corsConfig));
 app.use(express.json());
 
-app.get("/api/games", async (req, res) => {
+app.get(namespacedPath(API_BASE_PATH, "/games"), async (req, res) => {
   try {
     const registry = await getRegistryResponse();
     res.json(registry);
@@ -395,7 +403,7 @@ function getRandomWordForRoom(room) {
 }
 
 // REST API endpoints
-app.get("/api/rooms", (req, res) => {
+app.get(namespacedPath(PAINT_AND_GUESS_BASE_PATH, "/rooms"), (req, res) => {
   const publicRooms = roomRepository
     .listPublicRooms()
     .filter((room) => !room.isGameActive)
@@ -410,7 +418,7 @@ app.get("/api/rooms", (req, res) => {
   res.json(publicRooms);
 });
 
-app.get("/api/games/registry", async (req, res) => {
+app.get(namespacedPath(API_BASE_PATH, "/games/registry"), async (req, res) => {
   const requestStart = Date.now();
   const forceRefresh = req.query.refresh === "true";
   const clientIp = req.ip || req.socket.remoteAddress;
@@ -450,7 +458,7 @@ app.get("/api/games/registry", async (req, res) => {
 });
 
 // Get available word packs
-app.get("/api/word-packs", (req, res) => {
+app.get(namespacedPath(PAINT_AND_GUESS_BASE_PATH, "/word-packs"), (req, res) => {
   const packs = getWordPacks().map((pack) => ({
     id: pack.id,
     name: pack.name,
@@ -461,7 +469,7 @@ app.get("/api/word-packs", (req, res) => {
   res.json(packs);
 });
 
-app.post("/api/rooms", async (req, res) => {
+app.post(namespacedPath(PAINT_AND_GUESS_BASE_PATH, "/rooms"), async (req, res) => {
   try {
     const { name, isPublic = true, maxPlayers = 6, roundTime = 60, maxRounds = 6, wordPack = "classic" } = req.body;
     const roomId = generateRoomId();
@@ -484,7 +492,7 @@ app.post("/api/rooms", async (req, res) => {
 });
 
 // Health and debug endpoints
-app.get("/api/health", async (req, res) => {
+app.get(namespacedPath(PAINT_AND_GUESS_BASE_PATH, "/health"), async (req, res) => {
   try {
     const dbRooms = await (roomStore.count?.() ?? null);
     const memoryRooms = roomRepository.getRooms().length;
@@ -506,7 +514,7 @@ app.get("/api/health", async (req, res) => {
   }
 });
 
-app.get("/api/debug/rooms", async (req, res) => {
+app.get(namespacedPath(PAINT_AND_GUESS_BASE_PATH, "/debug/rooms"), async (req, res) => {
   try {
     const list = roomRepository.getRooms().map((r) => ({
       id: r.id,
