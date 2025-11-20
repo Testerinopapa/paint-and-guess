@@ -1,0 +1,230 @@
+import { createRoot } from "react-dom/client";
+import { act } from "react";
+import { MemoryRouter, Outlet } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ReactNode } from "react";
+import AppRoutes from "../index";
+
+const crashFlags = {
+  lobby: false,
+  index: false,
+  room: false,
+};
+
+// Inform React testing utilities that act() is available.
+// @ts-expect-error global flag used for suppressing act warnings
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
+vi.mock("@/components/HubLayout", () => ({
+  default: () => (
+    <div data-testid="hub-layout">
+      <Outlet />
+    </div>
+  ),
+}));
+
+vi.mock("@/pages/AllGames", () => ({
+  default: () => <div data-testid="all-games">All Games Hub</div>,
+}));
+
+// Mock the router module that's lazy-loaded
+vi.mock("@/games/paint-and-guess/router", () => ({
+  Lobby: () => {
+    if (crashFlags.lobby) throw new Error("lobby crashed");
+    return <div data-testid="paint-lobby">Paint &amp; Guess Lobby</div>;
+  },
+  Index: () => {
+    if (crashFlags.index) throw new Error("index crashed");
+    return <div data-testid="paint-single">Paint &amp; Guess Single</div>;
+  },
+  Room: () => {
+    if (crashFlags.room) throw new Error("room crashed");
+    return <div data-testid="paint-room">Paint &amp; Guess Room</div>;
+  },
+  NotFound: () => <div data-testid="not-found">Not Found</div>,
+}));
+
+// Mock the loaders to return our mocked router
+vi.mock("@/games/registry/loaders", async () => {
+  const actual = await vi.importActual("@/games/registry/loaders");
+  return {
+    ...actual,
+    getGameRouteLoader: () => () => import("@/games/paint-and-guess/router"),
+  };
+});
+
+function createProvider(id: string) {
+  return function Provider({ children }: { children: ReactNode }) {
+    return (
+      <div data-testid={`${id}-provider`} data-provider={id}>
+        {children}
+      </div>
+    );
+  };
+}
+
+vi.mock("@/games/registry", () => {
+  const provider = createProvider("paint-and-guess");
+  return {
+    useGameRegistry: () => ({
+      games: [
+        {
+          id: "paint-and-guess",
+          version: "1.0.0",
+          name: { default: "Paint" },
+          description: { default: "" },
+          status: "stable",
+          supportedPlayers: { min: 1, max: 8 },
+          monetization: "free",
+          category: [],
+          badges: [],
+          assets: { thumbnail: "/placeholder.svg" },
+          featureFlags: [],
+          visibleIf: ["public"],
+          navigation: {},
+          route: { slug: "paint-and-guess", path: "/games/paint-and-guess" },
+          displayName: "Paint",
+          displayDescription: "",
+          derivedRoute: "/games/paint-and-guess",
+          isEnabled: true,
+          Provider: provider,
+          navLabel: "Paint",
+          navCategory: "featured",
+          navPriority: 0,
+          navHidden: false,
+        },
+      ],
+      isFetching: false,
+      status: "success",
+      error: null,
+      data: null,
+      refetch: vi.fn(),
+    }),
+  };
+});
+
+const createTestClient = () =>
+  new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+async function renderWithRoute(path: string) {
+  const container = document.createElement("div");
+  const root = createRoot(container);
+  const client = createTestClient();
+
+  const renderAt = async (entry: string) => {
+    await act(async () => {
+      root.render(
+        <QueryClientProvider client={client}>
+          <MemoryRouter
+            initialEntries={[entry]}
+            key={entry}
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
+            <AppRoutes />
+          </MemoryRouter>
+        </QueryClientProvider>,
+      );
+    });
+    // Wait for Suspense to resolve and lazy components to load
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+    // Flush any remaining updates
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  };
+
+  await renderAt(path);
+
+  return {
+    container,
+    renderAt,
+    unmount: () => {
+      act(() => {
+        root.unmount();
+      });
+    },
+  };
+}
+
+afterEach(() => {
+  vi.clearAllMocks();
+  crashFlags.lobby = false;
+  crashFlags.index = false;
+  crashFlags.room = false;
+});
+
+describe("AppRoutes provider wiring", () => {
+  it("wraps paint-and-guess routes with the registered provider", async () => {
+    const app = await renderWithRoute("/games/paint-and-guess/single");
+
+    expect(app.container.querySelector('[data-testid="paint-and-guess-provider"]')).not.toBeNull();
+    expect(app.container.querySelector('[data-testid="paint-single"]')).not.toBeNull();
+
+    app.unmount();
+  });
+
+  it("does not mount game providers for non-game routes", async () => {
+    const app = await renderWithRoute("/");
+
+    expect(app.container.querySelector('[data-testid="paint-and-guess-provider"]')).toBeNull();
+    expect(app.container.querySelector('[data-testid="all-games"]')).not.toBeNull();
+
+    app.unmount();
+  });
+
+  it("tears down the provider when navigating between game and hub routes", async () => {
+    const app = await renderWithRoute("/games/paint-and-guess/room/room-123");
+
+    expect(app.container.querySelector('[data-testid="paint-and-guess-provider"]')).not.toBeNull();
+    expect(app.container.querySelector('[data-testid="paint-room"]')).not.toBeNull();
+
+    await app.renderAt("/");
+
+    expect(app.container.querySelector('[data-testid="paint-and-guess-provider"]')).toBeNull();
+    expect(app.container.querySelector('[data-testid="all-games"]')).not.toBeNull();
+
+    app.unmount();
+  });
+});
+
+describe("AppRoutes game error boundaries", () => {
+  it("surfaces crashes inside a single game route without blocking siblings", async () => {
+    crashFlags.index = true;
+    const app = await renderWithRoute("/games/paint-and-guess/single");
+
+    expect(app.container.textContent).toContain("Something went wrong");
+    expect(app.container.querySelector('[data-testid="paint-single"]')).toBeNull();
+
+    crashFlags.index = false;
+    await app.renderAt("/games/paint-and-guess/room/recoverable-room");
+
+    expect(app.container.querySelector('[data-testid="paint-room"]')).not.toBeNull();
+    expect(app.container.textContent).not.toContain("Something went wrong");
+
+    app.unmount();
+  });
+
+  it("isolates crashing game routes from hub navigation", async () => {
+    crashFlags.room = true;
+    const app = await renderWithRoute("/games/paint-and-guess/room/broken-room");
+
+    expect(app.container.textContent).toContain("Something went wrong");
+
+    await app.renderAt("/");
+
+    expect(app.container.querySelector('[data-testid="all-games"]')).not.toBeNull();
+    expect(app.container.textContent).not.toContain("Something went wrong");
+
+    app.unmount();
+  });
+});
+
+

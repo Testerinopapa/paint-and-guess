@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGame } from "@/games/paint-and-guess";
+import GameLayout from "@/games/paint-and-guess/components/GameLayout";
 import { toast } from "sonner";
 import { Users, Plus, LogIn, Settings } from "lucide-react";
 import { AvatarCustomizer } from "@/games/paint-and-guess/components/AvatarCustomizer";
@@ -11,7 +12,7 @@ import { AvatarPreview } from "@/games/paint-and-guess/components/avatar/preview
 import { AvatarConfig, loadAvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 import { cn } from "@/lib/utils";
-import { apiPath } from "@/config/api";
+import { paintAndGuessApiPath } from "@/config/api";
 
 interface WordPack {
   id: string;
@@ -38,7 +39,7 @@ export default function Lobby() {
 
   useEffect(() => {
     // Fetch available word packs
-    fetch(apiPath("/api/word-packs"))
+    fetch(paintAndGuessApiPath("/word-packs"))
       .then((res) => res.json())
       .then((packs: WordPack[]) => {
         setWordPacks(packs);
@@ -93,22 +94,8 @@ export default function Lobby() {
     }
   };
 
-  if (!isConnected) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card>
-          <CardHeader>
-            <CardTitle>Connecting...</CardTitle>
-            <CardDescription>Please wait while we connect to the server</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl space-y-6">
+  const content = (
+    <div className="w-full max-w-2xl space-y-6 mx-auto">
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">Multiplayer Draw & Guess</CardTitle>
@@ -242,14 +229,38 @@ export default function Lobby() {
               </Card>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Users className="w-4 h-4" />
-              <span>Up to 6 players per room</span>
+            <div className="text-sm text-muted-foreground space-y-2">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                <span>Up to 6 players per room</span>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
-    </div>
+  );
+
+  if (!isConnected) {
+    return (
+      <GameLayout
+        title="Paint & Guess"
+        description="Connecting to the multiplayer session"
+        contentClassName="flex items-center justify-center"
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Connecting...</CardTitle>
+            <CardDescription>Please wait while we connect to the server</CardDescription>
+          </CardHeader>
+        </Card>
+      </GameLayout>
+    );
+  }
+
+  return (
+    <GameLayout title="Paint & Guess" description="Create or join a room to start playing" contentClassName="flex justify-center">
+      {content}
+    </GameLayout>
   );
 }
 
