@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGame } from "@/games/paint-and-guess";
+import GameLayout from "@/games/paint-and-guess/components/GameLayout";
 import { toast } from "sonner";
 import { Users, Plus, LogIn, Settings } from "lucide-react";
 import { AvatarCustomizer } from "@/games/paint-and-guess/components/AvatarCustomizer";
@@ -93,25 +94,11 @@ export default function Lobby() {
     }
   };
 
-  if (!isConnected) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card>
-          <CardHeader>
-            <CardTitle>Connecting...</CardTitle>
-            <CardDescription>Please wait while we connect to the server</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Multiplayer Draw & Guess</CardTitle>
+  const content = (
+    <div className="w-full max-w-2xl space-y-6 mx-auto">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Multiplayer Draw & Guess</CardTitle>
             <CardDescription>Create or join a room to start playing</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -246,10 +233,36 @@ export default function Lobby() {
               <Users className="w-4 h-4" />
               <span>Up to 6 players per room</span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
     </div>
+  );
+
+  if (!isConnected) {
+    return (
+      <GameLayout
+        title="Paint & Guess"
+        description="Connecting to the multiplayer session"
+        contentClassName="flex items-center justify-center"
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Connecting...</CardTitle>
+            <CardDescription>Please wait while we connect to the server</CardDescription>
+          </CardHeader>
+        </Card>
+      </GameLayout>
+    );
+  }
+
+  return (
+    <GameLayout
+      title="Paint & Guess"
+      description="Create or join a room to start playing"
+      contentClassName="flex justify-center"
+    >
+      {content}
+    </GameLayout>
   );
 }
 
