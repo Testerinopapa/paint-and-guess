@@ -1,9 +1,13 @@
-import { useMemo } from "react";
-import { NavLink, Outlet } from "react-router-dom";
-import { PaintBucket, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { PaintBucket, Settings, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGameRegistry } from "@/games/registry";
 import type { HubGame } from "@/games/registry";
+import { AvatarPreview } from "@/games/paint-and-guess/components/avatar/preview";
+import { AvatarCustomizer } from "@/games/paint-and-guess/components/AvatarCustomizer";
+import { AvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
+import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 
 type NavigationLink = {
   label: string;
@@ -37,6 +41,19 @@ export function buildNavigationLinks(games: HubGame[]): NavigationLink[] {
 const HubLayout = () => {
   const { games } = useGameRegistry();
   const navigation = useMemo(() => buildNavigationLinks(games), [games]);
+  const location = useLocation();
+  const isPaintAndGuess = location.pathname.startsWith("/games/paint-and-guess");
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
+    return safeLoadAvatarConfig() || createDefaultAvatarConfig();
+  });
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+
+  useEffect(() => {
+    const stored = safeLoadAvatarConfig();
+    if (stored) {
+      setAvatarConfig(stored);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
@@ -61,6 +78,36 @@ const HubLayout = () => {
             </NavLink>
           ))}
         </nav>
+
+        {isPaintAndGuess ? (
+          <div className="space-y-3">
+            <div className="text-sm font-medium text-muted-foreground">Avatar</div>
+            <Button
+              variant="outline"
+              onClick={() => setIsCustomizerOpen(true)}
+              className="w-full justify-start gap-3 h-auto py-3"
+            >
+              <div className="h-10 w-10 flex items-center justify-center">
+                <AvatarPreview config={avatarConfig} size={40} />
+              </div>
+              <div className="flex flex-col items-start flex-1 text-left">
+                <span className="text-sm font-medium">{avatarConfig.name}</span>
+                <span className="text-xs text-muted-foreground">Customize your look</span>
+              </div>
+              <Settings className="ml-auto h-4 w-4 text-muted-foreground" />
+            </Button>
+
+            <AvatarCustomizer
+              open={isCustomizerOpen}
+              onOpenChange={setIsCustomizerOpen}
+              initialConfig={avatarConfig}
+              onSave={(config) => {
+                setAvatarConfig(config);
+                window.dispatchEvent(new CustomEvent("avatar-config-updated", { detail: config }));
+              }}
+            />
+          </div>
+        ) : null}
       </aside>
 
       <div className="flex-1 flex flex-col min-h-screen">
