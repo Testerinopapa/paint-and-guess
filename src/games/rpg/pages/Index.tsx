@@ -1,92 +1,136 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BackgroundEffects } from "../components/BackgroundEffects";
 import { PlayerPanel } from "../components/PlayerPanel";
 import { StoryWindow } from "../components/StoryWindow";
 import { ActionPanel } from "../components/ActionPanel";
 import { CommandInput } from "../components/CommandInput";
+import { InventoryPanel } from "../components/InventoryPanel";
+import { useRpgStore } from "../state/useRpgStore";
 import { useToast } from "@/shared/hooks/use-toast";
+// Initialize debug utilities
+import "../utils/debug";
+
+const DEBUG_RPG = import.meta.env.DEV || import.meta.env.VITE_DEBUG_RPG === "true";
 
 export default function RpgIndex() {
   const { toast } = useToast();
+  const [inventoryOpen, setInventoryOpen] = useState(false);
 
-  const [character] = useState({
-    name: "Wanderer",
-    level: 5,
-    hp: 75,
-    maxHp: 100,
-    mana: 40,
-    maxMana: 80,
-    xp: 1250,
-    xpToNextLevel: 2000,
-    gold: 347,
-  });
+  const character = useRpgStore((state) => state.character);
+  const location = useRpgStore((state) => state.location);
+  const storyText = useRpgStore((state) => state.storyText);
+  const availableCommands = useRpgStore((state) => state.availableCommands);
+  const inventory = useRpgStore((state) => state.inventory);
+  const performAction = useRpgStore((state) => state.performAction);
+  const submitCommand = useRpgStore((state) => state.submitCommand);
+  const addItem = useRpgStore((state) => state.addItem);
+  const removeItem = useRpgStore((state) => state.removeItem);
 
-  const [storyText, setStoryText] = useState([
-    "The ancient ruins of Eldrath loom before you, their crumbling stones weathered by countless ages. A cold wind whispers through the broken archways, carrying with it the scent of decay and forgotten magic.",
-    "",
-    "Your torch flickers in the darkness, casting dancing shadows against walls inscribed with arcane symbols. The air itself seems to hum with dormant power.",
-    "",
-    "What will you do?",
-  ]);
+  // Debug: Subscribe to state changes in development
+  useEffect(() => {
+    if (!DEBUG_RPG) return;
 
-  const [availableCommands] = useState([
-    "Attack",
-    "Investigate Symbols",
-    "Cast Light Spell",
-    "Search for Treasure",
-    "Listen Carefully",
-    "Rest",
-  ]);
+    let prevState = useRpgStore.getState();
+
+    const unsubscribe = useRpgStore.subscribe((state) => {
+      // Log state changes
+      if (state.character !== prevState.character) {
+        console.debug("[RPG] Character changed:", {
+          before: prevState.character,
+          after: state.character,
+          changes: {
+            hp: state.character.hp - prevState.character.hp,
+            mana: state.character.mana - prevState.character.mana,
+            xp: state.character.xp - prevState.character.xp,
+            gold: state.character.gold - prevState.character.gold,
+            level: state.character.level - prevState.character.level,
+          },
+        });
+      }
+
+      if (state.location !== prevState.location) {
+        console.debug("[RPG] Location changed:", {
+          from: prevState.location,
+          to: state.location,
+        });
+      }
+
+      if (state.storyText.length !== prevState.storyText.length) {
+        console.debug("[RPG] Story text updated:", {
+          previousLength: prevState.storyText.length,
+          newLength: state.storyText.length,
+          newLines: state.storyText.slice(prevState.storyText.length),
+        });
+      }
+
+      if (state.availableCommands.length !== prevState.availableCommands.length) {
+        console.debug("[RPG] Available commands changed:", {
+          previousCount: prevState.availableCommands.length,
+          newCount: state.availableCommands.length,
+          previous: prevState.availableCommands,
+          current: state.availableCommands,
+          added: state.availableCommands.filter((cmd) => !prevState.availableCommands.includes(cmd)),
+        });
+      }
+
+      prevState = state;
+    });
+
+    return unsubscribe;
+  }, []);
 
   const handleAction = (action: string) => {
+    if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_RPG === "true") {
+      console.debug(`[RPG] Action triggered: "${action}"`);
+    }
+
+    if (action.toLowerCase() === "inventory") {
+      setInventoryOpen(!inventoryOpen);
+      return;
+    }
+
     toast({
       title: "Action Selected",
       description: `You chose to: ${action}`,
     });
 
-    setStoryText((prev) => [
-      ...prev,
-      "",
-      `> ${action}`,
-      "The shadows deepen around you as you make your choice...",
-    ]);
+    performAction(action);
   };
 
   const handleCommand = (command: string) => {
+    if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_RPG === "true") {
+      console.debug(`[RPG] Command submitted: "${command}"`);
+    }
+
     toast({
       title: "Command Received",
       description: command,
     });
 
-    setStoryText((prev) => [
-      ...prev,
-      "",
-      `> ${command}`,
-      "The world responds to your will...",
-    ]);
+    submitCommand(command);
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative">
       <BackgroundEffects />
 
-      <div className="relative z-10 container mx-auto px-4 py-6 h-screen flex flex-col gap-4">
-        <header className="text-center py-4">
-          <h1 className="text-4xl md:text-5xl font-bold text-primary tracking-wider">
+      <div className="relative z-10 container mx-auto px-4 py-6 flex flex-col gap-4 max-w-7xl">
+        <header className="text-center py-4 flex-shrink-0">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary tracking-wider">
             CHRONICLES OF THE ABYSS
           </h1>
-          <p className="text-accent text-sm mt-2 font-mono tracking-widest">
+          <p className="text-accent text-xs sm:text-sm mt-2 font-mono tracking-widest">
             A Dark Fantasy Adventure
           </p>
         </header>
 
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
           <div className="lg:col-span-3">
             <PlayerPanel character={character} />
           </div>
 
-          <div className="lg:col-span-6 min-h-[400px] lg:min-h-0">
-            <StoryWindow location="Ruins of Eldrath" storyText={storyText} />
+          <div className="lg:col-span-6">
+            <StoryWindow location={location} storyText={storyText} />
           </div>
 
           <div className="lg:col-span-3">
@@ -94,10 +138,18 @@ export default function RpgIndex() {
           </div>
         </div>
 
-        <div className="w-full">
+        <div className="w-full flex-shrink-0 pb-4">
           <CommandInput onSubmit={handleCommand} />
         </div>
       </div>
+
+      <InventoryPanel
+        isOpen={inventoryOpen}
+        onClose={() => setInventoryOpen(false)}
+        items={inventory}
+        onAddItem={addItem}
+        onRemoveItem={removeItem}
+      />
     </div>
   );
 }

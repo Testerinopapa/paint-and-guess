@@ -1,0 +1,1543 @@
+[2025-11-21T06:54:26.302Z] [vite] connecting...
+[2025-11-21T06:54:26.366Z] [vite] connected.
+[2025-11-21T06:54:27.214Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:54:27.262Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:54:27.262Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:54:27.269Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:54:27.269Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:54:27.269Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:54:27.292Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:54:27.335Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:54:27.401Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:54:27.557Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:54:27.567Z] %c[RPG:Animation]%c [2025-11-21T06:54:27.570Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:54:27.571Z] console.groupEnd
+[2025-11-21T06:54:27.573Z] [StoryWindow] [2025-11-21T06:54:27.572Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:54:27.574Z] [StoryWindow] [2025-11-21T06:54:27.572Z] [ACTION] Processing story text
+[2025-11-21T06:54:27.575Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:54:27.576Z] console.groupEnd
+[2025-11-21T06:54:27.576Z] [StoryWindow] [2025-11-21T06:54:27.574Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:54:27.578Z] [StoryWindow] [2025-11-21T06:54:27.574Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:54:27.579Z] [StoryWindow] [2025-11-21T06:54:27.575Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:54:27.581Z] [StoryWindow] [2025-11-21T06:54:27.575Z] [ACTION] Story entries updated
+[2025-11-21T06:54:27.582Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:54:27.583Z] console.groupEnd
+[2025-11-21T06:54:29.401Z] [StoryWindow] [2025-11-21T06:54:29.086Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:54:29.779Z] %c[RPG:Animation]%c [2025-11-21T06:54:29.088Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:54:30.022Z] console.groupEnd
+[2025-11-21T06:54:30.022Z] %c[RPG:Inventory]%c [2025-11-21T06:54:29.089Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:54:30.114Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:54:30.114Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:54:30.114Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:54:30.114Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:54:30.114Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:54:30.114Z] [TypingText] [2025-11-21T06:54:29.215Z] [ACTION] [qrajt] Starting typing effect
+[2025-11-21T06:54:30.118Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:54:30.118Z] console.groupEnd
+[2025-11-21T06:54:30.119Z] [StoryWindow] [2025-11-21T06:54:29.217Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:54:30.125Z] [TypingText] [2025-11-21T06:54:29.518Z] [INFO] [qrajt] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 302ms, estimatedRemaining: 210ms}
+[2025-11-21T06:54:30.126Z] [TypingText] [2025-11-21T06:54:29.727Z] [INFO] [qrajt] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 510ms, estimatedRemaining: 0ms}
+[2025-11-21T06:54:30.133Z] [TypingText] [2025-11-21T06:54:29.759Z] [ACTION] [qrajt] Typing completed
+[2025-11-21T06:54:30.135Z] {totalTime: 543ms, expectedTime: 510ms, efficiency: 94.0%, charactersPerSecond: 31.3}
+[2025-11-21T06:54:30.135Z] console.groupEnd
+[2025-11-21T06:54:30.136Z] [StoryWindow] [2025-11-21T06:54:29.760Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:54:30.138Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:54:30.138Z] console.groupEnd
+[2025-11-21T06:54:30.138Z] [TypingText] [2025-11-21T06:54:29.771Z] [WARN] [qrajt] Typing interrupted/cleaned up 
+[2025-11-21T06:54:30.139Z] [StoryWindow] [2025-11-21T06:54:29.773Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:54:30.141Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:54:30.141Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:54:30.141Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:54:30.141Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:54:30.141Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:54:30.141Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:54:30.141Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:54:30.141Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:54:30.141Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:54:30.141Z] Connected to server
+[2025-11-21T06:54:30.142Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:54:30.224Z] %c[RPG:Animation]%c [2025-11-21T06:54:30.174Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:54:32.952Z] [vite] connecting...
+[2025-11-21T06:54:32.966Z] [vite] connected.
+[2025-11-21T06:54:33.375Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:54:33.407Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:54:33.407Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:54:33.407Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:54:33.407Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:54:33.407Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:54:33.415Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:54:33.422Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:54:33.488Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:54:33.547Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:54:33.550Z] %c[RPG:Animation]%c [2025-11-21T06:54:33.553Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:54:33.561Z] console.groupEnd
+[2025-11-21T06:54:33.563Z] [StoryWindow] [2025-11-21T06:54:33.555Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:54:33.564Z] [StoryWindow] [2025-11-21T06:54:33.555Z] [ACTION] Processing story text
+[2025-11-21T06:54:33.565Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:54:33.566Z] console.groupEnd
+[2025-11-21T06:54:33.566Z] [StoryWindow] [2025-11-21T06:54:33.556Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:54:33.567Z] [StoryWindow] [2025-11-21T06:54:33.557Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:54:33.569Z] [StoryWindow] [2025-11-21T06:54:33.557Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:54:33.588Z] [StoryWindow] [2025-11-21T06:54:33.557Z] [ACTION] Story entries updated
+[2025-11-21T06:54:33.588Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:54:33.588Z] console.groupEnd
+[2025-11-21T06:54:33.590Z] [StoryWindow] [2025-11-21T06:54:33.569Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:54:33.592Z] %c[RPG:Animation]%c [2025-11-21T06:54:33.571Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:54:33.594Z] console.groupEnd
+[2025-11-21T06:54:33.594Z] %c[RPG:Inventory]%c [2025-11-21T06:54:33.572Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:54:33.595Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:54:33.595Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:54:33.595Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:54:33.596Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:54:33.791Z] [TypingText] [2025-11-21T06:54:33.795Z] [ACTION] [c23rxs] Starting typing effect
+[2025-11-21T06:54:33.821Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:54:33.821Z] console.groupEnd
+[2025-11-21T06:54:33.824Z] [StoryWindow] [2025-11-21T06:54:33.796Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:54:33.830Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:54:33.830Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:54:33.830Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:54:33.830Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:54:33.830Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:54:33.830Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:54:33.831Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:54:33.831Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:54:33.831Z] Connected to server
+[2025-11-21T06:54:33.831Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:54:33.831Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:54:34.002Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:54:34.138Z] [TypingText] [2025-11-21T06:54:34.109Z] [INFO] [c23rxs] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 313ms, estimatedRemaining: 210ms}
+[2025-11-21T06:54:34.304Z] [TypingText] [2025-11-21T06:54:34.307Z] [INFO] [c23rxs] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 511ms, estimatedRemaining: 0ms}
+[2025-11-21T06:54:34.341Z] [TypingText] [2025-11-21T06:54:34.338Z] [ACTION] [c23rxs] Typing completed
+[2025-11-21T06:54:34.369Z] {totalTime: 542ms, expectedTime: 510ms, efficiency: 94.1%, charactersPerSecond: 31.4}
+[2025-11-21T06:54:34.369Z] console.groupEnd
+[2025-11-21T06:54:34.369Z] [StoryWindow] [2025-11-21T06:54:34.339Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:54:34.375Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:54:34.375Z] console.groupEnd
+[2025-11-21T06:54:34.384Z] [TypingText] [2025-11-21T06:54:34.360Z] [WARN] [c23rxs] Typing interrupted/cleaned up 
+[2025-11-21T06:54:34.388Z] [StoryWindow] [2025-11-21T06:54:34.362Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:54:34.522Z] %c[RPG:Animation]%c [2025-11-21T06:54:34.436Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:54:36.446Z] [vite] connecting...
+[2025-11-21T06:54:36.456Z] [vite] connected.
+[2025-11-21T06:54:36.787Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:54:36.810Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:54:36.811Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:54:36.812Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:54:36.812Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:54:36.813Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:54:36.820Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:54:36.826Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:54:36.869Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:54:36.946Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:54:36.948Z] %c[RPG:Animation]%c [2025-11-21T06:54:36.951Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:54:36.951Z] console.groupEnd
+[2025-11-21T06:54:36.953Z] [StoryWindow] [2025-11-21T06:54:36.952Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:54:36.954Z] [StoryWindow] [2025-11-21T06:54:36.953Z] [ACTION] Processing story text
+[2025-11-21T06:54:36.955Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:54:36.955Z] console.groupEnd
+[2025-11-21T06:54:36.955Z] [StoryWindow] [2025-11-21T06:54:36.954Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:54:36.956Z] [StoryWindow] [2025-11-21T06:54:36.955Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:54:36.957Z] [StoryWindow] [2025-11-21T06:54:36.955Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:54:36.958Z] [StoryWindow] [2025-11-21T06:54:36.956Z] [ACTION] Story entries updated
+[2025-11-21T06:54:36.962Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:54:36.962Z] console.groupEnd
+[2025-11-21T06:54:36.964Z] [StoryWindow] [2025-11-21T06:54:36.967Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:54:36.969Z] %c[RPG:Animation]%c [2025-11-21T06:54:36.969Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:54:36.971Z] console.groupEnd
+[2025-11-21T06:54:36.971Z] %c[RPG:Inventory]%c [2025-11-21T06:54:36.970Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:54:37.002Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:54:37.003Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:54:37.004Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:54:37.004Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:54:37.036Z] [TypingText] [2025-11-21T06:54:37.040Z] [ACTION] [zo9rht] Starting typing effect
+[2025-11-21T06:54:37.092Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:54:37.098Z] console.groupEnd
+[2025-11-21T06:54:37.098Z] [StoryWindow] [2025-11-21T06:54:37.045Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:54:37.107Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:54:37.107Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:54:37.107Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:54:37.107Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:54:37.108Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:54:37.108Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:54:37.108Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:54:37.108Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:54:37.108Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:54:37.111Z] Connected to server
+[2025-11-21T06:54:37.111Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:54:37.182Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:54:37.338Z] [TypingText] [2025-11-21T06:54:37.342Z] [INFO] [zo9rht] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 300ms, estimatedRemaining: 210ms}
+[2025-11-21T06:54:37.553Z] [TypingText] [2025-11-21T06:54:37.556Z] [INFO] [zo9rht] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 514ms, estimatedRemaining: 0ms}
+[2025-11-21T06:54:37.589Z] [TypingText] [2025-11-21T06:54:37.582Z] [ACTION] [zo9rht] Typing completed
+[2025-11-21T06:54:37.636Z] {totalTime: 541ms, expectedTime: 510ms, efficiency: 94.3%, charactersPerSecond: 31.4}
+[2025-11-21T06:54:37.636Z] console.groupEnd
+[2025-11-21T06:54:37.636Z] [StoryWindow] [2025-11-21T06:54:37.585Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:54:37.640Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:54:37.640Z] console.groupEnd
+[2025-11-21T06:54:37.641Z] [TypingText] [2025-11-21T06:54:37.601Z] [WARN] [zo9rht] Typing interrupted/cleaned up 
+[2025-11-21T06:54:37.692Z] [StoryWindow] [2025-11-21T06:54:37.602Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:54:37.719Z] %c[RPG:Animation]%c [2025-11-21T06:54:37.653Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:54:40.524Z] [RPG] Action triggered: "explore"
+[2025-11-21T06:54:40.529Z] [RPG Store] [2025-11-21T06:54:40.529Z] [ACTION] Performing action: "explore"
+[2025-11-21T06:54:40.532Z] console.groupEnd
+[2025-11-21T06:54:40.533Z] [RPG Store] [2025-11-21T06:54:40.530Z] [INFO] Resolving action: "explore" (normalized: "explore") {currentLocation: Ruins of Eldrath, currentHp: 75, currentMana: 40}
+[2025-11-21T06:54:40.537Z] [RPG Store] [2025-11-21T06:54:40.531Z] [ACTION] Resolving: "explore"
+[2025-11-21T06:54:40.540Z] {resolution: Object, currentLocation: Ruins of Eldrath, currentCommands: 6}
+[2025-11-21T06:54:40.540Z] console.groupEnd
+[2025-11-21T06:54:40.540Z] [RPG Store] [2025-11-21T06:54:40.537Z] [INFO] No character delta to apply 
+[2025-11-21T06:54:40.547Z] [RPG Store] [2025-11-21T06:54:40.538Z] [INFO] Resolution applied: "explore" {locationChanged: false, commandUnlocked: Translate Glyphs, newCommandCount: 7, narrativeLines: 2, storyTextLength: 9}
+[2025-11-21T06:54:40.549Z] [RPG Store] [2025-11-21T06:54:40.539Z] [INFO] Action 'action:explore' took 9.40ms 
+[2025-11-21T06:54:40.550Z] [RPG Store] [2025-11-21T06:54:40.539Z] [INFO] State after action "explore" {newLocation: Ruins of Eldrath, newHp: 75, newMana: 40, storyTextLength: 9, commandCount: 7}
+[2025-11-21T06:54:40.552Z] [RPG] Story text updated: {previousLength: 5, newLength: 9, newLines: Array(4)}
+[2025-11-21T06:54:40.566Z] [RPG] Available commands changed: {previousCount: 6, newCount: 7, previous: Array(6), current: Array(7), added: Array(1)}
+[2025-11-21T06:54:40.573Z] [StoryWindow] [2025-11-21T06:54:40.576Z] [ACTION] Processing story text
+[2025-11-21T06:54:40.685Z] {currentLength: 9, previousLength: 5, hasNewEntries: true, enableTyping: true, newLines: Array(4)}
+[2025-11-21T06:54:40.685Z] console.groupEnd
+[2025-11-21T06:54:40.688Z] [StoryWindow] [2025-11-21T06:54:40.578Z] [INFO] New entry created [11] {text: explore, isCommand: true, willType: false, index: 6}
+[2025-11-21T06:54:40.689Z] [StoryWindow] [2025-11-21T06:54:40.579Z] [INFO] New entry created [12] {text: You edge deeper into the maze of shattered corrido..., isCommand: false, willType: false, index: 7}
+[2025-11-21T06:54:40.691Z] [StoryWindow] [2025-11-21T06:54:40.579Z] [INFO] New entry created [13] {text: Strange glyphs glow for a moment, revealing a hidd..., isCommand: false, willType: true, index: 8}
+[2025-11-21T06:54:40.774Z] [StoryWindow] [2025-11-21T06:54:40.580Z] [ACTION] Story entries updated
+[2025-11-21T06:54:40.791Z] {totalEntries: 9, typingEntries: 1, commandEntries: 1, narrativeEntries: 5}
+[2025-11-21T06:54:40.791Z] console.groupEnd
+[2025-11-21T06:54:40.791Z] [TypingText] [2025-11-21T06:54:40.672Z] [ACTION] [q4p0j] Starting typing effect
+[2025-11-21T06:54:40.792Z] {textLength: 65, speed: 30, estimatedDuration: 1.95s, showCursor: true}
+[2025-11-21T06:54:40.792Z] console.groupEnd
+[2025-11-21T06:54:40.792Z] [StoryWindow] [2025-11-21T06:54:40.686Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 536.7999877929688, scrollHeight: 1072, clientHeight: 535}
+[2025-11-21T06:54:40.972Z] [TypingText] [2025-11-21T06:54:40.976Z] [INFO] [q4p0j] Typing progress {progress: 15.4%, characters: 10/65, elapsed: 301ms, estimatedRemaining: 1650ms}
+[2025-11-21T06:54:41.272Z] [TypingText] [2025-11-21T06:54:41.276Z] [INFO] [q4p0j] Typing progress {progress: 30.8%, characters: 20/65, elapsed: 601ms, estimatedRemaining: 1350ms}
+[2025-11-21T06:54:41.572Z] [TypingText] [2025-11-21T06:54:41.576Z] [INFO] [q4p0j] Typing progress {progress: 46.2%, characters: 30/65, elapsed: 901ms, estimatedRemaining: 1050ms}
+[2025-11-21T06:54:41.873Z] [TypingText] [2025-11-21T06:54:41.876Z] [INFO] [q4p0j] Typing progress {progress: 61.5%, characters: 40/65, elapsed: 1201ms, estimatedRemaining: 750ms}
+[2025-11-21T06:54:42.173Z] [TypingText] [2025-11-21T06:54:42.177Z] [INFO] [q4p0j] Typing progress {progress: 76.9%, characters: 50/65, elapsed: 1502ms, estimatedRemaining: 450ms}
+[2025-11-21T06:54:42.472Z] [TypingText] [2025-11-21T06:54:42.476Z] [INFO] [q4p0j] Typing progress {progress: 92.3%, characters: 60/65, elapsed: 1801ms, estimatedRemaining: 150ms}
+[2025-11-21T06:54:42.622Z] [TypingText] [2025-11-21T06:54:42.626Z] [INFO] [q4p0j] Typing progress {progress: 100.0%, characters: 65/65, elapsed: 1951ms, estimatedRemaining: 0ms}
+[2025-11-21T06:54:42.654Z] [TypingText] [2025-11-21T06:54:42.656Z] [ACTION] [q4p0j] Typing completed
+[2025-11-21T06:54:42.675Z] {totalTime: 1981ms, expectedTime: 1950ms, efficiency: 98.4%, charactersPerSecond: 32.8}
+[2025-11-21T06:54:42.675Z] console.groupEnd
+[2025-11-21T06:54:42.676Z] [StoryWindow] [2025-11-21T06:54:42.657Z] [ACTION] Typing completed for entry [13]
+[2025-11-21T06:54:42.687Z] {entryId: 13, textLength: 65, isCommand: false}
+[2025-11-21T06:54:42.687Z] console.groupEnd
+[2025-11-21T06:54:42.688Z] [TypingText] [2025-11-21T06:54:42.674Z] [WARN] [q4p0j] Typing interrupted/cleaned up 
+[2025-11-21T06:54:42.688Z] [StoryWindow] [2025-11-21T06:54:42.674Z] [INFO] Auto-scrolled story window {beforeScroll: 152, afterScroll: 167.1999969482422, scrollHeight: 702, clientHeight: 535}
+[2025-11-21T06:54:42.983Z] [RPG] Action triggered: "inventory"
+[2025-11-21T06:54:43.021Z] Warning: findDOMNode is deprecated and will be removed in the next major release. Instead, add a ref directly to the element you want to reference. Learn more about using refs safely here: https://reactjs.org/link/strict-mode-find-node%s 
+    at DraggableCore (http://localhost:8080/node_modules/.vite/deps/react-draggable.js?v=d4b2f105:1311:9)
+    at Draggable (http://localhost:8080/node_modules/.vite/deps/react-draggable.js?v=d4b2f105:1718:9)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=fb3142f5:38:15)
+    at TooltipProvider (http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=a4ce88ab:2254:5)
+    at InventoryPanel (http://localhost:8080/src/games/rpg/components/InventoryPanel.tsx?t=1763707530966:37:34)
+    at div
+    at RpgIndex (http://localhost:8080/src/games/rpg/pages/Index.tsx?t=1763707530966:36:23)
+    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4088:5)
+    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4088:5)
+    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4088:5)
+    at Outlet (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4494:26)
+    at div
+    at main
+    at div
+    at div
+    at HubLayout (http://localhost:8080/src/components/HubLayout.tsx:55:23)
+    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4088:5)
+    at Routes (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4558:5)
+    at AppRoutes
+    at Router (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4501:15)
+    at BrowserRouter (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:5247:5)
+    at GameProvider (http://localhost:8080/src/games/paint-and-guess/state/GameContext.tsx:41:32)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=fb3142f5:38:15)
+    at TooltipProvider (http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=a4ce88ab:2254:5)
+    at QueryClientProvider (http://localhost:8080/node_modules/.vite/deps/@tanstack_react-query.js?v=7562d748:2934:3)
+    at App
+[2025-11-21T06:54:43.024Z] %c[RPG:Animation]%c [2025-11-21T06:54:43.027Z] InventoryPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:54:43.052Z] console.groupEnd
+[2025-11-21T06:54:43.052Z] %c[RPG:Inventory]%c [2025-11-21T06:54:43.031Z] Inventory panel opened color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:54:43.056Z] {itemCount: 0}
+[2025-11-21T06:54:43.056Z] console.groupEnd
+[2025-11-21T06:54:43.056Z] %c[RPG:Animation]%c [2025-11-21T06:54:43.039Z] InventoryPanel: open started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:54:43.063Z] console.groupEnd
+[2025-11-21T06:54:43.331Z] %c[RPG:Animation]%c [2025-11-21T06:54:43.335Z] InventoryPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: undefined}
+[2025-11-21T06:54:45.486Z] [RPG] Action triggered: "stats"
+[2025-11-21T06:54:45.490Z] [RPG Store] [2025-11-21T06:54:45.489Z] [ACTION] Performing action: "stats"
+[2025-11-21T06:54:45.491Z] console.groupEnd
+[2025-11-21T06:54:45.493Z] [RPG Store] [2025-11-21T06:54:45.490Z] [INFO] Resolving action: "stats" (normalized: "stats") {currentLocation: Ruins of Eldrath, currentHp: 75, currentMana: 40}
+[2025-11-21T06:54:45.500Z] [RPG Store] [2025-11-21T06:54:45.490Z] [ACTION] Resolving: "stats"
+[2025-11-21T06:54:45.501Z] {resolution: Object, currentLocation: Ruins of Eldrath, currentCommands: 7}
+[2025-11-21T06:54:45.501Z] console.groupEnd
+[2025-11-21T06:54:45.501Z] [RPG Store] [2025-11-21T06:54:45.492Z] [INFO] No character delta to apply 
+[2025-11-21T06:54:45.509Z] [RPG Store] [2025-11-21T06:54:45.492Z] [INFO] Resolution applied: "stats" {locationChanged: false, commandUnlocked: false, newCommandCount: 7, narrativeLines: 1, storyTextLength: 12}
+[2025-11-21T06:54:45.514Z] [RPG Store] [2025-11-21T06:54:45.493Z] [INFO] Action 'action:stats' took 3.50ms 
+[2025-11-21T06:54:45.515Z] [RPG Store] [2025-11-21T06:54:45.493Z] [INFO] State after action "stats" {newLocation: Ruins of Eldrath, newHp: 75, newMana: 40, storyTextLength: 12, commandCount: 7}
+[2025-11-21T06:54:45.522Z] [RPG] Story text updated: {previousLength: 9, newLength: 12, newLines: Array(3)}
+[2025-11-21T06:54:45.527Z] [StoryWindow] [2025-11-21T06:54:45.521Z] [ACTION] Processing story text
+[2025-11-21T06:54:45.570Z] {currentLength: 12, previousLength: 9, hasNewEntries: true, enableTyping: true, newLines: Array(3)}
+[2025-11-21T06:54:45.571Z] console.groupEnd
+[2025-11-21T06:54:45.571Z] [StoryWindow] [2025-11-21T06:54:45.522Z] [INFO] New entry created [24] {text: stats, isCommand: true, willType: false, index: 10}
+[2025-11-21T06:54:45.572Z] [StoryWindow] [2025-11-21T06:54:45.522Z] [INFO] New entry created [25] {text: HP 75/100 · Mana 40/80 · XP 1250/2000, isCommand: false, willType: true, index: 11}
+[2025-11-21T06:54:45.759Z] [StoryWindow] [2025-11-21T06:54:45.523Z] [ACTION] Story entries updated
+[2025-11-21T06:54:45.791Z] {totalEntries: 12, typingEntries: 1, commandEntries: 2, narrativeEntries: 6}
+[2025-11-21T06:54:45.791Z] console.groupEnd
+[2025-11-21T06:54:45.875Z] [TypingText] [2025-11-21T06:54:45.547Z] [ACTION] [5qniq] Starting typing effect
+[2025-11-21T06:54:45.905Z] {textLength: 37, speed: 30, estimatedDuration: 1.11s, showCursor: true}
+[2025-11-21T06:54:45.925Z] console.groupEnd
+[2025-11-21T06:54:45.925Z] [StoryWindow] [2025-11-21T06:54:45.555Z] [INFO] Auto-scrolled story window {beforeScroll: 167.1999969482422, afterScroll: 971.2000122070312, scrollHeight: 1506, clientHeight: 535}
+[2025-11-21T06:54:45.939Z] [TypingText] [2025-11-21T06:54:45.612Z] [WARN] [5qniq] Typing interrupted/cleaned up 
+[2025-11-21T06:54:45.939Z] [TypingText] [2025-11-21T06:54:45.614Z] [ACTION] [5qniq] Starting typing effect
+[2025-11-21T06:54:45.940Z] {textLength: 37, speed: 30, estimatedDuration: 1.11s, showCursor: true}
+[2025-11-21T06:54:45.940Z] console.groupEnd
+[2025-11-21T06:54:45.989Z] [TypingText] [2025-11-21T06:54:45.981Z] [INFO] [5qniq] Typing progress {progress: 27.0%, characters: 10/37, elapsed: 361ms, estimatedRemaining: 810ms}
+[2025-11-21T06:54:46.438Z] [TypingText] [2025-11-21T06:54:46.310Z] [INFO] [5qniq] Typing progress {progress: 54.1%, characters: 20/37, elapsed: 690ms, estimatedRemaining: 510ms}
+[2025-11-21T06:54:47.019Z] [TypingText] [2025-11-21T06:54:46.611Z] [INFO] [5qniq] Typing progress {progress: 81.1%, characters: 30/37, elapsed: 991ms, estimatedRemaining: 210ms}
+[2025-11-21T06:54:47.283Z] [TypingText] [2025-11-21T06:54:46.820Z] [INFO] [5qniq] Typing progress {progress: 100.0%, characters: 37/37, elapsed: 1200ms, estimatedRemaining: 0ms}
+[2025-11-21T06:54:47.690Z] [TypingText] [2025-11-21T06:54:46.853Z] [ACTION] [5qniq] Typing completed
+[2025-11-21T06:54:48.188Z] {totalTime: 1233ms, expectedTime: 1110ms, efficiency: 90.0%, charactersPerSecond: 30.0}
+[2025-11-21T06:54:48.188Z] console.groupEnd
+[2025-11-21T06:54:48.188Z] [StoryWindow] [2025-11-21T06:54:46.854Z] [ACTION] Typing completed for entry [25]
+[2025-11-21T06:54:48.903Z] {entryId: 25, textLength: 37, isCommand: false}
+[2025-11-21T06:54:48.903Z] console.groupEnd
+[2025-11-21T06:54:48.903Z] [TypingText] [2025-11-21T06:54:46.868Z] [WARN] [5qniq] Typing interrupted/cleaned up 
+[2025-11-21T06:54:49.503Z] [StoryWindow] [2025-11-21T06:54:46.871Z] [INFO] Auto-scrolled story window {beforeScroll: 304.79998779296875, afterScroll: 304.79998779296875, scrollHeight: 840, clientHeight: 535}
+[2025-11-21T06:54:51.976Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:54:52.013Z] [RPG] Action triggered: "save"
+[2025-11-21T06:54:52.783Z] [RPG Store] [2025-11-21T06:54:52.014Z] [ACTION] Performing action: "save"
+[2025-11-21T06:54:52.786Z] console.groupEnd
+[2025-11-21T06:54:52.789Z] [RPG Store] [2025-11-21T06:54:52.015Z] [INFO] Resolving action: "save" (normalized: "save") {currentLocation: Ruins of Eldrath, currentHp: 75, currentMana: 40}
+[2025-11-21T06:54:52.792Z] [RPG Store] [2025-11-21T06:54:52.015Z] [INFO] Action resolved: "save" {narrative: Array(1)}
+[2025-11-21T06:54:52.793Z] [RPG Store] [2025-11-21T06:54:52.017Z] [ACTION] Resolving: "save"
+[2025-11-21T06:54:52.804Z] {resolution: Object, currentLocation: Ruins of Eldrath, currentCommands: 7}
+[2025-11-21T06:54:52.804Z] console.groupEnd
+[2025-11-21T06:54:52.804Z] [RPG Store] [2025-11-21T06:54:52.019Z] [INFO] No character delta to apply 
+[2025-11-21T06:54:52.805Z] [RPG Store] [2025-11-21T06:54:52.019Z] [INFO] Resolution applied: "save" {locationChanged: false, commandUnlocked: false, newCommandCount: 7, narrativeLines: 1, storyTextLength: 15}
+[2025-11-21T06:54:52.806Z] [RPG Store] [2025-11-21T06:54:52.020Z] [INFO] Action 'action:save' took 5.60ms 
+[2025-11-21T06:54:52.807Z] [RPG Store] [2025-11-21T06:54:52.020Z] [INFO] State after action "save" {newLocation: Ruins of Eldrath, newHp: 75, newMana: 40, storyTextLength: 15, commandCount: 7}
+[2025-11-21T06:54:52.807Z] [RPG] Story text updated: {previousLength: 12, newLength: 15, newLines: Array(3)}
+[2025-11-21T06:54:52.809Z] [StoryWindow] [2025-11-21T06:54:52.054Z] [ACTION] Processing story text
+[2025-11-21T06:54:52.809Z] {currentLength: 15, previousLength: 12, hasNewEntries: true, enableTyping: true, newLines: Array(3)}
+[2025-11-21T06:54:52.809Z] console.groupEnd
+[2025-11-21T06:54:52.809Z] [StoryWindow] [2025-11-21T06:54:52.055Z] [INFO] New entry created [39] {text: save, isCommand: true, willType: false, index: 13}
+[2025-11-21T06:54:52.820Z] [StoryWindow] [2025-11-21T06:54:52.055Z] [INFO] New entry created [40] {text: You etch a protective rune into the stone, anchori..., isCommand: false, willType: true, index: 14}
+[2025-11-21T06:54:52.821Z] [StoryWindow] [2025-11-21T06:54:52.056Z] [ACTION] Story entries updated
+[2025-11-21T06:54:52.822Z] {totalEntries: 15, typingEntries: 1, commandEntries: 3, narrativeEntries: 7}
+[2025-11-21T06:54:52.825Z] console.groupEnd
+[2025-11-21T06:54:52.826Z] [TypingText] [2025-11-21T06:54:52.097Z] [ACTION] [qrzlq8] Starting typing effect
+[2025-11-21T06:54:52.842Z] {textLength: 102, speed: 30, estimatedDuration: 3.06s, showCursor: true}
+[2025-11-21T06:54:52.842Z] console.groupEnd
+[2025-11-21T06:54:52.842Z] [StoryWindow] [2025-11-21T06:54:52.105Z] [INFO] Auto-scrolled story window {beforeScroll: 316.79998779296875, afterScroll: 1247.199951171875, scrollHeight: 1782, clientHeight: 535}
+[2025-11-21T06:54:52.850Z] [TypingText] [2025-11-21T06:54:52.410Z] [INFO] [qrzlq8] Typing progress {progress: 9.8%, characters: 10/102, elapsed: 309ms, estimatedRemaining: 2760ms}
+[2025-11-21T06:54:52.853Z] [TypingText] [2025-11-21T06:54:52.704Z] [INFO] [qrzlq8] Typing progress {progress: 19.6%, characters: 20/102, elapsed: 602ms, estimatedRemaining: 2460ms}
+[2025-11-21T06:54:53.393Z] [TypingText] [2025-11-21T06:54:53.004Z] [INFO] [qrzlq8] Typing progress {progress: 29.4%, characters: 30/102, elapsed: 902ms, estimatedRemaining: 2160ms}
+[2025-11-21T06:54:53.791Z] [TypingText] [2025-11-21T06:54:53.333Z] [INFO] [qrzlq8] Typing progress {progress: 39.2%, characters: 40/102, elapsed: 1232ms, estimatedRemaining: 1860ms}
+[2025-11-21T06:54:53.937Z] [TypingText] [2025-11-21T06:54:53.637Z] [INFO] [qrzlq8] Typing progress {progress: 49.0%, characters: 50/102, elapsed: 1536ms, estimatedRemaining: 1560ms}
+[2025-11-21T06:54:54.004Z] [TypingText] [2025-11-21T06:54:53.933Z] [INFO] [qrzlq8] Typing progress {progress: 58.8%, characters: 60/102, elapsed: 1832ms, estimatedRemaining: 1260ms}
+[2025-11-21T06:54:54.231Z] [TypingText] [2025-11-21T06:54:54.233Z] [INFO] [qrzlq8] Typing progress {progress: 68.6%, characters: 70/102, elapsed: 2132ms, estimatedRemaining: 960ms}
+[2025-11-21T06:54:54.535Z] [TypingText] [2025-11-21T06:54:54.533Z] [INFO] [qrzlq8] Typing progress {progress: 78.4%, characters: 80/102, elapsed: 2432ms, estimatedRemaining: 660ms}
+[2025-11-21T06:54:54.943Z] [TypingText] [2025-11-21T06:54:54.852Z] [INFO] [qrzlq8] Typing progress {progress: 88.2%, characters: 90/102, elapsed: 2750ms, estimatedRemaining: 360ms}
+[2025-11-21T06:54:55.432Z] [TypingText] [2025-11-21T06:54:55.139Z] [INFO] [qrzlq8] Typing progress {progress: 98.0%, characters: 100/102, elapsed: 3037ms, estimatedRemaining: 60ms}
+[2025-11-21T06:54:55.521Z] [vite] connecting...
+[2025-11-21T06:54:55.531Z] [vite] connected.
+[2025-11-21T06:54:55.769Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:54:55.770Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:54:55.770Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:54:55.770Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:54:55.770Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:54:55.770Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:54:55.770Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:54:56.091Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:54:56.303Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:54:56.358Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:54:56.374Z] %c[RPG:Animation]%c [2025-11-21T06:54:55.742Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:54:56.457Z] console.groupEnd
+[2025-11-21T06:54:56.457Z] [StoryWindow] [2025-11-21T06:54:55.743Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:54:56.505Z] [StoryWindow] [2025-11-21T06:54:55.743Z] [ACTION] Processing story text
+[2025-11-21T06:54:56.537Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:54:56.537Z] console.groupEnd
+[2025-11-21T06:54:56.537Z] [StoryWindow] [2025-11-21T06:54:55.744Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:54:56.560Z] [StoryWindow] [2025-11-21T06:54:55.744Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:54:56.570Z] [StoryWindow] [2025-11-21T06:54:55.744Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:54:56.571Z] [StoryWindow] [2025-11-21T06:54:55.745Z] [ACTION] Story entries updated
+[2025-11-21T06:54:56.572Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:54:56.572Z] console.groupEnd
+[2025-11-21T06:54:56.572Z] [StoryWindow] [2025-11-21T06:54:55.755Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:54:56.573Z] %c[RPG:Animation]%c [2025-11-21T06:54:55.756Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:54:56.575Z] console.groupEnd
+[2025-11-21T06:54:56.575Z] %c[RPG:Inventory]%c [2025-11-21T06:54:55.757Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:54:56.576Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:54:56.608Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:54:56.608Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:54:56.608Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:54:56.608Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:54:56.608Z] [TypingText] [2025-11-21T06:54:55.838Z] [ACTION] [3sv00k] Starting typing effect
+[2025-11-21T06:54:56.625Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:54:56.625Z] console.groupEnd
+[2025-11-21T06:54:56.625Z] [StoryWindow] [2025-11-21T06:54:55.840Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:54:56.655Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:54:56.655Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:54:56.655Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:54:56.655Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:54:56.655Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:54:56.655Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:54:56.655Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:54:56.655Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:54:56.656Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:54:56.656Z] [TypingText] [2025-11-21T06:54:56.141Z] [INFO] [3sv00k] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 301ms, estimatedRemaining: 210ms}
+[2025-11-21T06:54:56.669Z] Connected to server
+[2025-11-21T06:54:56.669Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:54:56.669Z] %c[RPG:Animation]%c [2025-11-21T06:54:56.259Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:54:56.723Z] [TypingText] [2025-11-21T06:54:56.351Z] [INFO] [3sv00k] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 512ms, estimatedRemaining: 0ms}
+[2025-11-21T06:54:56.752Z] [TypingText] [2025-11-21T06:54:56.381Z] [ACTION] [3sv00k] Typing completed
+[2025-11-21T06:54:56.805Z] {totalTime: 541ms, expectedTime: 510ms, efficiency: 94.2%, charactersPerSecond: 31.4}
+[2025-11-21T06:54:56.805Z] console.groupEnd
+[2025-11-21T06:54:56.805Z] [StoryWindow] [2025-11-21T06:54:56.382Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:54:56.809Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:54:56.809Z] console.groupEnd
+[2025-11-21T06:54:56.809Z] [TypingText] [2025-11-21T06:54:56.394Z] [WARN] [3sv00k] Typing interrupted/cleaned up 
+[2025-11-21T06:54:56.821Z] [StoryWindow] [2025-11-21T06:54:56.395Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:54:59.033Z] [RPG] Command submitted: "Attack"
+[2025-11-21T06:54:59.088Z] [RPG Store] [2025-11-21T06:54:59.036Z] [ACTION] Submitting command: "Attack"
+[2025-11-21T06:54:59.091Z] console.groupEnd
+[2025-11-21T06:54:59.100Z] [RPG Store] [2025-11-21T06:54:59.038Z] [INFO] Resolving command: "Attack" (normalized: "attack") 
+[2025-11-21T06:55:04.665Z] [RPG] Command submitted: "Investigate Symbols"
+[2025-11-21T06:55:04.777Z] [RPG Store] [2025-11-21T06:55:04.669Z] [ACTION] Submitting command: "Investigate Symbols"
+[2025-11-21T06:55:05.341Z] console.groupEnd
+[2025-11-21T06:55:05.354Z] [RPG Store] [2025-11-21T06:55:04.670Z] [INFO] Resolving command: "Investigate Symbols" (normalized: "investigate symbols") 
+[2025-11-21T06:55:06.288Z] [RPG Store] [2025-11-21T06:55:04.670Z] [ACTION] Resolving: "Investigate Symbols"
+[2025-11-21T06:55:06.406Z] {resolution: Object, currentLocation: Ruins of Eldrath, currentCommands: 6}
+[2025-11-21T06:55:06.406Z] console.groupEnd
+[2025-11-21T06:55:06.407Z] [RPG Store] [2025-11-21T06:55:04.671Z] [INFO] No character delta to apply 
+[2025-11-21T06:55:06.408Z] [RPG Store] [2025-11-21T06:55:04.672Z] [INFO] Resolution applied: "Investigate Symbols" {locationChanged: false, commandUnlocked: Descend to the Chamber, newCommandCount: 7, narrativeLines: 3, storyTextLength: 10}
+[2025-11-21T06:55:06.409Z] [RPG Store] [2025-11-21T06:55:04.672Z] [INFO] Action 'command:Investigate Symbols' took 2.80ms 
+[2025-11-21T06:55:06.583Z] [RPG Store] [2025-11-21T06:55:04.673Z] [INFO] State after command "Investigate Symbols" {newLocation: Ruins of Eldrath, newHp: 75, newMana: 40, storyTextLength: 10, commandCount: 7}
+[2025-11-21T06:55:06.660Z] [RPG] Story text updated: {previousLength: 5, newLength: 10, newLines: Array(5)}
+[2025-11-21T06:55:06.667Z] [RPG] Available commands changed: {previousCount: 6, newCount: 7, previous: Array(6), current: Array(7), added: Array(1)}
+[2025-11-21T06:55:06.668Z] [StoryWindow] [2025-11-21T06:55:04.691Z] [ACTION] Processing story text
+[2025-11-21T06:55:06.669Z] {currentLength: 10, previousLength: 5, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:55:06.669Z] console.groupEnd
+[2025-11-21T06:55:06.669Z] [StoryWindow] [2025-11-21T06:55:04.692Z] [INFO] New entry created [11] {text: Investigate Symbols, isCommand: true, willType: false, index: 6}
+[2025-11-21T06:55:06.670Z] [StoryWindow] [2025-11-21T06:55:04.692Z] [INFO] New entry created [12] {text: Tracing the glyphs reveals a hidden pattern – a **..., isCommand: false, willType: false, index: 7}
+[2025-11-21T06:55:06.671Z] [StoryWindow] [2025-11-21T06:55:04.693Z] [INFO] New entry created [14] {text: *New command unlocked: Descend to the Chamber*, isCommand: true, willType: true, index: 9}
+[2025-11-21T06:55:06.671Z] [StoryWindow] [2025-11-21T06:55:04.693Z] [ACTION] Story entries updated
+[2025-11-21T06:55:06.676Z] {totalEntries: 10, typingEntries: 1, commandEntries: 2, narrativeEntries: 4}
+[2025-11-21T06:55:06.676Z] console.groupEnd
+[2025-11-21T06:55:06.676Z] [TypingText] [2025-11-21T06:55:04.725Z] [ACTION] [dhvycx7l] Starting typing effect
+[2025-11-21T06:55:06.706Z] {textLength: 46, speed: 30, estimatedDuration: 1.38s, showCursor: true}
+[2025-11-21T06:55:06.706Z] console.groupEnd
+[2025-11-21T06:55:06.706Z] [StoryWindow] [2025-11-21T06:55:04.732Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 567.2000122070312, scrollHeight: 1102, clientHeight: 535}
+[2025-11-21T06:55:06.707Z] [TypingText] [2025-11-21T06:55:05.060Z] [INFO] [dhvycx7l] Typing progress {progress: 21.7%, characters: 10/46, elapsed: 334ms, estimatedRemaining: 1080ms}
+[2025-11-21T06:55:06.708Z] [TypingText] [2025-11-21T06:55:05.357Z] [INFO] [dhvycx7l] Typing progress {progress: 43.5%, characters: 20/46, elapsed: 631ms, estimatedRemaining: 780ms}
+[2025-11-21T06:55:06.710Z] [TypingText] [2025-11-21T06:55:05.658Z] [INFO] [dhvycx7l] Typing progress {progress: 65.2%, characters: 30/46, elapsed: 932ms, estimatedRemaining: 480ms}
+[2025-11-21T06:55:06.726Z] [TypingText] [2025-11-21T06:55:05.957Z] [INFO] [dhvycx7l] Typing progress {progress: 87.0%, characters: 40/46, elapsed: 1231ms, estimatedRemaining: 180ms}
+[2025-11-21T06:55:06.738Z] [TypingText] [2025-11-21T06:55:06.138Z] [INFO] [dhvycx7l] Typing progress {progress: 100.0%, characters: 46/46, elapsed: 1411ms, estimatedRemaining: 0ms}
+[2025-11-21T06:55:06.739Z] [TypingText] [2025-11-21T06:55:06.171Z] [ACTION] [dhvycx7l] Typing completed
+[2025-11-21T06:55:06.740Z] {totalTime: 1445ms, expectedTime: 1380ms, efficiency: 95.5%, charactersPerSecond: 31.8}
+[2025-11-21T06:55:06.740Z] console.groupEnd
+[2025-11-21T06:55:06.740Z] [StoryWindow] [2025-11-21T06:55:06.172Z] [ACTION] Typing completed for entry [14]
+[2025-11-21T06:55:06.741Z] {entryId: 14, textLength: 46, isCommand: true}
+[2025-11-21T06:55:06.741Z] console.groupEnd
+[2025-11-21T06:55:06.741Z] [TypingText] [2025-11-21T06:55:06.182Z] [WARN] [dhvycx7l] Typing interrupted/cleaned up 
+[2025-11-21T06:55:06.758Z] [StoryWindow] [2025-11-21T06:55:06.191Z] [INFO] Auto-scrolled story window {beforeScroll: 183.1999969482422, afterScroll: 192.8000030517578, scrollHeight: 728, clientHeight: 535}
+[2025-11-21T06:55:10.021Z] [RPG] Command submitted: "Cast Light Spell"
+[2025-11-21T06:55:10.024Z] [RPG Store] [2025-11-21T06:55:10.021Z] [ACTION] Submitting command: "Cast Light Spell"
+[2025-11-21T06:55:10.025Z] console.groupEnd
+[2025-11-21T06:55:10.027Z] [RPG Store] [2025-11-21T06:55:10.022Z] [INFO] Resolving command: "Cast Light Spell" (normalized: "cast light spell") 
+[2025-11-21T06:55:10.031Z] [RPG Store] [2025-11-21T06:55:10.023Z] [ACTION] Resolving: "Cast Light Spell"
+[2025-11-21T06:55:10.032Z] {resolution: Object, currentLocation: Ruins of Eldrath, currentCommands: 7}
+[2025-11-21T06:55:10.032Z] console.groupEnd
+[2025-11-21T06:55:10.032Z] [RPG Store] [2025-11-21T06:55:10.024Z] [INFO] Applying character delta {before: Object, delta: Object}
+[2025-11-21T06:55:10.034Z] [RPG Store] [2025-11-21T06:55:10.025Z] [INFO] Character delta applied {after: Object, changes: Object}
+[2025-11-21T06:55:10.037Z] [RPG Store] [2025-11-21T06:55:10.025Z] [INFO] Resolution applied: "Cast Light Spell" {locationChanged: false, commandUnlocked: Follow the Light, newCommandCount: 8, narrativeLines: 4, storyTextLength: 16}
+[2025-11-21T06:55:10.038Z] [RPG Store] [2025-11-21T06:55:10.026Z] [INFO] Action 'command:Cast Light Spell' took 4.40ms 
+[2025-11-21T06:55:10.039Z] [RPG Store] [2025-11-21T06:55:10.026Z] [INFO] State after command "Cast Light Spell" {newLocation: Ruins of Eldrath, newHp: 75, newMana: 30, storyTextLength: 16, commandCount: 8}
+[2025-11-21T06:55:10.047Z] [RPG] Character changed: {before: Object, after: Object, changes: Object}
+[2025-11-21T06:55:10.048Z] [RPG] Story text updated: {previousLength: 10, newLength: 16, newLines: Array(6)}
+[2025-11-21T06:55:10.050Z] [RPG] Available commands changed: {previousCount: 7, newCount: 8, previous: Array(7), current: Array(8), added: Array(1)}
+[2025-11-21T06:55:10.055Z] %c[RPG:Performance]%c [2025-11-21T06:55:10.047Z] PlayerPanel.render: 14304.50ms color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:55:10.066Z] %c[RPG:Animation]%c [2025-11-21T06:55:10.048Z] PlayerPanel: render completed color: #10b981; font-weight: bold color: #999 {duration: undefined}
+[2025-11-21T06:55:10.067Z] %c[RPG:Animation]%c [2025-11-21T06:55:10.051Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:55:10.099Z] console.groupEnd
+[2025-11-21T06:55:10.099Z] [StoryWindow] [2025-11-21T06:55:10.052Z] [ACTION] Processing story text
+[2025-11-21T06:55:10.099Z] {currentLength: 16, previousLength: 10, hasNewEntries: true, enableTyping: true, newLines: Array(6)}
+[2025-11-21T06:55:10.099Z] console.groupEnd
+[2025-11-21T06:55:10.100Z] [StoryWindow] [2025-11-21T06:55:10.054Z] [INFO] New entry created [26] {text: Cast Light Spell, isCommand: true, willType: false, index: 11}
+[2025-11-21T06:55:10.101Z] [StoryWindow] [2025-11-21T06:55:10.054Z] [INFO] New entry created [27] {text: **Azure light** pours from your hands, illuminatin..., isCommand: false, willType: false, index: 12}
+[2025-11-21T06:55:10.102Z] [StoryWindow] [2025-11-21T06:55:10.055Z] [INFO] New entry created [28] {text: You glimpse a passage leading west. *-10 Mana*, isCommand: false, willType: false, index: 13}
+[2025-11-21T06:55:10.104Z] [StoryWindow] [2025-11-21T06:55:10.055Z] [INFO] New entry created [30] {text: *New command unlocked: Follow the Light*, isCommand: true, willType: true, index: 15}
+[2025-11-21T06:55:10.105Z] [StoryWindow] [2025-11-21T06:55:10.055Z] [ACTION] Story entries updated
+[2025-11-21T06:55:10.105Z] {totalEntries: 16, typingEntries: 1, commandEntries: 4, narrativeEntries: 6}
+[2025-11-21T06:55:10.105Z] console.groupEnd
+[2025-11-21T06:55:10.107Z] [TypingText] [2025-11-21T06:55:10.106Z] [ACTION] [3fvpfw] Starting typing effect
+[2025-11-21T06:55:10.119Z] {textLength: 40, speed: 30, estimatedDuration: 1.2s, showCursor: true}
+[2025-11-21T06:55:10.119Z] console.groupEnd
+[2025-11-21T06:55:10.119Z] [StoryWindow] [2025-11-21T06:55:10.114Z] [INFO] Auto-scrolled story window {beforeScroll: 192.8000030517578, afterScroll: 1239.199951171875, scrollHeight: 1774, clientHeight: 535}
+[2025-11-21T06:55:10.441Z] [TypingText] [2025-11-21T06:55:10.445Z] [INFO] [3fvpfw] Typing progress {progress: 25.0%, characters: 10/40, elapsed: 338ms, estimatedRemaining: 900ms}
+[2025-11-21T06:55:10.770Z] [TypingText] [2025-11-21T06:55:10.772Z] [INFO] [3fvpfw] Typing progress {progress: 50.0%, characters: 20/40, elapsed: 665ms, estimatedRemaining: 600ms}
+[2025-11-21T06:55:10.773Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:55:11.070Z] [TypingText] [2025-11-21T06:55:11.072Z] [INFO] [3fvpfw] Typing progress {progress: 75.0%, characters: 30/40, elapsed: 965ms, estimatedRemaining: 300ms}
+[2025-11-21T06:55:11.369Z] [TypingText] [2025-11-21T06:55:11.372Z] [INFO] [3fvpfw] Typing progress {progress: 100.0%, characters: 40/40, elapsed: 1265ms, estimatedRemaining: 0ms}
+[2025-11-21T06:55:11.398Z] [TypingText] [2025-11-21T06:55:11.398Z] [ACTION] [3fvpfw] Typing completed
+[2025-11-21T06:55:11.424Z] {totalTime: 1291ms, expectedTime: 1200ms, efficiency: 93.0%, charactersPerSecond: 31.0}
+[2025-11-21T06:55:11.425Z] console.groupEnd
+[2025-11-21T06:55:11.425Z] [StoryWindow] [2025-11-21T06:55:11.399Z] [ACTION] Typing completed for entry [30]
+[2025-11-21T06:55:11.433Z] {entryId: 30, textLength: 40, isCommand: true}
+[2025-11-21T06:55:11.433Z] console.groupEnd
+[2025-11-21T06:55:11.435Z] [TypingText] [2025-11-21T06:55:11.439Z] [WARN] [3fvpfw] Typing interrupted/cleaned up 
+[2025-11-21T06:55:11.441Z] [StoryWindow] [2025-11-21T06:55:11.440Z] [INFO] Auto-scrolled story window {beforeScroll: 547.2000122070312, afterScroll: 547.2000122070312, scrollHeight: 1082, clientHeight: 535}
+[2025-11-21T06:55:15.737Z] [RPG] Command submitted: "Rest"
+[2025-11-21T06:55:15.742Z] [RPG Store] [2025-11-21T06:55:15.740Z] [ACTION] Submitting command: "Rest"
+[2025-11-21T06:55:15.758Z] console.groupEnd
+[2025-11-21T06:55:15.760Z] [RPG Store] [2025-11-21T06:55:15.741Z] [INFO] Resolving command: "Rest" (normalized: "rest") 
+[2025-11-21T06:55:15.766Z] [RPG Store] [2025-11-21T06:55:15.741Z] [ACTION] Resolving: "Rest"
+[2025-11-21T06:55:15.767Z] {resolution: Object, currentLocation: Ruins of Eldrath, currentCommands: 8}
+[2025-11-21T06:55:15.767Z] console.groupEnd
+[2025-11-21T06:55:15.767Z] [RPG Store] [2025-11-21T06:55:15.742Z] [INFO] Applying character delta {before: Object, delta: Object}
+[2025-11-21T06:55:15.769Z] [RPG Store] [2025-11-21T06:55:15.743Z] [INFO] Character delta applied {after: Object, changes: Object}
+[2025-11-21T06:55:15.774Z] [RPG Store] [2025-11-21T06:55:15.743Z] [INFO] Resolution applied: "Rest" {locationChanged: false, commandUnlocked: false, newCommandCount: 8, narrativeLines: 1, storyTextLength: 19}
+[2025-11-21T06:55:15.776Z] [RPG Store] [2025-11-21T06:55:15.744Z] [INFO] Action 'command:Rest' took 4.30ms 
+[2025-11-21T06:55:15.779Z] [RPG Store] [2025-11-21T06:55:15.744Z] [INFO] State after command "Rest" {newLocation: Ruins of Eldrath, newHp: 90, newMana: 40, storyTextLength: 19, commandCount: 8}
+[2025-11-21T06:55:15.782Z] [RPG] Character changed: {before: Object, after: Object, changes: Object}
+[2025-11-21T06:55:15.783Z] [RPG] Story text updated: {previousLength: 16, newLength: 19, newLines: Array(3)}
+[2025-11-21T06:55:15.789Z] %c[RPG:Performance]%c [2025-11-21T06:55:15.775Z] PlayerPanel.render: 5722.20ms color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:55:15.794Z] %c[RPG:Animation]%c [2025-11-21T06:55:15.775Z] PlayerPanel: render completed color: #10b981; font-weight: bold color: #999 {duration: undefined}
+[2025-11-21T06:55:15.825Z] %c[RPG:Animation]%c [2025-11-21T06:55:15.777Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:55:15.825Z] console.groupEnd
+[2025-11-21T06:55:15.826Z] [StoryWindow] [2025-11-21T06:55:15.778Z] [ACTION] Processing story text
+[2025-11-21T06:55:15.827Z] {currentLength: 19, previousLength: 16, hasNewEntries: true, enableTyping: true, newLines: Array(3)}
+[2025-11-21T06:55:15.827Z] console.groupEnd
+[2025-11-21T06:55:15.827Z] [StoryWindow] [2025-11-21T06:55:15.779Z] [INFO] New entry created [48] {text: Rest, isCommand: true, willType: false, index: 17}
+[2025-11-21T06:55:15.832Z] [StoryWindow] [2025-11-21T06:55:15.779Z] [INFO] New entry created [49] {text: You take a quiet moment to steady your breath. The..., isCommand: false, willType: true, index: 18}
+[2025-11-21T06:55:15.833Z] [StoryWindow] [2025-11-21T06:55:15.780Z] [ACTION] Story entries updated
+[2025-11-21T06:55:15.834Z] {totalEntries: 19, typingEntries: 1, commandEntries: 5, narrativeEntries: 7}
+[2025-11-21T06:55:15.834Z] console.groupEnd
+[2025-11-21T06:55:15.836Z] [TypingText] [2025-11-21T06:55:15.826Z] [ACTION] [x7gsbh] Starting typing effect
+[2025-11-21T06:55:15.838Z] {textLength: 89, speed: 30, estimatedDuration: 2.67s, showCursor: true}
+[2025-11-21T06:55:15.838Z] console.groupEnd
+[2025-11-21T06:55:15.838Z] [StoryWindow] [2025-11-21T06:55:15.831Z] [INFO] Auto-scrolled story window {beforeScroll: 547.2000122070312, afterScroll: 1731.199951171875, scrollHeight: 2266, clientHeight: 535}
+[2025-11-21T06:55:16.139Z] [TypingText] [2025-11-21T06:55:16.128Z] [INFO] [x7gsbh] Typing progress {progress: 11.2%, characters: 10/89, elapsed: 301ms, estimatedRemaining: 2370ms}
+[2025-11-21T06:55:16.423Z] [TypingText] [2025-11-21T06:55:16.427Z] [INFO] [x7gsbh] Typing progress {progress: 22.5%, characters: 20/89, elapsed: 600ms, estimatedRemaining: 2070ms}
+[2025-11-21T06:55:16.725Z] [TypingText] [2025-11-21T06:55:16.728Z] [INFO] [x7gsbh] Typing progress {progress: 33.7%, characters: 30/89, elapsed: 902ms, estimatedRemaining: 1770ms}
+[2025-11-21T06:55:17.024Z] [TypingText] [2025-11-21T06:55:17.028Z] [INFO] [x7gsbh] Typing progress {progress: 44.9%, characters: 40/89, elapsed: 1201ms, estimatedRemaining: 1470ms}
+[2025-11-21T06:55:17.324Z] [TypingText] [2025-11-21T06:55:17.327Z] [INFO] [x7gsbh] Typing progress {progress: 56.2%, characters: 50/89, elapsed: 1501ms, estimatedRemaining: 1170ms}
+[2025-11-21T06:55:17.624Z] [TypingText] [2025-11-21T06:55:17.628Z] [INFO] [x7gsbh] Typing progress {progress: 67.4%, characters: 60/89, elapsed: 1801ms, estimatedRemaining: 870ms}
+[2025-11-21T06:55:17.957Z] [TypingText] [2025-11-21T06:55:17.960Z] [INFO] [x7gsbh] Typing progress {progress: 78.7%, characters: 70/89, elapsed: 2133ms, estimatedRemaining: 570ms}
+[2025-11-21T06:55:18.271Z] [TypingText] [2025-11-21T06:55:18.258Z] [INFO] [x7gsbh] Typing progress {progress: 89.9%, characters: 80/89, elapsed: 2432ms, estimatedRemaining: 270ms}
+[2025-11-21T06:55:19.164Z] [vite] connecting...
+[2025-11-21T06:55:19.164Z] [vite] connected.
+[2025-11-21T06:55:19.786Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:55:19.809Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:55:19.810Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:55:19.811Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:55:19.811Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:55:19.811Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:55:19.820Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:55:20.127Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:55:20.393Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:55:20.408Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:55:20.408Z] %c[RPG:Animation]%c [2025-11-21T06:55:19.916Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:55:20.410Z] console.groupEnd
+[2025-11-21T06:55:20.410Z] [StoryWindow] [2025-11-21T06:55:19.918Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:55:20.411Z] [StoryWindow] [2025-11-21T06:55:19.918Z] [ACTION] Processing story text
+[2025-11-21T06:55:20.411Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:55:20.412Z] console.groupEnd
+[2025-11-21T06:55:20.412Z] [StoryWindow] [2025-11-21T06:55:19.919Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:55:20.412Z] [StoryWindow] [2025-11-21T06:55:19.920Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:55:20.413Z] [StoryWindow] [2025-11-21T06:55:19.920Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:55:20.429Z] [StoryWindow] [2025-11-21T06:55:19.921Z] [ACTION] Story entries updated
+[2025-11-21T06:55:20.528Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:55:20.528Z] console.groupEnd
+[2025-11-21T06:55:20.529Z] [StoryWindow] [2025-11-21T06:55:19.932Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:55:20.579Z] %c[RPG:Animation]%c [2025-11-21T06:55:19.933Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:55:20.639Z] console.groupEnd
+[2025-11-21T06:55:20.655Z] %c[RPG:Inventory]%c [2025-11-21T06:55:19.934Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:55:20.689Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:55:20.689Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:55:20.689Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:55:20.689Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:55:20.689Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:55:20.690Z] [TypingText] [2025-11-21T06:55:20.013Z] [ACTION] [pebc3o] Starting typing effect
+[2025-11-21T06:55:20.697Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:55:20.697Z] console.groupEnd
+[2025-11-21T06:55:20.697Z] [StoryWindow] [2025-11-21T06:55:20.015Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:55:20.710Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:55:20.710Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:55:20.710Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:55:20.710Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:55:20.710Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:55:20.710Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:55:20.710Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:55:20.710Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:55:20.710Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:55:20.710Z] Connected to server
+[2025-11-21T06:55:20.713Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:55:20.713Z] [TypingText] [2025-11-21T06:55:20.346Z] [INFO] [pebc3o] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 332ms, estimatedRemaining: 210ms}
+[2025-11-21T06:55:20.728Z] %c[RPG:Animation]%c [2025-11-21T06:55:20.481Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:55:20.729Z] [TypingText] [2025-11-21T06:55:20.559Z] [INFO] [pebc3o] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 544ms, estimatedRemaining: 0ms}
+[2025-11-21T06:55:20.759Z] [TypingText] [2025-11-21T06:55:20.589Z] [ACTION] [pebc3o] Typing completed
+[2025-11-21T06:55:20.792Z] {totalTime: 575ms, expectedTime: 510ms, efficiency: 88.8%, charactersPerSecond: 29.6}
+[2025-11-21T06:55:20.792Z] console.groupEnd
+[2025-11-21T06:55:20.793Z] [StoryWindow] [2025-11-21T06:55:20.590Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:55:20.809Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:55:20.809Z] console.groupEnd
+[2025-11-21T06:55:20.810Z] [TypingText] [2025-11-21T06:55:20.609Z] [WARN] [pebc3o] Typing interrupted/cleaned up 
+[2025-11-21T06:55:20.824Z] [StoryWindow] [2025-11-21T06:55:20.610Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:55:23.265Z] [RPG] Action triggered: "explore"
+[2025-11-21T06:55:23.274Z] [RPG Store] [2025-11-21T06:55:23.266Z] [ACTION] Performing action: "explore"
+[2025-11-21T06:55:23.276Z] console.groupEnd
+[2025-11-21T06:55:23.276Z] [RPG Store] [2025-11-21T06:55:23.269Z] [INFO] Resolving action: "explore" (normalized: "explore") {currentLocation: Ruins of Eldrath, currentHp: 75, currentMana: 40}
+[2025-11-21T06:55:23.278Z] [RPG Store] [2025-11-21T06:55:23.271Z] [ACTION] Resolving: "explore"
+[2025-11-21T06:55:23.278Z] {resolution: Object, currentLocation: Ruins of Eldrath, currentCommands: 6}
+[2025-11-21T06:55:23.278Z] console.groupEnd
+[2025-11-21T06:55:23.278Z] [RPG Store] [2025-11-21T06:55:23.272Z] [INFO] No character delta to apply 
+[2025-11-21T06:55:23.279Z] [RPG Store] [2025-11-21T06:55:23.273Z] [INFO] Resolution applied: "explore" {locationChanged: false, commandUnlocked: Translate Glyphs, newCommandCount: 7, narrativeLines: 2, storyTextLength: 9}
+[2025-11-21T06:55:23.290Z] [RPG Store] [2025-11-21T06:55:23.273Z] [INFO] Action 'action:explore' took 6.90ms 
+[2025-11-21T06:55:23.342Z] [RPG Store] [2025-11-21T06:55:23.273Z] [INFO] State after action "explore" {newLocation: Ruins of Eldrath, newHp: 75, newMana: 40, storyTextLength: 9, commandCount: 7}
+[2025-11-21T06:55:23.343Z] [RPG] Story text updated: {previousLength: 5, newLength: 9, newLines: Array(4)}
+[2025-11-21T06:55:23.344Z] [RPG] Available commands changed: {previousCount: 6, newCount: 7, previous: Array(6), current: Array(7), added: Array(1)}
+[2025-11-21T06:55:23.352Z] [StoryWindow] [2025-11-21T06:55:23.298Z] [ACTION] Processing story text
+[2025-11-21T06:55:23.360Z] {currentLength: 9, previousLength: 5, hasNewEntries: true, enableTyping: true, newLines: Array(4)}
+[2025-11-21T06:55:23.360Z] console.groupEnd
+[2025-11-21T06:55:23.360Z] [StoryWindow] [2025-11-21T06:55:23.299Z] [INFO] New entry created [11] {text: explore, isCommand: true, willType: false, index: 6}
+[2025-11-21T06:55:23.362Z] [StoryWindow] [2025-11-21T06:55:23.300Z] [INFO] New entry created [12] {text: You edge deeper into the maze of shattered corrido..., isCommand: false, willType: false, index: 7}
+[2025-11-21T06:55:23.363Z] [StoryWindow] [2025-11-21T06:55:23.303Z] [INFO] New entry created [13] {text: Strange glyphs glow for a moment, revealing a hidd..., isCommand: false, willType: true, index: 8}
+[2025-11-21T06:55:23.364Z] [StoryWindow] [2025-11-21T06:55:23.304Z] [ACTION] Story entries updated
+[2025-11-21T06:55:23.375Z] {totalEntries: 9, typingEntries: 1, commandEntries: 1, narrativeEntries: 5}
+[2025-11-21T06:55:23.375Z] console.groupEnd
+[2025-11-21T06:55:23.375Z] [TypingText] [2025-11-21T06:55:23.337Z] [ACTION] [kfra2] Starting typing effect
+[2025-11-21T06:55:23.478Z] {textLength: 65, speed: 30, estimatedDuration: 1.95s, showCursor: true}
+[2025-11-21T06:55:23.478Z] console.groupEnd
+[2025-11-21T06:55:23.478Z] [StoryWindow] [2025-11-21T06:55:23.342Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 536.7999877929688, scrollHeight: 1072, clientHeight: 535}
+[2025-11-21T06:55:23.644Z] [TypingText] [2025-11-21T06:55:23.646Z] [INFO] [kfra2] Typing progress {progress: 15.4%, characters: 10/65, elapsed: 306ms, estimatedRemaining: 1650ms}
+[2025-11-21T06:55:23.940Z] [TypingText] [2025-11-21T06:55:23.941Z] [INFO] [kfra2] Typing progress {progress: 30.8%, characters: 20/65, elapsed: 602ms, estimatedRemaining: 1350ms}
+[2025-11-21T06:55:24.239Z] [TypingText] [2025-11-21T06:55:24.240Z] [INFO] [kfra2] Typing progress {progress: 46.2%, characters: 30/65, elapsed: 901ms, estimatedRemaining: 1050ms}
+[2025-11-21T06:55:24.540Z] [TypingText] [2025-11-21T06:55:24.540Z] [INFO] [kfra2] Typing progress {progress: 61.5%, characters: 40/65, elapsed: 1201ms, estimatedRemaining: 750ms}
+[2025-11-21T06:55:24.840Z] [TypingText] [2025-11-21T06:55:24.840Z] [INFO] [kfra2] Typing progress {progress: 76.9%, characters: 50/65, elapsed: 1500ms, estimatedRemaining: 450ms}
+[2025-11-21T06:55:25.171Z] [vite] connecting...
+[2025-11-21T06:55:25.176Z] [vite] connected.
+[2025-11-21T06:55:25.513Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:55:25.535Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:55:25.535Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:55:25.536Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:55:25.536Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:55:25.536Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:55:25.543Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:55:25.551Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:55:25.594Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:55:25.649Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:55:25.651Z] %c[RPG:Animation]%c [2025-11-21T06:55:25.653Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:55:25.673Z] console.groupEnd
+[2025-11-21T06:55:25.673Z] [StoryWindow] [2025-11-21T06:55:25.655Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:55:25.675Z] [StoryWindow] [2025-11-21T06:55:25.656Z] [ACTION] Processing story text
+[2025-11-21T06:55:25.697Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:55:25.697Z] console.groupEnd
+[2025-11-21T06:55:25.697Z] [StoryWindow] [2025-11-21T06:55:25.657Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:55:25.701Z] [StoryWindow] [2025-11-21T06:55:25.657Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:55:25.703Z] [StoryWindow] [2025-11-21T06:55:25.658Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:55:25.704Z] [StoryWindow] [2025-11-21T06:55:25.658Z] [ACTION] Story entries updated
+[2025-11-21T06:55:25.705Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:55:25.706Z] console.groupEnd
+[2025-11-21T06:55:25.707Z] [StoryWindow] [2025-11-21T06:55:25.674Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:55:25.711Z] %c[RPG:Animation]%c [2025-11-21T06:55:25.676Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:55:25.716Z] console.groupEnd
+[2025-11-21T06:55:25.716Z] %c[RPG:Inventory]%c [2025-11-21T06:55:25.677Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:55:25.718Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:55:25.718Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:55:25.718Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:55:25.718Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:55:25.725Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:55:25.815Z] [TypingText] [2025-11-21T06:55:25.791Z] [ACTION] [pdh9op] Starting typing effect
+[2025-11-21T06:55:25.952Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:55:25.952Z] console.groupEnd
+[2025-11-21T06:55:25.952Z] [StoryWindow] [2025-11-21T06:55:25.823Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:55:25.955Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:55:25.955Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:55:25.955Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:55:25.955Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:55:25.955Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:55:25.955Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:55:25.955Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:55:25.955Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:55:25.955Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:55:25.955Z] Connected to server
+[2025-11-21T06:55:26.045Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:55:26.157Z] [TypingText] [2025-11-21T06:55:26.158Z] [INFO] [pdh9op] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 335ms, estimatedRemaining: 210ms}
+[2025-11-21T06:55:26.242Z] %c[RPG:Animation]%c [2025-11-21T06:55:26.240Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:55:26.364Z] [TypingText] [2025-11-21T06:55:26.364Z] [INFO] [pdh9op] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 542ms, estimatedRemaining: 0ms}
+[2025-11-21T06:55:26.393Z] [TypingText] [2025-11-21T06:55:26.394Z] [ACTION] [pdh9op] Typing completed
+[2025-11-21T06:55:26.427Z] {totalTime: 572ms, expectedTime: 510ms, efficiency: 89.2%, charactersPerSecond: 29.7}
+[2025-11-21T06:55:26.427Z] console.groupEnd
+[2025-11-21T06:55:26.427Z] [StoryWindow] [2025-11-21T06:55:26.395Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:55:26.429Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:55:26.429Z] console.groupEnd
+[2025-11-21T06:55:26.429Z] [TypingText] [2025-11-21T06:55:26.407Z] [WARN] [pdh9op] Typing interrupted/cleaned up 
+[2025-11-21T06:55:26.430Z] [StoryWindow] [2025-11-21T06:55:26.407Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:55:28.640Z] [vite] connecting...
+[2025-11-21T06:55:28.652Z] [vite] connected.
+[2025-11-21T06:55:28.978Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:55:29.003Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:55:29.003Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:55:29.003Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:55:29.004Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:55:29.004Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:55:29.010Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:55:29.018Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:55:29.056Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:55:29.120Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:55:29.122Z] %c[RPG:Animation]%c [2025-11-21T06:55:29.123Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:55:29.130Z] console.groupEnd
+[2025-11-21T06:55:29.133Z] [StoryWindow] [2025-11-21T06:55:29.124Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:55:29.135Z] [StoryWindow] [2025-11-21T06:55:29.125Z] [ACTION] Processing story text
+[2025-11-21T06:55:29.135Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:55:29.135Z] console.groupEnd
+[2025-11-21T06:55:29.135Z] [StoryWindow] [2025-11-21T06:55:29.126Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:55:29.137Z] [StoryWindow] [2025-11-21T06:55:29.127Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:55:29.138Z] [StoryWindow] [2025-11-21T06:55:29.127Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:55:29.139Z] [StoryWindow] [2025-11-21T06:55:29.127Z] [ACTION] Story entries updated
+[2025-11-21T06:55:29.140Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:55:29.140Z] console.groupEnd
+[2025-11-21T06:55:29.141Z] [StoryWindow] [2025-11-21T06:55:29.141Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:55:29.145Z] %c[RPG:Animation]%c [2025-11-21T06:55:29.143Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:55:29.330Z] console.groupEnd
+[2025-11-21T06:55:29.330Z] %c[RPG:Inventory]%c [2025-11-21T06:55:29.144Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:55:29.414Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:55:29.494Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:55:29.495Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:55:29.495Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:55:29.495Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:55:29.495Z] [TypingText] [2025-11-21T06:55:29.227Z] [ACTION] [0pz9x8] Starting typing effect
+[2025-11-21T06:55:29.496Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:55:29.496Z] console.groupEnd
+[2025-11-21T06:55:29.496Z] [StoryWindow] [2025-11-21T06:55:29.229Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:55:29.543Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:55:29.544Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:55:29.544Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:55:29.544Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:55:29.544Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:55:29.544Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:55:29.544Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:55:29.544Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:55:29.544Z] Connected to server
+[2025-11-21T06:55:29.544Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:55:29.545Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:55:29.546Z] [TypingText] [2025-11-21T06:55:29.530Z] [INFO] [0pz9x8] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 302ms, estimatedRemaining: 210ms}
+[2025-11-21T06:55:29.688Z] %c[RPG:Animation]%c [2025-11-21T06:55:29.689Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:55:29.743Z] [TypingText] [2025-11-21T06:55:29.744Z] [INFO] [0pz9x8] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 515ms, estimatedRemaining: 0ms}
+[2025-11-21T06:55:29.776Z] [TypingText] [2025-11-21T06:55:29.776Z] [ACTION] [0pz9x8] Typing completed
+[2025-11-21T06:55:29.810Z] {totalTime: 548ms, expectedTime: 510ms, efficiency: 93.1%, charactersPerSecond: 31.0}
+[2025-11-21T06:55:29.810Z] console.groupEnd
+[2025-11-21T06:55:29.810Z] [StoryWindow] [2025-11-21T06:55:29.777Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:55:29.811Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:55:29.811Z] console.groupEnd
+[2025-11-21T06:55:29.812Z] [TypingText] [2025-11-21T06:55:29.792Z] [WARN] [0pz9x8] Typing interrupted/cleaned up 
+[2025-11-21T06:55:29.822Z] [StoryWindow] [2025-11-21T06:55:29.793Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:55:33.175Z] [vite] connecting...
+[2025-11-21T06:55:33.229Z] [vite] connected.
+[2025-11-21T06:55:33.559Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:55:33.583Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:55:33.584Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:55:33.584Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:55:33.585Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:55:33.585Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:55:33.592Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:55:33.601Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:55:33.637Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:55:33.728Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:55:33.730Z] %c[RPG:Animation]%c [2025-11-21T06:55:33.732Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:55:33.735Z] console.groupEnd
+[2025-11-21T06:55:33.737Z] [StoryWindow] [2025-11-21T06:55:33.733Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:55:33.738Z] [StoryWindow] [2025-11-21T06:55:33.733Z] [ACTION] Processing story text
+[2025-11-21T06:55:33.739Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:55:33.739Z] console.groupEnd
+[2025-11-21T06:55:33.739Z] [StoryWindow] [2025-11-21T06:55:33.736Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:55:33.741Z] [StoryWindow] [2025-11-21T06:55:33.736Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:55:33.741Z] [StoryWindow] [2025-11-21T06:55:33.737Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:55:33.742Z] [StoryWindow] [2025-11-21T06:55:33.737Z] [ACTION] Story entries updated
+[2025-11-21T06:55:33.745Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:55:33.745Z] console.groupEnd
+[2025-11-21T06:55:33.747Z] [StoryWindow] [2025-11-21T06:55:33.749Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:55:33.791Z] %c[RPG:Animation]%c [2025-11-21T06:55:33.750Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:55:33.873Z] console.groupEnd
+[2025-11-21T06:55:33.874Z] %c[RPG:Inventory]%c [2025-11-21T06:55:33.752Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:55:33.963Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:55:33.964Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:55:33.964Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:55:33.964Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:55:33.964Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:55:34.011Z] [TypingText] [2025-11-21T06:55:33.876Z] [ACTION] [nzgeb] Starting typing effect
+[2025-11-21T06:55:34.030Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:55:34.030Z] console.groupEnd
+[2025-11-21T06:55:34.030Z] [StoryWindow] [2025-11-21T06:55:33.877Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:55:34.045Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:55:34.045Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:55:34.045Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:55:34.045Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:55:34.046Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:55:34.046Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:55:34.046Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:55:34.046Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:55:34.046Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:55:34.046Z] Connected to server
+[2025-11-21T06:55:34.047Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:55:34.176Z] [TypingText] [2025-11-21T06:55:34.177Z] [INFO] [nzgeb] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 300ms, estimatedRemaining: 210ms}
+[2025-11-21T06:55:34.292Z] %c[RPG:Animation]%c [2025-11-21T06:55:34.289Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:55:34.393Z] [TypingText] [2025-11-21T06:55:34.393Z] [INFO] [nzgeb] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 516ms, estimatedRemaining: 0ms}
+[2025-11-21T06:55:34.427Z] [TypingText] [2025-11-21T06:55:34.419Z] [ACTION] [nzgeb] Typing completed
+[2025-11-21T06:55:34.457Z] {totalTime: 542ms, expectedTime: 510ms, efficiency: 94.1%, charactersPerSecond: 31.4}
+[2025-11-21T06:55:34.457Z] console.groupEnd
+[2025-11-21T06:55:34.457Z] [StoryWindow] [2025-11-21T06:55:34.421Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:55:34.458Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:55:34.458Z] console.groupEnd
+[2025-11-21T06:55:34.459Z] [TypingText] [2025-11-21T06:55:34.431Z] [WARN] [nzgeb] Typing interrupted/cleaned up 
+[2025-11-21T06:55:34.459Z] [StoryWindow] [2025-11-21T06:55:34.432Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:55:36.855Z] [RPG] Command submitted: "Attack"
+[2025-11-21T06:55:37.093Z] [RPG Store] [2025-11-21T06:55:36.857Z] [ACTION] Submitting command: "Attack"
+[2025-11-21T06:55:37.094Z] console.groupEnd
+[2025-11-21T06:55:37.094Z] [RPG Store] [2025-11-21T06:55:36.857Z] [INFO] Resolving command: "Attack" (normalized: "attack") 
+[2025-11-21T06:55:42.551Z] [RPG] Command submitted: "Attack"
+[2025-11-21T06:55:42.556Z] [RPG Store] [2025-11-21T06:55:42.550Z] [ACTION] Submitting command: "Attack"
+[2025-11-21T06:55:42.557Z] console.groupEnd
+[2025-11-21T06:55:42.557Z] [RPG Store] [2025-11-21T06:55:42.552Z] [INFO] Resolving command: "Attack" (normalized: "attack") 
+[2025-11-21T06:55:48.006Z] [RPG] Command submitted: "Attack"
+[2025-11-21T06:55:48.009Z] [RPG Store] [2025-11-21T06:55:48.007Z] [ACTION] Submitting command: "Attack"
+[2025-11-21T06:55:48.010Z] console.groupEnd
+[2025-11-21T06:55:48.010Z] [RPG Store] [2025-11-21T06:55:48.007Z] [INFO] Resolving command: "Attack" (normalized: "attack") 
+[2025-11-21T06:55:48.775Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:55:53.521Z] [RPG] Command submitted: "Attack"
+[2025-11-21T06:55:53.621Z] [RPG Store] [2025-11-21T06:55:53.524Z] [ACTION] Submitting command: "Attack"
+[2025-11-21T06:55:53.624Z] console.groupEnd
+[2025-11-21T06:55:53.624Z] [RPG Store] [2025-11-21T06:55:53.525Z] [INFO] Resolving command: "Attack" (normalized: "attack") 
+[2025-11-21T06:55:59.024Z] [RPG] Command submitted: "Attack"
+[2025-11-21T06:55:59.028Z] [RPG Store] [2025-11-21T06:55:59.023Z] [ACTION] Submitting command: "Attack"
+[2025-11-21T06:55:59.037Z] console.groupEnd
+[2025-11-21T06:55:59.037Z] [RPG Store] [2025-11-21T06:55:59.023Z] [INFO] Resolving command: "Attack" (normalized: "attack") 
+[2025-11-21T06:56:01.712Z] [vite] connecting...
+[2025-11-21T06:56:01.713Z] [vite] connected.
+[2025-11-21T06:56:01.880Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:56:01.906Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:01.906Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:01.907Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:01.907Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:01.907Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:01.914Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:56:01.922Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:02.084Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:02.230Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:56:02.230Z] %c[RPG:Animation]%c [2025-11-21T06:56:02.028Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:02.231Z] console.groupEnd
+[2025-11-21T06:56:02.231Z] [StoryWindow] [2025-11-21T06:56:02.028Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:56:02.232Z] [StoryWindow] [2025-11-21T06:56:02.028Z] [ACTION] Processing story text
+[2025-11-21T06:56:02.282Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:56:02.282Z] console.groupEnd
+[2025-11-21T06:56:02.282Z] [StoryWindow] [2025-11-21T06:56:02.029Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:56:02.315Z] [StoryWindow] [2025-11-21T06:56:02.043Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:56:02.349Z] [StoryWindow] [2025-11-21T06:56:02.044Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:56:02.446Z] [StoryWindow] [2025-11-21T06:56:02.044Z] [ACTION] Story entries updated
+[2025-11-21T06:56:02.448Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:56:02.449Z] console.groupEnd
+[2025-11-21T06:56:02.449Z] [StoryWindow] [2025-11-21T06:56:02.056Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:56:02.515Z] %c[RPG:Animation]%c [2025-11-21T06:56:02.057Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:02.556Z] console.groupEnd
+[2025-11-21T06:56:02.561Z] %c[RPG:Inventory]%c [2025-11-21T06:56:02.058Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:56:02.562Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:56:02.562Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:56:02.562Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:56:02.562Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:56:02.562Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:56:02.581Z] [TypingText] [2025-11-21T06:56:02.138Z] [ACTION] [tox4] Starting typing effect
+[2025-11-21T06:56:02.855Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:56:02.855Z] console.groupEnd
+[2025-11-21T06:56:02.856Z] [StoryWindow] [2025-11-21T06:56:02.156Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:02.949Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:56:02.949Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:56:02.949Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:56:02.949Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:02.949Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:02.949Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:02.949Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:02.949Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:02.949Z] Connected to server
+[2025-11-21T06:56:02.949Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:56:02.956Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:56:02.956Z] [TypingText] [2025-11-21T06:56:02.462Z] [INFO] [tox4] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 306ms, estimatedRemaining: 210ms}
+[2025-11-21T06:56:03.046Z] %c[RPG:Animation]%c [2025-11-21T06:56:02.597Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:56:03.123Z] [TypingText] [2025-11-21T06:56:02.696Z] [INFO] [tox4] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 541ms, estimatedRemaining: 0ms}
+[2025-11-21T06:56:03.175Z] [TypingText] [2025-11-21T06:56:02.732Z] [ACTION] [tox4] Typing completed
+[2025-11-21T06:56:03.176Z] {totalTime: 576ms, expectedTime: 510ms, efficiency: 88.6%, charactersPerSecond: 29.5}
+[2025-11-21T06:56:03.176Z] console.groupEnd
+[2025-11-21T06:56:03.176Z] [StoryWindow] [2025-11-21T06:56:02.733Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:56:03.178Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:56:03.178Z] console.groupEnd
+[2025-11-21T06:56:03.178Z] [TypingText] [2025-11-21T06:56:02.760Z] [WARN] [tox4] Typing interrupted/cleaned up 
+[2025-11-21T06:56:03.181Z] [StoryWindow] [2025-11-21T06:56:02.761Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:05.696Z] [RPG] Command submitted: "Attack"
+[2025-11-21T06:56:05.729Z] [RPG Store] [2025-11-21T06:56:05.652Z] [ACTION] Submitting command: "Attack"
+[2025-11-21T06:56:05.731Z] console.groupEnd
+[2025-11-21T06:56:05.731Z] [RPG Store] [2025-11-21T06:56:05.657Z] [INFO] Resolving command: "Attack" (normalized: "attack") 
+[2025-11-21T06:56:14.108Z] [vite] connecting...
+[2025-11-21T06:56:14.131Z] [vite] connected.
+[2025-11-21T06:56:14.379Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:56:14.402Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:14.402Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:14.402Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:14.402Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:14.403Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:14.410Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:56:14.418Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:14.481Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:14.542Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:56:14.544Z] %c[RPG:Animation]%c [2025-11-21T06:56:14.546Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:14.545Z] console.groupEnd
+[2025-11-21T06:56:14.546Z] [StoryWindow] [2025-11-21T06:56:14.547Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:56:14.547Z] [StoryWindow] [2025-11-21T06:56:14.548Z] [ACTION] Processing story text
+[2025-11-21T06:56:14.547Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:56:14.548Z] console.groupEnd
+[2025-11-21T06:56:14.549Z] [StoryWindow] [2025-11-21T06:56:14.550Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:56:14.552Z] [StoryWindow] [2025-11-21T06:56:14.551Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:56:14.553Z] [StoryWindow] [2025-11-21T06:56:14.551Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:56:14.554Z] [StoryWindow] [2025-11-21T06:56:14.552Z] [ACTION] Story entries updated
+[2025-11-21T06:56:14.555Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:56:14.555Z] console.groupEnd
+[2025-11-21T06:56:14.566Z] [StoryWindow] [2025-11-21T06:56:14.567Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:56:14.570Z] %c[RPG:Animation]%c [2025-11-21T06:56:14.568Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:14.572Z] console.groupEnd
+[2025-11-21T06:56:14.576Z] %c[RPG:Inventory]%c [2025-11-21T06:56:14.578Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:56:14.591Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:56:14.595Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:56:14.596Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:56:14.597Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:56:14.713Z] [TypingText] [2025-11-21T06:56:14.715Z] [ACTION] [69wlcb] Starting typing effect
+[2025-11-21T06:56:14.714Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:56:14.715Z] console.groupEnd
+[2025-11-21T06:56:14.716Z] [StoryWindow] [2025-11-21T06:56:14.717Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:14.726Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:56:14.727Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:56:14.727Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:56:14.727Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:14.727Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:14.727Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:14.728Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:14.728Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:14.731Z] Connected to server
+[2025-11-21T06:56:14.745Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:56:14.755Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:56:14.908Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:56:15.017Z] [TypingText] [2025-11-21T06:56:15.018Z] [INFO] [69wlcb] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 302ms, estimatedRemaining: 210ms}
+[2025-11-21T06:56:15.227Z] [TypingText] [2025-11-21T06:56:15.228Z] [INFO] [69wlcb] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 512ms, estimatedRemaining: 0ms}
+[2025-11-21T06:56:15.264Z] [TypingText] [2025-11-21T06:56:15.259Z] [ACTION] [69wlcb] Typing completed
+[2025-11-21T06:56:15.266Z] {totalTime: 543ms, expectedTime: 510ms, efficiency: 94.0%, charactersPerSecond: 31.3}
+[2025-11-21T06:56:15.266Z] console.groupEnd
+[2025-11-21T06:56:15.266Z] [StoryWindow] [2025-11-21T06:56:15.261Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:56:15.268Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:56:15.268Z] console.groupEnd
+[2025-11-21T06:56:15.287Z] [TypingText] [2025-11-21T06:56:15.281Z] [WARN] [69wlcb] Typing interrupted/cleaned up 
+[2025-11-21T06:56:15.295Z] [StoryWindow] [2025-11-21T06:56:15.284Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:15.907Z] %c[RPG:Animation]%c [2025-11-21T06:56:15.907Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:56:18.970Z] [RPG] Command submitted: "Attack"
+[2025-11-21T06:56:18.971Z] [RPG Store] [2025-11-21T06:56:18.972Z] [ACTION] Submitting command: "Attack"
+[2025-11-21T06:56:18.972Z] console.groupEnd
+[2025-11-21T06:56:18.972Z] [RPG Store] [2025-11-21T06:56:18.973Z] [INFO] Resolving command: "Attack" (normalized: "attack") 
+[2025-11-21T06:56:25.245Z] [vite] connecting...
+[2025-11-21T06:56:25.252Z] [vite] connected.
+[2025-11-21T06:56:25.599Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:56:25.627Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:25.628Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:25.629Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:25.629Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:25.629Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:25.640Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:56:25.646Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:25.737Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:25.799Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:56:25.801Z] %c[RPG:Animation]%c [2025-11-21T06:56:25.801Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:25.804Z] console.groupEnd
+[2025-11-21T06:56:25.806Z] [StoryWindow] [2025-11-21T06:56:25.802Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:56:25.807Z] [StoryWindow] [2025-11-21T06:56:25.806Z] [ACTION] Processing story text
+[2025-11-21T06:56:25.808Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:56:25.809Z] console.groupEnd
+[2025-11-21T06:56:25.810Z] [StoryWindow] [2025-11-21T06:56:25.809Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:56:25.811Z] [StoryWindow] [2025-11-21T06:56:25.809Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:56:25.812Z] [StoryWindow] [2025-11-21T06:56:25.811Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:56:25.813Z] [StoryWindow] [2025-11-21T06:56:25.812Z] [ACTION] Story entries updated
+[2025-11-21T06:56:25.814Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:56:25.815Z] console.groupEnd
+[2025-11-21T06:56:25.827Z] [StoryWindow] [2025-11-21T06:56:25.827Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:56:25.831Z] %c[RPG:Animation]%c [2025-11-21T06:56:25.830Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:25.843Z] console.groupEnd
+[2025-11-21T06:56:25.845Z] %c[RPG:Inventory]%c [2025-11-21T06:56:25.844Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:56:25.848Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:56:25.851Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:56:25.862Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:56:25.866Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:56:25.934Z] [TypingText] [2025-11-21T06:56:25.934Z] [ACTION] [9ybuz] Starting typing effect
+[2025-11-21T06:56:25.935Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:56:25.935Z] console.groupEnd
+[2025-11-21T06:56:25.936Z] [StoryWindow] [2025-11-21T06:56:25.935Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:25.953Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:56:25.954Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:56:25.954Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:56:25.955Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:25.956Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:25.960Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:25.964Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:25.965Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:25.968Z] Connected to server
+[2025-11-21T06:56:25.977Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:56:25.986Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:56:26.093Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:56:26.237Z] [TypingText] [2025-11-21T06:56:26.235Z] [INFO] [9ybuz] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 301ms, estimatedRemaining: 210ms}
+[2025-11-21T06:56:26.716Z] [TypingText] [2025-11-21T06:56:26.715Z] [INFO] [9ybuz] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 781ms, estimatedRemaining: 0ms}
+[2025-11-21T06:56:26.747Z] [TypingText] [2025-11-21T06:56:26.746Z] [ACTION] [9ybuz] Typing completed
+[2025-11-21T06:56:26.748Z] {totalTime: 811ms, expectedTime: 510ms, efficiency: 62.9%, charactersPerSecond: 21.0}
+[2025-11-21T06:56:26.748Z] console.groupEnd
+[2025-11-21T06:56:26.750Z] [StoryWindow] [2025-11-21T06:56:26.749Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:56:26.751Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:56:26.751Z] console.groupEnd
+[2025-11-21T06:56:26.776Z] [TypingText] [2025-11-21T06:56:26.770Z] [WARN] [9ybuz] Typing interrupted/cleaned up 
+[2025-11-21T06:56:26.780Z] [StoryWindow] [2025-11-21T06:56:26.773Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:27.092Z] %c[RPG:Animation]%c [2025-11-21T06:56:27.091Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:56:30.114Z] [RPG] Command submitted: "Rest"
+[2025-11-21T06:56:30.115Z] [RPG Store] [2025-11-21T06:56:30.114Z] [ACTION] Submitting command: "Rest"
+[2025-11-21T06:56:30.115Z] console.groupEnd
+[2025-11-21T06:56:30.116Z] [RPG Store] [2025-11-21T06:56:30.115Z] [INFO] Resolving command: "Rest" (normalized: "rest") 
+[2025-11-21T06:56:30.117Z] [RPG Store] [2025-11-21T06:56:30.116Z] [ACTION] Resolving: "Rest"
+[2025-11-21T06:56:30.118Z] {resolution: Object, currentLocation: Ruins of Eldrath, currentCommands: 6}
+[2025-11-21T06:56:30.118Z] console.groupEnd
+[2025-11-21T06:56:30.119Z] [RPG Store] [2025-11-21T06:56:30.119Z] [INFO] Applying character delta {before: Object, delta: Object}
+[2025-11-21T06:56:30.120Z] [RPG Store] [2025-11-21T06:56:30.119Z] [INFO] Character delta applied {after: Object, changes: Object}
+[2025-11-21T06:56:30.123Z] [RPG Store] [2025-11-21T06:56:30.120Z] [INFO] Resolution applied: "Rest" {locationChanged: false, commandUnlocked: false, newCommandCount: 6, narrativeLines: 1, storyTextLength: 8}
+[2025-11-21T06:56:30.123Z] [RPG Store] [2025-11-21T06:56:30.122Z] [INFO] Action 'command:Rest' took 8.80ms 
+[2025-11-21T06:56:30.124Z] [RPG Store] [2025-11-21T06:56:30.123Z] [INFO] State after command "Rest" {newLocation: Ruins of Eldrath, newHp: 90, newMana: 50, storyTextLength: 8, commandCount: 6}
+[2025-11-21T06:56:30.125Z] [RPG] Character changed: {before: Object, after: Object, changes: Object}
+[2025-11-21T06:56:30.127Z] [RPG] Story text updated: {previousLength: 5, newLength: 8, newLines: Array(3)}
+[2025-11-21T06:56:30.166Z] %c[RPG:Performance]%c [2025-11-21T06:56:30.165Z] PlayerPanel.render: 4362.60ms color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:56:30.167Z] %c[RPG:Animation]%c [2025-11-21T06:56:30.166Z] PlayerPanel: render completed color: #10b981; font-weight: bold color: #999 {duration: undefined}
+[2025-11-21T06:56:30.172Z] %c[RPG:Animation]%c [2025-11-21T06:56:30.170Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:30.174Z] console.groupEnd
+[2025-11-21T06:56:30.175Z] [StoryWindow] [2025-11-21T06:56:30.174Z] [ACTION] Processing story text
+[2025-11-21T06:56:30.177Z] {currentLength: 8, previousLength: 5, hasNewEntries: true, enableTyping: true, newLines: Array(3)}
+[2025-11-21T06:56:30.177Z] console.groupEnd
+[2025-11-21T06:56:30.177Z] [StoryWindow] [2025-11-21T06:56:30.177Z] [INFO] New entry created [11] {text: Rest, isCommand: true, willType: false, index: 6}
+[2025-11-21T06:56:30.178Z] [StoryWindow] [2025-11-21T06:56:30.177Z] [INFO] New entry created [12] {text: You take a quiet moment to steady your breath. The..., isCommand: false, willType: true, index: 7}
+[2025-11-21T06:56:30.180Z] [StoryWindow] [2025-11-21T06:56:30.178Z] [ACTION] Story entries updated
+[2025-11-21T06:56:30.181Z] {totalEntries: 8, typingEntries: 1, commandEntries: 1, narrativeEntries: 4}
+[2025-11-21T06:56:30.181Z] console.groupEnd
+[2025-11-21T06:56:30.251Z] [TypingText] [2025-11-21T06:56:30.251Z] [ACTION] [knpil] Starting typing effect
+[2025-11-21T06:56:30.254Z] {textLength: 89, speed: 30, estimatedDuration: 2.67s, showCursor: true}
+[2025-11-21T06:56:30.255Z] console.groupEnd
+[2025-11-21T06:56:30.259Z] [StoryWindow] [2025-11-21T06:56:30.257Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 431.20001220703125, scrollHeight: 966, clientHeight: 535}
+[2025-11-21T06:56:30.555Z] [TypingText] [2025-11-21T06:56:30.552Z] [INFO] [knpil] Typing progress {progress: 11.2%, characters: 10/89, elapsed: 301ms, estimatedRemaining: 2370ms}
+[2025-11-21T06:56:30.855Z] [TypingText] [2025-11-21T06:56:30.853Z] [INFO] [knpil] Typing progress {progress: 22.5%, characters: 20/89, elapsed: 601ms, estimatedRemaining: 2070ms}
+[2025-11-21T06:56:31.153Z] [TypingText] [2025-11-21T06:56:31.152Z] [INFO] [knpil] Typing progress {progress: 33.7%, characters: 30/89, elapsed: 900ms, estimatedRemaining: 1770ms}
+[2025-11-21T06:56:31.454Z] [TypingText] [2025-11-21T06:56:31.452Z] [INFO] [knpil] Typing progress {progress: 44.9%, characters: 40/89, elapsed: 1201ms, estimatedRemaining: 1470ms}
+[2025-11-21T06:56:31.754Z] [TypingText] [2025-11-21T06:56:31.753Z] [INFO] [knpil] Typing progress {progress: 56.2%, characters: 50/89, elapsed: 1501ms, estimatedRemaining: 1170ms}
+[2025-11-21T06:56:32.054Z] [TypingText] [2025-11-21T06:56:32.053Z] [INFO] [knpil] Typing progress {progress: 67.4%, characters: 60/89, elapsed: 1801ms, estimatedRemaining: 870ms}
+[2025-11-21T06:56:32.385Z] [TypingText] [2025-11-21T06:56:32.383Z] [INFO] [knpil] Typing progress {progress: 78.7%, characters: 70/89, elapsed: 2131ms, estimatedRemaining: 570ms}
+[2025-11-21T06:56:32.686Z] [TypingText] [2025-11-21T06:56:32.684Z] [INFO] [knpil] Typing progress {progress: 89.9%, characters: 80/89, elapsed: 2432ms, estimatedRemaining: 270ms}
+[2025-11-21T06:56:32.954Z] [TypingText] [2025-11-21T06:56:32.953Z] [INFO] [knpil] Typing progress {progress: 100.0%, characters: 89/89, elapsed: 2701ms, estimatedRemaining: 0ms}
+[2025-11-21T06:56:32.984Z] [TypingText] [2025-11-21T06:56:32.983Z] [ACTION] [knpil] Typing completed
+[2025-11-21T06:56:32.985Z] {totalTime: 2731ms, expectedTime: 2670ms, efficiency: 97.8%, charactersPerSecond: 32.6}
+[2025-11-21T06:56:32.985Z] console.groupEnd
+[2025-11-21T06:56:32.986Z] [StoryWindow] [2025-11-21T06:56:32.983Z] [ACTION] Typing completed for entry [12]
+[2025-11-21T06:56:32.987Z] {entryId: 12, textLength: 89, isCommand: false}
+[2025-11-21T06:56:32.987Z] console.groupEnd
+[2025-11-21T06:56:33.018Z] [TypingText] [2025-11-21T06:56:33.007Z] [WARN] [knpil] Typing interrupted/cleaned up 
+[2025-11-21T06:56:33.019Z] [StoryWindow] [2025-11-21T06:56:33.016Z] [INFO] Auto-scrolled story window {beforeScroll: 99.19999694824219, afterScroll: 99.19999694824219, scrollHeight: 634, clientHeight: 535}
+[2025-11-21T06:56:35.437Z] [vite] connecting...
+[2025-11-21T06:56:35.445Z] [vite] connected.
+[2025-11-21T06:56:35.747Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:56:35.780Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:35.780Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:35.780Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:35.780Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:35.781Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:35.788Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:56:35.796Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:35.861Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:35.921Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:56:35.924Z] %c[RPG:Animation]%c [2025-11-21T06:56:35.923Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:35.925Z] console.groupEnd
+[2025-11-21T06:56:35.926Z] [StoryWindow] [2025-11-21T06:56:35.925Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:56:35.926Z] [StoryWindow] [2025-11-21T06:56:35.926Z] [ACTION] Processing story text
+[2025-11-21T06:56:35.927Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:56:35.928Z] console.groupEnd
+[2025-11-21T06:56:35.929Z] [StoryWindow] [2025-11-21T06:56:35.928Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:56:35.929Z] [StoryWindow] [2025-11-21T06:56:35.929Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:56:35.931Z] [StoryWindow] [2025-11-21T06:56:35.929Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:56:35.934Z] [StoryWindow] [2025-11-21T06:56:35.930Z] [ACTION] Story entries updated
+[2025-11-21T06:56:35.935Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:56:35.935Z] console.groupEnd
+[2025-11-21T06:56:35.949Z] [StoryWindow] [2025-11-21T06:56:35.948Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:56:35.960Z] %c[RPG:Animation]%c [2025-11-21T06:56:35.958Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:35.967Z] console.groupEnd
+[2025-11-21T06:56:35.967Z] %c[RPG:Inventory]%c [2025-11-21T06:56:35.967Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:56:35.969Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:56:35.983Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:56:35.985Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:56:35.996Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:56:36.063Z] [TypingText] [2025-11-21T06:56:36.063Z] [ACTION] [rriic] Starting typing effect
+[2025-11-21T06:56:36.064Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:56:36.064Z] console.groupEnd
+[2025-11-21T06:56:36.065Z] [StoryWindow] [2025-11-21T06:56:36.065Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:36.071Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:56:36.072Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:56:36.073Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:56:36.073Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:36.074Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:36.075Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:36.076Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:36.076Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:36.086Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:56:36.086Z] Connected to server
+[2025-11-21T06:56:36.104Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:56:36.331Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:56:36.366Z] [TypingText] [2025-11-21T06:56:36.365Z] [INFO] [rriic] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 301ms, estimatedRemaining: 210ms}
+[2025-11-21T06:56:36.876Z] [TypingText] [2025-11-21T06:56:36.875Z] [INFO] [rriic] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 811ms, estimatedRemaining: 0ms}
+[2025-11-21T06:56:36.918Z] [TypingText] [2025-11-21T06:56:36.906Z] [ACTION] [rriic] Typing completed
+[2025-11-21T06:56:36.928Z] {totalTime: 842ms, expectedTime: 510ms, efficiency: 60.6%, charactersPerSecond: 20.2}
+[2025-11-21T06:56:36.928Z] console.groupEnd
+[2025-11-21T06:56:36.928Z] [StoryWindow] [2025-11-21T06:56:36.907Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:56:36.929Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:56:36.929Z] console.groupEnd
+[2025-11-21T06:56:36.955Z] [TypingText] [2025-11-21T06:56:36.940Z] [WARN] [rriic] Typing interrupted/cleaned up 
+[2025-11-21T06:56:36.958Z] [StoryWindow] [2025-11-21T06:56:36.942Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:37.343Z] %c[RPG:Animation]%c [2025-11-21T06:56:37.342Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:56:38.605Z] [StoryWindow Debug] Testing markdown: **Bold** *italic*
+[2025-11-21T06:56:38.605Z] [StoryWindow Debug] Raw: **Bold** *italic*
+[2025-11-21T06:56:38.606Z] [StoryWindow Debug] Should render: {bold: true, italic: true, code: false}
+[2025-11-21T06:56:38.609Z] [StoryWindow Debug] Typing test: {text: Test, length: 4, speed: 30ms per character, estimatedDuration: 120ms (0.12s)}
+[2025-11-21T06:56:38.731Z] [vite] connecting...
+[2025-11-21T06:56:38.735Z] [vite] connected.
+[2025-11-21T06:56:39.003Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:56:39.027Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:39.028Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:39.028Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:39.028Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:39.028Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:39.036Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:56:39.043Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:39.115Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:39.180Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:56:39.180Z] %c[RPG:Animation]%c [2025-11-21T06:56:39.179Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:39.181Z] console.groupEnd
+[2025-11-21T06:56:39.182Z] [StoryWindow] [2025-11-21T06:56:39.179Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:56:39.183Z] [StoryWindow] [2025-11-21T06:56:39.180Z] [ACTION] Processing story text
+[2025-11-21T06:56:39.183Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:56:39.183Z] console.groupEnd
+[2025-11-21T06:56:39.184Z] [StoryWindow] [2025-11-21T06:56:39.181Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:56:39.184Z] [StoryWindow] [2025-11-21T06:56:39.181Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:56:39.186Z] [StoryWindow] [2025-11-21T06:56:39.182Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:56:39.186Z] [StoryWindow] [2025-11-21T06:56:39.183Z] [ACTION] Story entries updated
+[2025-11-21T06:56:39.189Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:56:39.189Z] console.groupEnd
+[2025-11-21T06:56:39.199Z] [StoryWindow] [2025-11-21T06:56:39.198Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:56:39.202Z] %c[RPG:Animation]%c [2025-11-21T06:56:39.199Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:39.202Z] console.groupEnd
+[2025-11-21T06:56:39.203Z] %c[RPG:Inventory]%c [2025-11-21T06:56:39.201Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:56:39.204Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:56:39.209Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:56:39.211Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:56:39.212Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:56:39.295Z] [TypingText] [2025-11-21T06:56:39.294Z] [ACTION] [ab4a] Starting typing effect
+[2025-11-21T06:56:39.296Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:56:39.297Z] console.groupEnd
+[2025-11-21T06:56:39.300Z] [StoryWindow] [2025-11-21T06:56:39.299Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:39.331Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:56:39.331Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:56:39.332Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:56:39.332Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:39.332Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:39.332Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:39.333Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:39.333Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:39.367Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:56:39.369Z] Connected to server
+[2025-11-21T06:56:39.379Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:56:39.398Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:56:39.627Z] [TypingText] [2025-11-21T06:56:39.626Z] [INFO] [ab4a] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 331ms, estimatedRemaining: 210ms}
+[2025-11-21T06:56:39.838Z] [TypingText] [2025-11-21T06:56:39.836Z] [INFO] [ab4a] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 541ms, estimatedRemaining: 0ms}
+[2025-11-21T06:56:39.868Z] [TypingText] [2025-11-21T06:56:39.867Z] [ACTION] [ab4a] Typing completed
+[2025-11-21T06:56:39.870Z] {totalTime: 572ms, expectedTime: 510ms, efficiency: 89.2%, charactersPerSecond: 29.7}
+[2025-11-21T06:56:39.870Z] console.groupEnd
+[2025-11-21T06:56:39.870Z] [StoryWindow] [2025-11-21T06:56:39.868Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:56:39.874Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:56:39.874Z] console.groupEnd
+[2025-11-21T06:56:39.886Z] [TypingText] [2025-11-21T06:56:39.883Z] [WARN] [ab4a] Typing interrupted/cleaned up 
+[2025-11-21T06:56:39.889Z] [StoryWindow] [2025-11-21T06:56:39.885Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:40.360Z] %c[RPG:Animation]%c [2025-11-21T06:56:40.359Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:56:41.835Z] %c[RPG:Content]%c [2025-11-21T06:56:41.835Z] Generated NPC color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.836Z] {name: Desiree Dickens, title: Ancient Scholar, description: Atqui claudeo aliquam quis solitudo surgo careo., dialogue: Array(2), quest: Defeat the Echo Guardian that haunts the Ruins}
+[2025-11-21T06:56:41.837Z] console.groupEnd
+[2025-11-21T06:56:41.837Z] %c[RPG:Content]%c [2025-11-21T06:56:41.836Z] Generated NPC color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.838Z] {name: Desiree Dickens, title: Ancient Scholar, description: Atqui claudeo aliquam quis solitudo surgo careo., dialogue: Array(2), quest: Defeat the Echo Guardian that haunts the Ruins}
+[2025-11-21T06:56:41.839Z] console.groupEnd
+[2025-11-21T06:56:41.843Z] %c[RPG:Content]%c [2025-11-21T06:56:41.843Z] Generated Item color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.844Z] {name: Healing Draught, type: consumable, description: Adipisci abundans acies aetas timidus pecto aeternus amor., value: 58, rarity: rare}
+[2025-11-21T06:56:41.845Z] console.groupEnd
+[2025-11-21T06:56:41.845Z] %c[RPG:Content]%c [2025-11-21T06:56:41.844Z] Generated Item color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.847Z] {name: Healing Draught, type: consumable, description: Adipisci abundans acies aetas timidus pecto aeternus amor., value: 58, rarity: rare}
+[2025-11-21T06:56:41.847Z] console.groupEnd
+[2025-11-21T06:56:41.851Z] %c[RPG:Content]%c [2025-11-21T06:56:41.851Z] Generated Item color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.852Z] {name: Shadow Essence, type: consumable, description: Conculco admoveo virgo stultus ventito trucido defero suffoco conor adipisci., value: 37, rarity: uncommon}
+[2025-11-21T06:56:41.852Z] console.groupEnd
+[2025-11-21T06:56:41.853Z] %c[RPG:Content]%c [2025-11-21T06:56:41.852Z] Generated Item color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.857Z] {name: Mana Elixir, type: consumable, description: Odio cultellus acies vesco tollo conturbo curto amoveo utique attero., value: 10, rarity: common}
+[2025-11-21T06:56:41.863Z] console.groupEnd
+[2025-11-21T06:56:41.864Z] %c[RPG:Content]%c [2025-11-21T06:56:41.862Z] Generated Item color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.866Z] {name: Forgotten Relic, type: misc, description: Vulgaris explicabo stabilis creptio audio despecto., value: 25, rarity: common}
+[2025-11-21T06:56:41.867Z] console.groupEnd
+[2025-11-21T06:56:41.868Z] %c[RPG:Content]%c [2025-11-21T06:56:41.868Z] Generated Monster color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.871Z] {name: Forgotten Specter, level: 5, hp: 134, description: Decretum charisma dolor tum templum., loot: Array(1)}
+[2025-11-21T06:56:41.872Z] console.groupEnd
+[2025-11-21T06:56:41.874Z] %c[RPG:Content]%c [2025-11-21T06:56:41.871Z] Generated Monster color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.878Z] {name: Forgotten Specter, level: 5, hp: 134, description: Decretum charisma dolor tum templum., loot: Array(1)}
+[2025-11-21T06:56:41.881Z] console.groupEnd
+[2025-11-21T06:56:41.886Z] %c[RPG:Content]%c [2025-11-21T06:56:41.886Z] Generated Location color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.888Z] {name: Abandoned Tower of Lake Arlene, description: Soluta subiungo quam vis tego. Aliqua delectatio q…demoror claro bardus tot. Maxime cultellus ultio., danger: high, treasures: Array(0)}
+[2025-11-21T06:56:41.888Z] console.groupEnd
+[2025-11-21T06:56:41.900Z] %c[RPG:Content]%c [2025-11-21T06:56:41.899Z] Generated Item color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.902Z] {name: Echo Helm, type: armor, description: Culpo cattus conicio vilis depraedor doloribus., value: 32, rarity: uncommon}
+[2025-11-21T06:56:41.902Z] console.groupEnd
+[2025-11-21T06:56:41.902Z] %c[RPG:Content]%c [2025-11-21T06:56:41.901Z] Generated Item color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.903Z] {name: Ancient Spear, type: weapon, description: Debilito caecus ventito., value: 114, rarity: epic}
+[2025-11-21T06:56:41.903Z] console.groupEnd
+[2025-11-21T06:56:41.905Z] %c[RPG:Content]%c [2025-11-21T06:56:41.904Z] Generated Item color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.908Z] {name: Abyssal Shield, type: armor, description: Vestigium vulnus tabesco cimentarius., value: 14, rarity: common}
+[2025-11-21T06:56:41.914Z] console.groupEnd
+[2025-11-21T06:56:41.915Z] %c[RPG:Content]%c [2025-11-21T06:56:41.913Z] Generated Loot Table color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:41.917Z] [Object, Object, Object]
+[2025-11-21T06:56:41.917Z] console.groupEnd
+[2025-11-21T06:56:43.409Z] [RPG] Command submitted: "Attack"
+[2025-11-21T06:56:43.410Z] [RPG Store] [2025-11-21T06:56:43.409Z] [ACTION] Submitting command: "Attack"
+[2025-11-21T06:56:43.411Z] console.groupEnd
+[2025-11-21T06:56:43.411Z] [RPG Store] [2025-11-21T06:56:43.411Z] [INFO] Resolving command: "Attack" (normalized: "attack") 
+[2025-11-21T06:56:48.670Z] [vite] connecting...
+[2025-11-21T06:56:48.747Z] [vite] connected.
+[2025-11-21T06:56:48.977Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:56:49.000Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:49.001Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:49.001Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:49.001Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:49.001Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:49.010Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:56:49.017Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:49.091Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:49.150Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:56:49.152Z] %c[RPG:Animation]%c [2025-11-21T06:56:49.152Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:49.154Z] console.groupEnd
+[2025-11-21T06:56:49.156Z] [StoryWindow] [2025-11-21T06:56:49.154Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:56:49.156Z] [StoryWindow] [2025-11-21T06:56:49.154Z] [ACTION] Processing story text
+[2025-11-21T06:56:49.157Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:56:49.157Z] console.groupEnd
+[2025-11-21T06:56:49.158Z] [StoryWindow] [2025-11-21T06:56:49.158Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:56:49.159Z] [StoryWindow] [2025-11-21T06:56:49.158Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:56:49.162Z] [StoryWindow] [2025-11-21T06:56:49.159Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:56:49.164Z] [StoryWindow] [2025-11-21T06:56:49.161Z] [ACTION] Story entries updated
+[2025-11-21T06:56:49.164Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:56:49.164Z] console.groupEnd
+[2025-11-21T06:56:49.182Z] [StoryWindow] [2025-11-21T06:56:49.180Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:56:49.184Z] %c[RPG:Animation]%c [2025-11-21T06:56:49.183Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:49.185Z] console.groupEnd
+[2025-11-21T06:56:49.185Z] %c[RPG:Inventory]%c [2025-11-21T06:56:49.184Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:56:49.187Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:56:49.201Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:56:49.201Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:56:49.201Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:56:49.273Z] [TypingText] [2025-11-21T06:56:49.273Z] [ACTION] [zsw9xq] Starting typing effect
+[2025-11-21T06:56:49.274Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:56:49.274Z] console.groupEnd
+[2025-11-21T06:56:49.278Z] [StoryWindow] [2025-11-21T06:56:49.277Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:49.284Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:56:49.285Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:56:49.285Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:56:49.285Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:49.285Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:49.286Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:49.286Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:49.286Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:49.310Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:56:49.310Z] Connected to server
+[2025-11-21T06:56:49.317Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:56:49.514Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:56:49.575Z] [TypingText] [2025-11-21T06:56:49.574Z] [INFO] [zsw9xq] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 301ms, estimatedRemaining: 210ms}
+[2025-11-21T06:56:50.042Z] [TypingText] [2025-11-21T06:56:50.041Z] [INFO] [zsw9xq] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 767ms, estimatedRemaining: 0ms}
+[2025-11-21T06:56:50.086Z] [TypingText] [2025-11-21T06:56:50.065Z] [ACTION] [zsw9xq] Typing completed
+[2025-11-21T06:56:50.087Z] {totalTime: 791ms, expectedTime: 510ms, efficiency: 64.5%, charactersPerSecond: 21.5}
+[2025-11-21T06:56:50.087Z] console.groupEnd
+[2025-11-21T06:56:50.087Z] [StoryWindow] [2025-11-21T06:56:50.065Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:56:50.089Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:56:50.098Z] console.groupEnd
+[2025-11-21T06:56:50.098Z] [TypingText] [2025-11-21T06:56:50.095Z] [WARN] [zsw9xq] Typing interrupted/cleaned up 
+[2025-11-21T06:56:50.101Z] [StoryWindow] [2025-11-21T06:56:50.097Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:50.528Z] %c[RPG:Animation]%c [2025-11-21T06:56:50.527Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:56:55.861Z] [vite] connecting...
+[2025-11-21T06:56:55.868Z] [vite] connected.
+[2025-11-21T06:56:56.192Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:56:56.213Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:56.214Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:56.214Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:56.214Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:56.214Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:56.221Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:56:56.228Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:56.302Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:56:56.368Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:56:56.371Z] %c[RPG:Animation]%c [2025-11-21T06:56:56.370Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:56.374Z] console.groupEnd
+[2025-11-21T06:56:56.376Z] [StoryWindow] [2025-11-21T06:56:56.371Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:56:56.376Z] [StoryWindow] [2025-11-21T06:56:56.375Z] [ACTION] Processing story text
+[2025-11-21T06:56:56.377Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:56:56.378Z] console.groupEnd
+[2025-11-21T06:56:56.379Z] [StoryWindow] [2025-11-21T06:56:56.379Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:56:56.380Z] [StoryWindow] [2025-11-21T06:56:56.379Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:56:56.381Z] [StoryWindow] [2025-11-21T06:56:56.380Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:56:56.382Z] [StoryWindow] [2025-11-21T06:56:56.381Z] [ACTION] Story entries updated
+[2025-11-21T06:56:56.383Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:56:56.383Z] console.groupEnd
+[2025-11-21T06:56:56.401Z] [StoryWindow] [2025-11-21T06:56:56.400Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:56:56.404Z] %c[RPG:Animation]%c [2025-11-21T06:56:56.401Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:56:56.405Z] console.groupEnd
+[2025-11-21T06:56:56.408Z] %c[RPG:Inventory]%c [2025-11-21T06:56:56.403Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:56:56.416Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:56:56.433Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:56:56.434Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:56:56.435Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:56:56.479Z] [TypingText] [2025-11-21T06:56:56.478Z] [ACTION] [ae6mze] Starting typing effect
+[2025-11-21T06:56:56.480Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:56:56.480Z] console.groupEnd
+[2025-11-21T06:56:56.484Z] [StoryWindow] [2025-11-21T06:56:56.483Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:56.499Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:56:56.501Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:56:56.510Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:56:56.515Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:56:56.515Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:56:56.515Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:56:56.515Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:56:56.515Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:56:56.519Z] Connected to server
+[2025-11-21T06:56:56.527Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:56:56.544Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:56:56.662Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:56:56.782Z] [TypingText] [2025-11-21T06:56:56.781Z] [INFO] [ae6mze] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 301ms, estimatedRemaining: 210ms}
+[2025-11-21T06:56:57.232Z] [TypingText] [2025-11-21T06:56:57.231Z] [INFO] [ae6mze] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 751ms, estimatedRemaining: 0ms}
+[2025-11-21T06:56:57.266Z] [TypingText] [2025-11-21T06:56:57.261Z] [ACTION] [ae6mze] Typing completed
+[2025-11-21T06:56:57.267Z] {totalTime: 781ms, expectedTime: 510ms, efficiency: 65.3%, charactersPerSecond: 21.8}
+[2025-11-21T06:56:57.267Z] console.groupEnd
+[2025-11-21T06:56:57.267Z] [StoryWindow] [2025-11-21T06:56:57.261Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:56:57.267Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:56:57.267Z] console.groupEnd
+[2025-11-21T06:56:57.281Z] [TypingText] [2025-11-21T06:56:57.278Z] [WARN] [ae6mze] Typing interrupted/cleaned up 
+[2025-11-21T06:56:57.282Z] [StoryWindow] [2025-11-21T06:56:57.279Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:56:57.663Z] %c[RPG:Animation]%c [2025-11-21T06:56:57.662Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:57:09.051Z] [vite] connecting...
+[2025-11-21T06:57:09.059Z] [vite] connected.
+[2025-11-21T06:57:09.320Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:57:09.349Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:57:09.350Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:57:09.350Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:57:09.350Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:57:09.351Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:57:09.362Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:57:09.368Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:57:09.439Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:57:09.503Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:57:09.506Z] %c[RPG:Animation]%c [2025-11-21T06:57:09.505Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:57:09.508Z] console.groupEnd
+[2025-11-21T06:57:09.509Z] [StoryWindow] [2025-11-21T06:57:09.508Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:57:09.510Z] [StoryWindow] [2025-11-21T06:57:09.509Z] [ACTION] Processing story text
+[2025-11-21T06:57:09.511Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:57:09.512Z] console.groupEnd
+[2025-11-21T06:57:09.513Z] [StoryWindow] [2025-11-21T06:57:09.512Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:57:09.515Z] [StoryWindow] [2025-11-21T06:57:09.514Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:57:09.517Z] [StoryWindow] [2025-11-21T06:57:09.516Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:57:09.518Z] [StoryWindow] [2025-11-21T06:57:09.517Z] [ACTION] Story entries updated
+[2025-11-21T06:57:09.519Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:57:09.519Z] console.groupEnd
+[2025-11-21T06:57:09.536Z] [StoryWindow] [2025-11-21T06:57:09.536Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:57:09.538Z] %c[RPG:Animation]%c [2025-11-21T06:57:09.537Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:57:09.541Z] console.groupEnd
+[2025-11-21T06:57:09.543Z] %c[RPG:Inventory]%c [2025-11-21T06:57:09.539Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:57:09.550Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:57:09.553Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:57:09.554Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:57:09.579Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:57:09.632Z] [TypingText] [2025-11-21T06:57:09.631Z] [ACTION] [2hbo3p4] Starting typing effect
+[2025-11-21T06:57:09.633Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:57:09.633Z] console.groupEnd
+[2025-11-21T06:57:09.636Z] [StoryWindow] [2025-11-21T06:57:09.636Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:57:09.664Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:57:09.665Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:57:09.667Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:57:09.668Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:57:09.669Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:57:09.670Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:57:09.671Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:57:09.681Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:57:09.684Z] Connected to server
+[2025-11-21T06:57:09.691Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:57:09.698Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:57:09.858Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:57:09.965Z] [TypingText] [2025-11-21T06:57:09.964Z] [INFO] [2hbo3p4] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 331ms, estimatedRemaining: 210ms}
+[2025-11-21T06:57:12.342Z] %c[RPG:Animation]%c [2025-11-21T06:57:12.341Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:57:12.365Z] [TypingText] [2025-11-21T06:57:12.364Z] [INFO] [2hbo3p4] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 2732ms, estimatedRemaining: 0ms}
+[2025-11-21T06:57:12.400Z] [TypingText] [2025-11-21T06:57:12.398Z] [ACTION] [2hbo3p4] Typing completed
+[2025-11-21T06:57:12.404Z] {totalTime: 2765ms, expectedTime: 510ms, efficiency: 18.4%, charactersPerSecond: 6.1}
+[2025-11-21T06:57:12.409Z] console.groupEnd
+[2025-11-21T06:57:12.410Z] [StoryWindow] [2025-11-21T06:57:12.410Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:57:12.413Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:57:12.413Z] console.groupEnd
+[2025-11-21T06:57:12.430Z] [TypingText] [2025-11-21T06:57:12.428Z] [WARN] [2hbo3p4] Typing interrupted/cleaned up 
+[2025-11-21T06:57:12.435Z] [StoryWindow] [2025-11-21T06:57:12.432Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:57:13.896Z] [RPG] Action triggered: "inventory"
+[2025-11-21T06:57:13.932Z] Warning: findDOMNode is deprecated and will be removed in the next major release. Instead, add a ref directly to the element you want to reference. Learn more about using refs safely here: https://reactjs.org/link/strict-mode-find-node%s 
+    at DraggableCore (http://localhost:8080/node_modules/.vite/deps/react-draggable.js?v=d4b2f105:1311:9)
+    at Draggable (http://localhost:8080/node_modules/.vite/deps/react-draggable.js?v=d4b2f105:1718:9)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=fb3142f5:38:15)
+    at TooltipProvider (http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=a4ce88ab:2254:5)
+    at InventoryPanel (http://localhost:8080/src/games/rpg/components/InventoryPanel.tsx?t=1763707530966:37:34)
+    at div
+    at RpgIndex (http://localhost:8080/src/games/rpg/pages/Index.tsx?t=1763707530966:36:23)
+    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4088:5)
+    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4088:5)
+    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4088:5)
+    at Outlet (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4494:26)
+    at div
+    at main
+    at div
+    at div
+    at HubLayout (http://localhost:8080/src/components/HubLayout.tsx:55:23)
+    at RenderedRoute (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4088:5)
+    at Routes (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4558:5)
+    at AppRoutes
+    at Router (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:4501:15)
+    at BrowserRouter (http://localhost:8080/node_modules/.vite/deps/react-router-dom.js?v=4f96824b:5247:5)
+    at GameProvider (http://localhost:8080/src/games/paint-and-guess/state/GameContext.tsx:41:32)
+    at Provider (http://localhost:8080/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=fb3142f5:38:15)
+    at TooltipProvider (http://localhost:8080/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=a4ce88ab:2254:5)
+    at QueryClientProvider (http://localhost:8080/node_modules/.vite/deps/@tanstack_react-query.js?v=7562d748:2934:3)
+    at App
+[2025-11-21T06:57:13.933Z] %c[RPG:Animation]%c [2025-11-21T06:57:13.933Z] InventoryPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:57:13.935Z] console.groupEnd
+[2025-11-21T06:57:13.935Z] %c[RPG:Inventory]%c [2025-11-21T06:57:13.934Z] Inventory panel opened color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:57:13.936Z] {itemCount: 0}
+[2025-11-21T06:57:13.936Z] console.groupEnd
+[2025-11-21T06:57:13.938Z] %c[RPG:Animation]%c [2025-11-21T06:57:13.937Z] InventoryPanel: open started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:57:13.940Z] console.groupEnd
+[2025-11-21T06:57:15.894Z] %c[RPG:Animation]%c [2025-11-21T06:57:15.893Z] InventoryPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: undefined}
+[2025-11-21T06:57:19.764Z] %c[RPG:Content]%c [2025-11-21T06:57:19.763Z] Generated Item color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:57:19.766Z] {name: Shadow Blade, type: weapon, description: Nesciunt cohaero voluptatibus carcer cur., value: 35, rarity: uncommon}
+[2025-11-21T06:57:19.766Z] console.groupEnd
+[2025-11-21T06:57:19.766Z] Error adding item: TypeError: performanceTracker.start is not a function
+    at Object.addItem (http://localhost:8080/src/games/rpg/state/useRpgStore.tsx?t=1763707530966:486:52)
+    at Object.addItem (http://localhost:8080/src/games/rpg/utils/debug.ts?t=1763707530966:268:40)
+    at async eval (eval at evaluate (:290:30), <anonymous>:1:52)
+    at async <anonymous>:316:30
+[2025-11-21T06:57:23.261Z] [vite] connecting...
+[2025-11-21T06:57:23.281Z] [vite] connected.
+[2025-11-21T06:57:24.232Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:57:24.261Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:57:24.262Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:57:24.262Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:57:24.262Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:57:24.262Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:57:24.274Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:57:24.281Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:57:24.358Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:57:24.435Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:57:24.443Z] %c[RPG:Animation]%c [2025-11-21T06:57:24.442Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:57:24.444Z] console.groupEnd
+[2025-11-21T06:57:24.444Z] [StoryWindow] [2025-11-21T06:57:24.443Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:57:24.445Z] [StoryWindow] [2025-11-21T06:57:24.443Z] [ACTION] Processing story text
+[2025-11-21T06:57:24.447Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:57:24.447Z] console.groupEnd
+[2025-11-21T06:57:24.447Z] [StoryWindow] [2025-11-21T06:57:24.446Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:57:24.448Z] [StoryWindow] [2025-11-21T06:57:24.447Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:57:24.451Z] [StoryWindow] [2025-11-21T06:57:24.448Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:57:24.451Z] [StoryWindow] [2025-11-21T06:57:24.450Z] [ACTION] Story entries updated
+[2025-11-21T06:57:24.452Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:57:24.452Z] console.groupEnd
+[2025-11-21T06:57:24.474Z] [StoryWindow] [2025-11-21T06:57:24.472Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:57:24.479Z] %c[RPG:Animation]%c [2025-11-21T06:57:24.477Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:57:24.484Z] console.groupEnd
+[2025-11-21T06:57:24.485Z] %c[RPG:Inventory]%c [2025-11-21T06:57:24.484Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:57:24.486Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:57:24.490Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:57:24.519Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:57:24.519Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:57:24.573Z] [TypingText] [2025-11-21T06:57:24.572Z] [ACTION] [r5v3g] Starting typing effect
+[2025-11-21T06:57:24.575Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:57:24.576Z] console.groupEnd
+[2025-11-21T06:57:24.577Z] [StoryWindow] [2025-11-21T06:57:24.576Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:57:24.585Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:57:24.585Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:57:24.585Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:57:24.585Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:57:24.585Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:57:24.586Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:57:24.586Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:57:24.586Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:57:24.589Z] Connected to server
+[2025-11-21T06:57:24.598Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:57:24.604Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:57:24.878Z] [TypingText] [2025-11-21T06:57:24.876Z] [INFO] [r5v3g] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 301ms, estimatedRemaining: 210ms}
+[2025-11-21T06:57:25.117Z] [TypingText] [2025-11-21T06:57:25.116Z] [INFO] [r5v3g] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 541ms, estimatedRemaining: 0ms}
+[2025-11-21T06:57:25.151Z] [TypingText] [2025-11-21T06:57:25.147Z] [ACTION] [r5v3g] Typing completed
+[2025-11-21T06:57:25.153Z] {totalTime: 572ms, expectedTime: 510ms, efficiency: 89.2%, charactersPerSecond: 29.7}
+[2025-11-21T06:57:25.153Z] console.groupEnd
+[2025-11-21T06:57:25.153Z] [StoryWindow] [2025-11-21T06:57:25.148Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:57:25.155Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:57:25.155Z] console.groupEnd
+[2025-11-21T06:57:25.185Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:57:25.186Z] [TypingText] [2025-11-21T06:57:25.180Z] [WARN] [r5v3g] Typing interrupted/cleaned up 
+[2025-11-21T06:57:25.188Z] [StoryWindow] [2025-11-21T06:57:25.186Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:57:26.212Z] %c[RPG:Animation]%c [2025-11-21T06:57:26.211Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}
+[2025-11-21T06:57:32.554Z] [vite] connecting...
+[2025-11-21T06:57:32.558Z] [vite] connected.
+[2025-11-21T06:57:32.806Z] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[2025-11-21T06:57:32.829Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:57:32.829Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:57:32.830Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:57:32.830Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:57:32.830Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:57:32.837Z] %c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands. color: #10b981; font-weight: bold; color: #999;
+[2025-11-21T06:57:32.845Z] %c[StoryWindow Debug]%c Debug utilities loaded. Type __STORY_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:57:32.911Z] %c[RPG Debug]%c Debug utilities loaded. Type __RPG_DEBUG__.help() for available commands. color: #45b355; font-weight: bold; color: #999;
+[2025-11-21T06:57:32.994Z] [AvatarCustomizer] Dialog closed
+[2025-11-21T06:57:33.005Z] %c[RPG:Animation]%c [2025-11-21T06:57:33.004Z] PlayerPanel: render started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:57:33.007Z] console.groupEnd
+[2025-11-21T06:57:33.008Z] [StoryWindow] [2025-11-21T06:57:33.005Z] [INFO] StoryWindow mounted {location: Ruins of Eldrath, initialStoryLength: 5, enableTyping: true}
+[2025-11-21T06:57:33.009Z] [StoryWindow] [2025-11-21T06:57:33.005Z] [ACTION] Processing story text
+[2025-11-21T06:57:33.009Z] {currentLength: 5, previousLength: 0, hasNewEntries: true, enableTyping: true, newLines: Array(5)}
+[2025-11-21T06:57:33.010Z] console.groupEnd
+[2025-11-21T06:57:33.010Z] [StoryWindow] [2025-11-21T06:57:33.009Z] [INFO] New entry created [0] {text: The ancient ruins of **Eldrath** loom before you, ..., isCommand: false, willType: false, index: 0}
+[2025-11-21T06:57:33.013Z] [StoryWindow] [2025-11-21T06:57:33.010Z] [INFO] New entry created [2] {text: Your torch flickers in the darkness, casting danci..., isCommand: false, willType: false, index: 2}
+[2025-11-21T06:57:33.014Z] [StoryWindow] [2025-11-21T06:57:33.010Z] [INFO] New entry created [4] {text: What will you do?, isCommand: false, willType: true, index: 4}
+[2025-11-21T06:57:33.015Z] [StoryWindow] [2025-11-21T06:57:33.011Z] [ACTION] Story entries updated
+[2025-11-21T06:57:33.015Z] {totalEntries: 5, typingEntries: 1, commandEntries: 0, narrativeEntries: 3}
+[2025-11-21T06:57:33.016Z] console.groupEnd
+[2025-11-21T06:57:33.030Z] [StoryWindow] [2025-11-21T06:57:33.029Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 335, clientHeight: 335}
+[2025-11-21T06:57:33.042Z] %c[RPG:Animation]%c [2025-11-21T06:57:33.034Z] ActionPanel: mount started color: #10b981; font-weight: bold color: #999
+[2025-11-21T06:57:33.048Z] console.groupEnd
+[2025-11-21T06:57:33.049Z] %c[RPG:Inventory]%c [2025-11-21T06:57:33.048Z] Inventory panel closed color: #3b82f6; font-weight: bold color: #999 
+[2025-11-21T06:57:33.054Z] [registry] Requesting registry from endpoint {endpoint: /api/games}
+[2025-11-21T06:57:33.068Z] [registry] Query state updated {status: pending, isFetching: true, error: null}
+[2025-11-21T06:57:33.070Z] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+[2025-11-21T06:57:33.071Z] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+[2025-11-21T06:57:33.136Z] [TypingText] [2025-11-21T06:57:33.135Z] [ACTION] [in75vg] Starting typing effect
+[2025-11-21T06:57:33.137Z] {textLength: 17, speed: 30, estimatedDuration: 0.51s, showCursor: true}
+[2025-11-21T06:57:33.137Z] console.groupEnd
+[2025-11-21T06:57:33.138Z] [StoryWindow] [2025-11-21T06:57:33.137Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:57:33.148Z] [registry] Registry request succeeded {entryCount: 5, source: git}
+[2025-11-21T06:57:33.149Z] [registry] Cached CMS registry payload {entryCount: 5, updatedAt: 2024-11-15T00:00:00.000Z}
+[2025-11-21T06:57:33.149Z] [registry] Preparing hub entries {entryCount: 5, source: git}
+[2025-11-21T06:57:33.149Z] [registry] Attaching plugin metadata {id: paint-and-guess, status: stable, flagCount: 0}
+[2025-11-21T06:57:33.149Z] [registry] Attaching plugin metadata {id: mystery-mashup, status: beta, flagCount: 1}
+[2025-11-21T06:57:33.150Z] [registry] Attaching plugin metadata {id: trivia-trails, status: alpha, flagCount: 1}
+[2025-11-21T06:57:33.150Z] [registry] Attaching plugin metadata {id: ping-pong, status: stable, flagCount: 0}
+[2025-11-21T06:57:33.150Z] [registry] Attaching plugin metadata {id: chronicles-of-the-abyss, status: stable, flagCount: 0}
+[2025-11-21T06:57:33.153Z] Connected to server
+[2025-11-21T06:57:33.163Z] [registry] Query state updated {status: success, isFetching: false, error: null}
+[2025-11-21T06:57:33.242Z] [Socket] ❤️ heartbeat-ack
+[2025-11-21T06:57:33.481Z] You are trying to animate color from "#eab308" to "inherit". #eab308 is not an animatable value - to enable this animation set #eab308 to a value animatable to inherit via the `style` property.
+[2025-11-21T06:57:33.500Z] [TypingText] [2025-11-21T06:57:33.499Z] [INFO] [in75vg] Typing progress {progress: 58.8%, characters: 10/17, elapsed: 362ms, estimatedRemaining: 210ms}
+[2025-11-21T06:57:33.951Z] [TypingText] [2025-11-21T06:57:33.949Z] [INFO] [in75vg] Typing progress {progress: 100.0%, characters: 17/17, elapsed: 813ms, estimatedRemaining: 0ms}
+[2025-11-21T06:57:34.004Z] [TypingText] [2025-11-21T06:57:34.003Z] [ACTION] [in75vg] Typing completed
+[2025-11-21T06:57:34.005Z] {totalTime: 867ms, expectedTime: 510ms, efficiency: 58.9%, charactersPerSecond: 19.6}
+[2025-11-21T06:57:34.005Z] console.groupEnd
+[2025-11-21T06:57:34.006Z] [StoryWindow] [2025-11-21T06:57:34.004Z] [ACTION] Typing completed for entry [4]
+[2025-11-21T06:57:34.008Z] {entryId: 4, textLength: 17, isCommand: false}
+[2025-11-21T06:57:34.008Z] console.groupEnd
+[2025-11-21T06:57:34.017Z] [TypingText] [2025-11-21T06:57:34.014Z] [WARN] [in75vg] Typing interrupted/cleaned up 
+[2025-11-21T06:57:34.018Z] [StoryWindow] [2025-11-21T06:57:34.015Z] [INFO] Auto-scrolled story window {beforeScroll: 0, afterScroll: 0, scrollHeight: 432, clientHeight: 432}
+[2025-11-21T06:57:34.479Z] %c[RPG:Animation]%c [2025-11-21T06:57:34.478Z] ActionPanel: mount completed color: #10b981; font-weight: bold color: #999 {duration: 500}

@@ -1,2 +1,2 @@
-export { RpgProvider, useRpg } from "./state/RpgContext";
+export { RpgProvider, useRpg, useRpgStore } from "./state/useRpgStore";
 
