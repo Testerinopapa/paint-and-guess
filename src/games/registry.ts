@@ -4,6 +4,7 @@ import { matchesTargeting, isFeatureEnabled } from "@/lib/featureFlags";
 import { fallbackRegistry } from "./registry/fallback";
 import { NormalizedGameEntry, RegistryResponse, registryResponseSchema } from "./registry/schema";
 import { getPaintPreviewComponent } from "@/games/paint-and-guess/hubEntry";
+import { getPingPongPreviewComponent } from "@/games/ping-pong/hubEntry";
 
 const registryEndpoint = import.meta.env.VITE_GAME_REGISTRY_URL ?? "/api/games";
 const CACHE_TTL_MS = 60 * 1000;
@@ -46,6 +47,9 @@ function localizeCopy(localized: { default?: string; locales?: Record<string, st
 function getPreviewComponent(entry: NormalizedGameEntry) {
   if (entry.plugin?.previewComponent === "paintPreview") {
     return getPaintPreviewComponent();
+  }
+  if (entry.plugin?.previewComponent === "pingPongPreview") {
+    return getPingPongPreviewComponent();
   }
   return undefined;
 }
