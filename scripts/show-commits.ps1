@@ -26,10 +26,11 @@ function Write-CommitReport {
     # Resolve a short hash for naming
     $shortHash = $CommitHash.Substring(0, [Math]::Min(7, $CommitHash.Length))
 
-    # Gather data (each command individually to surface errors)
-    $commitExists = (git rev-parse --verify $CommitHash 2>$null)
+    # Check if commit exists and is readable (not just in reflog)
+    # Use 'git cat-file -e' which checks if object exists AND is readable
+    git cat-file -e $CommitHash 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) {
-        $msg = "`n[ERROR] Commit '$CommitHash' not found in this repo.`n"
+        $msg = "`n[ERROR] Commit '$CommitHash' not found or not readable in this repo.`nThe commit may have been garbage collected or is in a shallow clone.`n"
         if ($Append) {
             $msg | Out-File -FilePath $TargetFile -Encoding utf8 -Append
         } else {

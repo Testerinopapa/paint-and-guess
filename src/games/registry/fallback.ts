@@ -1,6 +1,7 @@
 import { registryResponseSchema } from "./schema";
 import { getPaintPreviewEntry } from "@/games/paint-and-guess/hubEntry";
 import { getPingPongPreviewEntry } from "@/games/ping-pong/hubEntry";
+import { getRpgPreviewEntry } from "@/games/rpg/hubEntry";
 
 const now = new Date().toISOString();
 
@@ -10,6 +11,7 @@ export const fallbackRegistry = registryResponseSchema.parse({
   entries: [
     getPaintPreviewEntry(),
     getPingPongPreviewEntry(),
+    getRpgPreviewEntry(),
     {
       id: "mystery-mashup",
       version: "0.3.0",

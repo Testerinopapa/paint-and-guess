@@ -6,6 +6,7 @@ import Lobby from "@/games/paint-and-guess/pages/Lobby";
 import NotFound from "@/games/paint-and-guess/pages/NotFound";
 import Room from "@/games/paint-and-guess/pages/Room";
 import PingPongIndex from "@/games/ping-pong/pages/Index";
+import RpgIndex from "@/games/rpg/pages/Index";
 
 const RoomRedirect = () => {
   const { roomId } = useParams();
@@ -26,6 +27,9 @@ const AppRoutes = () => {
           </Route>
           <Route path="ping-pong">
             <Route index element={<PingPongIndex />} />
+          </Route>
+          <Route path="chronicles-of-the-abyss">
+            <Route index element={<RpgIndex />} />
           </Route>
         </Route>
       </Route>
