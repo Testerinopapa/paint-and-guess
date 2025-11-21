@@ -7,6 +7,8 @@ import { CommandInput } from "../components/CommandInput";
 import { InventoryPanel } from "../components/InventoryPanel";
 import { useRpgStore } from "../state/useRpgStore";
 import { useToast } from "@/shared/hooks/use-toast";
+import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
+import type { AvatarConfig } from "@/lib/avatar/config";
 // Initialize debug utilities
 import "../utils/debug";
 
@@ -25,6 +27,36 @@ export default function RpgIndex() {
   const submitCommand = useRpgStore((state) => state.submitCommand);
   const addItem = useRpgStore((state) => state.addItem);
   const removeItem = useRpgStore((state) => state.removeItem);
+  const setCharacterAvatar = useRpgStore((state) => state.setCharacterAvatar);
+
+  // Load avatar config from customization system on mount
+  useEffect(() => {
+    const avatarConfig = safeLoadAvatarConfig();
+    if (avatarConfig) {
+      setCharacterAvatar(avatarConfig);
+      if (DEBUG_RPG) {
+        console.debug("[RPG] Loaded avatar config from customization system", avatarConfig);
+      }
+    }
+  }, [setCharacterAvatar]);
+
+  // Listen for avatar updates from customization system
+  useEffect(() => {
+    const handleAvatarUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent<AvatarConfig>;
+      if (customEvent.detail) {
+        setCharacterAvatar(customEvent.detail);
+        if (DEBUG_RPG) {
+          console.debug("[RPG] Avatar updated from customization system", customEvent.detail);
+        }
+      }
+    };
+
+    window.addEventListener("avatar-config-updated", handleAvatarUpdate as EventListener);
+    return () => {
+      window.removeEventListener("avatar-config-updated", handleAvatarUpdate as EventListener);
+    };
+  }, [setCharacterAvatar]);
 
   // Debug: Subscribe to state changes in development
   useEffect(() => {

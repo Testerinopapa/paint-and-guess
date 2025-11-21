@@ -107,6 +107,7 @@ interface RpgStore extends BaseRpgState {
   setLocation: (location: string) => void;
   addItem: (item: Item) => void;
   removeItem: (item: Item) => void;
+  setCharacterAvatar: (avatarConfig: AvatarConfig | null) => void;
   reset: () => void;
 }
 
@@ -724,6 +725,16 @@ export const useRpgStore = create<RpgStore>((set, get) => ({
       endTracking();
       return newState;
     });
+  },
+  setCharacterAvatar: (avatarConfig: AvatarConfig | null) => {
+    debugLog("action", `Setting character avatar`, { hasConfig: !!avatarConfig });
+    set((state) => ({
+      ...state,
+      character: {
+        ...state.character,
+        avatarConfig: avatarConfig || undefined,
+      },
+    }));
   },
   reset: () => {
     debugLog("action", "Resetting game state");
