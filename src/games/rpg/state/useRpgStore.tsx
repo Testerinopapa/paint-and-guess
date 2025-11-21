@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { create } from "zustand";
 import { generateMonster, generateCombatDescription, generateLootTable, generateItem, Item } from "../utils/contentGenerator";
-import { inventoryDebug, performanceTracker } from "../utils/debug";
+import { inventoryDebug } from "../utils/debug";
 
 // Debug configuration
 const DEBUG_RPG = import.meta.env.DEV || import.meta.env.VITE_DEBUG_RPG === "true";
@@ -297,14 +297,14 @@ function resolveAction(action: string, state: BaseRpgState): Resolution {
   return resolution;
 }
 
-function resolveCommand(command: string): Resolution {
-  const normalized = command.toLowerCase();
+function resolveCommand(command: string, state: BaseRpgState): Resolution {
+  const normalized = command.toLowerCase().trim();
   debugLog("info", `Resolving command: "${command}" (normalized: "${normalized}")`);
 
   let resolution: Resolution;
   switch (normalized) {
     case "attack":
-      const monster = generateMonster(get().character.level);
+      const monster = generateMonster(state.character.level);
       const combatDesc = generateCombatDescription(monster, "victory");
       const xpReward = 50 + monster.level * 15;
       const manaCost = 5 + Math.floor(Math.random() * 5);
@@ -337,23 +337,33 @@ function resolveCommand(command: string): Resolution {
         unlockCommand: "Follow the Light",
       };
     case "search for treasure":
-      const endLootTracking = performanceTracker.start("command.searchForTreasure");
-      const loot = generateLootTable("medium");
-      const goldReward = loot.reduce((sum, item) => sum + item.value, 0) + Math.floor(Math.random() * 20);
-      endLootTracking();
-      inventoryDebug.log("action", "Treasure search completed", {
-        lootCount: loot.length,
-        lootItems: loot.map((i) => ({ name: i.name, value: i.value })),
-        goldReward,
-      });
-      return {
-        narrative: [
-          "Behind a collapsed column you uncover a pouch of tarnished coins and a shard humming with dormant energy.",
-          ...(loot.length > 0 ? [`You found: ${loot.map((i) => i.name).join(", ")}`] : []),
-        ],
-        characterDelta: { gold: goldReward, xp: 50 },
-        items: loot,
-      };
+      try {
+        const loot = generateLootTable("medium");
+        const goldReward = loot.reduce((sum, item) => sum + item.value, 0) + Math.floor(Math.random() * 20);
+        inventoryDebug.log("action", "Treasure search completed", {
+          lootCount: loot.length,
+          lootItems: loot.map((i) => ({ name: i.name, value: i.value })),
+          goldReward,
+        });
+        return {
+          narrative: [
+            "Behind a collapsed column you uncover a pouch of tarnished coins and a shard humming with dormant energy.",
+            ...(loot.length > 0 ? [`You found: ${loot.map((i) => i.name).join(", ")}`] : []),
+          ],
+          characterDelta: { gold: goldReward, xp: 50 },
+          items: loot,
+        };
+      } catch (error) {
+        debugLog("error", "Error in search for treasure", error);
+        // Fallback if loot generation fails
+        return {
+          narrative: [
+            "Behind a collapsed column you uncover a pouch of tarnished coins and a shard humming with dormant energy.",
+          ],
+          characterDelta: { gold: 20, xp: 50 },
+          items: [],
+        };
+      }
     case "listen carefully":
       return {
         narrative: [
@@ -428,7 +438,7 @@ export const useRpgStore = create<RpgStore>((set, get) => ({
     debugLog("action", `Submitting command: "${command}"`);
 
     set((state) => {
-      const newState = applyResolution(state, command, resolveCommand(command));
+      const newState = applyResolution(state, command, resolveCommand(command, state));
       performanceTracker.track(`command:${command}`, startTime);
       debugLog("info", `State after command "${command}"`, {
         newLocation: newState.location,

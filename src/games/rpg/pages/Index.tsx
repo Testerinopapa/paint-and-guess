@@ -100,6 +100,7 @@ export default function RpgIndex() {
   const handleCommand = (command: string) => {
     if (import.meta.env.DEV || import.meta.env.VITE_DEBUG_RPG === "true") {
       console.debug(`[RPG] Command submitted: "${command}"`);
+      console.debug(`[RPG] Command normalized: "${command.toLowerCase().trim()}"`);
     }
 
     toast({
@@ -107,7 +108,16 @@ export default function RpgIndex() {
       description: command,
     });
 
-    submitCommand(command);
+    try {
+      submitCommand(command);
+    } catch (error) {
+      console.error("[RPG] Error submitting command:", error);
+      toast({
+        title: "Error",
+        description: `Failed to execute command: ${command}`,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -134,7 +144,11 @@ export default function RpgIndex() {
           </div>
 
           <div className="lg:col-span-3">
-            <ActionPanel onAction={handleAction} availableCommands={availableCommands} />
+            <ActionPanel 
+              onAction={handleAction} 
+              onCommand={handleCommand}
+              availableCommands={availableCommands} 
+            />
           </div>
         </div>
 

@@ -5,6 +5,7 @@ import { animationDebug } from "../utils/debug";
 
 interface ActionPanelProps {
   onAction: (action: string) => void;
+  onCommand?: (command: string) => void;
   availableCommands: string[];
 }
 
@@ -22,7 +23,7 @@ const commandIcons: Record<string, any> = {
   cast: Sparkles,
 };
 
-export const ActionPanel = ({ onAction, availableCommands }: ActionPanelProps) => {
+export const ActionPanel = ({ onAction, onCommand, availableCommands }: ActionPanelProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -76,7 +77,7 @@ export const ActionPanel = ({ onAction, availableCommands }: ActionPanelProps) =
                 whileTap={{ scale: 0.98 }}
               >
                 <Button
-                  onClick={() => onAction(command)}
+                  onClick={() => onCommand ? onCommand(command) : onAction(command)}
                   variant="outline"
                   className="w-full justify-start gap-3 h-10 text-sm bg-muted/30 hover:bg-muted/50"
                 >
