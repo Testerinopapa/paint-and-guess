@@ -10,10 +10,14 @@ export interface NPC {
   title: string;
   description: string;
   dialogue: string[];
-  quest?: string;
+  quest?: Quest;
 }
 
-export function generateNPC(): NPC {
+interface GenerateNPCOptions {
+  ensureQuest?: boolean;
+}
+
+export function generateNPC(options?: GenerateNPCOptions): NPC {
   const startTime = performance.now();
   const titles = [
     "Ancient Scholar",
@@ -33,12 +37,16 @@ export function generateNPC(): NPC {
     "Beware the shadows that move when you're not looking.",
   ];
 
+  const shouldIncludeQuest = options?.ensureQuest
+    ? true
+    : chance.bool({ likelihood: 40 });
+
   const npc = {
     name: faker.person.fullName(),
     title: chance.pickone(titles),
     description: faker.lorem.sentence(),
     dialogue: chance.pickset(dialogues, chance.integer({ min: 1, max: 3 })),
-    quest: chance.bool({ likelihood: 40 }) ? generateQuest() : undefined,
+    quest: shouldIncludeQuest ? generateQuest() : undefined,
   };
 
   const duration = performance.now() - startTime;
@@ -130,41 +138,157 @@ export function generateItem(): Item {
 }
 
 // Quest Generation
+export type QuestStatus = "available" | "active" | "completed";
+
+export type QuestObjectiveType =
+  | "combat"
+  | "recovery"
+  | "investigation"
+  | "translation"
+  | "listening";
+
+export interface QuestObjective {
+  type: QuestObjectiveType;
+  summary: string;
+  requiredCommand: string;
+  targetCount: number;
+  progress: number;
+}
+
+export interface QuestReward {
+  xp: number;
+  gold: number;
+  items?: Item[];
+}
+
 export interface Quest {
+  id: string;
   title: string;
   description: string;
-  objective: string;
-  reward: {
-    xp: number;
-    gold: number;
-    items?: Item[];
+  giver?: string;
+  status: QuestStatus;
+  objective: QuestObjective;
+  reward: QuestReward;
+}
+
+interface QuestTemplateContext {
+  item: string;
+  location: string;
+  enemy: string;
+  npc: string;
+  event: string;
+  artifact: string;
+}
+
+interface QuestTemplate {
+  type: QuestObjectiveType;
+  requiredCommand: string;
+  minCount: number;
+  maxCount: number;
+  build: (ctx: QuestTemplateContext, count: number) => {
+    title: string;
+    description: string;
+    summary: string;
   };
 }
 
-export function generateQuest(): string {
-  const questTemplates = [
-    "Retrieve the {item} from the {location}",
-    "Defeat the {enemy} that haunts the {location}",
-    "Collect {count} {item} for the {npc}",
-    "Investigate the mysterious {event} in the {location}",
-    "Translate the ancient {artifact} found in the {location}",
-  ];
+const questTemplates: QuestTemplate[] = [
+  {
+    type: "recovery",
+    requiredCommand: "Search for Treasure",
+    minCount: 1,
+    maxCount: 2,
+    build: (ctx, count) => ({
+      title: `Recover the ${ctx.item}`,
+      description: `Rumors speak of a ${ctx.item} hidden within the ${ctx.location}. It hums with dormant energy and must be retrieved.`,
+      summary: `Search the ruins ${count} time(s) to locate the ${ctx.item}.`,
+    }),
+  },
+  {
+    type: "combat",
+    requiredCommand: "Attack",
+    minCount: 1,
+    maxCount: 3,
+    build: (ctx, count) => ({
+      title: `Silence the ${ctx.enemy}`,
+      description: `A ${ctx.enemy} prowls the ${ctx.location}, leaving echoes of terror. It must be defeated.`,
+      summary: `Defeat enemies in combat ${count} time(s).`,
+    }),
+  },
+  {
+    type: "investigation",
+    requiredCommand: "Investigate Symbols",
+    minCount: 1,
+    maxCount: 1,
+    build: (ctx) => ({
+      title: `Study the ${ctx.artifact}`,
+      description: `Ancient markings referencing a ${ctx.artifact} appear near the ${ctx.location}. They may reveal a hidden chamber.`,
+      summary: `Investigate the symbols to decode the ${ctx.artifact}.`,
+    }),
+  },
+  {
+    type: "translation",
+    requiredCommand: "Cast Light Spell",
+    minCount: 1,
+    maxCount: 1,
+    build: (ctx) => ({
+      title: `Illuminate the ${ctx.location}`,
+      description: `A ${ctx.npc} believes light magic will reveal the secrets guarded within the ${ctx.location}.`,
+      summary: `Cast a light spell to expose hidden glyphs.`,
+    }),
+  },
+  {
+    type: "listening",
+    requiredCommand: "Listen Carefully",
+    minCount: 1,
+    maxCount: 2,
+    build: (ctx, count) => ({
+      title: `Trace the ${ctx.event}`,
+      description: `Whispers of a ${ctx.event} echo across the ${ctx.location}. The abyss itself seems unsettled.`,
+      summary: `Listen carefully ${count} time(s) to pinpoint the disturbance.`,
+    }),
+  },
+];
 
-  const items = ["Ancient Scroll", "Mystic Gem", "Shadow Essence", "Echo Fragment"];
-  const locations = ["Ruins", "Temple", "Cavern", "Crypt", "Sanctum"];
-  const enemies = ["Shadow Wraith", "Echo Guardian", "Cursed Spirit", "Abyssal Horror"];
-  const npcs = ["Ancient Scholar", "Mysterious Wanderer", "Forgotten Sage"];
-  const events = ["disturbance", "phenomenon", "anomaly", "occurrence"];
-  const artifacts = ["rune", "glyph", "inscription", "tablet"];
+export function generateQuest(): Quest {
+  const startTime = performance.now();
+  const ctx: QuestTemplateContext = {
+    item: chance.pickone(["Ancient Scroll", "Mystic Gem", "Shadow Essence", "Echo Fragment"]),
+    location: chance.pickone(["Ruins", "Temple", "Cavern", "Crypt", "Sanctum"]),
+    enemy: chance.pickone(["Shadow Wraith", "Echo Guardian", "Cursed Spirit", "Abyssal Horror"]),
+    npc: chance.pickone(["Ancient Scholar", "Mysterious Wanderer", "Forgotten Sage"]),
+    event: chance.pickone(["disturbance", "phenomenon", "anomaly", "occurrence"]),
+    artifact: chance.pickone(["rune", "glyph", "inscription", "tablet"]),
+  };
 
-  let quest = chance.pickone(questTemplates);
-  quest = quest.replace("{item}", chance.pickone(items));
-  quest = quest.replace("{location}", chance.pickone(locations));
-  quest = quest.replace("{enemy}", chance.pickone(enemies));
-  quest = quest.replace("{npc}", chance.pickone(npcs));
-  quest = quest.replace("{event}", chance.pickone(events));
-  quest = quest.replace("{artifact}", chance.pickone(artifacts));
-  quest = quest.replace("{count}", chance.integer({ min: 3, max: 10 }).toString());
+  const template = chance.pickone(questTemplates);
+  const targetCount = chance.integer({ min: template.minCount, max: template.maxCount });
+  const { title, description, summary } = template.build(ctx, targetCount);
+  const rewardItems = chance.bool({ likelihood: 30 })
+    ? [generateItem()]
+    : undefined;
+
+  const quest: Quest = {
+    id: chance.guid(),
+    title,
+    description,
+    status: "available",
+    objective: {
+      type: template.type,
+      summary,
+      requiredCommand: template.requiredCommand,
+      targetCount,
+      progress: 0,
+    },
+    reward: {
+      xp: 150 + chance.integer({ min: 25, max: 150 }),
+      gold: 40 + chance.integer({ min: 10, max: 80 }),
+      items: rewardItems,
+    },
+  };
+
+  const duration = performance.now() - startTime;
+  contentDebug.generate("Quest", { ...quest, generationTime: `${duration.toFixed(2)}ms` });
 
   return quest;
 }

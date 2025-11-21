@@ -1,11 +1,22 @@
+/* @refresh reset */
 import { ReactNode } from "react";
 import { create } from "zustand";
-import { generateMonster, generateCombatDescription, generateLootTable, generateItem, Item } from "../utils/contentGenerator";
+import {
+  generateMonster,
+  generateCombatDescription,
+  generateLootTable,
+  generateItem,
+  generateNPC,
+  generateQuest,
+  Item,
+  Quest,
+} from "../utils/contentGenerator";
 import { inventoryDebug } from "../utils/debug";
 
 // Debug configuration
 const DEBUG_RPG = import.meta.env.DEV || import.meta.env.VITE_DEBUG_RPG === "true";
 const DEBUG_LOG_PREFIX = "[RPG Store]";
+const MAX_ACTIVE_QUESTS = 3;
 
 // Debug logging utilities
 function debugLog(level: "info" | "warn" | "error" | "action", message: string, data?: unknown) {
@@ -60,6 +71,8 @@ const performanceTracker = {
   },
 };
 
+import type { AvatarConfig } from "@/lib/avatar/config";
+
 export interface Character {
   name: string;
   level: number;
@@ -70,6 +83,10 @@ export interface Character {
   xp: number;
   xpToNextLevel: number;
   gold: number;
+  /** Optional avatar configuration for character customization */
+  avatarConfig?: AvatarConfig;
+  /** Optional seed string for simple deterministic avatar generation */
+  avatarSeed?: string;
 }
 
 type CharacterDelta = Partial<Pick<Character, "hp" | "mana" | "xp" | "gold">>;
@@ -80,6 +97,8 @@ export interface BaseRpgState {
   storyText: string[];
   availableCommands: string[];
   inventory: Item[];
+  quests: Quest[];
+  completedQuests: Quest[];
 }
 
 interface RpgStore extends BaseRpgState {
@@ -111,7 +130,16 @@ const INITIAL_STORY: string[] = [
   "What will you do?",
 ];
 
-const INITIAL_COMMANDS = ["Attack", "Investigate Symbols", "Cast Light Spell", "Search for Treasure", "Listen Carefully", "Rest"];
+const INITIAL_COMMANDS = [
+  "Attack",
+  "Investigate Symbols",
+  "Cast Light Spell",
+  "Search for Treasure",
+  "Listen Carefully",
+  "Rest",
+  "Seek Quest",
+  "Review Quests",
+];
 
 const DEFAULT_LOCATION = "Ruins of Eldrath";
 
@@ -121,6 +149,8 @@ const createInitialState = (): BaseRpgState => ({
   storyText: [...INITIAL_STORY],
   availableCommands: [...INITIAL_COMMANDS],
   inventory: [],
+  quests: [],
+  completedQuests: [],
 });
 
 function clamp(value: number, min: number, max: number) {
@@ -206,6 +236,11 @@ interface Resolution {
   locationChange?: string;
   unlockCommand?: string;
   items?: Item[];
+  questUpdate?: QuestUpdate;
+}
+
+interface QuestUpdate {
+  add?: Quest;
 }
 
 function ensureUnlockedCommands(commands: string[], unlockCommand?: string) {
@@ -232,12 +267,16 @@ function applyResolution(state: BaseRpgState, label: string, resolution: Resolut
     ? [...state.inventory, ...resolution.items]
     : state.inventory;
 
+  const updatedQuests = applyQuestUpdates(state.quests, resolution.questUpdate);
+
   const newState = {
+    ...state,
     character: applyCharacterDelta(state.character, resolution.characterDelta),
     location: resolution.locationChange ?? state.location,
     storyText: [...state.storyText, "", `> ${label}`, ...narrative],
     availableCommands: newCommands,
     inventory: newInventory,
+    quests: updatedQuests,
   };
 
   debugLog("info", `Resolution applied: "${label}"`, {
@@ -250,6 +289,92 @@ function applyResolution(state: BaseRpgState, label: string, resolution: Resolut
   });
 
   return newState;
+}
+
+function applyQuestUpdates(current: Quest[], questUpdate?: QuestUpdate) {
+  if (!questUpdate?.add) {
+    return current;
+  }
+  if (current.find((quest) => quest.id === questUpdate.add!.id)) {
+    return current;
+  }
+  return [...current, questUpdate.add];
+}
+
+function applyQuestProgress(state: BaseRpgState, command: string): BaseRpgState {
+  if (!state.quests.length) {
+    return state;
+  }
+
+  const normalizedCommand = command.toLowerCase().trim();
+  let progressMade = false;
+  let character = state.character;
+  let inventory = state.inventory;
+  const updates: string[] = [];
+  const newlyCompleted: Quest[] = [];
+
+  const quests = state.quests.map((quest) => {
+    if (quest.status !== "active") {
+      return quest;
+    }
+
+    if (quest.objective.requiredCommand.toLowerCase() !== normalizedCommand) {
+      return quest;
+    }
+
+    progressMade = true;
+    const nextProgress = Math.min(quest.objective.targetCount, quest.objective.progress + 1);
+    const updatedQuest: Quest = {
+      ...quest,
+      objective: { ...quest.objective, progress: nextProgress },
+    };
+
+    if (nextProgress >= quest.objective.targetCount) {
+      updatedQuest.status = "completed";
+      newlyCompleted.push(updatedQuest);
+      updates.push(
+        `Quest Complete: ${quest.title}! Rewarded +${quest.reward.xp} XP and +${quest.reward.gold} gold.`
+      );
+      character = applyCharacterDelta(character, { xp: quest.reward.xp, gold: quest.reward.gold });
+
+      if (quest.reward.items?.length) {
+        inventory = [...inventory, ...quest.reward.items];
+        const itemNames = quest.reward.items.map((item) => item.name).join(", ");
+        updates.push(`Quest Rewards: ${itemNames}`);
+        inventoryDebug.log("info", "Quest reward items granted", {
+          quest: quest.title,
+          items: quest.reward.items.map((item) => ({ name: item.name, rarity: item.rarity })),
+        });
+      }
+    } else {
+      updates.push(`Quest Progress: ${quest.title} (${nextProgress}/${quest.objective.targetCount}).`);
+    }
+
+    return updatedQuest;
+  });
+
+  if (!progressMade) {
+    return state;
+  }
+
+  const completedQuests =
+    newlyCompleted.length > 0
+      ? [
+          ...state.completedQuests,
+          ...newlyCompleted.filter(
+            (quest) => !state.completedQuests.some((existing) => existing.id === quest.id)
+          ),
+        ]
+      : state.completedQuests;
+
+  return {
+    ...state,
+    quests,
+    completedQuests,
+    character,
+    inventory,
+    storyText: updates.length ? [...state.storyText, "", ...updates] : state.storyText,
+  };
 }
 
 function resolveAction(action: string, state: BaseRpgState): Resolution {
@@ -388,6 +513,12 @@ function resolveCommand(command: string, state: BaseRpgState): Resolution {
         narrative: ["You inscribe a careful rune, weaving mana into the stone to shield your mind from invasive whispers."],
         characterDelta: { mana: -8, xp: 60 },
       };
+    case "seek quest":
+      return handleSeekQuest(state);
+    case "review quests":
+      return {
+        narrative: formatQuestReview(state),
+      };
     case "follow the light":
     case "follow the whispers":
     case "descend to the chamber":
@@ -414,6 +545,80 @@ function resolveCommand(command: string, state: BaseRpgState): Resolution {
   }
 }
 
+function handleSeekQuest(state: BaseRpgState): Resolution {
+  const activeQuestCount = getActiveQuestCount(state);
+
+  if (activeQuestCount >= MAX_ACTIVE_QUESTS) {
+    return {
+      narrative: [
+        "Your journal is crowded with unfinished vows. Complete an active quest before seeking another.",
+      ],
+    };
+  }
+
+  const npc = generateNPC({ ensureQuest: true });
+  const baseQuest = npc.quest ?? generateQuest();
+  const quest: Quest = {
+    ...baseQuest,
+    giver: `${npc.title} ${npc.name}`,
+    status: "active",
+    objective: { ...baseQuest.objective, progress: 0 },
+  };
+
+  return {
+    narrative: [
+      `You encounter ${npc.title} ${npc.name}.`,
+      ...(npc.dialogue.length ? npc.dialogue : []),
+      "",
+      `Quest Accepted: **${quest.title}**`,
+      quest.description,
+      `Objective: ${quest.objective.summary}`,
+      `Rewards: ${formatQuestReward(quest)}`,
+    ],
+    questUpdate: { add: quest },
+  };
+}
+
+function formatQuestReview(state: BaseRpgState): string[] {
+  const active = state.quests.filter((quest) => quest.status === "active");
+  const completed = state.completedQuests;
+  const summary: string[] = [];
+
+  if (!active.length) {
+    summary.push("You carry no active quests.");
+  } else {
+    summary.push("Active Quests:");
+    active.forEach((quest) => {
+      summary.push(
+        `- ${quest.title} (${quest.objective.progress}/${quest.objective.targetCount})`
+      );
+      summary.push(`  Objective: ${quest.objective.summary}`);
+    });
+  }
+
+  if (completed.length) {
+    summary.push("", "Completed Quests:");
+    completed
+      .slice(-3)
+      .forEach((quest) => summary.push(`- ${quest.title} (completed)`));
+  }
+
+  return summary.length ? summary : ["The abyss offers no guidance at this time."];
+}
+
+function formatQuestReward(quest: Quest): string {
+  const base = `${quest.reward.xp} XP, ${quest.reward.gold} gold`;
+  if (quest.reward.items?.length) {
+    const items = quest.reward.items.map((item) => item.name).join(", ");
+    return `${base}, ${items}`;
+  }
+  return base;
+}
+
+function getActiveQuestCount(state: BaseRpgState) {
+  return state.quests.filter((quest) => quest.status === "active").length;
+}
+
 export const useRpgStore = create<RpgStore>((set, get) => ({
   ...createInitialState(),
   performAction: (action: string) => {
@@ -438,7 +643,8 @@ export const useRpgStore = create<RpgStore>((set, get) => ({
     debugLog("action", `Submitting command: "${command}"`);
 
     set((state) => {
-      const newState = applyResolution(state, command, resolveCommand(command, state));
+      let newState = applyResolution(state, command, resolveCommand(command, state));
+      newState = applyQuestProgress(newState, command);
       performanceTracker.track(`command:${command}`, startTime);
       debugLog("info", `State after command "${command}"`, {
         newLocation: newState.location,
@@ -536,11 +742,15 @@ export const useRpgStore = create<RpgStore>((set, get) => ({
 /**
  * Zustand does not require React context providers, but we still export these to
  * keep the previous public surface area stable for future integrations.
+ * 
+ * Note: These exports are marked for Fast Refresh compatibility.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function RpgProvider({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useRpg() {
   const baseState = useRpgStore((state) => ({
     character: state.character,
@@ -578,6 +788,12 @@ if (typeof window !== "undefined" && DEBUG_RPG) {
 
     // Get story text
     getStory: () => useRpgStore.getState().storyText,
+
+    // Get quests
+    getQuests: () => ({
+      active: useRpgStore.getState().quests,
+      completed: useRpgStore.getState().completedQuests,
+    }),
 
     // Performance stats
     getPerformanceStats: () => performanceTracker.getStats(),

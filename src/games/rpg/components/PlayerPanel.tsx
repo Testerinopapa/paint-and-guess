@@ -11,19 +11,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { animationDebug, performanceTracker } from "../utils/debug";
+import { CharacterAvatar } from "./CharacterAvatar";
+
+import type { Character } from "../state/useRpgStore";
 
 interface PlayerPanelProps {
-  character: {
-    name: string;
-    level: number;
-    hp: number;
-    maxHp: number;
-    mana: number;
-    maxMana: number;
-    xp: number;
-    xpToNextLevel: number;
-    gold: number;
-  };
+  character: Character;
 }
 
 export const PlayerPanel = ({ character }: PlayerPanelProps) => {
@@ -54,13 +47,14 @@ export const PlayerPanel = ({ character }: PlayerPanelProps) => {
           transition={{ type: "spring", stiffness: 300 }}
         >
           <div className="w-full aspect-square rounded-lg overflow-hidden border-2 border-primary/50 bg-secondary/30 flex items-center justify-center">
-            <motion.div
-              className="text-4xl"
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            >
-              ⚔️
-            </motion.div>
+            <CharacterAvatar
+              characterName={character.name}
+              avatarConfig={character.avatarConfig}
+              avatarSeed={character.avatarSeed}
+              size={256}
+              className="w-full h-full"
+              fallback="⚔️"
+            />
           </div>
           <motion.div
             className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg border-2 border-background"

@@ -284,11 +284,11 @@ if (typeof window !== "undefined" && DEBUG_RPG) {
     // Inventory debug
     inventory: {
       getItems: async () => {
-        const { useRpgStore } = await import("../state/useRpgStore");
+        const { useRpgStore } = await import("../state/useRpgStore.tsx");
         return useRpgStore.getState().inventory;
       },
       addItem: async (item?: any) => {
-        const { useRpgStore } = await import("../state/useRpgStore");
+        const { useRpgStore } = await import("../state/useRpgStore.tsx");
         const { generateItem } = await import("./contentGenerator");
         const newItem = item || generateItem();
         useRpgStore.getState().addItem(newItem);
@@ -296,12 +296,12 @@ if (typeof window !== "undefined" && DEBUG_RPG) {
         return newItem;
       },
       removeItem: async (item: any) => {
-        const { useRpgStore } = await import("../state/useRpgStore");
+        const { useRpgStore } = await import("../state/useRpgStore.tsx");
         useRpgStore.getState().removeItem(item);
         inventoryDebug.remove(item);
       },
       clear: async () => {
-        const { useRpgStore } = await import("../state/useRpgStore");
+        const { useRpgStore } = await import("../state/useRpgStore.tsx");
         const state = useRpgStore.getState();
         state.inventory.forEach((item) => state.removeItem(item));
         inventoryDebug.log("action", "Inventory cleared");
