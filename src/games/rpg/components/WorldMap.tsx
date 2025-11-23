@@ -14,11 +14,30 @@ import {
   getTileColor,
   isWalkable,
   getLocationAt,
+  getResourceAt,
+  getFeatureAt,
+  getMonsterAt,
+  collectResource,
+  discoverFeature,
+  defeatMonster,
   type MapData,
   type MapLocation,
+  type MapResource,
+  type MapFeature,
+  type MapMonster,
   TILE_SIZE,
 } from "../utils/mapGenerator";
 import { useRpgStore } from "../state/useRpgStore";
+
+// Helper function to convert hex to RGB
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+}
 
 interface WorldMapProps {
   isOpen: boolean;
@@ -55,6 +74,13 @@ export function WorldMap({ isOpen, onClose }: WorldMapProps) {
   const renderFrameRef = useRef<number | null>(null);
   // Use ref for keys to avoid state update delays
   const keysRef = useRef<Set<string>>(new Set());
+  
+  // Animation time for water effects
+  const animationTimeRef = useRef<number>(0);
+  
+  // Monster movement tracking
+  const lastMonsterMoveRef = useRef<number>(0);
+  const MONSTER_MOVE_INTERVAL = 2000; // Move every 2 seconds
   
   // Debug state
   const [debugInfo, setDebugInfo] = useState({
@@ -246,17 +272,98 @@ export function WorldMap({ isOpen, onClose }: WorldMapProps) {
               setCharacter(characterRef.current);
             }
 
-            // Check for location discovery (only check when entering new tile)
+            // Check for location/resource/feature discovery (only check when entering new tile)
             if (tileX !== lastLocationCheck.x || tileY !== lastLocationCheck.y) {
               lastLocationCheck = { x: tileX, y: tileY };
+              
+              // Check for location discovery
               const reachedLocation = getLocationAt(mapData, tileX, tileY);
               if (reachedLocation && !reachedLocation.discovered) {
                 reachedLocation.discovered = true;
                 setLocation(reachedLocation.name);
               }
+              
+              // Check for resource collection
+              const nearbyResource = getResourceAt(mapData, tileX, tileY);
+              if (nearbyResource && !nearbyResource.collected) {
+                collectResource(mapData, nearbyResource.id);
+                // Could trigger a notification or add to inventory here
+              }
+              
+              // Check for feature discovery
+              const nearbyFeature = getFeatureAt(mapData, tileX, tileY);
+              if (nearbyFeature && !nearbyFeature.discovered) {
+                discoverFeature(mapData, nearbyFeature.id);
+                // Could trigger a notification here
+              }
+              
+              // Check for monster encounter
+              const nearbyMonster = getMonsterAt(mapData, tileX, tileY);
+              if (nearbyMonster && !nearbyMonster.defeated) {
+                // Trigger combat or show monster info
+                // For now, just log it - could trigger combat system here
+                console.log(`Encountered ${nearbyMonster.name} (Level ${nearbyMonster.level})!`);
+              }
             }
           }
         }
+      }
+      
+      // Update monster positions (patrol behavior)
+      const monsterMoveTime = performance.now();
+      if (monsterMoveTime - lastMonsterMoveRef.current > MONSTER_MOVE_INTERVAL) {
+        lastMonsterMoveRef.current = monsterMoveTime;
+        
+        mapData.monsters.forEach(monster => {
+          if (monster.defeated) return;
+          
+          // Simple patrol: move randomly within patrol radius
+          const distFromSpawn = Math.sqrt(
+            (monster.x - monster.spawnX) ** 2 + (monster.y - monster.spawnY) ** 2
+          );
+          
+          if (distFromSpawn < monster.patrolRadius) {
+            // Move randomly
+            const directions = [
+              { dx: 0, dy: -1, dir: 'up' as const },
+              { dx: 0, dy: 1, dir: 'down' as const },
+              { dx: -1, dy: 0, dir: 'left' as const },
+              { dx: 1, dy: 0, dir: 'right' as const },
+            ];
+            
+            const move = directions[Math.floor(Math.random() * directions.length)];
+            const newX = monster.x + move.dx;
+            const newY = monster.y + move.dy;
+            
+            // Check if new position is valid
+            if (newX >= 0 && newX < mapData.width && 
+                newY >= 0 && newY < mapData.height) {
+              const tile = mapData.tiles[newY][newX];
+              if (isWalkable(tile)) {
+                // Check distance from spawn
+                const newDist = Math.sqrt(
+                  (newX - monster.spawnX) ** 2 + (newY - monster.spawnY) ** 2
+                );
+                if (newDist <= monster.patrolRadius) {
+                  monster.x = newX;
+                  monster.y = newY;
+                  monster.direction = move.dir;
+                }
+              }
+            }
+          } else {
+            // Return to spawn
+            const dx = monster.spawnX - monster.x;
+            const dy = monster.spawnY - monster.y;
+            if (Math.abs(dx) > Math.abs(dy)) {
+              monster.x += dx > 0 ? 1 : -1;
+              monster.direction = dx > 0 ? 'right' : 'left';
+            } else {
+              monster.y += dy > 0 ? 1 : -1;
+              monster.direction = dy > 0 ? 'down' : 'up';
+            }
+          }
+        });
       }
 
       // Smooth camera interpolation (lerp) - always update for smooth following
@@ -324,15 +431,49 @@ export function WorldMap({ isOpen, onClose }: WorldMapProps) {
       ctx.fillStyle = '#0a0a0a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Render tiles
+      // Create river lookup set for fast checking
+      const riverSet = new Set(mapData.rivers.map(r => `${r.x},${r.y}`));
+      
+      // Render tiles with elevation shading
       for (let ty = startY; ty < endY; ty++) {
         for (let tx = startX; tx < endX; tx++) {
           const tile = mapData.tiles[ty][tx];
           const screenX = (tx - currentCamera.x + viewportWidth / 2) * TILE_SIZE;
           const screenY = (ty - currentCamera.y + viewportHeight / 2) * TILE_SIZE;
 
-          ctx.fillStyle = getTileColor(tile);
+          // Base tile color
+          let color = getTileColor(tile);
+          
+          // Apply elevation shading (darker = higher elevation)
+          const elevation = mapData.elevation[ty]?.[tx] || 0;
+          if (elevation > 0) {
+            const shade = Math.max(0, 1 - elevation * 0.3); // Darker for higher elevation
+            const rgb = hexToRgb(color);
+            if (rgb) {
+              color = `rgb(${Math.floor(rgb.r * shade)}, ${Math.floor(rgb.g * shade)}, ${Math.floor(rgb.b * shade)})`;
+            }
+          }
+          
+          // Animated water effect for ocean tiles
+          if (tile === 'ocean') {
+            // Use time-based noise for subtle water animation
+            const time = animationTimeRef.current * 0.001;
+            const waveOffset = Math.sin(tx * 0.1 + ty * 0.1 + time) * 0.1;
+            const brightness = 1 + waveOffset;
+            const rgb = hexToRgb(color);
+            if (rgb) {
+              color = `rgb(${Math.floor(rgb.r * brightness)}, ${Math.floor(rgb.g * brightness)}, ${Math.floor(rgb.b * brightness)})`;
+            }
+          }
+
+          ctx.fillStyle = color;
           ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+          
+          // Render rivers on top of terrain
+          if (riverSet.has(`${tx},${ty}`)) {
+            ctx.fillStyle = '#1565c0'; // River blue
+            ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+          }
         }
       }
 
@@ -358,12 +499,171 @@ export function WorldMap({ isOpen, onClose }: WorldMapProps) {
         }
       });
 
+      // Render resources
+      mapData.resources.forEach(resource => {
+        if (resource.collected) return;
+        
+        const screenX = (resource.x - currentCamera.x + viewportWidth / 2) * TILE_SIZE;
+        const screenY = (resource.y - currentCamera.y + viewportHeight / 2) * TILE_SIZE;
+        
+        // Check if resource is visible
+        if (screenX >= -TILE_SIZE && screenX < canvas.width + TILE_SIZE &&
+            screenY >= -TILE_SIZE && screenY < canvas.height + TILE_SIZE) {
+          
+          let iconColor = '#ffffff';
+          let icon = '●';
+          
+          switch (resource.type) {
+            case 'treasure':
+              iconColor = '#ffd700';
+              icon = '💰';
+              break;
+            case 'ore':
+              iconColor = '#9e9e9e';
+              icon = '⛏️';
+              break;
+            case 'herb':
+              iconColor = '#4caf50';
+              icon = '🌿';
+              break;
+            case 'crystal':
+              iconColor = '#9c27b0';
+              icon = '💎';
+              break;
+          }
+          
+          // Draw resource icon (smaller than location markers)
+          ctx.fillStyle = iconColor;
+          ctx.font = '10px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(icon, screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2);
+        }
+      });
+
+      // Render features
+      mapData.features.forEach(feature => {
+        const screenX = (feature.x - currentCamera.x + viewportWidth / 2) * TILE_SIZE;
+        const screenY = (feature.y - currentCamera.y + viewportHeight / 2) * TILE_SIZE;
+        
+        // Check if feature is visible
+        if (screenX >= -TILE_SIZE && screenX < canvas.width + TILE_SIZE &&
+            screenY >= -TILE_SIZE && screenY < canvas.height + TILE_SIZE) {
+          
+          let iconColor = '#8b4513';
+          let icon = '●';
+          
+          switch (feature.type) {
+            case 'cave':
+              iconColor = '#424242';
+              icon = '🕳️';
+              break;
+            case 'ruins':
+              iconColor = '#795548';
+              icon = '🏛️';
+              break;
+            case 'shrine':
+              iconColor = '#fff9c4';
+              icon = '⛩️';
+              break;
+            case 'monolith':
+              iconColor = '#607d8b';
+              icon = '🗿';
+              break;
+          }
+          
+          // Only show discovered features or features near player
+          const charTileX = Math.floor(currentChar.x);
+          const charTileY = Math.floor(currentChar.y);
+          const dist = Math.sqrt((feature.x - charTileX) ** 2 + (feature.y - charTileY) ** 2);
+          
+          if (feature.discovered || dist < 5) {
+            // Draw feature icon
+            ctx.fillStyle = iconColor;
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(icon, screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2);
+          }
+        }
+      });
+
+      // Render monsters
+      mapData.monsters.forEach(monster => {
+        if (monster.defeated) return;
+        
+        const screenX = (monster.x - currentCamera.x + viewportWidth / 2) * TILE_SIZE;
+        const screenY = (monster.y - currentCamera.y + viewportHeight / 2) * TILE_SIZE;
+        
+        // Check if monster is visible
+        if (screenX >= -TILE_SIZE && screenX < canvas.width + TILE_SIZE &&
+            screenY >= -TILE_SIZE && screenY < canvas.height + TILE_SIZE) {
+          
+          // Monster color by type
+          let monsterColor = '#8b0000'; // Default dark red
+          let icon = '👹';
+          
+          switch (monster.type) {
+            case 'shadow':
+              monsterColor = '#4a148c';
+              icon = '👻';
+              break;
+            case 'beast':
+              monsterColor = '#6d4c41';
+              icon = '🐺';
+              break;
+            case 'undead':
+              monsterColor = '#424242';
+              icon = '💀';
+              break;
+            case 'elemental':
+              monsterColor = '#ff6f00';
+              icon = '🔥';
+              break;
+            case 'demon':
+              monsterColor = '#b71c1c';
+              icon = '😈';
+              break;
+          }
+          
+          // Draw monster
+          ctx.fillStyle = monsterColor;
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(icon, screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2);
+          
+          // Draw level indicator (small number above monster)
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '8px monospace';
+          ctx.fillText(`Lv${monster.level}`, screenX + TILE_SIZE / 2, screenY - 2);
+          
+          // Draw HP bar if damaged
+          if (monster.hp < monster.maxHp) {
+            const barWidth = TILE_SIZE - 2;
+            const barHeight = 2;
+            const hpPercent = monster.hp / monster.maxHp;
+            
+            // Background (red)
+            ctx.fillStyle = '#8b0000';
+            ctx.fillRect(screenX + 1, screenY + TILE_SIZE - 4, barWidth, barHeight);
+            
+            // HP (green)
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(screenX + 1, screenY + TILE_SIZE - 4, barWidth * hpPercent, barHeight);
+          }
+        }
+      });
+
       // Render character
       const charScreenX = (currentChar.x - currentCamera.x + viewportWidth / 2) * TILE_SIZE;
       const charScreenY = (currentChar.y - currentCamera.y + viewportHeight / 2) * TILE_SIZE;
 
       ctx.fillStyle = '#ff0000';
       ctx.fillRect(charScreenX + TILE_SIZE / 2 - 3, charScreenY + TILE_SIZE / 2 - 3, 6, 6);
+
+      // Update animation time for water effects
+      animationTimeRef.current = performance.now();
 
       // Continue render loop
       renderFrameId = requestAnimationFrame(render);
