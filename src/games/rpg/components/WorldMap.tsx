@@ -17,17 +17,22 @@ import {
   getResourceAt,
   getFeatureAt,
   getMonsterAt,
+  getNPCAt,
   collectResource,
   discoverFeature,
+  discoverNPC,
   defeatMonster,
   type MapData,
   type MapLocation,
   type MapResource,
   type MapFeature,
   type MapMonster,
+  type MapNPC,
   TILE_SIZE,
 } from "../utils/mapGenerator";
 import { useRpgStore } from "../state/useRpgStore";
+import { MonsterPanel } from "./MonsterPanel";
+import { NPCPanel } from "./NPCPanel";
 
 // Helper function to convert hex to RGB
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
@@ -42,6 +47,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 interface WorldMapProps {
   isOpen: boolean;
   onClose: () => void;
+  onNPCEncounter?: (npc: MapNPC) => void; // Callback when NPC is encountered
 }
 
 interface Camera {
@@ -59,13 +65,20 @@ interface Character {
 const MOVEMENT_SPEED = 2.5; // tiles per second
 const CAMERA_LERP_SPEED = 0.15; // camera interpolation speed (0-1, higher = faster)
 
-export function WorldMap({ isOpen, onClose }: WorldMapProps) {
+export function WorldMap({ isOpen, onClose, onNPCEncounter }: WorldMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mapDataRef = useRef<MapData | null>(null);
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0 });
   const [character, setCharacter] = useState<Character>({ x: 0, y: 0, direction: 'down' });
   const location = useRpgStore((state) => state.location);
   const setLocation = useRpgStore((state) => state.setLocation);
+  
+  // Panel position and size state
+  const [panelPosition, setPanelPosition] = useState({ x: 0, y: 0 });
+  const [panelSize, setPanelSize] = useState({ width: 640, height: 480 });
+  const worldMapNodeRef = useRef<HTMLDivElement>(null);
+  const isResizingRef = useRef(false);
+  const resizeStartRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
   
   // Use refs for smooth animation without causing re-renders
   const characterRef = useRef<Character>({ x: 0, y: 0, direction: 'down' });
@@ -82,6 +95,16 @@ export function WorldMap({ isOpen, onClose }: WorldMapProps) {
   const lastMonsterMoveRef = useRef<number>(0);
   const MONSTER_MOVE_INTERVAL = 2000; // Move every 2 seconds
   
+  // Monster encounter state
+  const [encounteredMonster, setEncounteredMonster] = useState<MapMonster | null>(null);
+  const lastEncounteredMonsterRef = useRef<string | null>(null); // Track last encountered to avoid spam
+  const encounteredMonsterRef = useRef<MapMonster | null>(null); // Keep ref for checking in animation loop
+  
+  // NPC encounter state
+  const [encounteredNPC, setEncounteredNPC] = useState<MapNPC | null>(null);
+  const lastEncounteredNPCRef = useRef<string | null>(null); // Track last encountered to avoid spam
+  const encounteredNPCRef = useRef<MapNPC | null>(null); // Keep ref for checking in animation loop
+  
   // Debug state
   const [debugInfo, setDebugInfo] = useState({
     fps: 0,
@@ -95,10 +118,72 @@ export function WorldMap({ isOpen, onClose }: WorldMapProps) {
   const fpsHistoryRef = useRef<number[]>([]);
   const lastFpsUpdateRef = useRef<number>(0);
 
+  // Close panels when world map closes
+  useEffect(() => {
+    if (!isOpen) {
+      setEncounteredMonster(null);
+      lastEncounteredMonsterRef.current = null;
+      encounteredMonsterRef.current = null;
+      setEncounteredNPC(null);
+      lastEncounteredNPCRef.current = null;
+      encounteredNPCRef.current = null;
+    }
+  }, [isOpen]);
+
+  // Initialize panel position (centered)
+  useEffect(() => {
+    if (typeof window !== "undefined" && isOpen) {
+      setPanelPosition({
+        x: (window.innerWidth - panelSize.width) / 2,
+        y: (window.innerHeight - panelSize.height) / 2,
+      });
+    }
+  }, [isOpen, panelSize.width, panelSize.height]);
+
+  // Handle resize
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingRef.current) return;
+      
+      const deltaX = e.clientX - resizeStartRef.current.x;
+      const deltaY = e.clientY - resizeStartRef.current.y;
+      
+      const newWidth = Math.max(400, Math.min(1200, resizeStartRef.current.width - deltaX));
+      const newHeight = Math.max(300, Math.min(800, resizeStartRef.current.height - deltaY));
+      
+      setPanelSize({ width: newWidth, height: newHeight });
+      
+      // Adjust position to keep top-left corner fixed
+      setPanelPosition(prev => ({
+        x: prev.x - (newWidth - resizeStartRef.current.width),
+        y: prev.y - (newHeight - resizeStartRef.current.height),
+      }));
+    };
+
+    const handleMouseUp = () => {
+      isResizingRef.current = false;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isOpen]);
+
   // Initialize map on mount
   useEffect(() => {
     if (!mapDataRef.current) {
-      mapDataRef.current = generateWorldMap(100, 100);
+      const newMapData = generateWorldMap(100, 100);
+      // Ensure npcs array exists (for backward compatibility)
+      if (!newMapData.npcs) {
+        newMapData.npcs = [];
+      }
+      mapDataRef.current = newMapData;
       
       // Set character to starting location
       const startLoc = mapDataRef.current.locations.find(loc => loc.name === 'Ruins of Eldrath');
@@ -297,12 +382,76 @@ export function WorldMap({ isOpen, onClose }: WorldMapProps) {
                 // Could trigger a notification here
               }
               
+              // Check for NPC encounter
+              const nearbyNPC = getNPCAt(mapData, tileX, tileY);
+              if (nearbyNPC) {
+                // Discover NPC if not already discovered
+                if (!nearbyNPC.discovered) {
+                  discoverNPC(mapData, nearbyNPC.id);
+                }
+                
+                // Only show panel if it's a different NPC (avoid spam)
+                if (lastEncounteredNPCRef.current !== nearbyNPC.id) {
+                  lastEncounteredNPCRef.current = nearbyNPC.id;
+                  encounteredNPCRef.current = nearbyNPC;
+                  setEncounteredNPC(nearbyNPC);
+                  
+                  // Trigger NPC encounter callback (for story window)
+                  if (onNPCEncounter) {
+                    onNPCEncounter(nearbyNPC);
+                  }
+                } else {
+                  // Update NPC data if same NPC (for any changes)
+                  encounteredNPCRef.current = nearbyNPC;
+                  setEncounteredNPC(nearbyNPC);
+                }
+              } else {
+                // Clear encounter if no NPC nearby
+                if (lastEncounteredNPCRef.current !== null) {
+                  lastEncounteredNPCRef.current = null;
+                  encounteredNPCRef.current = null;
+                  setEncounteredNPC(null);
+                }
+              }
+              
               // Check for monster encounter
               const nearbyMonster = getMonsterAt(mapData, tileX, tileY);
               if (nearbyMonster && !nearbyMonster.defeated) {
-                // Trigger combat or show monster info
-                // For now, just log it - could trigger combat system here
-                console.log(`Encountered ${nearbyMonster.name} (Level ${nearbyMonster.level})!`);
+                // Only show panel if it's a different monster (avoid spam)
+                if (lastEncounteredMonsterRef.current !== nearbyMonster.id) {
+                  lastEncounteredMonsterRef.current = nearbyMonster.id;
+                  encounteredMonsterRef.current = nearbyMonster;
+                  setEncounteredMonster(nearbyMonster);
+                  console.log(`Encountered ${nearbyMonster.name} (Level ${nearbyMonster.level})!`);
+                } else {
+                  // Update monster data if same monster (for HP changes, etc.)
+                  encounteredMonsterRef.current = nearbyMonster;
+                  setEncounteredMonster(nearbyMonster);
+                }
+              } else {
+                // Clear encounter if no monster nearby or monster is defeated
+                if (lastEncounteredMonsterRef.current !== null) {
+                  lastEncounteredMonsterRef.current = null;
+                  encounteredMonsterRef.current = null;
+                  setEncounteredMonster(null);
+                }
+              }
+              
+              // Also check if currently displayed monster was defeated
+              if (encounteredMonsterRef.current && encounteredMonsterRef.current.defeated) {
+                setEncounteredMonster(null);
+                lastEncounteredMonsterRef.current = null;
+                encounteredMonsterRef.current = null;
+              }
+              
+              // Also check if currently displayed NPC still exists and is valid
+              if (encounteredNPCRef.current) {
+                const currentNPC = mapData.npcs.find(n => n.id === encounteredNPCRef.current?.id);
+                if (!currentNPC) {
+                  setEncounteredNPC(null);
+                  lastEncounteredNPCRef.current = null;
+                  encounteredNPCRef.current = null;
+                }
               }
             }
           }
@@ -400,6 +549,11 @@ export function WorldMap({ isOpen, onClose }: WorldMapProps) {
   // Continuous render loop for smooth animation
   useEffect(() => {
     if (!isOpen || !canvasRef.current || !mapDataRef.current) return;
+    
+    // Ensure npcs array exists (for backward compatibility with old maps)
+    if (!mapDataRef.current.npcs) {
+      mapDataRef.current.npcs = [];
+    }
 
     let renderFrameId: number;
 
@@ -588,6 +742,65 @@ export function WorldMap({ isOpen, onClose }: WorldMapProps) {
         }
       });
 
+      // Render NPCs
+      (mapData.npcs || []).forEach(npc => {
+        const screenX = (npc.x - currentCamera.x + viewportWidth / 2) * TILE_SIZE;
+        const screenY = (npc.y - currentCamera.y + viewportHeight / 2) * TILE_SIZE;
+        
+        // Check if NPC is visible
+        if (screenX >= -TILE_SIZE && screenX < canvas.width + TILE_SIZE &&
+            screenY >= -TILE_SIZE && screenY < canvas.height + TILE_SIZE) {
+          
+          // NPC icon by type
+          let icon = '👤';
+          let iconColor = '#4a90e2';
+          
+          switch (npc.type) {
+            case 'merchant':
+              icon = '💰';
+              iconColor = '#ffd700';
+              break;
+            case 'quest_giver':
+              icon = '📜';
+              iconColor = '#9b59b6';
+              break;
+            case 'guardian':
+              icon = '🛡️';
+              iconColor = '#3498db';
+              break;
+            case 'wanderer':
+              icon = '🚶';
+              iconColor = '#95a5a6';
+              break;
+            case 'scholar':
+              icon = '📚';
+              iconColor = '#e67e22';
+              break;
+          }
+          
+          // Only show discovered NPCs or NPCs near player
+          const charTileX = Math.floor(currentChar.x);
+          const charTileY = Math.floor(currentChar.y);
+          const dist = Math.sqrt((npc.x - charTileX) ** 2 + (npc.y - charTileY) ** 2);
+          
+          if (npc.discovered || dist < 5) {
+            // Draw NPC icon
+            ctx.fillStyle = iconColor;
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(icon, screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2);
+            
+            // Draw name above NPC if discovered
+            if (npc.discovered) {
+              ctx.fillStyle = '#ffffff';
+              ctx.font = '8px monospace';
+              ctx.fillText(npc.name, screenX + TILE_SIZE / 2, screenY - 4);
+            }
+          }
+        }
+      });
+
       // Render monsters
       mapData.monsters.forEach(monster => {
         if (monster.defeated) return;
@@ -678,46 +891,114 @@ export function WorldMap({ isOpen, onClose }: WorldMapProps) {
     };
   }, [isOpen, location]);
 
+  // Update canvas size when panel resizes
+  useEffect(() => {
+    if (canvasRef.current && mapDataRef.current) {
+      canvasRef.current.width = panelSize.width - 32;
+      canvasRef.current.height = panelSize.height - 100;
+    }
+  }, [panelSize, isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <Draggable handle=".world-map-header">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="fixed z-50 bg-secondary/95 backdrop-blur-sm border-2 border-primary/50 rounded-lg shadow-2xl"
-        style={{
-          width: '640px',
-          height: '480px',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
+    <>
+      {encounteredMonster && (
+        <MonsterPanel
+          monster={encounteredMonster}
+          isOpen={true}
+          onClose={() => {
+            setEncounteredMonster(null);
+            lastEncounteredMonsterRef.current = null;
+            encounteredMonsterRef.current = null;
+          }}
+        />
+      )}
+      {encounteredNPC && (
+        <NPCPanel
+          npc={encounteredNPC}
+          isOpen={true}
+          onClose={() => {
+            setEncounteredNPC(null);
+            lastEncounteredNPCRef.current = null;
+            encounteredNPCRef.current = null;
+          }}
+        />
+      )}
+      <Draggable 
+        nodeRef={worldMapNodeRef}
+        handle=".world-map-header"
+        position={panelPosition}
+        onDrag={(e, data) => {
+          setPanelPosition({ x: data.x, y: data.y });
         }}
       >
-        <div className="world-map-header flex items-center justify-between p-2 border-b border-primary/30 cursor-move">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-bold text-primary">World Map</h3>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="h-6 w-6"
+        <div
+          ref={worldMapNodeRef}
+          style={{
+            position: "fixed",
+            zIndex: 50,
+            left: 0,
+            top: 0,
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-secondary/95 backdrop-blur-sm border-2 border-primary/50 rounded-lg shadow-2xl relative"
+            style={{
+              width: `${panelSize.width}px`,
+              height: `${panelSize.height}px`,
+            }}
           >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+            {/* Resize Handle - Top Left Corner */}
+            <div
+              className="absolute top-0 left-0 w-6 h-6 cursor-nwse-resize bg-primary/20 hover:bg-primary/40 border-r-2 border-b-2 border-primary/50 rounded-tl-lg flex items-center justify-center group z-10"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isResizingRef.current = true;
+                resizeStartRef.current = {
+                  x: e.clientX,
+                  y: e.clientY,
+                  width: panelSize.width,
+                  height: panelSize.height,
+                };
+              }}
+              title="Drag to resize"
+            >
+              <div className="w-3 h-3 flex flex-wrap gap-0.5 opacity-60 group-hover:opacity-100">
+                <div className="w-1 h-1 bg-primary rounded-full"></div>
+                <div className="w-1 h-1 bg-primary rounded-full"></div>
+                <div className="w-1 h-1 bg-primary rounded-full"></div>
+                <div className="w-1 h-1 bg-primary rounded-full"></div>
+              </div>
+            </div>
 
-        <div className="p-4 relative">
-          <canvas
-            ref={canvasRef}
-            width={640}
-            height={400}
-            className="w-full border border-primary/30 rounded"
-            style={{ imageRendering: 'pixelated' }}
-          />
+            <div className="world-map-header flex items-center justify-between p-2 border-b border-primary/30 cursor-move pl-8">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-bold text-primary">World Map</h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="h-6 w-6"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="p-4 relative" style={{ height: `${panelSize.height - 60}px` }}>
+              <canvas
+                ref={canvasRef}
+                width={panelSize.width - 32}
+                height={panelSize.height - 100}
+                className="w-full border border-primary/30 rounded"
+                style={{ imageRendering: 'pixelated' }}
+              />
           
           {/* Debug Overlay */}
           <div className="absolute top-6 left-6 bg-black/80 border border-primary/50 rounded p-2 font-mono text-xs text-primary">
@@ -763,8 +1044,10 @@ export function WorldMap({ isOpen, onClose }: WorldMapProps) {
             Use Arrow Keys or WASD to move • Current: {location}
           </div>
         </div>
-      </motion.div>
-    </Draggable>
+          </motion.div>
+        </div>
+      </Draggable>
+    </>
   );
 }
 

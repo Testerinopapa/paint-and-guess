@@ -322,3 +322,5 @@ if (monster) {
 - Defeated monsters remain in the array but are not rendered or updated
 - Monster movement is independent of player movement (asynchronous)
 
+
+

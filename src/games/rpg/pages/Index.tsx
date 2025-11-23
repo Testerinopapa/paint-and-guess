@@ -219,6 +219,24 @@ export default function RpgIndex() {
       <WorldMap
         isOpen={worldMapOpen}
         onClose={() => setWorldMapOpen(false)}
+        onNPCEncounter={(npc) => {
+          // Add NPC dialogue to story
+          const npcDialogue = npc.dialogue[0] || "Hello, traveler.";
+          const encounterText = [
+            "",
+            `**${npc.name}** (${npc.title})`,
+            `"${npcDialogue}"`,
+            npc.hasQuest ? "*This NPC has a quest for you.*" : "",
+          ].filter(Boolean);
+          
+          // Add to story text
+          useRpgStore.setState((state) => ({
+            storyText: [...state.storyText, ...encounterText],
+          }));
+          
+          // Open story window
+          setStoryWindowOpen(true);
+        }}
       />
 
       {/* Test Draggable Emoji */}

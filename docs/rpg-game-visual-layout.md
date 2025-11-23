@@ -837,21 +837,28 @@ These buttons are positioned side by side and can be dragged independently.
 
 ```
                     ┌─────────────────────────────────────────┐
-                    │ 🗺️ World Map                      [X]  │ ← Header (Drag Handle)
+                    │ [⤡] 🗺️ World Map                  [X]  │ ← Header (Drag/Resize)
                     ├─────────────────────────────────────────┤
+                    │                                         │
+                    │  [Debug: FPS, Position, Keys]          │ ← Debug Overlay (Top Left)
                     │                                         │
                     │  ┌───────────────────────────────────┐ │
                     │  │                                   │ │
-                    │  │    [Canvas: 640x400 pixels]       │ │ ← Canvas Area
+                    │  │  [Canvas: Resizable]              │ │ ← Canvas Area
                     │  │                                   │ │
                     │  │  ┌─────────────────────────┐    │ │
-                    │  │  │ Ocean (Blue)             │    │ │
-                    │  │  │ Grass (Green)            │    │ │
-                    │  │  │ Forest (Dark Green)      │    │ │
-                    │  │  │ Mountain (Gray)          │    │ │
-                    │  │  │ Desert (Amber)           │    │ │
+                    │  │  │ Ocean (Blue, Animated)  │    │ │
+                    │  │  │ Grass (Green, Shaded)    │    │ │
+                    │  │  │ Forest (Dark, Shaded)   │    │ │
+                    │  │  │ Mountain (Gray, Shaded) │    │ │
+                    │  │  │ Desert (Amber, Shaded)  │    │ │
+                    │  │  │ ─ Rivers (Blue)         │    │ │
                     │  │  │                          │    │ │
                     │  │  │  ● Location (Gold)       │    │ │
+                    │  │  │  💰 Resources            │    │ │
+                    │  │  │  🕳️ Features            │    │ │
+                    │  │  │  👻 Monsters (Lv5)       │    │ │
+                    │  │  │  💰 NPCs (Name)          │    │ │
                     │  │  │  ■ Character (Red)       │    │ │
                     │  │  └─────────────────────────┘    │ │
                     │  │                                   │ │
@@ -863,28 +870,38 @@ These buttons are positioned side by side and can be dragged independently.
 ```
 
 ### Container (When Open)
-- **Type:** Draggable popup window
+- **Type:** Draggable and resizable popup window
 - **Position:** Fixed, centered initially, draggable via header
-- **Width:** 640px
-- **Height:** 480px
+- **Default Width:** 640px (resizable 400-1200px)
+- **Default Height:** 480px (resizable 300-800px)
 - **Background:** Secondary at 95% opacity with backdrop blur
 - **Border:** 2px, primary at 50% opacity
 - **Border Radius:** Large (`rounded-lg`)
 - **Shadow:** 2xl (large shadow)
 - **Z-Index:** 50 (above other panels)
 - **Draggable:** Yes (via react-draggable, handle on header)
+- **Resizable:** Yes (via top-left corner handle)
 - **Animation:**
   - Entrance: Fade-in and scale (opacity 0→1, scale 0.9→1, 0.2s duration)
   - Exit: Fade-out and scale (opacity 1→0, scale 1→0.9)
-- **Trigger:** Click on "World Map" action button in ActionPanel
+- **Trigger:** Click on "World Map" action button or 🗺️ emoji button
 
 ### Header (Drag Handle)
 - **Background:** Transparent with bottom border
 - **Border:** 2px bottom, primary at 30% opacity
 - **Border Radius:** Top large (`rounded-t-lg`)
-- **Padding:** 2 units (p-2)
+- **Padding:** 2 units (p-2), left padding 8 units (pl-8) for resize handle
 - **Layout:** Flex, space-between, items-center
 - **Cursor:** Move (on hover, `.world-map-header` class)
+
+### Resize Handle
+- **Position:** Top-left corner (absolute)
+- **Size:** 24px × 24px (w-6 h-6)
+- **Cursor:** `nwse-resize` (diagonal resize)
+- **Visual:** 4-dot pattern, opacity 60%, 100% on hover
+- **Background:** Primary color at 20% opacity, 40% on hover
+- **Border:** Right and bottom borders, primary at 50% opacity
+- **Z-Index:** 10 (above other elements)
 
 ### Header Content
 - **Icon:** MapPin, 20px (w-5 h-5), primary color
@@ -897,11 +914,28 @@ These buttons are positioned side by side and can be dragged independently.
 
 ### Canvas Container
 - **Padding:** 4 units (p-4)
-- **Canvas Dimensions:** 640px × 400px
+- **Canvas Dimensions:** Dynamic (panel width - 32px × panel height - 100px)
+- **Default:** 640px × 400px
 - **Border:** 1px, primary at 30% opacity
 - **Border Radius:** Rounded (`rounded`)
 - **Image Rendering:** Pixelated (`imageRendering: 'pixelated'`)
 - **Background:** Deep black (`#0a0a0a`)
+
+### Debug Overlay
+- **Position:** Absolute, top-left (top-6 left-6)
+- **Background:** Black at 80% opacity
+- **Border:** Primary at 50% opacity
+- **Padding:** 2 units
+- **Font:** Monospace, extra small
+- **Color:** Primary
+- **Content:**
+  - FPS (color-coded: green ≥55, yellow ≥30, red <30)
+  - Delta Time (ms)
+  - Movement Speed (tiles/s)
+  - Character Position (x, y)
+  - Tile Position (x, y)
+  - Camera Position (x, y)
+  - Pressed Keys (green when active)
 
 ### Canvas Rendering
 - **Tile Size:** 16×16 pixels (Final Fantasy style)
@@ -929,6 +963,38 @@ These buttons are positioned side by side and can be dragged independently.
 - **Color:** `#ffd700`
 - **Position:** Centered on location tile
 - **Label:** White text (8px monospace) for current location
+
+### Resource Rendering
+- **Icons:** 💰 (treasure), ⛏️ (ore), 🌿 (herb), 💎 (crystal)
+- **Size:** 10px Arial font
+- **Position:** Centered on tile
+- **Visibility:** Only uncollected resources
+
+### Feature Rendering
+- **Icons:** 🕳️ (cave), 🏛️ (ruins), ⛩️ (shrine), 🗿 (monolith)
+- **Size:** 10px Arial font
+- **Position:** Centered on tile
+- **Visibility:** Discovered features or features within 5 tiles
+
+### Monster Rendering
+- **Icons:** 👻 (shadow), 🐺 (beast), 💀 (undead), 🔥 (elemental), 😈 (demon)
+- **Size:** 12px Arial font
+- **Position:** Centered on tile
+- **Level Indicator:** White text above (`Lv{level}`)
+- **HP Bar:** Green/red bar below when damaged
+- **Visibility:** Only undefeated monsters
+
+### NPC Rendering
+- **Icons:** 💰 (merchant), 📜 (quest giver), 🛡️ (guardian), 🚶 (wanderer), 📚 (scholar)
+- **Size:** 12px Arial font
+- **Position:** Centered on tile
+- **Name Label:** White text above when discovered
+- **Visibility:** Discovered NPCs or NPCs within 5 tiles
+
+### River Rendering
+- **Color:** River blue (`#1565c0`)
+- **Position:** Overlays terrain tiles
+- **Generation:** Procedurally generated paths from high elevation to ocean
 - **Visibility:** Only shows discovered locations or current location
 
 ### Controls Information
@@ -946,18 +1012,39 @@ These buttons are positioned side by side and can be dragged independently.
 
 ### Map Generation
 - **Map Size:** 100×100 tiles (default)
-- **Generation:** Procedural algorithm creates landmasses and islands
+- **Generation:** Procedural algorithm using Simplex Noise
+- **Noise Layers:**
+  - Continent shape (seed + 0)
+  - Terrain variation (seed + 1000)
+  - Island distribution (seed + 2000)
+  - Elevation (seed + 3000)
+  - Resources (seed + 4000)
+  - Features (seed + 5000)
+  - Locations (seed + 6000)
+  - Rivers (seed + 7000)
+  - Monsters (seed + 8000)
+  - NPCs (seed + 9000)
 - **Terrain Distribution:**
-  - Center: Mountains and forests
+  - Center: Mountains and forests (high elevation)
   - Mid: Mix of grass and forest
   - Outer: Mostly grass, some desert
+- **Elevation:** Height map (0-1) affects terrain shading
 - **Locations:** Pre-placed at specific coordinates
+- **Resources:** Procedurally placed based on terrain type
+- **Features:** Procedurally placed in feature-rich areas
+- **Monsters:** Spawn in dangerous areas (forests, mountains, deserts)
+- **NPCs:** Spawn near safe areas (locations)
+- **Rivers:** Flow from high elevation to ocean
 
 ### Integration Points
 - **Action Panel:** "World Map" button in main actions
-- **RPG Store:** Reads/writes location state
+- **Draggable Emoji:** 🗺️ emoji button at bottom of screen
+- **RPG Store:** Reads/writes location state, adds story text for NPCs
 - **Location Sync:** Updates character position when location changes
-- **Discovery:** Auto-discovers locations when character reaches them
+- **Discovery:** Auto-discovers locations, features, and NPCs when character reaches them
+- **Monster Panel:** Opens automatically on monster encounter
+- **NPC Panel:** Opens automatically on NPC encounter
+- **Story Window:** Opens automatically with NPC dialogue on encounter
 
 ## Hub Preview Card
 
@@ -1162,14 +1249,46 @@ RpgIndex (Main Page)
     │   │       └── Item Cards (with Tooltips)
     │   └── Footer Button
     │
+    ├── MonsterPanel (when monster encountered)
+    │   ├── Header (drag handle: .monster-handle)
+    │   │   ├── Skull Icon + "Monster Encounter"
+    │   │   └── Close Button
+    │   └── Content
+    │       ├── Monster Icon (type-specific emoji)
+    │       ├── Monster Name
+    │       ├── Level Badge
+    │       ├── HP Bar
+    │       ├── Estimated Stats (Attack, Defense, Speed)
+    │       └── Patrol Radius
+    │
+    ├── NPCPanel (when NPC encountered)
+    │   ├── Header (drag handle: .npc-handle)
+    │   │   ├── User Icon + "NPC Encounter"
+    │   │   └── Close Button
+    │   └── Content
+    │       ├── NPC Icon (type-specific emoji)
+    │       ├── NPC Name
+    │       ├── Title Badge
+    │       ├── Description
+    │       ├── Dialogue
+    │       ├── Type & Status Info
+    │       └── Quest Indicator (if available)
+    │
     └── WorldMap (when open)
+        ├── Resize Handle (top-left corner)
         ├── Header (drag handle: .world-map-header)
         │   ├── MapPin Icon + "World Map"
         │   └── Close Button
         └── Content Area
-            ├── Canvas (640×400px)
-            │   ├── Terrain Tiles (16×16px each)
+            ├── Debug Overlay (top-left)
+            ├── Canvas (resizable, dynamic size)
+            │   ├── Terrain Tiles (16×16px, elevation shaded)
+            │   ├── Rivers (blue overlays)
             │   ├── Location Markers (gold circles)
+            │   ├── Resources (emoji icons)
+            │   ├── Features (emoji icons)
+            │   ├── Monsters (emoji icons + level + HP bar)
+            │   ├── NPCs (emoji icons + name)
             │   └── Character Sprite (red square)
             └── Controls Info (text)
 ```

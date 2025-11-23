@@ -50,6 +50,25 @@ export interface MapMonster {
   defeated: boolean;
 }
 
+export interface MapNPC {
+  id: string;
+  x: number;
+  y: number;
+  name: string;
+  title: string;
+  description: string;
+  type: 'merchant' | 'quest_giver' | 'guardian' | 'wanderer' | 'scholar';
+  dialogue: string[];
+  hasQuest: boolean;
+  questId?: string;
+  discovered: boolean;
+  stationary: boolean; // Whether NPC moves or stays in place
+  spawnX: number; // Original spawn position
+  spawnY: number;
+  direction: 'up' | 'down' | 'left' | 'right' | 'idle';
+  lastMoveTime: number; // For movement timing
+}
+
 export interface MapData {
   width: number;
   height: number;
@@ -58,6 +77,7 @@ export interface MapData {
   resources: MapResource[];
   features: MapFeature[];
   monsters: MapMonster[];
+  npcs: MapNPC[];
   elevation: number[][]; // Height map (0-1, where 1 is highest)
   rivers: Array<{ x: number; y: number }>; // River tile coordinates
 }
@@ -107,6 +127,9 @@ export function generateWorldMap(width: number = 100, height: number = 100, seed
   
   // Monster spawn noise
   const monsterNoise2D = createNoise2D(() => mapSeed + 8000);
+  
+  // NPC spawn noise
+  const npcNoise2D = createNoise2D(() => mapSeed + 9000);
   
   // Random generator for location placement
   const random = seed !== undefined ? seededRandom(seed) : () => Math.random();
@@ -515,6 +538,145 @@ export function generateWorldMap(width: number = 100, height: number = 100, seed
     }
   }
 
+  // Generate NPCs using noise (spawn near locations and safe areas)
+  const npcs: MapNPC[] = [];
+  const npcPositions = new Set<string>();
+  
+  // NPC type names and dialogues
+  const getNPCTypeInfo = (type: MapNPC['type']) => {
+    const info = {
+      merchant: {
+        titles: ['Traveling Merchant', 'Shadow Trader', 'Wandering Vendor'],
+        dialogues: [
+          'I have rare items from distant lands...',
+          'Gold speaks louder than words, traveler.',
+          'Looking for something specific? I might have it.',
+        ],
+      },
+      quest_giver: {
+        titles: ['Quest Master', 'Task Provider', 'Mission Giver'],
+        dialogues: [
+          'I have a task that needs completing...',
+          'Adventurer, I need your help!',
+          'There is work to be done, if you\'re willing.',
+        ],
+      },
+      guardian: {
+        titles: ['Ancient Guardian', 'Temple Keeper', 'Sacred Protector'],
+        dialogues: [
+          'This place is protected by ancient magic.',
+          'Few have passed this way and lived to tell.',
+          'The old ways must be preserved.',
+        ],
+      },
+      wanderer: {
+        titles: ['Mysterious Wanderer', 'Lone Traveler', 'Drifting Soul'],
+        dialogues: [
+          'The road is long, but the journey is worth it.',
+          'I\'ve seen many things in my travels...',
+          'Every path leads somewhere, eventually.',
+        ],
+      },
+      scholar: {
+        titles: ['Ancient Scholar', 'Knowledge Seeker', 'Lore Keeper'],
+        dialogues: [
+          'The secrets of the past are written in these ruins.',
+          'Knowledge is the greatest treasure.',
+          'I study the ancient texts... there is much to learn.',
+        ],
+      },
+    };
+    return info[type];
+  };
+  
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (tiles[y][x] === 'ocean') continue;
+      if (tiles[y][x] === 'mountain') continue; // NPCs don't spawn on mountains
+      if (monsterPositions.has(`${x},${y}`)) continue; // Not where monsters are
+      if (resourcePositions.has(`${x},${y}`)) continue;
+      if (featurePositions.has(`${x},${y}`)) continue;
+      if (riverPoints.has(`${x},${y}`)) continue;
+      
+      const npcNoise = npcNoise2D(x * 0.08, y * 0.08);
+      const elev = elevation[y][x] || 0;
+      
+      // NPCs spawn near locations (safe areas) or in interesting spots
+      let nearLocation = false;
+      let locationDist = Infinity;
+      for (const loc of locations) {
+        const dist = Math.sqrt((x - loc.x) ** 2 + (y - loc.y) ** 2);
+        if (dist < maxRadius * 0.3) {
+          nearLocation = true;
+          locationDist = Math.min(locationDist, dist);
+        }
+      }
+      
+      // Higher chance near locations, lower chance in wilderness
+      const locationBonus = nearLocation ? 0.3 : 0.0;
+      const spawnThreshold = 0.5 + locationBonus;
+      
+      if (npcNoise > spawnThreshold) {
+        // Check spacing between NPCs
+        let tooClose = false;
+        for (const npc of npcs) {
+          const dist = Math.sqrt((x - npc.x) ** 2 + (y - npc.y) ** 2);
+          if (dist < 10) {
+            tooClose = true;
+            break;
+          }
+        }
+        if (tooClose) continue;
+        
+        // Determine NPC type based on location and noise
+        let type: MapNPC['type'];
+        if (nearLocation && locationDist < maxRadius * 0.15) {
+          // Very close to location: merchant or quest giver
+          type = npcNoise > 0.7 ? 'merchant' : 'quest_giver';
+        } else if (nearLocation) {
+          // Near location: guardian or scholar
+          type = npcNoise > 0.6 ? 'guardian' : 'scholar';
+        } else {
+          // Wilderness: wanderer
+          type = 'wanderer';
+        }
+        
+        const typeInfo = getNPCTypeInfo(type);
+        const title = typeInfo.titles[Math.floor(random() * typeInfo.titles.length)];
+        const dialogue = typeInfo.dialogues[Math.floor(random() * typeInfo.dialogues.length)];
+        const hasQuest = type === 'quest_giver' || (random() < 0.3);
+        
+        // Generate name (simple for now, could use faker if available)
+        const names = [
+          'Aelric', 'Brenna', 'Cedric', 'Dara', 'Ewan', 'Fiona', 'Gareth', 'Helena',
+          'Ivor', 'Jenna', 'Kael', 'Luna', 'Marcus', 'Nora', 'Owen', 'Piper',
+          'Quinn', 'Rhea', 'Soren', 'Tara', 'Ulric', 'Vera', 'Wren', 'Xara',
+        ];
+        const name = names[Math.floor(random() * names.length)];
+        
+        npcs.push({
+          id: `npc-${npcs.length}`,
+          x,
+          y,
+          name,
+          title,
+          description: `A ${title.toLowerCase()} who ${type === 'merchant' ? 'sells rare goods' : type === 'quest_giver' ? 'offers quests' : type === 'guardian' ? 'protects this area' : type === 'scholar' ? 'studies ancient lore' : 'wanders the land'}.`,
+          type,
+          dialogue: [dialogue],
+          hasQuest,
+          questId: hasQuest ? `quest-${npcs.length}` : undefined,
+          discovered: false,
+          stationary: type === 'guardian' || type === 'scholar', // Guardians and scholars stay put
+          spawnX: x,
+          spawnY: y,
+          direction: 'idle',
+          lastMoveTime: 0,
+        });
+        npcPositions.add(`${x},${y}`);
+      }
+    }
+  }
+
   return {
     width,
     height,
@@ -523,6 +685,7 @@ export function generateWorldMap(width: number = 100, height: number = 100, seed
     resources,
     features,
     monsters,
+    npcs,
     elevation,
     rivers,
   };
@@ -612,6 +775,29 @@ export function defeatMonster(mapData: MapData, monsterId: string): MapMonster |
     monster.hp = 0;
   }
   return monster;
+}
+
+/**
+ * Get NPC at coordinates (within 2 tiles)
+ */
+export function getNPCAt(mapData: MapData, x: number, y: number): MapNPC | undefined {
+  if (!mapData.npcs) return undefined;
+  return mapData.npcs.find(npc => {
+    const dx = Math.abs(npc.x - x);
+    const dy = Math.abs(npc.y - y);
+    return dx <= 2 && dy <= 2;
+  });
+}
+
+/**
+ * Discover an NPC (mark as discovered)
+ */
+export function discoverNPC(mapData: MapData, npcId: string): MapNPC | undefined {
+  const npc = mapData.npcs.find(n => n.id === npcId);
+  if (npc) {
+    npc.discovered = true;
+  }
+  return npc;
 }
 
 /**
