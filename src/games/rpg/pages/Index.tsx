@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import Draggable from "react-draggable";
 import { BackgroundEffects } from "../components/BackgroundEffects";
 import { PlayerPanel } from "../components/PlayerPanel";
 import { StoryWindow } from "../components/StoryWindow";
 import { ActionPanel } from "../components/ActionPanel";
 import { CommandInput } from "../components/CommandInput";
 import { InventoryPanel } from "../components/InventoryPanel";
+import { WorldMap } from "../components/WorldMap";
 import { useRpgStore } from "../state/useRpgStore";
 import { useToast } from "@/shared/hooks/use-toast";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
@@ -17,6 +19,10 @@ const DEBUG_RPG = import.meta.env.DEV || import.meta.env.VITE_DEBUG_RPG === "tru
 export default function RpgIndex() {
   const { toast } = useToast();
   const [inventoryOpen, setInventoryOpen] = useState(false);
+  const [playerPanelOpen, setPlayerPanelOpen] = useState(false);
+  const [storyWindowOpen, setStoryWindowOpen] = useState(true); // Open by default
+  const [worldMapOpen, setWorldMapOpen] = useState(false);
+  const testEmojiRef = useRef<HTMLDivElement>(null);
 
   const character = useRpgStore((state) => state.character);
   const location = useRpgStore((state) => state.location);
@@ -121,6 +127,11 @@ export default function RpgIndex() {
       return;
     }
 
+    if (action.toLowerCase() === "worldmap") {
+      setWorldMapOpen(!worldMapOpen);
+      return;
+    }
+
     toast({
       title: "Action Selected",
       description: `You chose to: ${action}`,
@@ -167,19 +178,14 @@ export default function RpgIndex() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">
-          <div className="lg:col-span-3">
-            <PlayerPanel character={character} />
-          </div>
-
-          <div className="lg:col-span-6">
-            <StoryWindow location={location} storyText={storyText} />
-          </div>
-
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-12">
             <ActionPanel 
               onAction={handleAction} 
               onCommand={handleCommand}
-              availableCommands={availableCommands} 
+              availableCommands={availableCommands}
+              onOpenPlayerPanel={() => setPlayerPanelOpen(true)}
+              onOpenStoryWindow={() => setStoryWindowOpen(true)}
+              onOpenWorldMap={() => setWorldMapOpen(true)}
             />
           </div>
         </div>
@@ -196,6 +202,52 @@ export default function RpgIndex() {
         onAddItem={addItem}
         onRemoveItem={removeItem}
       />
+
+      <PlayerPanel
+        character={character}
+        isOpen={playerPanelOpen}
+        onClose={() => setPlayerPanelOpen(false)}
+      />
+
+      <StoryWindow
+        location={location}
+        storyText={storyText}
+        isOpen={storyWindowOpen}
+        onClose={() => setStoryWindowOpen(false)}
+      />
+
+      <WorldMap
+        isOpen={worldMapOpen}
+        onClose={() => setWorldMapOpen(false)}
+      />
+
+      {/* Test Draggable Emoji */}
+      <Draggable nodeRef={testEmojiRef}>
+        <div
+          ref={testEmojiRef}
+          style={{
+            position: "fixed",
+            top: "100px",
+            left: "100px",
+            zIndex: 100,
+            fontSize: "3rem",
+            cursor: "grab",
+            userSelect: "none",
+            background: "rgba(0, 0, 0, 0.5)",
+            padding: "10px",
+            borderRadius: "10px",
+            border: "2px solid #45b355",
+          }}
+          onMouseDown={(e) => {
+            e.currentTarget.style.cursor = "grabbing";
+          }}
+          onMouseUp={(e) => {
+            e.currentTarget.style.cursor = "grab";
+          }}
+        >
+          🧪 TEST
+        </div>
+      </Draggable>
     </div>
   );
 }

@@ -1,0 +1,903 @@
+savage world rp info:
+
+Tokens/benefits - rerolls, prevent dmg, etc
+
+dice(4,5,6,10,12 and 20) + special dice(d6)
+
+The Action Deck - standard dec of cards with jokers. They are used for initiative in combat and to move the game along 
+
+Plot Point Campaign -> grandback backstory to the campaign world
+
+companions -> npcs?
+
+
+
+
+
+============ RACES
+
+Android: Pacifist: (Major)
+
+Their lore gives them Major Pacifist (Major)
+
+Construct: They add +2 to recover from being Shaken, don't breathe, ignore one level of wound modifiers and are immmune to poison and disease. contructs cannot heal naturally. Healing one requires the Repair skill, which takes one hour per current wound level per attempt and is not limited to the "GOLDEN HOUR"
+
+Outsider (Major): Androids subtract 2 from persuasion rolls when interacting with anyone besides other androids and have no legal rights in most areas.
+
+Vow (Major): Constructs are designed with a particular purpose. Player character constructs have broad directives such as serving a particular corporation or political faction. This is as a Major Vow to that particular directive.
+
+
+########################
+
+Aquarian: Aquatic
+
+They can drown in water and move at their full pace when swimming.
+
+Dependency: Aquarians must immese themselves in water one hour out of every 24 or become automatically fatigued each day until they are incapacitated. The day after incapacitation from dehydration, they perish. Each hour spent in water restores one level of Fatigue.
+
+Low light vision: Aquarians are used to darkness. They ignore Dim and Dark illumination penalties.
+
+Toughness: Add + 1 to toughness.
+
+
+############################
+
+Avion: Can't swim
+
+-2 from athletics (swimming) rolls and each movement in water costs 3 pace
+
+Flight: Avions fly at Pace 12 per round. Use Athletics when maneurvering
+
+Frail: Avions have -1 toughness
+
+KEEN SENSE: Avions begin with a d6 in Notice and may raise the skill to d12 + 1
+
+Reduced pace: Dependence on flight and bulky wings make avions slightly slower when walking. Decrease walking pace and running die by 1
+
+############
+
+Dwarves: Low light vision
+
+They ignore penalities for Dim and Dark Illumination
+
+Reduced PAce: Decrease their pace by 1 and their running die by 1 die type
+
+Tough: Start with a d6 vigor. Their max vigor therefore is D12 + 1
+
+##############
+
+Elves: Agile
+
+Start with a D6 in Agility. D12+1 Agi
+
+All Thumbs: Shun mst mechanical items and designs
+
+Low light vision: Ignore penalties for Dim and Dark illumination
+
+##########
+
+
+Half-Elves: Heritage:
+
+May start with a free Novice Edge or a d6 in Agility instead of a d4(D12+1 max)
+
+Low light vision: Ignore dim and dark illumination
+
+Outsider(Minor): Subtract 2 from persuation rolls with all but their kind
+
+#######
+
+Half-Folk: Luck: Half-fol draw one additional benefit per game session
+
+reduced pace: -1 pace and running die type
+
+size -1: Size and toughness reduced by 1
+
+Spirited: start with D6 in Spirit.(D12+1)
+
+#########
+
+Humans: Adaptable: begin play with any novice edge of their choosing. Must meet requirements as usual.
+
+
+#########
+
+Rakashans: Agile: Starts with D6 agility. (D12+1 max)
+
+Bite/Claws: Fangs and claws are NATURAL WEAPONS. This caiuses Strength + d4 damage.
+
+Bloodthirsty: Subjective characterstic about killing and not taking prisoners due to an inherent cruelty to enemies
+
+Can't swim: Subtract 2 from athletics(swimming) rolls and each movement is 3x pace
+
+#################
+
+Saurians: Armor +2
+
+Bite: Fangs are NATURAL WEAPONS. Strength+d4 damage
+
+Environmental weakness: Suffer -4 penality to resist cold environmental effects and suffer +4 damage from cold based attacks
+
+Keen senses: Alertness Edge
+
+Outsider (Minor): Most races distrust them. -2 persuasion rolls with all but their kind
+
+
+
+========= HINDRANCES
+
+character drawbacks.
+
+You can take up to 4 points.
+
+Major Hindrance = 2
+
+Minor Hindrance = 1
+
+Heroes could then taken 2 MAjor and 4 minor or any combination that leads to 4
+
+Hindrance benefits: For 2 points you can raise an attribute 1 one die type or choose an edge
+
+For 1 point you can gain another skill point of additional starting funds equal to twice your settings starting amount
+
+
+====== TRAITS
+
+TRAITS():characters are defined by attributes and skills collectively called "Traits" and both work in exactl the same way. Attributes and skills are rankked by die type, tpically from d4 to d12, with d6 being the average for adut humans. Higher is better.
+
+
+ATTRIBUTES: Every character stars with a d4 in each of 5 attributes: Agility, Smarts, Spirit, Strength and Vigor. You then have 5 poitns to increase your attributes. Raising a d4 to a d6 costs 1 point for example.
+
+They may be spent however except that no attribute may ever be raised about a d12 unless a RACIAL ability says otherwise. If so, every increase about a d12 str two steps for example is a str score of d12 + 2
+
+Skills: Learned abilities such as firing weapons, hand to hand combat, scientific knowledge, professional aptitude, and so one
+
+Skills are broad to keep action simple. The shooting skill for example covers all types of guns bows rocket launchers etc
+
+Core skills: Athletics, Commn Knowledge, Notice, Persuasion and Stealth.
+
+The are 'innate' abilities most adult adventurers have. Uless a racial ability, Edge, or Hindrance says otherwise, your character strarts with a d4 in each of these 5 core skills
+
+Buying Skills: After core skills are assigned you have 12 additional points to raise core skills or buy and raise new skills.
+
+Each die type costs 1 point (starting at d4) as long as the skill is = or < the attribute its linked to. If you exceed the linked attribute the costs becomes 2 poitns per die type
+
+Skill maximums: skills may not be increased above d12 during character creation unless the character's race starts with the skill at d6. If so increase their maximum to d12+1. Celesitals start with a d6 in Faith for example which means their faith skill may be increased to d12+1
+
+Derived Stats: 
+
+Pace is how fast your character moves in tactictual situations like combat. Standard Pace is 6, which means six space moves per gameround. Physically this translates to 12 yards per game round.
+
+Parry is equal to 2 + your character's Fighting de type + any bonutses for shields for certain weapons. This is the target number (TN) to hit your hero in hand-to-hand combat.
+
+For fighting skills higher than d12 such as d12+1, add half the fixed modifiere rounded down. For example fighting d12+1 grants a parry of 8, while fighting d12+2 results in a parry of 9.
+
+Size: A hero's default size is 0 unless altered by racial abilities, edges or hindrances. It cannot be less than -1 ore more than +3.
+
+Toughness: Your hero's damage threshhold. Damage rolls that eqqual or exceed this number cause harm.
+
+Toughtness is 2 + half your hero's Vigor + armor. Vigor over a d12 is calculated just like parry, above.
+
+
+============ EDGES
+
+Attributes and skills are a character's basic statistics, but what really makes individuals different are their Edges. Example: 2 roman legionaries in which one focuses on leadership edges such as Rally and another concentrates on taking out several foes with Sweep or Frenzy.
+
+Get Edges by taing Hindrances, racial abilities or Advances once play begins.
+
+
+============== GEAR
+
+Some settings provide your hero with all the gear she needs. Most simply grant a starting amount of funds you can use to pruchase whatever you like from a relevant list of weapons armor and adventure gear. Standard starting geaar is 500$
+
+======= BACKGROUND DETAILS
+
+
+
+Finish your new hero by filling in any additional history or bacjground you care to. Ask yourself why she's where she is and what her goals are. Where does she live? Does she have any close firends or family?
+
+Solo Bios, group bios, optimized group bios
+
+
+========== ADVANCEMENT
+
+Gain a new Edge
+
+Increase a skill that is equal to or greater than its linked attribute one die type
+
+Increase two sills that are lower than their linke attributes by one die type each. (including new skills the character didnt have before at d4)
+
+increase one attribute by a die type. This option may only be taken once per rank. LEgendary chatacters may raise an attribvute every other adcanve up to the racial maximum.
+
+Permanently remove a minor hindrance or reduce a major hindrance to a minor if possible.
+
+============ RANK
+
+0 - 3 Novice
+
+4 - 7 Seasoned
+
+8 - 11 Veteran
+
+12 - 15 Heroic
+
+16+ Legendary
+
+================ CHARACTER CREATION SUMMARY
+
+Concept:
+
+Race:
+
+Hindrances:
+
+Attributes:
+
+Skills:
+
+Derived Statistics:
+
+Edges:
+
+Gear:
+
+
+======= WILD CARDS AND EXTRAS
+
+Your hero, unique allies, villains and monsters are collectively called ""wild" cards". These beings have a better chance at doing things, are a little tougher to put down and are generally more detailed than common guards, mminions, or lackeys -- collectively called "Extra"
+
+Wild Cards can take 3 wounds before they're incapacitated
+
+Wild cards roll a wild die (usually D6) along with their trait die when making trait rolls and take the highest of the two as their total
+
+========= TRAIT ROLLS
+
+To make a skill or attribute 'check' or 'roll' simply roll the die assigned to it. If the result is a 4 or better the action is successful. For example, if a character's strength is a d6 he rolls a six sided die. 4 or better wins.
+
+Modifiers: Circumstances modify the die roll, such as shooting at something far away or inding a well-hidden clue. Some things, such as ranged attacks have standard modifiers. It's up to the GM to determine any modifiers for more subjective tasks, such as spotting an ambush or eavesdropping on a conversation through a door.
+
+In general an east task such as finding tracks in the mud is amde a +2. A difficult task such as finding tracks by torchlight is made at -2. A very difficult task, such as finding tracks in a rainstorm, is made at -4.
+
+Multiple dice: when a character rolls multiple dice, such as when firing a mchine-gun, check each die seperately.
+
+======= THE WILD DIE
+
+Extras roll a single die when making a trait roll. Wild cards roll an extra D6 and taer the highest of their trait die or the "wild die". Both of these dice can ACE.
+
+
+ONE WILD DIE PER ACTION: When wild cards roll multiple dice for a single action, such as whenfiring a machine gun, they roll only one wild die.
+The wild die may replace a trait die or be ignore. It never adds another action or attack to the roll.
+
+Example: Gabe has the Grenzy Edge. He rolls an extra fighting die when making a melee attack along with a wild die. Only two of his dice can cause hits since the wild die can only replace a die, not add another attack.
+
+
+========== RAISES
+
+Sometimes it's important  to know just how successful a trait roll was. every 4 points over the TN is called a "rase". If your hero needs a 4 to shoot an opponent and rolls an 11, he hits whith one raise and would have 2 raises with a roll of 12. Figure raises AFTER adjusting for any modifiers.
+A single raise always provides an additional effect of some sort, such as a bonus damage when attacking or a benefit determined by the GM for other rolls.
+
+
+========= OPPOSED ROLLS
+
+Sometimes rolls are "opposed" by an opponent. The attacker gets a Trait total, then the defender attempts to beat it.
+
+The exact skills or attributes used in a contest are specificed in each circummstance, or the GM can decide what makes the most sense. If two characters try to pull something from each other's hands, for example, they make opposed strength rolls. Sneaking up on someone is a stealth roll opposed by Notice.
+
+The acting character in an opposed roll always ges his Trait total first(including benefits) and must get at least a basic success(TN 4) or he fails. The defender rolls next and must meet or exceed the first character's result or the attacker wins.
+
+The winner also uses his opponent's total for purposes of determining raise effects
+
+============== CRITICAL FAILURES
+
+A critical Failure occurs when a Wild Card rolls a 1 on both the skill die and the wild die of a trait roll. The attempt automatically fails and something bad happens -- a weapon is dropped or gets stuck and the attack hits a friend , the vehicle crashes, spells misfire, and so on.
+
+Critical Failures cannot be rerolled, even with benefits.
+
+Extras and critical failures: If an extra rlls a 1 on a trait check and its important to know if its a critical failure such as when casting a spell ,roll a d6. On a 1, it's a critical failure. Otherwise it's just a normal failure.
+
+Mulriple Dice: Some abilities allow characters to roll multipe trait dice such as the frenzy edge or firing a weapon with a rate of fire higher than 1. A critical failure with multiplle dice occurs when more than haf the die results are a natual 1. If the character is a wild card, the wild die must be a 1 as well
+
+Example: Gabe fires the auto cannon of a high tech thing. It has a rate of fire of 3 so he rolls threee shoting dice and one wild die. If 3 or more of the dice come up as 1 including the wild dice it's a critical failure.
+
+============ UNSKILLED ATTEMPTS
+
+If a character doesn't have a skill for an action he's attempting, he rolls a d4 for his skill die and a wild die if a wild card and subtracts 2 from the total.
+
+============ REROLL
+
+Some Edges or abilities allow a character to reroll traitss as long as they're not a critical failure. To do so, roll all the dice again and get a new total. You may keep any of the totals generated, so rerolls never make things worse unless you roll a critical failure. This ends all rerolls immediately and becomes the result of the attempt -- that's the risk you take in pushing the limits.
+
+Multiple rerolls are allowed from different edges, benefits and other abilities
+
+============= GROUP ROLLS
+
+When you want to make a trait roll for a group of extras with similar traits, roll on trait die as usual along with a wild die and treat this as the groups result. This gives a decent average without maing rolls for every individual.
+
+=============== PLAYER CHARACTER BENEFITS
+
+Players start each game essions with three benefits represented by poker chips, gaming stones or whatever tokens.
+
+Awards: The game master should occasionally reward players or clever actions, roleplaying their character or a great feat of heroism.
+
+They can also reward players a benefit
+
+Joker's wild: when a player character draws a joker during combat, all players recieve a benefit.
+
+
+=============== USING BENEFITS
+
+Benefits can be spent at any appropriate time and don't incur any sort of penalty. They may only be used on your own character.
+
+REROLL A TRAIT: Bennies grant a hero a reroll on ANY trait and best of all you get to keep the best total from all your rolls. The only exception is a critical failure, which end the attempt and must be accepted such is the price of tempting fate
+
+RECOVER FROM SHAKEN: This is instant and may be done at any time, even interrupting another's actions if desired.
+
+SOAK ROLLS: Benefits can also be used to rpevent wounds or recover from being Shaken
+
+DRAW A NEW ACTION CARD: When the game is in rounds, a character can spend a benefit to get a new action card. This occurs after all cards are dealt and edges or hindrances like quick, level headed or hesitant are resolved. Then players or the GM may spend benefits for an additional cards as many times as they like and their their coice of all their draws. Edges like uic or level headed do not apply to these additional cards drawn with benefits. This ocnitnues until everyone passes. Then the round begins and no further cards may be drawn.
+
+REROLL DAMAGE: You may spend a benefit to reroll damage. Inlude any additional dice you may have ained for a raise on the attack roll.
+
+REGAIN POWER POINTS: A character with an arcane background can spend a benefit to regain  power points.
+
+
+
+=========== COMBAT ==============
+
+
+Whether they're the blood soaked plains of mars or the corpse stren battle fields of the distant past these are savage worlds and they are often violent. We recommend using miniatures or markers of some sort so players understand their surrounding and can use the terrain to their advtange. If miniatures aren't your thing see the sidebar on page 97.
+
+DISTANCE:
+
+Time: When a fight btraks out, game time breaks down into rounds of abuot seix seconds each. Ten rounds, then, euqals one minut.
+
+
+ROUND: A round is an entrire countdown of action cards from ace to deuce.
+
+Turn: A character's turn occurs when his action card comes up in the countdown. A hero with the 6 of diamons for example takes his turn when that card comes up in the round.
+
+Action: A single attack skill use,etc
+
+
+=============== ACTION CARDS (INITIATIVE)
+
+The action in savage worlds is fast and furious. To help the Game master keep track of who goes in what order and add a little randomness to the game we use a single deck of playing cards with both jokers left in to determin everyone's initiative order. We call these "action cards"
+
+
+The gm can deal deal cards face up or face down as they see fit. They might also deal the players cards face up and the villains face down to increase the players tension and uncertainty.
+
+At the start of each round
+
+- Deal each wild card a single action card(plus any exrta cards for edges) Allies under a players control act on his action
+
+-Extras such as zombies, all wolves and so one should usually share an action card so they act at the same time. this maes them much easier to manage. She can also group wild cards with their minions if they want. The goal is to do whatever amkes running the battle as quick and easy as possible
+
+Shuffle: Shuffle the deck after any round in which a joker was dealt.
+
+Large Groups: 
+
+
+============== THE COUNTDOWN
+
+Once the cards are dealth, the gm starts the round by counting down from ace down to two with each group resolving its actions when its card comes up.
+
+Ties: Ties are resolved by suit order. Spades are firs  then hearts, diamonds, and clubs. That's reverse alphabetical order as used in many common card games.
+
+Joker: Character or groups with a joker act whenmever they want in the round even interrupting anothers action they also add +2 of all trait and damage rolls this round
+
+
+================ ACTIONS
+
+Characters perfom actions when their action card comes up each round. A character can move and perform one regular action at any point in their moemnt, attacking, casting a spell and so one without penalty
+
+
+Characters can choose from a multitude of actins on their turn. Common actions include supporting allies, testing foes, using a power, or attacking with fighting or shooting. 
+
+More complex actions like lighting a torch or digging through a backpack for a small item might require something
+
+============== FREE ACTIONS
+
+Speaking a short sentence or two moving up to the characters pace, falling prone or dropping an item are all free actions. A hero can generally perform several free actions on her turn simultaneously.
+
+Some free actions occur automatically at the beginning of a character's turn and may only be tried once, such as recovering frm being shaken or stunned
+
+Free actions that are reactions such as resisting opposed rolls or powers are unlimited and occur each time the situation presents itself
+
+
+=============== MOVEMENT
+
+Characters can move a number of inches equal to their pace each turn
+
+
+Each inch of movement doing something athletic uses 2 inches of pace
+
+Running: A hero can run as a free action once per turn increasing her pace for the round y her die at the cost of a -2 penalty to all other actions that run. Running dice never Ace.
+
+Out of combat situations a character can move twice the sum of their full apce + max running die for a number of minutes euqal to half her vigor die type. Thus a fleet footed character with vigor d6 can sprint at a pce of 32 for 3 minutes
+
+Difficult Ground: Each inch a hero walks or runs over rough terrian such as thick forest up or down a steep incline, slippery ice etc.. count as 2" of their pace. Crawling is unaffected by difficult ground
+
+Hazards: 
+
+Jumping: Characters can jump 1"(2 yards) horizontally, or 0.5" vertically as a free action. Double these numbers if the hereo can run at least 2" prior to the jump. If the hero chooses, she may make an athletics roll as an action to
+
+Prone: a character may fall prone as a free action during her turn. She may crawl while prone. Standing is a free action but reduces total pace for the turn by 2
+
+
+============= ATTACKS
+
+The basics of combat
+
+MELEE ATTACKS:
+
+The TN to hit an opponen is equal to the opponents parry score(2+ half his fighting die type; 2 if he has no fighting skills)
+
+RANGED ATTACKS:
+
+The shooting skill covers everything form bows to pistols. throwing uses the athletics skill.
+
+All ranged weapons have a range statistic written like this: 5/10/20, or short/medium/long range
+
+The base target number to hit something at short range is 4. Firing at logner ranges inflicts the penalties listed below:
+
+Short ---
+
+Medium -2
+
+Long -4
+
+extree -8
+
+
+Extreme range:
+
+
+Rate of fire: Rate of fire is how many shots (shooting dice) a ranged weapon can fire one action. A pistol with a RoF of 1, for example, can fire one shot per action. A machine gun with a rate of fire of 3 can fire three shots epr action. 
+
+For weapons with a rate of fire of 2 or higher, declare how many shots you're putting into each possible target. Then roll that number of shooting dice and assign them in whatever order you like to the targets you declared.
+
+Wild cards roll their shooting dice plus a wild die which can be assigned wherever they like after seeing the result of the roll. They still can't hit with more shots than the weapon's rate of fire, however
+
+A rate of fire higher than 1 is an abstract value where each shot is actually a number of bullets. If you're tracking bullets use the table or whatever rate of fire the character actually fires in an action not the weapons maximum
+
+
+Bullets per rate of fire
+
+Rate of fire || Bullets fired
+
+1		1
+2		5
+3		10
+4		20
+5		40
+6		50
+
+
+Recoil: Firing more than one shot in one action from a weapon subtracts 2 from the attacker's shooting rolls. 
+
+Unless a weapon says otherwise, a shoter can fire less shots than his weapons maximum rate of fire
+
+
+
+
+======================= DAMAGE!!
+
+After a successful melee or ranged hit the attacker rolls damage. Ranged wepons do fized damage as listed in the gear section. Most pistols for example cause 2d6 damage
+
+Hand weapons cause damage equal to the attacker's strength die plus a second die which depends on the weapon. A barbarian with a d12 strength and a long sword rolls d12+d8 damange
+
+Even thuogh srength is used to determine melee damage this isn't a trait troll so wild cards dont add a wild die to the roll
+
+all damage rolls can ace
+
+Unarmed damage: an unarmed combatant rolls only his strngth die unless he has an Edge like brawler or martial artist that grants him a damage die.
+
+===== BONUS DAMAGE
+
+WEll placed attacks are more likely to hit vital areas and so do more damage. If your hero gets a raise on his attack roll, regardless of how many raises, he adds a +1d6 to the final total. Bonus dice can also Ace!
+
+Bonus damage applies to all attacks, including spells and area effect weapon.
+
+============APPLYING DAMAGE
+
+If the damage roll is less than the target's toughness the victime is beaten up a bit but theres no game effect. If the damage is equal to or greater than his toughness he's shaken. Each raise on the damage roll also inflicts a wound:
+
+Success: The character is shaken. If he was already Shaken and the second result is from hysical damage or some kind, he remains shaken and takes a wound.
+
+Raise: The character suffers a wound for every raise on the damage roll ad is shaken
+
+================= DAMAGE EFFECTS
+
+Damage can result in 3 effects: Shaken, Wounds and Incapacitation
+
+
+======== SHAKEN
+
+Shaken characters are nicked, bruised, or otherwise rattled. They may only take free actions such as moving(including running). At the start of their turn shaken characters must attempt to recover from being shaekn by making a spirit roll. This is a free action.
+
+Failure: The character reamins shaken. They can only perform free actions
+
+Sucess: The character is no longer shaken and may act normally.
+
+Spending benefits: A player may spend a benefit to remove Shaken at any time. Even if it isn't their turn.
+
+========== WOUNDS
+
+Every raise on the damage roll inflicts a WOUND. Extras are incapacitated it they take a sing wound and aren't RESILIENT. They're dead, injured or otherwise out of the fight.
+
+Wild cards can take three wounds and still function more with cetain edges or abilities futher damage doesn't cause additional aounds buut incpacitates them instead
+
+Wound penalites: each wound a character sufferes causes a -1 cumulative penalty to his pace(minimum of 1") and all trait rolls --- up to a maximum penality of -3
+
+Critical failure: The character dies
+
+Failure: Roll on the injury table. The injurt is pmermant and the character is bleeding out
+
+Success: Roll on the injury table. The injury goes away when all the wounds are healds
+
+Raise: Roll on the injury table. The injury goes away in 24 hours or when all wounds are healed
+
+Characters cannot take actions and might be unconscious . The victim makes a vigor roll each day thereafter and is no longer incapacitated if successful. They may also heal wounds during this time
+
+Bleeding out: the injured character is dying and must make a vigor roll at the start of his turn. Failure means he perishes. With success he survives but must roll again next turn or every minute if not in combat. With a raise he stabilizes and no fruther rolls are required.
+
+Other characters may stop a victims bleeding by making a healing roll minus the patients wound penalties as usual. This is an action and if successful the patient is stabilized.
+
+The healing power can also stabilize wound as can a natural healing roll by a being with regeneration of some sort
+
+
+========= SOAK ROLLS
+
+After rolling damage but before applying wunds, a character may spend a benefit to make a "soak" roll. This is a vigor check with each success and raise reducing the number of wounds suffered from the attack by one
+
+If the characcter soas all of the wounds from an attack he removes hsi shaken condition too even from a previous source. Don't count the wound modifiers he's about to suffer when making this roll -- tat hasn't happened yet
+
+Characters can't soak more than once per attack, but may spend benefits as usual to reroll the vigor check if they aren't satisfied with the results
+
+=============== HEALING
+
+The healing skill is used to remove wounds. Each attempt requires 10 minutes per wound level of the patient. Subtract 1 from healing rolls without a basic first aid kit or smilar supplies
+
+A success removes one wound and a raise remove two. Failure means no wounds are removed. A critical failure increases the victims wound level by one.
+
+Wound penalties: A healer subtracts his patients wound levels from his skill roll. A wounded character trying to heal his own or anothers injuries suffers from both effects. His wounds plus the wound penalty to the healing roll
+
+THE GOLDEN HOUR: A character may only attempt to heal wounds on a patient once within the hour they were sustained. Failing the roll means the healer isn't able to treat those particular injuries. A different character may attempt a healing roll on the same patient, however
+
+Once the wounds are over an hour old, only natural healing or the healing power using greater healing can heal wounds
+
+Bleeding out: The healing skill can also be used to stabilize someone who's bleeding out. Each attempt is an action and if successful the victim is stabilized
+
+
+incapacitation: Healing at least one wound on an incapacitated patient removes that state and reesotres consciousness if he was knocked out
+
+================ NATURAL HEALING
+
+Wounded characters make a vigor roll every five days. Success recovers one wound and a raise recovers two
+
+A critical failure increases the victims wound level by one --either from infection, blood loss or aggravating the injuries. If this causes incapacitation don't use the usual rules for taking damage. Instead the victim lapses in and out of consciousness and makes a vigor roll every 12 hours. If the roll is failed, he expires. Success means he must roll again 12 hours later. With a raise he stabilizes and wakes. Allies a also attempt to stabilize the hero as explained under bleeding ut above.
+
+Support: Characters with healing or survival skills can make support rolls to help allies when they make vigor rolls to heal, stabilize , or recover from any other ill effects. Support rolls do not subtract the victim's wounds from their total
+
+
+================== AFTERMATH AND EXTRAS
+
+
+================ SITUATIONAL RULES
+
+The core rules are very simple. Roll a skill die and a wild die if a wild card. If the result is 4 or higher after all modifiers, you're successful.
+
+========== AIM
+
+Shooting rlolls assume a character is moving about, dodging attacks and eeping an eye on the chaos around them. If they focus their attention and aime, however, they can make a much more accurate shot
+
+
+If the character spends her entire turn aiming a ranged weapon at a particular target and takes o other actions she can ignore up to 4 points of range, cover, called shot, scale, or speed penalties. Their attack must be used on their first action of their next turn or the bonus is lost
+
+The shooter must be stationary to Aim. They can't walk, run, ride a horse or otherwise move under their own power. They culd aim from a vehicle traveling over or through a smooth surface, or one using the hold steady chase maneurver
+
+======= AREA EFFECT ATTACKS
+
+Grenades, spell effects, breath weapons and other attacks that cover a large area are "area effect attacks." The most common are small, medium and large blast templates and the cone template.
+
+Cone templates are placed with the small and emanating from the attacker and fired with the shooting skills(or athletics for breath weapons and other natural attacs)
+
+A basic success means the cone stats where the user intended and a raise causes additional damage as usual. Those beneath the template are hit or may evade if the attack allows it.
+
+Failure meanse the attack didn't occur for some reason -- the creature failed to belch up noxious gas, the flamethrower malfunctioned, etc
+
+To attack with a blast template the player places the templatte and rolls shooting or athletics(for throw weapons or breath attacks)
+. If the attack is successful the blast lands where desired.
+
+Any target even partially beneath either type of template is affected. If the effect causes damage, roll for each victim seperately. Attacs that hit with a raise cause bonus damage as usual.
+
+======== Deviation
+
+If an attack with a cone template fails, it goes over the targets' heads, hits the ground, or simply falters for some reason. 
+
+If a blast template misses, it deviates 1d6" for thrown weapons and 2d6" for fired projectiles. Multiply by 2 if the attack made made at medium range, 3 if long and 4 for extreme.
+
+Next troll a d12 and read it like a clock facing to determine the direction the missle deviates. A weapon can never deviate more than half the distance to the original target.
+
+======== Cver and area effect attacks
+
+Solid obstacles like treees or brick walls protect against area effect attacks if they're between the origin of the blast. Reduce the damage by the amount listed on the cover bonus table
+
+=============== BOUND AND ENTANGLES
+
+Grappling and powers like entangle cause characters to be bound and entangled. Here's what each of those states means and how to break free from them
+
+Entangled: the victim can't move and is distracted as long as he remains so
+
+Bound: The victim may not move, is distracted and vulnerable as long as he reamins bound and cannot make physical actions other than trying to break free
+
+Breaking free is an action. With success, an Entangled hero is free of one particular entaglmenet or grappler. A bound character improves to entangled with a success; with a raise, he's free.
+
+Breaking free from a foe: Use the grappling rule in reverse to break free -- the victim initiates an opposed athletics roll with whoever's holding him (either rmay roll strength at -2 instead to maintain or break free of the hold). If the victime's successful she improves her status one level, or two with a raise
+
+=========== BREAKING THINGS
+
+Occasionally a character may want to break a solid object, such as a weapon, lock or door. Use the wielder parry if held, or 2 if it's motionless. If a damage roll equals or exceeds the object;s hardness, it's broen, bent, shattered, or otherwise ruined
+
+Most anything can be broken given enough time and effector so use this system only when attempting to break things in a hurry (such as during combat rounds)
+
+
+HARDNESS || OBJECT
+
+8		Door, light
+10		Door, heavy
+8		Lock
+9		Firearm
+12		Handcuss
+10		Knife, sword
+10		Medieval Shield
+12		Modern shield
+4		Rope
+
+
+No bonus damage or aces: attacks against solid objects don't get bonus damage from raises, and damage rolls don't ace. Unlike a person or complex device like a computer or a vehicle an attac can't hit a "vital" area on a lock or a door and thus do more damge
+
+Damage types: Certain types of attacks can't break certain types of objects. A club can't cut a rope, for examplle and a single bullet won't destroy a door.
+
+========== CALLED SHOTS
+
+Sometimes a character might want to target a particular body part to disarm a foe, put down a ravening zombie witha a headshot or bypass an enemy's armor
+
+The modifier to the attack roll depends on the scale of the target itself(not the creature its a part of). USe the scale modifiers table to determine any bonus or penalty for th target's scale. These modifiers are already listed in parenthesess below for normal scale creatures, along with any specificgame effects:
+
+Hand (-4): target may be disarmed
+
+head or vitals (-4): Hitting the head or vital organs of living creatures adds +4 damage to the attacker's total
+
+The penalty is -5 if attempting t target the face of someone weaing an open faced helmet(bypassing the helmet's armor)
+
+Item: Use the dimensions on the scale table for itmes. Targeting something  the size of a pistol, for exmple is -4; a 3' long sword is -2
+
+
+limbs (-2): Hitting a limb has no additional special effect since it's already accounted for by Wound and pace penalties
+
+Unarmored area: The attack targets the unprotected area of a target otherwise covered in armor. The penalty depends on the scale of the area. The eye slit of a helmet is tiny (-6) for example while the flesh beneath the missing cale of a hige dragon might be very smal (-4)
+
+======= COVER AND OBSTACLES
+
+Melee and ranged attacks suffer a penalty when attempting to hit a target behind cover
+
+
+PENALTY || COVER
+
+
+-2		Light Cover: 50% or less of the target is obscured
+-4		Medium cover: 50-75% of the target is obscured, or target is prone
+-6		Heavy cover: 25% or less of the target is visible
+-8		Neat total cover: The target is in neat total cover
+
+
+Obstacles: Sometiems character have sufficient power to attack their foes through obstacles. If a missed attack would have been successful without the co er modifier an
+
+If the obstacle is a person or creature, subtract its toughness from the attack. Use table blow as guide:
+
+tn  
+BONUS || OBSTACLE
+
+
++2	Heavy glass, thick leather, drywall, wooden shield, aluminum car door
++4	Sheet metal, steel car door
++6	Oak door, cinder block wall
++8	Brick wall
++10	stone wall, buletproof glass, tree
+
+
+============ DEFEND
+
+A character can choose to focus all  their energy and skill into defense against melee attacks with the defend maneuver. This increases her parry by +4 and takes their entire turn -- they cannot perform multi actions. They may move normally but not run
+
+============ Disarm
+
+
+A character can rty to make an opponent drop a weapon or other objecto or attempt to damage it by making a meteor or ranged ttack
+
+The attacker must first hit the object or the opponent's limb or hand.
+
+If the attack hits the weapon, the attacker rolls damage normally for an item no reaise effect or aces. The defender must make a strength roll equal to the damage or drop the item.
+
+If the attack is against the wielder and shakes or wounds theym, the defender must make a strength roll at -2 if it his his limb or -4 if it hits his hand plus any wound penalties that result as usual. Failure means he drops whatever item is in that hand
+
+
+=============== Distracted & vulnerable
+
+
+Characters may be distracte or made vulnerable by Tests, powers or creature effects Both states last until the end of the character's next  turn. If a hero becomes distracted or vulnerale during teir current turn it lasts until the end of their next turn
+
+
+Distracted: the hero subtracts 2 from all trait rolls until the end of his next turn
+
+vulnerable: Actions and attacks against the target are made at +2 until the end of his next turn. This doesn't stack with The Drop -- use only the highest see below
+
+
+================= THE DROP
+
+Sometimes an attacker is able to cartch a foe off guard and gets the drop on him. The drop adds +4 to character's attack and damage rolls agains that target for one action.
+
+Knockout blow: If a character takes enough damage to be shake or worse from an attacker with the drop on him he must make a vigor roll at -2 if the attack was to the head or be knocked unconscious
+
+Ko'd characters stay that way for 30 minutes
+
+
+==================== Evasion
+
+Some attacks are slow or require the user to telegraph their deliver like flamethrowers or dragon's breath. Such attacks state they may be evaded. If an attack doesn't say it can be evaded it can't -- victims are simple hit if the attack is successful and take damage.
+
+If an attack can be evaded and the chatacter is aware of it he makes an agility roll at -2. Those who are successful manage to avoid the attack and take no damage.
+
+================== FATIGUE
+
+Some hazards, stress, power or circumstances may cause fatifure instead of damage. This represents mental stress or minor but lingering injuries that make a person less effective. Fatigue stacks until the victim is incapacitated
+
+Fatigued: The victime subtracts 1 from all trait rolls. If he takes another level of fatigue, he's exhausted.
+
+Exhausted: the victim subtracts 2 from all trait rolls. If he takes anoter level of fatigue hes incapacitated
+
+Incapacitated: The victim cannot perform actions and may be unconscious
+
+============= RECOVERY
+
+Unless otherwise specified by the source. Fatigue and Exhaustion improve one level per hour. Incapacitated characters are helppless and may be unconscious for 2D6 hours If treatment is possible(food, water, etc, depending on the source of fatigue) and a healing roll is made the character improves to exhausted
+
+Mixed fatigue: If a hero suffers fatigue from different sources with different recovery times remove one level when the effect with the shortest duratin expires then another level when the longes expires
+
+Hazards: Fatuge from hunger, thirst, etc. Sometimes has different recover conditions. 
+
+============ FINISHING MOVE
+
+
+A completely helpless victim may be dispatched with a lethal weapn of some sort as an action. This is automatic. Unless special situation
+
+
+===================== FIRING INTO MELEE
+
+Occasionally heroes have to fire into the middle of hand to hand fights. Reference the innocent bystander rules
+
+============== FREE ATTACKS
+
+Some Edges such as counterattack and first strike or otions such as withdrawing from melee allow a character to make a free atack
+
+Free attacks are a single attack unaltered by other edges or combat options. This is usually a fighting or grappling attack, but could include shooting if the attacker is armed with a pistol or oter ranged weapon tat can fire in melee.
+
+============= GANGING UP
+
+Ganging up allows attackers to flank, exploit opening, generally harass a foe. Each additional adjacent foe, who isn't stunned, adds + 1 to all the attacker fighting rolls, up to a maximum of +4. IF three goblins attack a single hero, for example each of the three goblins add +2 to their fighting rolls
+
+Each ally adjacent to the defender cancels out of one point of gang up bonus from an attacker adjacent to booth this means troops in opposing lines such as a medieval formation where each ma has athree adjacent foes and two adjacent allies dont get the bonus unless actually flanked
+
+
+============== GRAPPLING
+
+Grappling is an opposed roll between the attacker and defende's athletics. If the attacker wins the foe in entangled. With a raise, he's boound. Success on a foe who was already entangled makes him bbound.
+
+If a foe is ound the grappler is also vulnerable  while maintaining his hold
+
+The gang up bonus applies when grappling a defender but ther maneuvers
+
+Size matter: if there's a difference in scale between the attacker and the defender the grappler subtracts the difference from his total (the defender does not)
+
+Creatures may not generally grapple a foe more than two sizes larger then themselves unless the have excpetinal reach or strength for their size
+
+Example: A dragon (Huge +4) tries to pin a half-folk thief (normal). The difference between huge and normal scales is 4 so the dragon must subtract 4 from its athletics roll
+
+if an ogre (large +2) tries to wrestle a great white shark (large +2) he must subtract 2 from his roll
+
+
+Crush: A grappler may harm someone Entangled or bound by making an opposed strength roll as an action on his turn. With success his attack does hsi strength in damage (gaining bonus damage for a raise as normal)
+
+
+
+=========== HOLD
+
+A hero may choose to wait and sww what happens by giong on hold. This allows them to resolve their turn later in the round if they wish and lasts until its used. If a character is on Hold when a new round behins, they are not dealt a new action card but can g at any point in the round they choose. (Discard their current card and mark them as "On Hold" with a counter of some sort)
+
+Shaken ad stunned: if a character is shaken or stuned while on hold she immediately loses her hold status and her turn for the round. Shaken or stunned character's can't go on Hold either
+
+Interruption actions: If a character on Hold wants to interrupt an action (including a rival who was also on Hold) she and the opponent make opposed athletic rolls. Whoever rolls highest goes first. In the rare case of a tie the actions are simultaneous.
+
+If the character interrupting fails they lose their hold status but get a turn after the foe finishes theirs. They may take whatever actions they wish when their turn comes up -- they aren't locked into whatever they were trying to do when they failed to interrupt
+
+================ ILLUMINATION
+
+Darkness conceals details and makes it more difficult to detect object and targets. Subtract the following penaltis from rolls affected by illumination such as attacks, notice rolls, the use of power, etc
+
+
+=============== IMPROVISED WEAPONS
+
+Heroes often fight with objects that aren't intended for use as weapons Torches, vases, chairs, tankards, bottles, tools, and other mundane item are frequenly pressed into service in combat.
+
+Characters with improvised weapons count as armed but subtract 2 from attack rools. Range, damage and minimum strength are determined by tpe 
+
+FINISH LATER
+
+
+======= INNOCENT BYSTANDERS
+
+WHEN AN ATTACKER MISSES A SHOOTING OR ATHLETICS ROLL IT MAY SOMETIMES BE IMPORTANT TO SEE IF ANY OTHER TARGETS IN THE LINE OF FIRE WERE HIT
+
+Each skill die that's a 1 hits a random victim adjacent to our directly in line of fire to the original target. Wild dice never hit innocent bystanders.
+
+a wild card must miss with his wild die for a RoF 1 weapon to hit an innocent bystander expet for shotfuns
+
+this means its sometimes easier to hit an adjacent victim than the riginal tage.
+
+ROF2+ OR SHOTGUN: weapons that spray ullets or buckshot are much more likely to hit others. Each skill die that rolls a 1 or a 2 hits a bystander 
+
+
+========= ILLUMINATION PENALTIES
+
+
+PENALTY	|| LIGHTING
+
+-2		DIM
+-4		DARK
+-6		PITCH DARKNESS
+
+
+
+========== MOUNTED COMBAT
+
+
+
+
+
+========== CHARGING
+
+
+========== MULTI ACTIONS
+
+
+=========== NATURAL WEAPONS
+
+
+
+=========== NONLETHAL DAMAGE
+
+A character wh wants to beat someone up without killing them can choose to do nonelethal damage. This requires the attacker use only his fists or a blunt weapon of some sort. Edged weapons may be used if they have a flat side, but this subtracts -1 from the attacker's fighting rolls.
+
+Nonelethal damage Causes Wounds as Usual but if a characger is rendered incapacitated he's knockede outfor 1d6 hours instead.
+
+Nonleathal wounds are therwise treated exactly as lethal wounds. This means it's much easier to render an extra unconscious than a wild card. This is intentional, and should work wll for most genres where heroes can take multiple punches before going down for the count but most "mooks" go out with one or two good punches
+
+============ OFF HAND ATTACKS
+
+
+
+
+
+
+=============== PRONE
+
+
+
+
+================ PUSH
+
+
+================= RANGED WEAPONS IN MELEE
+
+

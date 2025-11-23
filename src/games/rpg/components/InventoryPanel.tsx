@@ -1,7 +1,7 @@
 import { Package, X } from "lucide-react";
 import Draggable from "react-draggable";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Item, generateItem } from "../utils/contentGenerator";
 import { inventoryDebug, animationDebug } from "../utils/debug";
 import {
@@ -36,6 +36,7 @@ export const InventoryPanel = ({
   onRemoveItem,
 }: InventoryPanelProps) => {
   const [draggedItem, setDraggedItem] = useState<Item | null>(null);
+  const inventoryNodeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -61,16 +62,31 @@ export const InventoryPanel = ({
 
   return (
     <TooltipProvider>
-      <Draggable handle=".inventory-handle" bounds="parent">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          onAnimationStart={() => animationDebug.start("InventoryPanel", "mount")}
-          onAnimationComplete={() => animationDebug.complete("InventoryPanel", "mount")}
-          className="fixed top-20 right-4 w-80 bg-card border-2 border-primary/30 rounded-lg shadow-2xl z-50"
+      <Draggable 
+        nodeRef={inventoryNodeRef}
+        handle=".inventory-handle"
+        defaultPosition={{ x: typeof window !== "undefined" ? window.innerWidth - 340 : 0, y: 80 }}
+      >
+        <div
+          ref={inventoryNodeRef}
+          style={{
+            position: "fixed",
+            zIndex: 50,
+            left: 0,
+            top: 0,
+          }}
         >
-          <div className="inventory-handle cursor-move flex items-center justify-between p-4 bg-secondary/30 border-b-2 border-primary/30 rounded-t-lg">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            onAnimationStart={() => animationDebug.start("InventoryPanel", "mount")}
+            onAnimationComplete={() => animationDebug.complete("InventoryPanel", "mount")}
+            className="w-80 bg-card border-2 border-primary/30 rounded-lg shadow-2xl"
+          >
+          <div 
+            className="inventory-handle cursor-move flex items-center justify-between p-4 bg-secondary/30 border-b-2 border-primary/30 rounded-t-lg"
+          >
             <div className="flex items-center gap-2">
               <Package className="w-5 h-5 text-primary" />
               <h3 className="text-lg font-bold text-primary">Inventory</h3>
@@ -82,7 +98,14 @@ export const InventoryPanel = ({
               variant="ghost"
               size="icon"
               className="h-6 w-6"
-              onClick={onClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              onMouseDown={(e) => {
+                // Prevent dragging when clicking close
+                e.stopPropagation();
+              }}
             >
               <X className="w-4 h-4" />
             </Button>
@@ -195,7 +218,8 @@ export const InventoryPanel = ({
               </Button>
             </div>
           )}
-        </motion.div>
+          </motion.div>
+        </div>
       </Draggable>
     </TooltipProvider>
   );

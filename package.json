@@ -23,6 +23,7 @@
     "test:heartbeat": "tsx scripts/test-heartbeat-sweep.ts",
     "test:registry": "tsx scripts/test-game-registry.ts",
     "test:rpg": "tsx scripts/test-rpg-game-crawler.ts",
+    "test:rpg:persistence": "tsx scripts/test-rpg-persistence.ts",
     "crawl:registry": "tsx scripts/crawl-game-registry.ts",
     "crawl:four-players": "tsx scripts/four-player-game-crawler.ts",
     "crawl:rpg": "tsx scripts/test-rpg-game-crawler.ts"

@@ -1,8 +1,10 @@
-import { MapPin, Terminal } from "lucide-react";
+import { MapPin, Terminal, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from "framer-motion";
+import Draggable from "react-draggable";
+import { Button } from "@/components/ui/button";
 import { TypingText } from "./TypingText";
 
 // Debug configuration
@@ -37,6 +39,8 @@ function debugLog(level: "info" | "warn" | "error" | "action", message: string, 
 interface StoryWindowProps {
   location: string;
   storyText: string[];
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 interface StoryEntry {
@@ -47,8 +51,9 @@ interface StoryEntry {
   isTyping: boolean;
 }
 
-export const StoryWindow = ({ location, storyText }: StoryWindowProps) => {
+export const StoryWindow = ({ location, storyText, isOpen, onClose }: StoryWindowProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const storyNodeRef = useRef<HTMLDivElement>(null);
   const [storyEntries, setStoryEntries] = useState<StoryEntry[]>([]);
   const [enableTyping, setEnableTyping] = useState(true);
   const previousLengthRef = useRef(0);
@@ -152,20 +157,57 @@ export const StoryWindow = ({ location, storyText }: StoryWindowProps) => {
     return date.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="flex flex-col min-h-[400px] max-h-[600px]">
-      <div className="flex items-center justify-between p-4 bg-secondary/30 border-b-2 border-primary/30 rounded-t-lg flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <MapPin className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-bold text-primary uppercase tracking-wider">
-            {location}
-          </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-accent/70" />
-          <span className="text-xs font-mono text-accent/70">TERMINAL</span>
-        </div>
-      </div>
+    <Draggable 
+      nodeRef={storyNodeRef}
+      handle=".story-handle"
+      defaultPosition={{ x: typeof window !== "undefined" ? window.innerWidth / 2 - 300 : 0, y: 100 }}
+    >
+      <div
+        ref={storyNodeRef}
+        style={{
+          position: "fixed",
+          zIndex: 50,
+          left: 0,
+          top: 0,
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="w-[600px] flex flex-col min-h-[400px] max-h-[600px] bg-card border-2 border-primary/30 rounded-lg shadow-2xl"
+        >
+          <div 
+            className="story-handle cursor-move flex items-center justify-between p-4 bg-secondary/30 border-b-2 border-primary/30 rounded-t-lg flex-shrink-0"
+          >
+            <div className="flex items-center gap-3">
+              <MapPin className="w-5 h-5 text-primary" />
+              <h2 className="text-xl font-bold text-primary uppercase tracking-wider">
+                {location}
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Terminal className="w-4 h-4 text-accent/70" />
+              <span className="text-xs font-mono text-accent/70">TERMINAL</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 ml-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
 
       <div
         ref={scrollRef}
@@ -267,7 +309,9 @@ export const StoryWindow = ({ location, storyText }: StoryWindowProps) => {
           </AnimatePresence>
         </div>
       </div>
-    </div>
+        </motion.div>
+      </div>
+    </Draggable>
   );
 };
 

@@ -1,6 +1,7 @@
 /* @refresh reset */
 import { ReactNode } from "react";
 import { create } from "zustand";
+import { persist, createJSONStorage, PersistOptions } from "zustand/middleware";
 import {
   generateMonster,
   generateCombatDescription,
@@ -17,6 +18,11 @@ import { inventoryDebug } from "../utils/debug";
 const DEBUG_RPG = import.meta.env.DEV || import.meta.env.VITE_DEBUG_RPG === "true";
 const DEBUG_LOG_PREFIX = "[RPG Store]";
 const MAX_ACTIVE_QUESTS = 3;
+
+// Persistence configuration
+const RPG_STORAGE_KEY = "chronicles-of-the-abyss-save";
+const RPG_STORAGE_VERSION = 1;
+const MAX_STORY_TEXT_LINES = 100; // Keep last 100 lines of story text
 
 // Debug logging utilities
 function debugLog(level: "info" | "warn" | "error" | "action", message: string, data?: unknown) {
@@ -153,6 +159,75 @@ const createInitialState = (): BaseRpgState => ({
   quests: [],
   completedQuests: [],
 });
+
+// Persisted state type (only what we save to localStorage)
+interface PersistedRpgState {
+  version: number;
+  character: Character;
+  location: string;
+  storyText: string[];
+  availableCommands: string[];
+  inventory: Item[];
+  quests: Quest[];
+  completedQuests: Quest[];
+}
+
+// Migration function for handling future schema changes
+function migratePersistedState(
+  persistedState: unknown,
+  version: number
+): PersistedRpgState | null {
+  if (!persistedState || typeof persistedState !== "object") {
+    debugLog("warn", "Invalid persisted state, resetting to initial state");
+    return null;
+  }
+
+  const state = persistedState as Partial<PersistedRpgState>;
+
+  // Version 1: Initial persistence format
+  if (version === 1) {
+    // Validate required fields exist
+    if (
+      state.character &&
+      state.location &&
+      Array.isArray(state.storyText) &&
+      Array.isArray(state.availableCommands) &&
+      Array.isArray(state.inventory) &&
+      Array.isArray(state.quests) &&
+      Array.isArray(state.completedQuests)
+    ) {
+      // Limit story text to last N lines to prevent localStorage bloat
+      const limitedStoryText =
+        state.storyText.length > MAX_STORY_TEXT_LINES
+          ? state.storyText.slice(-MAX_STORY_TEXT_LINES)
+          : state.storyText;
+
+      return {
+        version: RPG_STORAGE_VERSION,
+        character: state.character,
+        location: state.location,
+        storyText: limitedStoryText,
+        availableCommands: state.availableCommands,
+        inventory: state.inventory,
+        quests: state.quests,
+        completedQuests: state.completedQuests.slice(-10), // Keep last 10 completed quests
+      };
+    }
+
+    debugLog("warn", "Persisted state missing required fields, resetting");
+    return null;
+  }
+
+  // Future migrations can be added here
+  // Example for version 2:
+  // if (version === 2) {
+  //   // Migration logic for v2
+  //   return { ...state, version: RPG_STORAGE_VERSION };
+  // }
+
+  debugLog("warn", `Unknown persisted state version ${version}, resetting`);
+  return null;
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -620,9 +695,76 @@ function getActiveQuestCount(state: BaseRpgState) {
   return state.quests.filter((quest) => quest.status === "active").length;
 }
 
-export const useRpgStore = create<RpgStore>((set, get) => ({
-  ...createInitialState(),
-  performAction: (action: string) => {
+// Persist configuration: only save essential game state, not transient UI state
+const persistConfig: PersistOptions<RpgStore, PersistedRpgState> = {
+  name: RPG_STORAGE_KEY,
+  version: RPG_STORAGE_VERSION,
+  storage: createJSONStorage(() => localStorage),
+  partialize: (state) => {
+    // Only persist essential game state, not actions/methods
+    // Limit story text to prevent localStorage bloat
+    const limitedStoryText =
+      state.storyText.length > MAX_STORY_TEXT_LINES
+        ? state.storyText.slice(-MAX_STORY_TEXT_LINES)
+        : state.storyText;
+
+    // Keep only last 10 completed quests
+    const limitedCompletedQuests = state.completedQuests.slice(-10);
+
+    return {
+      version: RPG_STORAGE_VERSION,
+      character: state.character,
+      location: state.location,
+      storyText: limitedStoryText,
+      availableCommands: state.availableCommands,
+      inventory: state.inventory,
+      quests: state.quests,
+      completedQuests: limitedCompletedQuests,
+    };
+  },
+  migrate: (persistedState: unknown, version: number) => {
+    const migrated = migratePersistedState(persistedState, version);
+    if (migrated) {
+      debugLog("info", `Migrated persisted state from version ${version} to ${RPG_STORAGE_VERSION}`);
+      return migrated;
+    }
+    debugLog("info", "Migration failed or no saved state, using initial state");
+    return null; // Return null to use initial state
+  },
+  merge: (persistedState: PersistedRpgState | null, currentState: RpgStore) => {
+    if (!persistedState) {
+      debugLog("info", "No persisted state found, using initial state");
+      return currentState;
+    }
+
+    debugLog("info", "Restoring persisted state", {
+      version: persistedState.version,
+      characterLevel: persistedState.character?.level,
+      location: persistedState.location,
+      inventorySize: persistedState.inventory?.length,
+      questCount: persistedState.quests?.length,
+      storyTextLines: persistedState.storyText?.length,
+    });
+
+    // Merge persisted state with current state (keep actions/methods from current)
+    return {
+      ...currentState,
+      character: persistedState.character || currentState.character,
+      location: persistedState.location || currentState.location,
+      storyText: persistedState.storyText || currentState.storyText,
+      availableCommands: persistedState.availableCommands || currentState.availableCommands,
+      inventory: persistedState.inventory || currentState.inventory,
+      quests: persistedState.quests || currentState.quests,
+      completedQuests: persistedState.completedQuests || currentState.completedQuests,
+    };
+  },
+};
+
+export const useRpgStore = create<RpgStore>()(
+  persist<RpgStore, [], [], PersistedRpgState>(
+    (set, get) => ({
+      ...createInitialState(),
+      performAction: (action: string) => {
     const startTime = performance.now();
     debugLog("action", `Performing action: "${action}"`);
 
@@ -741,6 +883,15 @@ export const useRpgStore = create<RpgStore>((set, get) => ({
     const newState = createInitialState();
     set(newState);
     performanceTracker.clear();
+    
+    // Clear persisted state from localStorage
+    try {
+      localStorage.removeItem(RPG_STORAGE_KEY);
+      debugLog("info", "Persisted state cleared from localStorage");
+    } catch (error) {
+      debugLog("error", "Failed to clear persisted state", error);
+    }
+    
     debugLog("info", "Game state reset", {
       location: newState.location,
       character: newState.character,
@@ -748,7 +899,10 @@ export const useRpgStore = create<RpgStore>((set, get) => ({
       commandCount: newState.availableCommands.length,
     });
   },
-}));
+    }),
+    persistConfig
+  )
+);
 
 /**
  * Zustand does not require React context providers, but we still export these to
@@ -858,6 +1012,39 @@ if (typeof window !== "undefined" && DEBUG_RPG) {
       return useRpgStore.subscribe(callback);
     },
 
+    // Persistence utilities
+    clearPersistence: () => {
+      try {
+        localStorage.removeItem(RPG_STORAGE_KEY);
+        debugLog("info", "Persisted state cleared from localStorage");
+        console.log("[RPG Debug] Persisted state cleared. Refresh to see initial state.");
+      } catch (error) {
+        debugLog("error", "Failed to clear persisted state", error);
+      }
+    },
+
+    getPersistenceInfo: () => {
+      try {
+        const stored = localStorage.getItem(RPG_STORAGE_KEY);
+        if (!stored) {
+          return { exists: false, message: "No persisted state found" };
+        }
+        const data = JSON.parse(stored);
+        return {
+          exists: true,
+          version: data.state?.version || "unknown",
+          storageKey: RPG_STORAGE_KEY,
+          size: new Blob([stored]).size,
+          sizeKB: (new Blob([stored]).size / 1024).toFixed(2),
+        };
+      } catch (error) {
+        return {
+          exists: false,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
+    },
+
     // Help message
     help: () => {
       console.log(
@@ -877,6 +1064,8 @@ Available commands:
   __RPG_DEBUG__.setLocation(location)   - Set location
   __RPG_DEBUG__.logState()              - Log current state snapshot
   __RPG_DEBUG__.subscribe(callback)     - Subscribe to state changes
+  __RPG_DEBUG__.clearPersistence()      - Clear persisted state from localStorage
+  __RPG_DEBUG__.getPersistenceInfo()    - Get persistence information
   __RPG_DEBUG__.help()                  - Show this help message
 
 Example:
