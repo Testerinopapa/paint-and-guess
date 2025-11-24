@@ -1,9 +1,9 @@
-import { Heart, Droplet, Star, Coins, User, X } from "lucide-react";
+import { Heart, Droplet, Star, Coins, User, X, Image, Layers } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Draggable from "react-draggable";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { animationDebug, performanceTracker } from "../utils/debug";
+import { CharacterSprite, type SpritePack, type CharacterType } from "./CharacterSprite";
 import { CharacterAvatar } from "./CharacterAvatar";
 
 import type { Character } from "../state/useRpgStore";
@@ -28,6 +29,46 @@ export const PlayerPanel = ({ character, isOpen, onClose }: PlayerPanelProps) =>
   const manaPercent = (character.mana / character.maxMana) * 100;
   const xpPercent = (character.xp / character.xpToNextLevel) * 100;
   const playerNodeRef = useRef<HTMLDivElement>(null);
+  
+  // Toggle between sprite and SVG avatar
+  const [useSprite, setUseSprite] = useState(() => {
+    const saved = localStorage.getItem("rpg-player-avatar-mode");
+    return saved === "sprite";
+  });
+
+  // Sprite pack selection (shared with AvatarCustomization)
+  const [spritePack, setSpritePack] = useState<SpritePack>(() => {
+    const saved = localStorage.getItem("rpg-sprite-pack");
+    return (saved === "soldier-orc" ? "soldier-orc" : "character") as SpritePack;
+  });
+
+  // Character type for soldier-orc pack (shared with AvatarCustomization)
+  const [characterType, setCharacterType] = useState<CharacterType>(() => {
+    const saved = localStorage.getItem("rpg-character-type");
+    return (saved === "orc" ? "orc" : "soldier") as CharacterType;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("rpg-player-avatar-mode", useSprite ? "sprite" : "svg");
+  }, [useSprite]);
+
+  // Sync sprite pack and character type from localStorage (shared preference)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedPack = localStorage.getItem("rpg-sprite-pack");
+      const savedType = localStorage.getItem("rpg-character-type");
+      if (savedPack) {
+        setSpritePack(savedPack as SpritePack);
+      }
+      if (savedType) {
+        setCharacterType(savedType as CharacterType);
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    // Also check on mount
+    handleStorageChange();
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   useEffect(() => {
     animationDebug.start("PlayerPanel", "render");
@@ -62,27 +103,54 @@ export const PlayerPanel = ({ character, isOpen, onClose }: PlayerPanelProps) =>
             exit={{ opacity: 0, scale: 0.9 }}
             className="w-80 bg-card border-2 border-primary/30 rounded-lg shadow-2xl"
           >
-            <div 
+            <div
               className="player-handle cursor-move flex items-center justify-between p-4 bg-secondary/30 border-b-2 border-primary/30 rounded-t-lg"
             >
               <div className="flex items-center gap-2">
                 <User className="w-5 h-5 text-primary" />
                 <h3 className="text-lg font-bold text-primary">Player Stats</h3>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClose();
-                }}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setUseSprite(!useSprite);
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
+                      {useSprite ? (
+                        <Image className="w-4 h-4" />
+                      ) : (
+                        <Layers className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Switch to {useSprite ? "SVG Avatar" : "Sprite Animation"}</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClose();
+                  }}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-4 p-6">
@@ -92,14 +160,26 @@ export const PlayerPanel = ({ character, isOpen, onClose }: PlayerPanelProps) =>
                 transition={{ type: "spring", stiffness: 300 }}
               >
                 <div className="w-full aspect-square rounded-lg overflow-hidden border-2 border-primary/50 bg-secondary/30 flex items-center justify-center">
-                  <CharacterAvatar
-                    characterName={character.name}
-                    avatarConfig={character.avatarConfig}
-                    avatarSeed={character.avatarSeed}
-                    size={256}
-                    className="w-full h-full"
-                    fallback="⚔️"
-                  />
+                  {useSprite ? (
+                    <CharacterSprite
+                      animation="idle"
+                      weapon="unarmed"
+                      scale={spritePack === "soldier-orc" ? 2.56 : 4}
+                      frameDelay={150}
+                      className="w-full h-full flex items-center justify-center"
+                      spritePack={spritePack}
+                      characterType={characterType}
+                    />
+                  ) : (
+                    <CharacterAvatar
+                      characterName={character.name}
+                      avatarConfig={character.avatarConfig}
+                      avatarSeed={character.avatarSeed}
+                      size={256}
+                      className="w-full h-full"
+                      fallback="⚔️"
+                    />
+                  )}
                 </div>
                 <motion.div
                   className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg border-2 border-background"

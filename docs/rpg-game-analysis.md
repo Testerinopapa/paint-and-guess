@@ -485,6 +485,8 @@ function getAvatarConfigForClass(characterName: string, characterClass?: string)
 
 #### 3. Story Window (`components/StoryWindow.tsx`)
 
+> **📚 See Also:** [`docs/rpg-story-window-analysis.md`](./rpg-story-window-analysis.md) - Complete comprehensive analysis of the Story Window component, including architecture, features, performance, and recommendations.
+
 **Features:**
 - Location header with MapPin icon
 - Scrollable narrative text area
@@ -496,6 +498,8 @@ function getAvatarConfigForClass(characterName: string, characterClass?: string)
 - **Framer Motion animations** - Fade-in animations for story entries
 - **Command highlighting** - Commands prefixed with `>` are styled differently
 - **AnimatePresence** - Smooth entry/exit animations for story text
+- **Draggable window** - Can be repositioned anywhere on screen
+- **Debug utilities** - Comprehensive debugging system via `__STORY_DEBUG__`
 
 **Initial Story:**
 ```

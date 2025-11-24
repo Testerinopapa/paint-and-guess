@@ -105,6 +105,7 @@ export interface BaseRpgState {
   inventory: Item[];
   quests: Quest[];
   completedQuests: Quest[];
+  isCharacterCreated: boolean;
 }
 
 interface RpgStore extends BaseRpgState {
@@ -114,6 +115,7 @@ interface RpgStore extends BaseRpgState {
   addItem: (item: Item) => void;
   removeItem: (item: Item) => void;
   setCharacterAvatar: (avatarConfig: AvatarConfig | null) => void;
+  initializeCharacter: (name: string, characterClass?: string) => void;
   reset: () => void;
 }
 
@@ -158,6 +160,7 @@ const createInitialState = (): BaseRpgState => ({
   inventory: [],
   quests: [],
   completedQuests: [],
+  isCharacterCreated: false,
 });
 
 // Persisted state type (only what we save to localStorage)
@@ -170,6 +173,7 @@ interface PersistedRpgState {
   inventory: Item[];
   quests: Quest[];
   completedQuests: Quest[];
+  isCharacterCreated: boolean;
 }
 
 // Migration function for handling future schema changes
@@ -211,6 +215,8 @@ function migratePersistedState(
         inventory: state.inventory,
         quests: state.quests,
         completedQuests: state.completedQuests.slice(-10), // Keep last 10 completed quests
+        // If character exists, assume it was created (for backward compatibility)
+        isCharacterCreated: state.isCharacterCreated ?? (state.character ? true : false),
       };
     }
 
@@ -720,6 +726,7 @@ const persistConfig: PersistOptions<RpgStore, PersistedRpgState> = {
       inventory: state.inventory,
       quests: state.quests,
       completedQuests: limitedCompletedQuests,
+      isCharacterCreated: state.isCharacterCreated,
     };
   },
   migrate: (persistedState: unknown, version: number) => {
@@ -878,6 +885,84 @@ export const useRpgStore = create<RpgStore>()(
       },
     }));
   },
+  initializeCharacter: (name: string, characterClass?: string) => {
+    debugLog("action", `Initializing character`, { name, characterClass });
+    
+    // Character class stat modifiers
+    const classStats: Record<string, Partial<Character>> = {
+      warrior: {
+        hp: 120,
+        maxHp: 120,
+        mana: 30,
+        maxMana: 50,
+      },
+      mage: {
+        hp: 60,
+        maxHp: 80,
+        mana: 100,
+        maxMana: 120,
+      },
+      rogue: {
+        hp: 80,
+        maxHp: 100,
+        mana: 50,
+        maxMana: 70,
+      },
+      paladin: {
+        hp: 100,
+        maxHp: 110,
+        mana: 60,
+        maxMana: 80,
+      },
+    };
+
+    const baseStats = characterClass && classStats[characterClass.toLowerCase()]
+      ? classStats[characterClass.toLowerCase()]
+      : {
+          hp: 75,
+          maxHp: 100,
+          mana: 40,
+          maxMana: 80,
+        };
+
+    set((state) => {
+      const newCharacter: Character = {
+        ...DEFAULT_CHARACTER,
+        name: name.trim() || "Wanderer",
+        level: 1,
+        xp: 0,
+        xpToNextLevel: 100,
+        gold: 50,
+        ...baseStats,
+      };
+
+      const newState = {
+        ...state,
+        character: newCharacter,
+        isCharacterCreated: true,
+        storyText: [
+          `Welcome, **${newCharacter.name}**!`,
+          "",
+          "You stand at the edge of the ancient ruins of **Eldrath**, their crumbling stones weathered by countless ages. A cold wind whispers through the broken archways, carrying with it the scent of decay and forgotten magic.",
+          "",
+          "Your journey begins here. What will you do?",
+        ],
+      };
+
+      debugLog("info", "Character initialized", {
+        name: newCharacter.name,
+        class: characterClass,
+        stats: {
+          hp: newCharacter.hp,
+          maxHp: newCharacter.maxHp,
+          mana: newCharacter.mana,
+          maxMana: newCharacter.maxMana,
+        },
+      });
+
+      return newState;
+    });
+  },
   reset: () => {
     debugLog("action", "Resetting game state");
     const newState = createInitialState();
@@ -897,6 +982,7 @@ export const useRpgStore = create<RpgStore>()(
       character: newState.character,
       storyTextLength: newState.storyText.length,
       commandCount: newState.availableCommands.length,
+      isCharacterCreated: newState.isCharacterCreated,
     });
   },
     }),

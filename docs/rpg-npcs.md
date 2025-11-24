@@ -365,3 +365,5 @@ if (npc) {
 - NPCs are friendly and provide services/interactions
 - Discovery is automatic when player is nearby (2 tiles)
 
+
+

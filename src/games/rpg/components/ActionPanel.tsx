@@ -337,7 +337,7 @@ export const ActionPanel = ({ onAction, onCommand, availableCommands, onOpenPlay
         transition={{ duration: 0.5 }}
         onAnimationStart={() => animationDebug.start("ActionPanel", "mount")}
         onAnimationComplete={() => animationDebug.complete("ActionPanel", "mount", 500)}
-        className="flex flex-col gap-4 p-6 bg-card border-2 border-accent/30 rounded-lg"
+        className="flex flex-col gap-4 p-6 rounded-lg"
       >
         <div className="space-y-2 flex-shrink-0">
           <h3 className="text-sm font-bold text-accent uppercase tracking-wider mb-3">

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import Draggable from "react-draggable";
+import { motion } from "framer-motion";
 import { BackgroundEffects } from "../components/BackgroundEffects";
 import { PlayerPanel } from "../components/PlayerPanel";
 import { StoryWindow } from "../components/StoryWindow";
@@ -7,6 +8,7 @@ import { ActionPanel } from "../components/ActionPanel";
 import { CommandInput } from "../components/CommandInput";
 import { InventoryPanel } from "../components/InventoryPanel";
 import { WorldMap } from "../components/WorldMap";
+import { CharacterCreation } from "../components/CharacterCreation";
 import { useRpgStore } from "../state/useRpgStore";
 import { useToast } from "@/shared/hooks/use-toast";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
@@ -29,6 +31,7 @@ export default function RpgIndex() {
   const storyText = useRpgStore((state) => state.storyText);
   const availableCommands = useRpgStore((state) => state.availableCommands);
   const inventory = useRpgStore((state) => state.inventory);
+  const isCharacterCreated = useRpgStore((state) => state.isCharacterCreated);
   const performAction = useRpgStore((state) => state.performAction);
   const submitCommand = useRpgStore((state) => state.submitCommand);
   const addItem = useRpgStore((state) => state.addItem);
@@ -163,18 +166,91 @@ export default function RpgIndex() {
     }
   };
 
+  // Show character creation for first-time players
+  if (!isCharacterCreated) {
+    return (
+      <div className="min-h-screen bg-background relative">
+        <BackgroundEffects />
+        <CharacterCreation />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background relative">
       <BackgroundEffects />
 
       <div className="relative z-10 container mx-auto px-4 py-6 flex flex-col gap-4 max-w-7xl">
         <header className="text-center py-4 flex-shrink-0">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary tracking-wider">
-            CHRONICLES OF THE ABYSS
-          </h1>
-          <p className="text-accent text-xs sm:text-sm mt-2 font-mono tracking-widest">
-            A Dark Fantasy Adventure
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: -30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ 
+              duration: 0.8, 
+              ease: [0.16, 1, 0.3, 1],
+              delay: 0.2 
+            }}
+            className="relative"
+          >
+            <motion.h1 
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-wider relative z-10"
+              style={{
+                fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
+                fontWeight: 900,
+                letterSpacing: "0.1em",
+                background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 25%, #d97706 50%, #fbbf24 75%, #f59e0b 100%)",
+                backgroundSize: "200% 200%",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                filter: "drop-shadow(0 0 8px rgba(251, 191, 36, 0.5)) drop-shadow(0 0 16px rgba(251, 191, 36, 0.3))",
+                textShadow: "0 0 20px rgba(251, 191, 36, 0.5)",
+              }}
+              animate={{
+                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+              }}
+              transition={{
+                duration: 5,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              CHRONICLES OF THE ABYSS
+            </motion.h1>
+            
+            {/* Glow effect behind text */}
+            <motion.div
+              className="absolute inset-0 -z-0 blur-xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              style={{
+                background: "linear-gradient(135deg, #fbbf24, #f59e0b, #d97706)",
+                borderRadius: "50%",
+                transform: "scale(1.2)",
+              }}
+            />
+            
+            <motion.p 
+              className="text-accent text-xs sm:text-sm mt-2 font-mono tracking-widest relative z-10"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ 
+                duration: 0.6, 
+                delay: 0.6,
+                ease: "easeOut"
+              }}
+              style={{
+                textShadow: "0 0 10px rgba(34, 211, 238, 0.5), 0 0 20px rgba(34, 211, 238, 0.3)",
+              }}
+            >
+              A Dark Fantasy Adventure
+            </motion.p>
+          </motion.div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full">

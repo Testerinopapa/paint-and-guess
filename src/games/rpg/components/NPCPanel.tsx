@@ -258,3 +258,5 @@ export const NPCPanel = ({ npc, isOpen, onClose }: NPCPanelProps) => {
   );
 };
 
+
+
