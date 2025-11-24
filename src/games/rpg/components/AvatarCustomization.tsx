@@ -171,11 +171,12 @@ export const AvatarCustomization = ({
 
               {/* Avatar Preview */}
               <div className="p-6 flex flex-col items-center gap-4">
-                <div className="flex items-center justify-center w-32 h-32 rounded-lg bg-secondary/20 border-2 border-primary/20">
+                <div className="w-full aspect-square rounded-lg overflow-hidden border-2 border-primary/50 bg-secondary/30 flex items-center justify-center">
                   <CharacterAvatar
                     characterName={characterName}
                     avatarConfig={avatarConfig || undefined}
-                    size={128}
+                    size={256}
+                    className="w-full h-full"
                   />
                 </div>
 
