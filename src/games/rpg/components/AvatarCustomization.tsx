@@ -12,8 +12,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import Draggable from "react-draggable";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { X, Shuffle, RotateCcw } from "lucide-react";
+import { X, Shuffle, RotateCcw, Image, Layers } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { CharacterAvatar } from "./CharacterAvatar";
+import { CharacterSprite } from "./CharacterSprite";
 import { createDefaultAvatarConfig, generateAvatarId } from "@/lib/avatar/config";
 import type { AvatarConfig } from "@/lib/avatar/config";
 import { getAssetsByCategory } from "@/lib/avatar/categories/assets";
@@ -42,6 +49,16 @@ export const AvatarCustomization = ({
     initialAvatarConfig || createDefaultAvatarConfig(characterName)
   );
   const avatarNodeRef = useRef<HTMLDivElement>(null);
+  
+  // Toggle between sprite and SVG avatar
+  const [useSprite, setUseSprite] = useState(() => {
+    const saved = localStorage.getItem("rpg-character-creation-avatar-mode");
+    return saved === "sprite";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("rpg-character-creation-avatar-mode", useSprite ? "sprite" : "svg");
+  }, [useSprite]);
 
   // Notify parent when avatar config changes
   useEffect(() => {
@@ -125,59 +142,97 @@ export const AvatarCustomization = ({
   };
 
   return (
-    <Draggable
-      nodeRef={avatarNodeRef}
-      handle=".avatar-handle"
-      defaultPosition={{ x: typeof window !== "undefined" ? window.innerWidth - 420 : 0, y: 100 }}
-    >
-      <div
-        ref={avatarNodeRef}
-        style={{
-          position: "fixed",
-          zIndex: 50,
-          left: 0,
-          top: 0,
-        }}
+    <TooltipProvider>
+      <Draggable
+        nodeRef={avatarNodeRef}
+        handle=".avatar-handle"
+        defaultPosition={{ x: typeof window !== "undefined" ? window.innerWidth - 420 : 0, y: 100 }}
       >
-        <AnimatePresence>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, x: 50 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            exit={{ opacity: 0, scale: 0.9, x: 50 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card className="bg-card border-2 border-primary/30 shadow-2xl w-80">
-              {/* Header */}
-              <div
-                className="avatar-handle flex items-center justify-between p-4 border-b border-primary/20 cursor-move bg-primary/5"
-                onMouseDown={(e) => e.stopPropagation()}
-              >
-                <h3 className="text-lg font-bold text-primary">Avatar Preview</h3>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => {
-                    setAvatarConfig(null);
-                    onAvatarChange(null);
-                  }}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                  }}
+        <div
+          ref={avatarNodeRef}
+          style={{
+            position: "fixed",
+            zIndex: 50,
+            left: 0,
+            top: 0,
+          }}
+        >
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, x: 50 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.9, x: 50 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="bg-card border-2 border-primary/30 shadow-2xl w-80">
+                {/* Header */}
+                <div
+                  className="avatar-handle flex items-center justify-between p-4 border-b border-primary/20 cursor-move bg-primary/5"
+                  onMouseDown={(e) => e.stopPropagation()}
                 >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
+                  <h3 className="text-lg font-bold text-primary">Avatar Preview</h3>
+                  <div className="flex items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setUseSprite(!useSprite);
+                          }}
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          {useSprite ? (
+                            <Image className="w-4 h-4" />
+                          ) : (
+                            <Layers className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Switch to {useSprite ? "SVG Avatar" : "Sprite Animation"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => {
+                        setAvatarConfig(null);
+                        onAvatarChange(null);
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
 
               {/* Avatar Preview */}
               <div className="p-6 flex flex-col items-center gap-4">
                 <div className="w-full aspect-square rounded-lg overflow-hidden border-2 border-primary/50 bg-secondary/30 flex items-center justify-center">
-                  <CharacterAvatar
-                    characterName={characterName}
-                    avatarConfig={avatarConfig || undefined}
-                    size={256}
-                    className="w-full h-full"
-                  />
+                  {useSprite ? (
+                    <CharacterSprite
+                      animation="idle"
+                      weapon="unarmed"
+                      scale={4}
+                      frameDelay={150}
+                      className="w-full h-full flex items-center justify-center"
+                    />
+                  ) : (
+                    <CharacterAvatar
+                      characterName={characterName}
+                      avatarConfig={avatarConfig || undefined}
+                      size={256}
+                      className="w-full h-full"
+                    />
+                  )}
                 </div>
 
                 {/* Action Buttons */}
@@ -209,5 +264,6 @@ export const AvatarCustomization = ({
         </AnimatePresence>
       </div>
     </Draggable>
+    </TooltipProvider>
   );
 };
