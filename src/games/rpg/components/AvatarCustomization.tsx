@@ -1,142 +1,165 @@
+/**
+ * Avatar Customization Component
+ * 
+ * A draggable popup panel for customizing the character's avatar during character creation.
+ * Displays a preview of the avatar and provides options to randomize or reset to default.
+ * 
+ * @see docs/rpg-npcs.md for component pattern reference
+ */
+
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Draggable from "react-draggable";
-import { X, User, Image, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Card } from "@/components/ui/card";
+import { X, Shuffle, RotateCcw } from "lucide-react";
 import { CharacterAvatar } from "./CharacterAvatar";
-import { CharacterSprite, type SpritePack, type CharacterType } from "./CharacterSprite";
-import { createDefaultAvatarConfig, type AvatarConfig } from "@/lib/avatar/config";
-import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { createDefaultAvatarConfig, generateAvatarId } from "@/lib/avatar/config";
+import type { AvatarConfig } from "@/lib/avatar/config";
+import { getAssetsByCategory } from "@/lib/avatar/categories/assets";
 
 interface AvatarCustomizationProps {
+  /** Character name - used for default avatar generation */
   characterName: string;
+  /** Callback when avatar configuration changes */
   onAvatarChange: (config: AvatarConfig | null) => void;
+  /** Optional initial avatar configuration */
+  initialAvatarConfig?: AvatarConfig | null;
 }
 
-export const AvatarCustomization = ({ characterName, onAvatarChange }: AvatarCustomizationProps) => {
+/**
+ * AvatarCustomization Component
+ * 
+ * Provides a draggable interface for customizing character avatars during creation.
+ * Positioned to the right of the character creation form.
+ */
+export const AvatarCustomization = ({
+  characterName,
+  onAvatarChange,
+  initialAvatarConfig,
+}: AvatarCustomizationProps) => {
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig | null>(
+    initialAvatarConfig || createDefaultAvatarConfig(characterName)
+  );
   const avatarNodeRef = useRef<HTMLDivElement>(null);
-  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig | null>(() => {
-    // Try to load existing config, or create default
-    const existing = safeLoadAvatarConfig();
-    return existing || createDefaultAvatarConfig(characterName || "Character");
-  });
 
-  // Toggle between sprite and SVG avatar (shared preference with PlayerPanel)
-  const [useSprite, setUseSprite] = useState(() => {
-    const saved = localStorage.getItem("rpg-player-avatar-mode");
-    return saved === "sprite";
-  });
-
-  // Sprite pack selection
-  const [spritePack, setSpritePack] = useState<SpritePack>(() => {
-    const saved = localStorage.getItem("rpg-sprite-pack");
-    return (saved === "soldier-orc" ? "soldier-orc" : "character") as SpritePack;
-  });
-
-  // Character type for soldier-orc pack
-  const [characterType, setCharacterType] = useState<CharacterType>(() => {
-    const saved = localStorage.getItem("rpg-character-type");
-    return (saved === "orc" ? "orc" : "soldier") as CharacterType;
-  });
-
+  // Notify parent when avatar config changes
   useEffect(() => {
-    localStorage.setItem("rpg-player-avatar-mode", useSprite ? "sprite" : "svg");
-  }, [useSprite]);
+    onAvatarChange(avatarConfig);
+  }, [avatarConfig, onAvatarChange]);
 
-  useEffect(() => {
-    localStorage.setItem("rpg-sprite-pack", spritePack);
-  }, [spritePack]);
-
-  useEffect(() => {
-    localStorage.setItem("rpg-character-type", characterType);
-  }, [characterType]);
-
+  /**
+   * Randomize Avatar
+   * 
+   * Generates a new avatar configuration with random selections from available assets.
+   */
   const handleRandomize = () => {
-    // Generate a random seed based on current time
-    const randomSeed = `${characterName}-${Date.now()}-${Math.random()}`;
-    const newConfig = createDefaultAvatarConfig(randomSeed);
-    setAvatarConfig(newConfig);
-    onAvatarChange(newConfig);
+    const skinTones = getAssetsByCategory("skin-tone");
+    const hairStyles = getAssetsByCategory("hair-style");
+    const hairColors = getAssetsByCategory("hair-color");
+    const tops = getAssetsByCategory("clothing-top");
+    const bottoms = getAssetsByCategory("clothing-bottom");
+    const outfits = getAssetsByCategory("clothing-outfit");
+    const hats = getAssetsByCategory("accessory-hat");
+    const glasses = getAssetsByCategory("accessory-glasses");
+    const eyes = getAssetsByCategory("face-eyes");
+    const eyebrows = getAssetsByCategory("face-eyebrows");
+    const mouths = getAssetsByCategory("face-mouth");
+    const facialHair = getAssetsByCategory("face-facial-hair");
+    const bodyShapes = getAssetsByCategory("body-shape");
+
+    const randomItem = <T,>(arr: T[]): T | null => {
+      return arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : null;
+    };
+
+    const randomConfig: AvatarConfig = {
+      id: "", // Will be generated after config is created
+      name: characterName,
+      skinTone: randomItem(skinTones)?.id || "default",
+      hair: {
+        style: randomItem(hairStyles)?.id || "default",
+        color: randomItem(hairColors)?.id || "#000000",
+      },
+      clothes: {
+        top: randomItem(tops)?.id || null,
+        bottom: randomItem(bottoms)?.id || null,
+        outfit: randomItem(outfits)?.id || null,
+        color: "#3B82F6",
+      },
+      accessories: {
+        hat: randomItem(hats)?.id || null,
+        glasses: randomItem(glasses)?.id || null,
+        jewelry: [],
+        other: [],
+      },
+      face: {
+        eyes: randomItem(eyes)?.id || "default",
+        eyebrows: randomItem(eyebrows)?.id || "default",
+        mouth: randomItem(mouths)?.id || "default",
+        facialHair: randomItem(facialHair)?.id || null,
+      },
+      body: {
+        shape: randomItem(bodyShapes)?.id || "default",
+        size: Math.random() > 0.5 ? "medium" : Math.random() > 0.5 ? "large" : "small",
+      },
+      diceBear: {
+        clothingGraphic: null,
+        backgroundStyle: "default",
+        backgroundColor: null,
+      },
+    };
+
+    // Generate ID from the complete config
+    randomConfig.id = generateAvatarId(randomConfig);
+    setAvatarConfig(randomConfig);
   };
 
+  /**
+   * Reset to Default
+   * 
+   * Resets the avatar configuration to default values based on character name.
+   */
   const handleReset = () => {
-    const defaultConfig = createDefaultAvatarConfig(characterName || "Character");
+    const defaultConfig = createDefaultAvatarConfig(characterName);
     setAvatarConfig(defaultConfig);
-    onAvatarChange(defaultConfig);
   };
 
   return (
-    <TooltipProvider>
-      <Draggable
-        nodeRef={avatarNodeRef}
-        handle=".avatar-handle"
-        defaultPosition={{ 
-          x: typeof window !== "undefined" ? window.innerWidth / 2 + 250 : 0, 
-          y: typeof window !== "undefined" ? window.innerHeight / 2 - 200 : 100 
+    <Draggable
+      nodeRef={avatarNodeRef}
+      handle=".avatar-handle"
+      defaultPosition={{ x: typeof window !== "undefined" ? window.innerWidth - 420 : 0, y: 100 }}
+    >
+      <div
+        ref={avatarNodeRef}
+        style={{
+          position: "fixed",
+          zIndex: 50,
+          left: 0,
+          top: 0,
         }}
       >
-        <div
-          ref={avatarNodeRef}
-          style={{
-            position: "fixed",
-            zIndex: 50,
-            left: 0,
-            top: 0,
-          }}
-        >
+        <AnimatePresence>
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="w-80 bg-card border-2 border-primary/30 rounded-lg shadow-2xl"
+            initial={{ opacity: 0, scale: 0.9, x: 50 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.9, x: 50 }}
+            transition={{ duration: 0.3 }}
           >
-            {/* Header */}
-            <div
-              className="avatar-handle cursor-move flex items-center justify-between p-4 bg-secondary/30 border-b-2 border-primary/30 rounded-t-lg"
-            >
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-bold text-primary">Avatar Customization</h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setUseSprite(!useSprite);
-                      }}
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                      }}
-                    >
-                      {useSprite ? (
-                        <Image className="w-4 h-4" />
-                      ) : (
-                        <Layers className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Switch to {useSprite ? "SVG Avatar" : "Sprite Animation"}</p>
-                  </TooltipContent>
-                </Tooltip>
+            <Card className="bg-card border-2 border-primary/30 shadow-2xl w-80">
+              {/* Header */}
+              <div
+                className="avatar-handle flex items-center justify-between p-4 border-b border-primary/20 cursor-move bg-primary/5"
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <h3 className="text-lg font-bold text-primary">Avatar Preview</h3>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6"
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={() => {
+                    setAvatarConfig(null);
+                    onAvatarChange(null);
                   }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
@@ -145,111 +168,45 @@ export const AvatarCustomization = ({ characterName, onAvatarChange }: AvatarCus
                   <X className="w-4 h-4" />
                 </Button>
               </div>
-            </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-6">
-            {/* Avatar Preview */}
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-48 h-48 rounded-lg overflow-hidden border-2 border-primary/50 bg-secondary/30 flex items-center justify-center">
-                {useSprite ? (
-                  <CharacterSprite
-                    animation="idle"
-                    weapon="unarmed"
-                    scale={spritePack === "soldier-orc" ? 1.92 : 3}
-                    frameDelay={150}
-                    className="w-full h-full flex items-center justify-center"
-                    spritePack={spritePack}
-                    characterType={characterType}
-                  />
-                ) : (
+              {/* Avatar Preview */}
+              <div className="p-6 flex flex-col items-center gap-4">
+                <div className="flex items-center justify-center w-32 h-32 rounded-lg bg-secondary/20 border-2 border-primary/20">
                   <CharacterAvatar
-                    characterName={characterName || "Character"}
+                    characterName={characterName}
                     avatarConfig={avatarConfig || undefined}
-                    size={192}
-                    className="w-full h-full"
-                    fallback="⚔️"
+                    size={128}
                   />
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground text-center">
-                Your character's appearance
-              </p>
-            </div>
+                </div>
 
-            {/* Sprite Pack Selection (only shown when using sprites) */}
-            {useSprite && (
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-foreground">
-                  Sprite Pack
-                </p>
-                <Select
-                  value={spritePack}
-                  onValueChange={(value) => setSpritePack(value as SpritePack)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="character">Character Pack</SelectItem>
-                    <SelectItem value="soldier-orc">Soldier & Orc Pack</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                {spritePack === "soldier-orc" && (
-                  <Select
-                    value={characterType}
-                    onValueChange={(value) => setCharacterType(value as CharacterType)}
-                  >
-                    <SelectTrigger className="w-full mt-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="soldier">Soldier</SelectItem>
-                      <SelectItem value="orc">Orc</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-            )}
-
-            {/* Customization Options */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-foreground">
-                  Quick Actions
-                </p>
-                <div className="flex flex-col gap-2">
+                {/* Action Buttons */}
+                <div className="flex gap-2 w-full">
                   <Button
                     variant="outline"
                     onClick={handleRandomize}
-                    className="w-full"
+                    className="flex-1 border-primary/30 hover:bg-primary/10"
                   >
-                    🎲 Randomize Avatar
+                    <Shuffle className="w-4 h-4 mr-2" />
+                    Randomize
                   </Button>
                   <Button
                     variant="outline"
                     onClick={handleReset}
-                    className="w-full"
+                    className="flex-1 border-primary/30 hover:bg-primary/10"
                   >
-                    🔄 Reset to Default
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Reset
                   </Button>
                 </div>
-              </div>
 
-              {/* Info */}
-              <div className="p-3 bg-muted/30 rounded-md border border-primary/20">
-                <p className="text-xs text-muted-foreground">
-                  💡 <strong>Tip:</strong> Your avatar is generated based on your character name. 
-                  Use "Randomize" to try different looks!
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Drag this panel to move it around
                 </p>
               </div>
-            </div>
-          </div>
-        </motion.div>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </Draggable>
-    </TooltipProvider>
   );
 };
-
