@@ -8,7 +8,7 @@
  */
 
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Draggable from "react-draggable";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,7 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CharacterAvatar } from "./CharacterAvatar";
-import { CharacterSprite } from "./CharacterSprite";
+import { CharacterSprite, type CharacterType } from "./CharacterSprite";
 import { createDefaultAvatarConfig, generateAvatarId } from "@/lib/avatar/config";
 import type { AvatarConfig } from "@/lib/avatar/config";
 import { getAssetsByCategory } from "@/lib/avatar/categories/assets";
@@ -32,6 +32,10 @@ interface AvatarCustomizationProps {
   onAvatarChange: (config: AvatarConfig | null) => void;
   /** Optional initial avatar configuration */
   initialAvatarConfig?: AvatarConfig | null;
+  /** Callback when sprite type changes */
+  onSpriteTypeChange?: (spriteType: CharacterType) => void;
+  /** Optional initial sprite type */
+  initialSpriteType?: CharacterType;
 }
 
 /**
@@ -44,6 +48,8 @@ export const AvatarCustomization = ({
   characterName,
   onAvatarChange,
   initialAvatarConfig,
+  onSpriteTypeChange,
+  initialSpriteType = "character",
 }: AvatarCustomizationProps) => {
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig | null>(
     initialAvatarConfig || createDefaultAvatarConfig(characterName)
@@ -55,10 +61,22 @@ export const AvatarCustomization = ({
     const saved = localStorage.getItem("rpg-character-creation-avatar-mode");
     return saved === "sprite";
   });
+  
+  // Character sprite type selection
+  const [spriteType, setSpriteType] = useState<CharacterType>(() => {
+    if (initialSpriteType) return initialSpriteType;
+    const saved = localStorage.getItem("rpg-character-creation-sprite-type");
+    return (saved as CharacterType) || "character";
+  });
 
   useEffect(() => {
     localStorage.setItem("rpg-character-creation-avatar-mode", useSprite ? "sprite" : "svg");
   }, [useSprite]);
+  
+  useEffect(() => {
+    localStorage.setItem("rpg-character-creation-sprite-type", spriteType);
+    onSpriteTypeChange?.(spriteType);
+  }, [spriteType, onSpriteTypeChange]);
 
   // Notify parent when avatar config changes
   useEffect(() => {
@@ -157,19 +175,17 @@ export const AvatarCustomization = ({
             top: 0,
           }}
         >
-          <AnimatePresence>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, x: 50 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.9, x: 50 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="bg-card border-2 border-primary/30 shadow-2xl w-80">
-                {/* Header */}
-                <div
-                  className="avatar-handle flex items-center justify-between p-4 border-b border-primary/20 cursor-move bg-primary/5"
-                  onMouseDown={(e) => e.stopPropagation()}
-                >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="bg-card border-2 border-primary/30 shadow-2xl w-80">
+              {/* Header */}
+              <div
+                className="avatar-handle flex items-center justify-between p-4 border-b border-primary/20 cursor-move bg-primary/5"
+              >
                   <h3 className="text-lg font-bold text-primary">Avatar Preview</h3>
                   <div className="flex items-center gap-2">
                     <Tooltip>
@@ -219,6 +235,7 @@ export const AvatarCustomization = ({
                 <div className="w-full aspect-square rounded-lg overflow-hidden border-2 border-primary/50 bg-secondary/30 flex items-center justify-center">
                   {useSprite ? (
                     <CharacterSprite
+                      characterType={spriteType}
                       animation="idle"
                       weapon="unarmed"
                       scale={4}
@@ -234,6 +251,73 @@ export const AvatarCustomization = ({
                     />
                   )}
                 </div>
+
+                {/* Sprite Type Selection (only when using sprite) */}
+                {useSprite && (
+                  <div className="w-full space-y-3">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-2 block">Sprite Type</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button
+                          variant={spriteType === "character" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSpriteType("character")}
+                          className="text-xs"
+                        >
+                          Character
+                        </Button>
+                        <Button
+                          variant={spriteType === "ninja" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSpriteType("ninja")}
+                          className="text-xs"
+                        >
+                          Ninja
+                        </Button>
+                        <Button
+                          variant={spriteType === "knight" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSpriteType("knight")}
+                          className="text-xs"
+                        >
+                          Knight
+                        </Button>
+                        <Button
+                          variant={spriteType === "wizard" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSpriteType("wizard")}
+                          className="text-xs"
+                        >
+                          Wizard
+                        </Button>
+                        <Button
+                          variant={spriteType === "skeleton" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSpriteType("skeleton")}
+                          className="text-xs"
+                        >
+                          Skeleton
+                        </Button>
+                        <Button
+                          variant={spriteType === "goblin" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSpriteType("goblin")}
+                          className="text-xs"
+                        >
+                          Goblin
+                        </Button>
+                        <Button
+                          variant={spriteType === "martialHero" ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSpriteType("martialHero")}
+                          className="text-xs"
+                        >
+                          Martial Hero
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 w-full">
@@ -261,9 +345,8 @@ export const AvatarCustomization = ({
               </div>
             </Card>
           </motion.div>
-        </AnimatePresence>
-      </div>
-    </Draggable>
+        </div>
+      </Draggable>
     </TooltipProvider>
   );
 };

@@ -78,6 +78,7 @@ const performanceTracker = {
 };
 
 import type { AvatarConfig } from "@/lib/avatar/config";
+import type { CharacterType } from "../components/CharacterSprite";
 
 export interface Character {
   name: string;
@@ -93,6 +94,8 @@ export interface Character {
   avatarConfig?: AvatarConfig;
   /** Optional seed string for simple deterministic avatar generation */
   avatarSeed?: string;
+  /** Character sprite type: 'character' | 'ninja' */
+  spriteType?: CharacterType;
 }
 
 type CharacterDelta = Partial<Pick<Character, "hp" | "mana" | "xp" | "gold">>;
@@ -115,6 +118,7 @@ interface RpgStore extends BaseRpgState {
   addItem: (item: Item) => void;
   removeItem: (item: Item) => void;
   setCharacterAvatar: (avatarConfig: AvatarConfig | null) => void;
+  setCharacterSpriteType: (spriteType: CharacterType) => void;
   initializeCharacter: (name: string, characterClass?: string) => void;
   reset: () => void;
 }
@@ -882,6 +886,16 @@ export const useRpgStore = create<RpgStore>()(
       character: {
         ...state.character,
         avatarConfig: avatarConfig || undefined,
+      },
+    }));
+  },
+  setCharacterSpriteType: (spriteType: CharacterType) => {
+    debugLog("action", `Setting character sprite type`, { spriteType });
+    set((state) => ({
+      ...state,
+      character: {
+        ...state.character,
+        spriteType,
       },
     }));
   },

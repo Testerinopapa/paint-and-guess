@@ -132,6 +132,7 @@ export const PlayerPanel = ({ character, isOpen, onClose }: PlayerPanelProps) =>
           <div className="w-full aspect-square rounded-lg overflow-hidden border-2 border-primary/50 bg-secondary/30 flex items-center justify-center">
                   {useSprite ? (
                     <CharacterSprite
+                      characterType={character.spriteType || "character"}
                       animation="idle"
                       weapon="unarmed"
                       scale={4}

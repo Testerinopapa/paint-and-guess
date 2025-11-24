@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Sword, Wand2, Target, Shield } from "lucide-react";
 import { AvatarCustomization } from "./AvatarCustomization";
 import type { AvatarConfig } from "@/lib/avatar/config";
+import type { CharacterType } from "./CharacterSprite";
 
 interface CharacterClass {
   id: string;
@@ -72,8 +73,10 @@ export const CharacterCreation = () => {
   const [characterName, setCharacterName] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig | null>(null);
+  const [spriteType, setSpriteType] = useState<CharacterType>("character");
   const initializeCharacter = useRpgStore((state) => state.initializeCharacter);
   const setCharacterAvatar = useRpgStore((state) => state.setCharacterAvatar);
+  const setCharacterSpriteType = useRpgStore((state) => state.setCharacterSpriteType);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,11 +86,17 @@ export const CharacterCreation = () => {
       if (avatarConfig) {
         setCharacterAvatar(avatarConfig);
       }
+      // Set sprite type
+      setCharacterSpriteType(spriteType);
     }
   };
 
   const handleAvatarChange = (config: AvatarConfig | null) => {
     setAvatarConfig(config);
+  };
+  
+  const handleSpriteTypeChange = (type: CharacterType) => {
+    setSpriteType(type);
   };
 
   const canSubmit = characterName.trim().length >= 2 && selectedClass !== null;
@@ -227,6 +236,8 @@ export const CharacterCreation = () => {
           <AvatarCustomization
             characterName={characterName.trim()}
             onAvatarChange={handleAvatarChange}
+            onSpriteTypeChange={handleSpriteTypeChange}
+            initialSpriteType={spriteType}
           />
         )}
       </div>
