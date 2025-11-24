@@ -1,0 +1,145 @@
+{
+    "traits": {
+      "attributes": [
+        { "name": "Agility", "description": "Quickness, dexterity, and coordination." },
+        { "name": "Smarts", "description": "Intellect, perception, ability to reason." },
+        { "name": "Spirit", "description": "Inner strength and willpower." },
+        { "name": "Strength", "description": "Raw muscle power." },
+        { "name": "Vigor", "description": "Endurance, health, constitution." }
+      ],
+      "skills": [
+        { "name": "Academics (Smarts)", "description": "Liberal arts, history, literature, etc." },
+        { "name": "Athletics (Agility)", "description": "Running, climbing, balancing, swimming, throwing." },
+        { "name": "Battle (Smarts)", "description": "Tactics and handling military operations." },
+        { "name": "Boating (Agility)", "description": "Piloting small watercraft." },
+        { "name": "Common Knowledge (Smarts)", "description": "General worldly knowledge." },
+        { "name": "Driving (Agility)", "description": "Operating ground vehicles." },
+        { "name": "Electronics (Smarts)", "description": "Electronic devices and systems." },
+        { "name": "Faith (Spirit)", "description": "Arcane skill for Miracles." },
+        { "name": "Fighting (Agility)", "description": "Close combat ability." },
+        { "name": "Focus (Smarts)", "description": "Arcane Background (Gifted)." },
+        { "name": "Gambling (Smarts)", "description": "Games of luck and probability." },
+        { "name": "Healing (Smarts)", "description": "Treating injuries and illness." },
+        { "name": "Intimidation (Spirit)", "description": "Coercion and threats." },
+        { "name": "Language (Smarts)", "description": "Speaking non-native languages." },
+        { "name": "Notice (Smarts)", "description": "Awareness and perception." },
+        { "name": "Occult (Smarts)", "description": "Supernatural and magical knowledge." },
+        { "name": "Performance (Spirit)", "description": "Acting, singing, artistic expression." },
+        { "name": "Persuasion (Spirit)", "description": "Social influence and diplomacy." },
+        { "name": "Piloting (Agility)", "description": "Operating aircraft." },
+        { "name": "Psionics (Smarts)", "description": "Arcane Background (Psionics) skill." },
+        { "name": "Repair (Smarts)", "description": "Mechanics, fixing devices." },
+        { "name": "Research (Smarts)", "description": "Finding and analyzing information." },
+        { "name": "Riding (Agility)", "description": "Mounted movement." },
+        { "name": "Science (Smarts)", "description": "Hard sciences and experiments." },
+        { "name": "Shooting (Agility)", "description": "Firearms and ranged weapons." },
+        { "name": "Spellcasting (Smarts)", "description": "Arcane Background (Magic) skill." },
+        { "name": "Stealth (Agility)", "description": "Sneaking and avoiding detection." },
+        { "name": "Survival (Smarts)", "description": "Living off the land." },
+        { "name": "Taunt (Smarts)", "description": "Mocking and provoking others." },
+        { "name": "Thievery (Agility)", "description": "Lockpicking, pickpocketing, traps." }
+      ]
+    },
+  
+    "edges": {
+      "background": [
+        { "name": "Attractive", "requirements": "N", "summary": "+2 to Performance and Persuasion." },
+        { "name": "Ambidextrous", "requirements": "N, Ag d8", "summary": "Ignore off-hand penalty for Trait rolls with off-hand." },
+        { "name": "Arcane Background", "requirements": "N", "summary": "Gives access to Arcane Background rules." },
+        { "name": "Arcane Resistance", "requirements": "N, Sp d8", "summary": "+2 to resist magic; +2 armor vs magic damage." },
+        { "name": "Brave", "requirements": "N, Sp d6", "summary": "+2 to Fear checks." },
+        { "name": "Elan", "requirements": "N, Sp d8", "summary": "+2 to Benny-based Trait rolls." },
+        { "name": "Fame", "requirements": "N", "summary": "Common Knowledge +2; +1 Persuasion when recognized." },
+        { "name": "Fast Healer", "requirements": "N, Vi d8", "summary": "Healing rolls +2." },
+        { "name": "Fleet-Footed", "requirements": "N, Ag d6", "summary": "+2 Pace; d10 running die." },
+        { "name": "Gifted", "requirements": "N, Sm d8", "summary": "+2 on arcane skill roll twice per session." },
+        { "name": "Heroic", "requirements": "N", "summary": "Always helps those in need." },
+        { "name": "Luck", "requirements": "N", "summary": "One extra Benny per session." },
+        { "name": "Rich", "requirements": "N", "summary": "Five times starting funds; $500 salary." }
+      ],
+  
+      "combat": [
+        { "name": "Block", "requirements": "S, Fighting d8", "summary": "+1 Parry; +2 vs Gang Up." },
+        { "name": "Improved Block", "requirements": "S, Block", "summary": "+2 Parry; ignore 2 Gang Up bonus." },
+        { "name": "Bruiser", "requirements": "N, St d6", "summary": "Unarmed damage +1d4." },
+        { "name": "Brute", "requirements": "Novice, Strength d8", "summary": "Melee damage +1 die type; ignore Toughness penalty on raise." },
+        { "name": "Combat Reflexes", "requirements": "N, Sp d8", "summary": "+2 to recover from Shaken." },
+        { "name": "Dead Shot", "requirements": "WC, N", "summary": "Double damage on first ranged hit of a round." },
+        { "name": "Deflection", "requirements": "N, Ag d8", "summary": "-2 to enemy ranged attacks vs you." },
+        { "name": "Improved Deflection", "requirements": "N, Deflection", "summary": "-4 to enemy ranged attacks." },
+        { "name": "Dodge", "requirements": "N, Ag d8", "summary": "-1 to be hit by ranged attacks." },
+        { "name": "Improved Dodge", "requirements": "N, Dodge", "summary": "-2 to be hit by ranged." },
+        { "name": "Frenzy", "requirements": "N, Fighting d8", "summary": "Two Fighting attacks at -2." },
+        { "name": "Improved Frenzy", "requirements": "N, Frenzy", "summary": "Two attacks with no penalty." },
+        { "name": "Sweep", "requirements": "N, St d6, Fighting d6", "summary": "Melee attack vs all adjacent foes at -2." },
+        { "name": "Improved Sweep", "requirements": "N, Sweep", "summary": "Sweep with no penalty." },
+        { "name": "Trademark Weapon", "requirements": "N, Fighting d8 or Shooting d8", "summary": "+1 with a specific weapon." },
+        { "name": "Improved Trademark Weapon", "requirements": "N, Trademark Weapon", "summary": "+2 with a specific weapon." },
+        { "name": "Two-Fisted", "requirements": "N, Ag d8", "summary": "Ignore multi-action penalty for two melee attacks." }
+      ],
+  
+      "leadership": [
+        { "name": "Command", "requirements": "N, Sm d6", "summary": "+1 to allies recovering from Shaken within range." },
+        { "name": "Fervor", "requirements": "S, Command", "summary": "+1 to ally Fighting rolls." },
+        { "name": "Hold the Line!", "requirements": "S, Command", "summary": "+1 Toughness for allies." },
+        { "name": "Inspire", "requirements": "S, Spirit d8", "summary": "+1 to ally Spirit rolls." },
+        { "name": "Natural Leader", "requirements": "S, Command", "summary": "May reroll Support or Test rolls for allies." },
+        { "name": "Tactician", "requirements": "S, Sm d8", "summary": "Draw additional Action Card each round." }
+      ],
+  
+      "power": [
+        { "name": "Artificer", "requirements": "S, AB", "summary": "Make Arcane Devices." },
+        { "name": "Concentration", "requirements": "S, AB", "summary": "+2 to maintain powers." },
+        { "name": "Extra Effort", "requirements": "S, AB", "summary": "Increase power die type for +2 PP or 3 Fatigue." },
+        { "name": "Gadgeteer", "requirements": "S, AB", "summary": "Create d6 temporary devices each session." },
+        { "name": "Holy/Unholy Warrior", "requirements": "S, AB (Miracles)", "summary": "Oppose evil with Faith roll +2." },
+        { "name": "New Powers", "requirements": "S, AB", "summary": "Learn +1 new power." },
+        { "name": "Power Points", "requirements": "S, AB", "summary": "+5 Power Points." },
+        { "name": "Rapid Recharge", "requirements": "S, Spirit d8", "summary": "+1 PP recovery per hour." },
+        { "name": "Improved Rapid Recharge", "requirements": "S, Rapid Recharge", "summary": "+2 PP recovery per hour." },
+        { "name": "Soul Drain", "requirements": "S, AB (Magic)", "summary": "Take a Fatigue to reroll magic failure." },
+        { "name": "Spell Mastery", "requirements": "S, AB (Magic)", "summary": "Reduce spells’ PP cost by 1 (min 1)." },
+        { "name": "Wizard", "requirements": "S, AB (Magic)", "summary": "+1 Casting." }
+      ],
+  
+      "professional": [
+        { "name": "Ace", "requirements": "N, Ag d8, Piloting d6", "summary": "+2 to Boating/Piloting/Driving; reduce vehicle penalties." },
+        { "name": "Acrobat", "requirements": "N, Ag d8", "summary": "+2 to Agility-based rolls." },
+        { "name": "Champion", "requirements": "N, Sp d8, Fighting d6", "summary": "+2 vs evil supernatural creatures." },
+        { "name": "Investigator", "requirements": "N, Sm d8, Research d6", "summary": "+2 to Investigation and Research." },
+        { "name": "McGyver", "requirements": "N, Sm d6, Repair d6", "summary": "Improvise mechanical or electronic devices." },
+        { "name": "Mr. Fix It", "requirements": "N, Sm d8, Repair d8", "summary": "+2 to Repair rolls; reduce repair time by half." },
+        { "name": "Scholar", "requirements": "N, Sm d8", "summary": "+2 to two Smarts-based skills." }
+      ],
+  
+      "social": [
+        { "name": "Bolster", "requirements": "N, Sp d6", "summary": "Remove Distracted/Vulnerable from allies." },
+        { "name": "Common Bond", "requirements": "N, Sp d8", "summary": "Give Bennies to allies." },
+        { "name": "Connections", "requirements": "N", "summary": "Have high-level contacts for favors." },
+        { "name": "Followers", "requirements": "S, Sp d8", "summary": "Gain followers." },
+        { "name": "Leader of Men", "requirements": "S, Command", "summary": "Support actions +1." },
+        { "name": "Retort", "requirements": "N, Sm d8", "summary": "Automatic Taunt success when foe fails a Test." },
+        { "name": "Streetwise", "requirements": "N, Sm d6", "summary": "+2 to network and gather info." },
+        { "name": "Strong Willed", "requirements": "N, Sp d8", "summary": "+2 to Intimidation and Taunt in Tests." },
+        { "name": "Work the Crowd", "requirements": "N, Persuasion d8", "summary": "Reduce multi-action penalty when speaking to a crowd." }
+      ],
+  
+      "weird": [
+        { "name": "Beast Bond", "requirements": "N, Sp d6", "summary": "No Untrained penalty for animals." },
+        { "name": "Beast Master", "requirements": "S, Beast Bond", "summary": "Animals never attack you; gain one loyal beast." },
+        { "name": "Champion", "requirements": "N, Sp d8", "summary": "+2 damage vs evil supernatural foes." },
+        { "name": "Martial Artist", "requirements": "N, Ag d8", "summary": "+d4 Str damage, +1 Parry." },
+        { "name": "Scavenger", "requirements": "N", "summary": "Always find needed item with a roll." },
+        { "name": "Soul Eater", "requirements": "N, Spirit d8", "summary": "Gain bonuses when consuming souls." }
+      ],
+  
+      "legendary": [
+        { "name": "Beast", "requirements": "Legendary", "summary": "Gain monstrous features." },
+        { "name": "Expert", "requirements": "Legendary", "summary": "+1 to one skill permanently." },
+        { "name": "Master", "requirements": "Legendary, Expert", "summary": "+1 die type to chosen skill." },
+        { "name": "Professional", "requirements": "Legendary", "summary": "Increase Trait die by one type." },
+        { "name": "Master of Arms", "requirements": "Legendary, Fighting d10", "summary": "+1 Parry; ignore 1 point of Gang-Up." }
+      ]
+    }
+  }
+  

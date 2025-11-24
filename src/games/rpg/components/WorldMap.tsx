@@ -33,6 +33,7 @@ import {
 import { useRpgStore } from "../state/useRpgStore";
 import { MonsterPanel } from "./MonsterPanel";
 import { NPCPanel } from "./NPCPanel";
+import { CardDealAnimation } from "./CardDealAnimation";
 
 // Helper function to convert hex to RGB
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
@@ -129,6 +130,22 @@ export function WorldMap({ isOpen, onClose, onNPCEncounter }: WorldMapProps) {
       encounteredNPCRef.current = null;
     }
   }, [isOpen]);
+
+  // Handle card selection
+  const handleCardSelect = useCallback((card: { id: string; suit: string; rank: string; value: number }) => {
+    if (!encounteredMonster) return;
+    
+    // Log card selection for now
+    console.log(`Card selected: ${card.suit} ${card.rank} (Value: ${card.value})`);
+    console.log(`Monster: ${encounteredMonster.name} (Level ${encounteredMonster.level})`);
+    
+    // TODO: Implement card action logic
+    // - Attack card: Deal damage to monster
+    // - Defend card: Reduce incoming damage
+    // - Special card: Unique ability
+    // - Loot card: Generate rewards
+    // - Event card: Random event
+  }, [encounteredMonster]);
 
   // Initialize panel position (centered)
   useEffect(() => {
@@ -904,15 +921,27 @@ export function WorldMap({ isOpen, onClose, onNPCEncounter }: WorldMapProps) {
   return (
     <>
       {encounteredMonster && (
-        <MonsterPanel
-          monster={encounteredMonster}
-          isOpen={true}
-          onClose={() => {
-            setEncounteredMonster(null);
-            lastEncounteredMonsterRef.current = null;
-            encounteredMonsterRef.current = null;
-          }}
-        />
+        <>
+          <MonsterPanel
+            monster={encounteredMonster}
+            isOpen={true}
+            onClose={() => {
+              setEncounteredMonster(null);
+              lastEncounteredMonsterRef.current = null;
+              encounteredMonsterRef.current = null;
+            }}
+          />
+          <CardDealAnimation
+            monster={encounteredMonster}
+            isOpen={true}
+            onClose={() => {
+              setEncounteredMonster(null);
+              lastEncounteredMonsterRef.current = null;
+              encounteredMonsterRef.current = null;
+            }}
+            onCardSelect={handleCardSelect}
+          />
+        </>
       )}
       {encounteredNPC && (
         <NPCPanel

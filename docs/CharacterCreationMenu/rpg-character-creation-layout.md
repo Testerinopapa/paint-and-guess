@@ -379,31 +379,36 @@ Choose Your Class
 ```
                     ┌─────────────────────────┐
                     │ 👤 Avatar Customization │ ← Header (Drag Handle)
-                    │                    [X]  │
+                    │    [🖼️] [X]             │ ← Toggle Button + Close
                     ├─────────────────────────┤
                     │                         │
                     │    ┌───────────────┐    │
                     │    │               │    │
                     │    │  [Avatar]     │    │ ← Avatar Preview
-                    │    │   (192px)     │    │    (192×192px)
-                    │    │               │    │
+                    │    │  (256px)      │    │    (Aspect Square)
+                    │    │               │    │    SVG or Sprite
                     │    └───────────────┘    │
                     │                         │
-                    │  Your character's        │
-                    │  appearance             │
+                    │  Sprite Type            │ ← (Only when sprite mode)
+                    │  ┌───┐ ┌───┐ ┌───┐     │
+                    │  │Chr│ │Nin│ │Kni│     │ ← Sprite Buttons
+                    │  └───┘ └───┘ └───┘     │    (3 columns)
+                    │  ┌───┐ ┌───┐ ┌───┐     │
+                    │  │Wiz│ │Ske│ │Gob│     │
+                    │  └───┘ └───┘ └───┘     │
+                    │  ┌───┐                 │
+                    │  │Mar│                 │
+                    │  └───┘                 │
                     │                         │
                     │  Quick Actions          │
                     │  ┌───────────────────┐  │
-                    │  │ 🎲 Randomize Avatar│  │ ← Randomize Button
+                    │  │ 🎲 Randomize      │  │ ← Randomize Button
                     │  └───────────────────┘  │
                     │  ┌───────────────────┐  │
-                    │  │ 🔄 Reset to Default│  │ ← Reset Button
+                    │  │ 🔄 Reset          │  │ ← Reset Button
                     │  └───────────────────┘  │
                     │                         │
-                    │  ┌───────────────────┐  │
-                    │  │ 💡 Tip: Your avatar│  │ ← Info Box
-                    │  │ is generated...   │  │
-                    │  └───────────────────┘  │
+                    │  💡 Drag this panel...   │ ← Info Text
                     │                         │
                     └─────────────────────────┘
 ```
@@ -433,14 +438,24 @@ Choose Your Class
 - **Cursor:** Move (on hover)
 
 ### Header Content
-- **Icon:** User, 20px, primary color
-- **Title:** "Avatar Customization", large text, bold, primary color
-- **Close Button:**
-  - Position: Right side
-  - Size: 24px × 24px (h-6 w-6)
-  - Variant: Ghost
-  - Icon: X, 16px
-  - Note: Currently non-functional (doesn't close popup)
+- **Left Side:**
+  - **Icon:** User, 20px, primary color
+  - **Title:** "Avatar Customization", large text, bold, primary color
+- **Right Side (Button Group):**
+  - **Toggle Button:**
+    - Position: Left of close button
+    - Size: 24px × 24px (h-6 w-6)
+    - Variant: Ghost
+    - Icon: Image icon (when sprite mode) or Layers icon (when SVG mode)
+    - Tooltip: "Switch to {opposite mode}"
+    - Action: Toggles between SVG avatar and sprite animation
+    - Persisted: Local storage key `rpg-character-creation-avatar-mode`
+  - **Close Button:**
+    - Position: Right side
+    - Size: 24px × 24px (h-6 w-6)
+    - Variant: Ghost
+    - Icon: X, 16px
+    - Action: Clears avatar config (sets to null)
 
 ### Content Area
 - **Padding:** 6 units (p-6)
@@ -449,51 +464,82 @@ Choose Your Class
 ### Avatar Preview Section
 - **Layout:** Flex column, items-center, gap 4 units
 - **Preview Container:**
-  - Size: 192px × 192px (w-48 h-48)
+  - Width: Full width (`w-full`)
+  - Aspect Ratio: Square (`aspect-square`)
   - Border: 2px, primary at 50% opacity
   - Border Radius: Large (`rounded-lg`)
   - Background: Secondary at 30% opacity
   - Overflow: Hidden
   - Display: Flex, items-center, justify-center
-- **Avatar Component:**
-  - Uses `CharacterAvatar` component
-  - Size: 192px
-  - Displays SVG avatar based on character name or config
+  - Padding: 6 units (p-6)
+- **Avatar Display Modes:**
+  - **SVG Mode (Default):**
+    - Component: `CharacterAvatar`
+    - Size: 256px
+    - Displays SVG avatar based on character name or config
+  - **Sprite Mode:**
+    - Component: `CharacterSprite`
+    - Scale: 4x (128px base × 4 = 512px visual)
+    - Animation: Idle (looping)
+    - Frame Delay: 150ms per frame
+    - Character Type: Selected from sprite type buttons
+    - Displays animated 2D pixel art sprite
 - **Description Text:**
-  - Font Size: Small (`text-sm`)
-  - Color: Muted foreground
-  - Text: "Your character's appearance"
-  - Alignment: Center
+  - Removed (no longer displayed)
 
-### Quick Actions Section
-- **Title:**
-  - Font Size: Small (`text-sm`)
-  - Font Weight: Semibold
-  - Color: Foreground
-  - Margin Bottom: 2 units
-- **Buttons Container:**
-  - Layout: Flex column, gap 2 units
-  - **Randomize Button:**
-    - Variant: Outline
-    - Width: Full width
-    - Text: "🎲 Randomize Avatar"
-    - Action: Generates new random avatar config
-  - **Reset Button:**
-    - Variant: Outline
-    - Width: Full width
-    - Text: "🔄 Reset to Default"
-    - Action: Resets to name-based default avatar
-
-### Info Box
-- **Container:**
-  - Padding: 3 units
-  - Background: Muted at 30% opacity
-  - Border: 1px, primary at 20% opacity
-  - Border Radius: Medium (`rounded-md`)
-- **Content:**
+### Sprite Type Selection Section
+- **Visibility:** Only shown when sprite mode is active (`useSprite === true`)
+- **Layout:** Full width, vertical spacing 3 units
+- **Label:**
+  - Text: "Sprite Type"
   - Font Size: Extra small (`text-xs`)
   - Color: Muted foreground
-  - Text: "💡 **Tip:** Your avatar is generated based on your character name. Use "Randomize" to try different looks!"
+  - Display: Block
+  - Margin Bottom: 2 units
+- **Button Grid:**
+  - Layout: Grid, 3 columns (`grid-cols-3`)
+  - Gap: 2 units between buttons
+  - **Available Sprite Types:**
+    1. **Character** - Original layered sprites with weapon support
+    2. **Ninja** - FreeNinja pack (8 idle frames)
+    3. **Knight** - Knight pack (10 idle frames)
+    4. **Wizard** - WizardPack (5 idle frames)
+    5. **Skeleton** - Monsters_Creatures_Fantasy/Skeleton (3 idle frames)
+    6. **Goblin** - Monsters_Creatures_Fantasy/Goblin (3 idle frames)
+    7. **Martial Hero** - MartialHero pack (7 idle frames)
+  - **Button Style:**
+    - Size: Small (`size="sm"`)
+    - Variant: Default (selected) or Outline (unselected)
+    - Font Size: Extra small (`text-xs`)
+    - Action: Sets sprite type and persists to local storage
+    - Persisted: Local storage key `rpg-character-creation-sprite-type`
+
+### Quick Actions Section
+- **Layout:** Flex row, gap 2 units, full width
+- **Randomize Button:**
+  - Variant: Outline
+  - Flex: 1 (equal width with Reset)
+  - Border: Primary at 30% opacity
+  - Hover: Primary at 10% opacity background
+  - Icon: Shuffle, 16px, left side
+  - Text: "Randomize"
+  - Action: Generates new random avatar config (SVG mode only)
+- **Reset Button:**
+  - Variant: Outline
+  - Flex: 1 (equal width with Randomize)
+  - Border: Primary at 30% opacity
+  - Hover: Primary at 10% opacity background
+  - Icon: RotateCcw, 16px, left side
+  - Text: "Reset"
+  - Action: Resets to name-based default avatar config
+
+### Info Text
+- **Position:** Bottom of content area
+- **Font Size:** Extra small (`text-xs`)
+- **Color:** Muted foreground
+- **Text:** "Drag this panel to move it around"
+- **Alignment:** Center
+- **Margin Top:** 2 units
 
 ## Animations
 
@@ -559,19 +605,31 @@ CharacterCreation (Main Component)
 │       │       │
 │       │       ├── Header (drag handle: .avatar-handle)
 │       │       │   ├── User Icon + "Avatar Customization"
-│       │       │   └── Close Button (X)
+│       │       │   └── Button Group
+│       │       │       ├── Toggle Button (Image/Layers icon)
+│       │       │       └── Close Button (X)
 │       │       │
 │       │       └── Content Area
 │       │           ├── Avatar Preview Section
-│       │           │   ├── Preview Container (192×192px)
-│       │           │   │   └── CharacterAvatar Component
-│       │           │   └── Description Text
+│       │           │   └── Preview Container (Aspect Square)
+│       │           │       ├── CharacterAvatar (SVG mode)
+│       │           │       └── CharacterSprite (Sprite mode)
+│       │           │
+│       │           ├── Sprite Type Selection (conditional)
+│       │           │   ├── Label: "Sprite Type"
+│       │           │   └── Button Grid (3 columns)
+│       │           │       ├── Character Button
+│       │           │       ├── Ninja Button
+│       │           │       ├── Knight Button
+│       │           │       ├── Wizard Button
+│       │           │       ├── Skeleton Button
+│       │           │       ├── Goblin Button
+│       │           │       └── Martial Hero Button
 │       │           │
 │       │           └── Quick Actions Section
-│       │               ├── Title: "Quick Actions"
 │       │               ├── Randomize Button
 │       │               ├── Reset Button
-│       │               └── Info Box
+│       │               └── Info Text
 ```
 
 ## Styling Details
@@ -622,28 +680,43 @@ CharacterCreation (Main Component)
 
 ### RPG Store
 - **`initializeCharacter(name, class)`:** Creates new character with custom stats
-- **`setCharacterAvatar(config)`:** Saves avatar configuration
+- **`setCharacterAvatar(config)`:** Saves avatar configuration (SVG mode)
+- **`setCharacterSpriteType(type)`:** Saves sprite type selection (Sprite mode)
 - **Character Stats:** Based on selected class:
   - Warrior: 120 HP, 50 Mana
   - Mage: 80 HP, 120 Mana
   - Rogue: 100 HP, 70 Mana
   - Paladin: 110 HP, 80 Mana
 
+### Local Storage
+- **`rpg-character-creation-avatar-mode`:** Persists avatar display mode
+  - Values: `"sprite"` or `"svg"` (default: `"svg"`)
+- **`rpg-character-creation-sprite-type`:** Persists selected sprite type
+  - Values: `"character"`, `"ninja"`, `"knight"`, `"wizard"`, `"skeleton"`, `"goblin"`, `"martialHero"`
+  - Default: `"character"`
+
 ### Character Creation Flow
 1. User enters character name (≥ 2 characters)
 2. Avatar popup appears (conditional rendering)
-3. User selects class
-4. User optionally customizes avatar
-5. User clicks "Begin Your Journey"
-6. Character is initialized with:
+3. User can toggle between SVG avatar and sprite animation modes
+4. If sprite mode:
+   - User selects sprite type from available options
+   - Preview shows animated sprite with idle animation
+5. If SVG mode:
+   - User can randomize or reset avatar appearance
+   - Preview shows SVG avatar
+6. User selects class
+7. User clicks "Begin Your Journey"
+8. Character is initialized with:
    - Custom name
    - Class-based stats
-   - Avatar configuration (if set)
+   - Avatar configuration (if SVG mode and config set)
+   - Sprite type (if sprite mode and type selected)
    - Starting level: 1
    - Starting XP: 0
    - Starting Gold: 50
-7. `isCharacterCreated` flag set to `true`
-8. Game transitions to main game layout
+9. `isCharacterCreated` flag set to `true`
+10. Game transitions to main game layout
 
 ## Responsive Behavior
 
@@ -665,5 +738,15 @@ CharacterCreation (Main Component)
 - All animations use framer-motion for smooth transitions
 - Form validation prevents submission until all requirements are met
 - Character stats are automatically set based on selected class
-- Avatar configuration is optional but saved if provided
+- Avatar configuration is optional but saved if provided (SVG mode)
+- Sprite type is optional but saved if provided (Sprite mode)
+- Avatar mode and sprite type preferences are persisted in local storage
+- Sprite animations loop continuously with 150ms frame delay
+- Sprite preview uses 4x scale (512px visual from 128px base)
+- Avatar preview container matches main game player panel dimensions (aspect-square, full width) (SVG mode)
+- Sprite type is optional but saved if provided (Sprite mode)
+- Avatar mode and sprite type preferences are persisted in local storage
+- Sprite animations loop continuously with 150ms frame delay
+- Sprite preview uses 4x scale (512px visual from 128px base)
+- Avatar preview container matches main game player panel dimensions (aspect-square, full width)
 
