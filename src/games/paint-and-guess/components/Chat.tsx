@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Send, MessageSquare } from "lucide-react";
 
 export function Chat() {
-  const { gameState, sendGuess, sendChatMessage, chatMessages } = useGame();
+  const { gameState, isGameActive, isDrawer, sendGuess, sendChatMessage, chatMessages } = useGame();
   const [message, setMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -22,7 +22,7 @@ export function Chat() {
     e.preventDefault();
     if (!message.trim()) return;
 
-    if (gameState.isGameActive && !gameState.isDrawer) {
+    if (isGameActive && !isDrawer) {
       // If game is active and player is not drawer, send as guess
       sendGuess(message);
     } else {
@@ -37,7 +37,7 @@ export function Chat() {
       <CardHeader className="flex-shrink-0 pb-2">
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="w-5 h-5" />
-          {gameState.isGameActive && !gameState.isDrawer
+          {isGameActive && !isDrawer
             ? "Guess the Word"
             : "Chat"}
         </CardTitle>
@@ -47,8 +47,8 @@ export function Chat() {
           <div className="space-y-2">
             {chatMessages.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">
-                {gameState.isGameActive
-                  ? gameState.isDrawer
+                {isGameActive
+                  ? isDrawer
                     ? "Watch the guesses appear here!"
                     : "Start guessing the word!"
                   : "Chat with other players"}
@@ -83,17 +83,17 @@ export function Chat() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder={
-              gameState.isGameActive && !gameState.isDrawer
+              isGameActive && !isDrawer
                 ? "Type your guess..."
                 : "Type a message..."
             }
-            disabled={(!gameState.isGameActive && gameState.players.length < 2) || gameState.gamePhase === "round-ended"}
+            disabled={(!isGameActive && gameState.players.length < 2) || gameState.phase === "round-ended"}
           />
-          <Button type="submit" size="icon" disabled={gameState.gamePhase === "round-ended"}>
+          <Button type="submit" size="icon" disabled={gameState.phase === "round-ended"}>
             <Send className="w-4 h-4" />
           </Button>
         </form>
-        {gameState.isDrawer && gameState.isGameActive && gameState.gamePhase === "drawing" && (
+        {isDrawer && isGameActive && gameState.phase === "drawing" && (
           <p className="text-xs text-muted-foreground mt-2 text-center flex-shrink-0">
             You're drawing! Watch the guesses appear above.
           </p>

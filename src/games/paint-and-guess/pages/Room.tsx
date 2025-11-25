@@ -1,21 +1,18 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGame } from "@/games/paint-and-guess";
-import { Canvas } from "@/games/paint-and-guess/components/Canvas";
-import { Chat } from "@/games/paint-and-guess/components/Chat";
-import { PlayerList } from "@/games/paint-and-guess/components/PlayerList";
 import { GameHeader } from "@/games/paint-and-guess/components/GameHeader";
 import { RoundSummary } from "@/games/paint-and-guess/components/RoundSummary";
-import { Button } from "@/components/ui/button";
+import { LobbyStage } from "@/games/paint-and-guess/components/LobbyStage";
+import { GameStage } from "@/games/paint-and-guess/components/GameStage";
 import { Card } from "@/components/ui/card";
-import { LogOut, Play } from "lucide-react";
 import { toast } from "sonner";
 import { AvatarConfig } from "@/lib/avatar/config";
 
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
-  const { gameState, leaveRoom, startGame, isConnected, setReadyState, updateAvatar } = useGame();
+  const { gameState, isGameActive, leaveRoom, startGame, isConnected, setReadyState, updateAvatar } = useGame();
 
   useEffect(() => {
     if (!isConnected) {
@@ -79,67 +76,21 @@ export default function Room() {
       {/* Round Summary Overlay */}
       <RoundSummary />
       
-      <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.20))]">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
-          {/* Left Sidebar - Players */}
-          <div className="lg:col-span-1 flex flex-col min-h-0">
-            <div className="flex-shrink-0">
-              <PlayerList />
-            </div>
-            {!gameState.isGameActive && gameState.players.length > 0 && (
-              <div className="space-y-2 mt-4 flex-shrink-0">
-                <Button
-                  onClick={() => setReadyState(!isReady)}
-                  className="w-full"
-                  variant={isReady ? "secondary" : "default"}
-                >
-                  {isReady ? "Set as Not Ready" : "Ready Up"}
-                </Button>
-                {isHost && (
-                  <Button
-                    onClick={handleStartGame}
-                    className="w-full"
-                    disabled={!allPlayersReady}
-                  >
-                    <Play className="w-4 h-4 mr-2" />
-                    Start Game
-                  </Button>
-                )}
-                {!isHost && (
-                  <Button className="w-full" disabled variant="outline">
-                    Waiting for host to start
-                  </Button>
-                )}
-              </div>
-            )}
-            {!isHost && !gameState.isGameActive && (
-              <p className="text-sm text-muted-foreground mt-2 flex-shrink-0">
-                {allPlayersReady
-                  ? "Ready! Waiting for host to start."
-                  : "Waiting for all players to ready up."}
-              </p>
-            )}
-            <Button
-              onClick={handleLeaveRoom}
-              variant="outline"
-              className="w-full mt-2 flex-shrink-0"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Leave Room
-            </Button>
-          </div>
-
-          {/* Main Canvas Area - better overflow handling */}
-          <div className="lg:col-span-2 min-h-0 overflow-hidden flex flex-col">
-            <Canvas />
-          </div>
-
-          {/* Right Sidebar - Chat */}
-          <div className="lg:col-span-1 min-h-0 overflow-hidden">
-            <Chat />
-          </div>
-        </div>
-      </div>
+      {/* Show different stages based on game state */}
+      {isGameActive ? (
+        <GameStage onLeaveRoom={handleLeaveRoom} />
+      ) : (
+        <LobbyStage
+          isHost={isHost}
+          isReady={isReady}
+          allPlayersReady={allPlayersReady}
+          playerCount={gameState.players.length}
+          maxRounds={gameState.maxRounds}
+          onReadyToggle={() => setReadyState(!isReady)}
+          onStartGame={handleStartGame}
+          onLeaveRoom={handleLeaveRoom}
+        />
+      )}
     </div>
   );
 }

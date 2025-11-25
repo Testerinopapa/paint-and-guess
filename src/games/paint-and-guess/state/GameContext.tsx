@@ -29,31 +29,61 @@ interface Player {
   avatar?: string | AvatarConfig; // Support both old string format and new config
 }
 
-type GamePhase = "lobby" | "choosing" | "drawing" | "round-ended" | "game-ended";
+type GamePhase = "lobby" | "drawing" | "round-ended" | "game-ended";
+
+interface RoundState {
+  number: number;
+  drawer: Player | null;
+  word: string | null; // Word for drawer only (null for guessers)
+  revealedWord: string | null; // Word shown to everyone at round end
+  timeLeft: number;
+  roundTime: number;
+  winner: Player | null; // Player who guessed correctly first
+}
 
 interface GameState {
+  // Room info
   roomId: string | null;
-  players: Player[];
-  isGameActive: boolean;
-  currentDrawer: Player | null;
-  currentWord: string | null;
-  roundTime: number;
-  timeLeft: number;
-  roundNumber: number;
-  isDrawer: boolean;
   playerName: string;
   ownerId: string | null;
-  maxRounds: number;
   selfId: string | null;
-  gamePhase: GamePhase;
-  revealedWord: string | null; // Word shown to everyone at round end
-  roundWinner: Player | null; // Player who guessed correctly first
+  
+  // Players
+  players: Player[];
+  
+  // Game phase (single source of truth)
+  phase: GamePhase;
+  
+  // Round state (consolidated)
+  round: RoundState;
+  
+  // Game settings
+  maxRounds: number;
+  
+  // Computed values (derived, not stored)
+  // These will be computed via helper functions
 }
 
 interface GameContextType {
+  // Core state
   gameState: GameState;
+  
+  // Computed/derived values (for backward compatibility and convenience)
+  isGameActive: boolean;
+  isDrawer: boolean;
+  currentDrawer: Player | null;
+  currentWord: string | null;
+  roundNumber: number;
+  timeLeft: number;
+  roundTime: number;
+  revealedWord: string | null;
+  roundWinner: Player | null;
+  
+  // Connection
   socket: Socket | null;
   isConnected: boolean;
+  
+  // Actions
   joinRoom: (roomId: string, playerName: string, avatar?: string | AvatarConfig) => void;
   createRoom: (roomName: string, isPublic?: boolean) => Promise<string>;
   leaveRoom: () => void;
@@ -64,6 +94,8 @@ interface GameContextType {
   sendChatMessage: (message: string) => void;
   sendDrawingEvent: (event: any) => void;
   clearCanvas: () => void;
+  
+  // Chat
   chatMessages: ChatMessage[];
 }
 
@@ -77,26 +109,74 @@ interface ChatMessage {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-export function GameProvider({ children }: { children: ReactNode }) {
-  const { socket, isConnected } = useSocket();
-  const [gameState, setGameState] = useState<GameState>({
-    roomId: null,
-    players: [],
-    isGameActive: false,
-    currentDrawer: null,
-    currentWord: null,
-    roundTime: 60,
+// Helper functions to compute derived values from state
+function getIsGameActive(phase: GamePhase): boolean {
+  return phase !== "lobby" && phase !== "game-ended";
+}
+
+function getIsDrawer(state: GameState): boolean {
+  return state.selfId !== null && state.round.drawer?.id === state.selfId;
+}
+
+function getCurrentWord(state: GameState): string | null {
+  // Only return word if player is the drawer
+  return getIsDrawer(state) ? state.round.word : null;
+}
+
+function getCurrentDrawer(state: GameState): Player | null {
+  return state.round.drawer;
+}
+
+function getRoundNumber(state: GameState): number {
+  return state.round.number;
+}
+
+function getTimeLeft(state: GameState): number {
+  return state.round.timeLeft;
+}
+
+function getRoundTime(state: GameState): number {
+  return state.round.roundTime;
+}
+
+function getRevealedWord(state: GameState): string | null {
+  return state.round.revealedWord;
+}
+
+function getRoundWinner(state: GameState): Player | null {
+  return state.round.winner;
+}
+
+// Helper to create initial round state
+function createInitialRoundState(): RoundState {
+  return {
+    number: 0,
+    drawer: null,
+    word: null,
+    revealedWord: null,
     timeLeft: 60,
-    roundNumber: 0,
-    isDrawer: false,
+    roundTime: 60,
+    winner: null,
+  };
+}
+
+// Helper to create initial game state
+function createInitialGameState(): GameState {
+  return {
+    roomId: null,
     playerName: "",
     ownerId: null,
-    maxRounds: 6,
     selfId: null,
-    gamePhase: "lobby",
-    revealedWord: null,
-    roundWinner: null,
-  });
+    players: [],
+    phase: "lobby",
+    round: createInitialRoundState(),
+    maxRounds: 6,
+  };
+}
+
+export function GameProvider({ children }: { children: ReactNode }) {
+  const { socket, isConnected } = useSocket();
+  const [gameState, setGameState] = useState<GameState>(createInitialGameState());
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
@@ -112,7 +192,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
         return {
           ...prev,
           selfId: playerId,
-          isDrawer: prev.currentDrawer?.id === playerId,
         };
       });
     });
@@ -128,18 +207,30 @@ export function GameProvider({ children }: { children: ReactNode }) {
       });
       
       setGameState((prev) => {
-        const { id, ...rest } = state;
+        const { id, isGameActive, currentDrawer, roundNumber, roundTime, timeLeft, currentWord, ...rest } = state;
         const nextRoomId = id ?? prev.roomId;
         if (prev.selfId && nextRoomId) {
           setStoredPlayerId(nextRoomId, prev.selfId);
         }
-        const isDrawer = prev.selfId ? rest.currentDrawer?.id === prev.selfId : false;
-        console.log(`[GameContext] 📊 Updated game state: isDrawer=${isDrawer}, selfId=${prev.selfId ? `${prev.selfId.substring(0, 8)}...` : 'none'}`);
+        
+        // Determine phase from isGameActive
+        const phase: GamePhase = isGameActive ? "drawing" : "lobby";
+        
         return {
           ...prev,
-          ...rest,
           roomId: nextRoomId,
-          isDrawer,
+          players: rest.players ?? prev.players,
+          ownerId: rest.ownerId ?? prev.ownerId,
+          phase,
+          round: {
+            number: roundNumber ?? prev.round.number,
+            drawer: currentDrawer ?? prev.round.drawer,
+            word: currentWord ?? prev.round.word,
+            revealedWord: prev.round.revealedWord, // Preserve if set
+            timeLeft: timeLeft ?? prev.round.timeLeft,
+            roundTime: roundTime ?? prev.round.roundTime,
+            winner: prev.round.winner, // Preserve if set
+          },
         };
       });
     });
@@ -172,15 +263,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
       ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
         setGameState((prev) => ({
           ...prev,
-          isGameActive: true,
-          currentDrawer: drawer,
-          roundTime,
-          timeLeft: roundTime,
-          isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
-          roundNumber,
-          gamePhase: "drawing",
-          revealedWord: null,
-          roundWinner: null,
+          phase: "drawing",
+          round: {
+            number: roundNumber,
+            drawer,
+            word: null, // Will be set by draw-word event
+            revealedWord: null,
+            timeLeft: roundTime,
+            roundTime,
+            winner: null,
+          },
         }));
         toast.info("Game started!");
       }
@@ -189,7 +281,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on("draw-word", ({ word }: { word: string }) => {
       setGameState((prev) => ({
         ...prev,
-        currentWord: word,
+        round: {
+          ...prev.round,
+          word, // Only drawer receives this event
+        },
       }));
       toast.info(`Your word: ${word}`);
     });
@@ -199,15 +294,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
       ({ drawer, roundTime, roundNumber }: { drawer: Player; roundTime: number; roundNumber: number }) => {
         setGameState((prev) => ({
           ...prev,
-          currentDrawer: drawer,
-          roundTime,
-          timeLeft: roundTime,
-          isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
-          roundNumber,
-          currentWord: null,
-          gamePhase: "drawing",
-          revealedWord: null,
-          roundWinner: null,
+          phase: "drawing",
+          round: {
+            number: roundNumber,
+            drawer,
+            word: null, // Will be set by draw-word event for drawer
+            revealedWord: null,
+            timeLeft: roundTime,
+            roundTime,
+            winner: null,
+          },
         }));
         setChatMessages([]);
         // Dispatch event to clear canvas for the new round
@@ -219,7 +315,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     socket.on("round-timer", ({ timeLeft }: { timeLeft: number }) => {
       setGameState((prev) => ({
         ...prev,
-        timeLeft,
+        round: {
+          ...prev.round,
+          timeLeft,
+        },
       }));
     });
 
@@ -229,10 +328,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setGameState((prev) => ({
           ...prev,
           players: scores,
-          currentWord: null, // Clear current word (it's a secret)
-          revealedWord: word, // Set revealed word for display
-          roundNumber,
-          gamePhase: "round-ended",
+          phase: "round-ended",
+          round: {
+            ...prev.round,
+            number: roundNumber,
+            word: null, // Clear secret word
+            revealedWord: word, // Show revealed word to everyone
+          },
         }));
         // Dispatch event to clear canvas
         window.dispatchEvent(new CustomEvent("round-ended"));
@@ -253,17 +355,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
             type: "correct-guess",
           },
         ]);
-        setGameState((prev) => ({
-          ...prev,
-          players: players ?? prev.players.map((p) =>
-            p.id === player.id ? { ...p, score: p.score + points } : p
-          ),
-          // Track first correct guesser as round winner
-          roundWinner: prev.roundWinner ?? player,
-        }));
-        if (player.id !== gameState.selfId) {
-          toast.success(`${player.name} guessed correctly!`);
-        }
+        setGameState((prev) => {
+          const updatedState = {
+            ...prev,
+            players: players ?? prev.players.map((p) =>
+              p.id === player.id ? { ...p, score: p.score + points } : p
+            ),
+            round: {
+              ...prev.round,
+              // Track first correct guesser as round winner
+              winner: prev.round.winner ?? player,
+            },
+          };
+          // Show toast if not the current player
+          if (player.id !== prev.selfId) {
+            toast.success(`${player.name} guessed correctly!`);
+          }
+          return updatedState;
+        });
       }
     );
 
@@ -315,10 +424,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       ({ reason, scores }: { reason: string; scores?: Player[] }) => {
         setGameState((prev) => ({
           ...prev,
-          isGameActive: false,
+          phase: "game-ended",
           players: scores ?? prev.players,
-          gamePhase: "game-ended",
-          currentWord: null,
+          round: {
+            ...prev.round,
+            word: null, // Clear word
+          },
         }));
         toast.info(`Game ended: ${reason}`);
       }
@@ -369,7 +480,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       socket.off("player-avatar-updated");
       socket.off("error");
     };
-  }, [socket, gameState.roundNumber, gameState.selfId]);
+  }, [socket]); // Remove gameState dependencies - use functional updates instead
 
   const joinRoom = (roomId: string, playerName: string, avatar?: string | AvatarConfig) => {
     if (!socket) return;
@@ -427,24 +538,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     console.log(`[GameContext] 🚪 Leaving room`, { roomId: gameState.roomId });
     socket.emit("leave-room");
     setStoredPlayerId(gameState.roomId, null);
-    setGameState({
-      roomId: null,
-      players: [],
-      isGameActive: false,
-      currentDrawer: null,
-      currentWord: null,
-      roundTime: 60,
-      timeLeft: 60,
-      roundNumber: 0,
-      isDrawer: false,
-      playerName: "",
-      ownerId: null,
-      maxRounds: 6,
-      selfId: null,
-      gamePhase: "lobby",
-      revealedWord: null,
-      roundWinner: null,
-    });
+    setGameState(createInitialGameState());
     setChatMessages([]);
   };
 
@@ -486,7 +580,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const sendDrawingEvent = (event: any) => {
-    if (!socket || !gameState.isDrawer) return;
+    if (!socket) return;
+    const isDrawer = getIsDrawer(gameState);
+    if (!isDrawer) return;
     if (event?.type) {
       console.debug(`[GameContext] ✏️ drawing-event emit`, { type: event.type });
     }
@@ -494,17 +590,42 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   const clearCanvas = () => {
-    if (!socket || !gameState.isDrawer) return;
+    if (!socket) return;
+    const isDrawer = getIsDrawer(gameState);
+    if (!isDrawer) return;
     console.debug(`[GameContext] 🧹 clear-canvas emit`);
     socket.emit("clear-canvas");
   };
+
+  // Compute derived values
+  const isGameActive = getIsGameActive(gameState.phase);
+  const isDrawer = getIsDrawer(gameState);
+  const currentDrawer = getCurrentDrawer(gameState);
+  const currentWord = getCurrentWord(gameState);
+  const roundNumber = getRoundNumber(gameState);
+  const timeLeft = getTimeLeft(gameState);
+  const roundTime = getRoundTime(gameState);
+  const revealedWord = getRevealedWord(gameState);
+  const roundWinner = getRoundWinner(gameState);
 
   return (
     <GameContext.Provider
       value={{
         gameState,
+        // Computed values
+        isGameActive,
+        isDrawer,
+        currentDrawer,
+        currentWord,
+        roundNumber,
+        timeLeft,
+        roundTime,
+        revealedWord,
+        roundWinner,
+        // Connection
         socket,
         isConnected,
+        // Actions
         joinRoom,
         createRoom,
         leaveRoom,
@@ -515,6 +636,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         sendChatMessage,
         sendDrawingEvent,
         clearCanvas,
+        // Chat
         chatMessages,
       }}
     >

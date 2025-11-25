@@ -8,12 +8,12 @@ import { AvatarConfig, decodeAvatarConfig, createDefaultAvatarConfig } from "@/l
 import { getDiceBearAvatarUrl, getDiceBearAvatarUrlFromSeed } from "@/lib/avatar/dicebear/api";
 
 export function PlayerList() {
-  const { gameState } = useGame();
+  const { gameState, currentDrawer, isGameActive } = useGame();
 
   // Sort players: drawer first, then by score
   const sortedPlayers = [...gameState.players].sort((a, b) => {
-    if (gameState.currentDrawer?.id === a.id) return -1;
-    if (gameState.currentDrawer?.id === b.id) return 1;
+    if (currentDrawer?.id === a.id) return -1;
+    if (currentDrawer?.id === b.id) return 1;
     return b.score - a.score;
   });
 
@@ -29,13 +29,13 @@ export function PlayerList() {
         <div className="space-y-2">
           {sortedPlayers.map((player) => {
             const isHost = gameState.ownerId === player.id;
-            const isDrawer = gameState.currentDrawer?.id === player.id;
+            const isPlayerDrawer = currentDrawer?.id === player.id;
             const isMe = gameState.selfId === player.id;
             return (
               <div
                 key={player.id}
                 className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
-                  isDrawer 
+                  isPlayerDrawer 
                     ? "bg-primary/10 border border-primary/30" 
                     : isMe 
                     ? "bg-accent" 
@@ -43,12 +43,12 @@ export function PlayerList() {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  {isDrawer && gameState.isGameActive && (
+                  {isPlayerDrawer && isGameActive && (
                     <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground">
                       <Pencil className="w-3 h-3" />
                     </div>
                   )}
-                  {!isDrawer && gameState.isGameActive && (
+                  {!isPlayerDrawer && isGameActive && (
                     <div className="flex items-center justify-center w-6 h-6 rounded-full bg-muted-foreground/20 text-muted-foreground">
                       <Eye className="w-3 h-3" />
                     </div>
@@ -125,10 +125,10 @@ export function PlayerList() {
                   </div>
                   <div className="flex items-center gap-1 mt-1 flex-wrap">
                     {isHost && <Badge variant="outline" className="text-xs">Host</Badge>}
-                    {isDrawer && gameState.isGameActive && (
+                    {isPlayerDrawer && isGameActive && (
                       <Badge variant="default" className="text-xs bg-primary">Drawing</Badge>
                     )}
-                    {!gameState.isGameActive && (
+                    {!isGameActive && (
                       <Badge variant={player.isReady ? "default" : "secondary"} className="text-xs">
                         {player.isReady ? "Ready" : "Not Ready"}
                       </Badge>
