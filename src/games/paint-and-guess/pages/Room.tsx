@@ -5,6 +5,7 @@ import { Canvas } from "@/games/paint-and-guess/components/Canvas";
 import { Chat } from "@/games/paint-and-guess/components/Chat";
 import { PlayerList } from "@/games/paint-and-guess/components/PlayerList";
 import { GameHeader } from "@/games/paint-and-guess/components/GameHeader";
+import { RoundSummary } from "@/games/paint-and-guess/components/RoundSummary";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LogOut, Play } from "lucide-react";
@@ -75,13 +76,18 @@ export default function Room() {
     <div className="min-h-screen bg-background">
       <GameHeader />
       
-      <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))]">
+      {/* Round Summary Overlay */}
+      <RoundSummary />
+      
+      <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.20))]">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
           {/* Left Sidebar - Players */}
-          <div className="lg:col-span-1 flex flex-col">
-            <PlayerList />
+          <div className="lg:col-span-1 flex flex-col min-h-0">
+            <div className="flex-shrink-0">
+              <PlayerList />
+            </div>
             {!gameState.isGameActive && gameState.players.length > 0 && (
-              <div className="space-y-2 mt-4">
+              <div className="space-y-2 mt-4 flex-shrink-0">
                 <Button
                   onClick={() => setReadyState(!isReady)}
                   className="w-full"
@@ -107,7 +113,7 @@ export default function Room() {
               </div>
             )}
             {!isHost && !gameState.isGameActive && (
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground mt-2 flex-shrink-0">
                 {allPlayersReady
                   ? "Ready! Waiting for host to start."
                   : "Waiting for all players to ready up."}
@@ -116,20 +122,20 @@ export default function Room() {
             <Button
               onClick={handleLeaveRoom}
               variant="outline"
-              className="w-full mt-2"
+              className="w-full mt-2 flex-shrink-0"
             >
               <LogOut className="w-4 h-4 mr-2" />
               Leave Room
             </Button>
           </div>
 
-          {/* Main Canvas Area */}
-          <div className="lg:col-span-2 min-h-0">
+          {/* Main Canvas Area - better overflow handling */}
+          <div className="lg:col-span-2 min-h-0 overflow-hidden flex flex-col">
             <Canvas />
           </div>
 
           {/* Right Sidebar - Chat */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 min-h-0 overflow-hidden">
             <Chat />
           </div>
         </div>

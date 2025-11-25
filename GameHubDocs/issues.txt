@@ -1,0 +1,34 @@
+Paint & Guess - Issues Tracking
+================================
+
+FIXED ISSUES:
+-------------
+✅ choppy drawing - Optimized canvas drawing by using enlivenObjects instead of loadFromJSON
+
+✅ it isn't clear who's turn it is - Added clear turn indicators in GameHeader showing "[PlayerName] is drawing" badge for guessers, "You're Drawing!" for drawer. Also updated PlayerList to highlight current drawer.
+
+✅ Canva framing issues in general in relation to the chat box, brush panel - Improved layout with better overflow handling and flex-shrink management
+
+✅ allow changing wordlist within lobby - Already implemented in Lobby.tsx with word pack selection
+
+✅ secret word only appears at the end sometimes - Fixed by separating currentWord (drawer only) from revealedWord (shown at round end)
+
+✅ canva isn't clearing after round end - Added round-ended and round-started event listeners to clear canvas. Canvas now clears on both round start and end.
+
+✅ add a end of round grace period to update the kids on who won - Added RoundSummary overlay component that shows word reveal, winner, and scoreboard between rounds
+
+✅ Players can see the answer - Fixed: correct-guess message no longer shows the word, only shows "+Points". Word is only revealed at round end.
+
+✅ hosts canva not updating - Fixed canvas update logic to properly enable/disable drawing mode when role changes. Added canvas-cleared event listener for all players.
+
+REMAINING ISSUES:
+-----------------
+⏳ add "player is choosing" grace period - Would require backend changes to add a "choosing" phase before drawing starts. Currently word is assigned immediately. Consider implementing in future update.
+
+FUTURE IMPROVEMENTS:
+--------------------
+- Add word hint display (show underscores for word length) for guessers
+- Add drawing replay feature
+- Add custom word submission
+- Add private word packs
+- Better mobile layout optimization

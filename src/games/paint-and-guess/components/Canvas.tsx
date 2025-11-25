@@ -227,20 +227,50 @@ export const Canvas = () => {
       fabricCanvas!.defaultCursor = 'default';
       fabricCanvas!.hoverCursor = 'default';
       fabricCanvas!.moveCursor = 'default';
-      fabricCanvas!.skipTargetFind = true; // Skip target finding for guessers
+      fabricCanvas!.skipTargetFind = true;
+    } else {
+      // Enable interactions for drawer
+      fabricCanvas!.selection = true;
+      fabricCanvas!.skipTargetFind = false;
     }
     
-    if (gameState.isGameActive && gameState.isDrawer) {
-      // Clear canvas at the start of each round
+    // Clear canvas at round changes
+    if (gameState.isGameActive) {
       try {
         fabricCanvas!.clear();
         fabricCanvas!.backgroundColor = "#ffffff";
         fabricCanvas!.renderAll();
+        console.debug("[Canvas] Canvas cleared for round", gameState.roundNumber);
       } catch (error) {
         console.error("[Canvas] Error clearing canvas:", error);
       }
     }
   }, [fabricCanvas, gameState.isDrawer, gameState.isGameActive, gameState.roundNumber]);
+  
+  // Listen for canvas clear events (for both drawer and guessers)
+  useEffect(() => {
+    if (!isCanvasValid(fabricCanvas) || !gameState.isGameActive) return;
+    
+    const handleCanvasClear = () => {
+      if (!isCanvasValid(fabricCanvas)) return;
+      console.debug("[Canvas] Canvas clear event received");
+      try {
+        fabricCanvas!.clear();
+        fabricCanvas!.backgroundColor = "#ffffff";
+        fabricCanvas!.requestRenderAll();
+      } catch (error) {
+        console.error("[Canvas] Error clearing canvas:", error);
+      }
+    };
+    
+    // Drawer also needs to listen for their own clear events
+    // (in case they're a host watching their own actions)
+    window.addEventListener("canvas-cleared", handleCanvasClear);
+    
+    return () => {
+      window.removeEventListener("canvas-cleared", handleCanvasClear);
+    };
+  }, [fabricCanvas, gameState.isGameActive]);
 
   // Ensure all objects are non-interactive for guessers
   useEffect(() => {
@@ -304,7 +334,7 @@ export const Canvas = () => {
     };
   }, [fabricCanvas, gameState.isDrawer, gameState.isGameActive, sendDrawingEvent]);
 
-  // Receive drawing events (guessers only)
+  // Receive drawing events (guessers only) - Optimized for smoother rendering
   useEffect(() => {
     if (!isCanvasValid(fabricCanvas) || gameState.isDrawer || !gameState.isGameActive) {
       console.debug("[Canvas] Skipping guesser drawing event setup", {
@@ -320,7 +350,7 @@ export const Canvas = () => {
     const handleDrawingEvent = (e: Event) => {
       if (!isCanvasValid(fabricCanvas)) {
         console.debug("[Canvas] Canvas invalid, skipping drawing event");
-        return; // Check canvas is still valid
+        return;
       }
       
       const customEvent = e as CustomEvent;
@@ -329,73 +359,36 @@ export const Canvas = () => {
       if (event.type === "path" && event.data && !isReceivingRef.current) {
         isReceivingRef.current = true;
         
-        console.debug("[Canvas] Received drawing event for guesser", {
-          hasData: !!event.data,
-          eventType: event.type,
-        });
-        
         try {
-          // Get existing objects
-          const existingObjects = fabricCanvas!.getObjects().map((obj) => obj.toJSON());
-          
-          // Add new path to existing objects
-          const allObjects = [...existingObjects, event.data];
-          
-          // Make sure the new object data is non-interactive before loading
-          if (event.data) {
-            event.data.selectable = false;
-            event.data.evented = false;
-          }
-          
-          // Reload canvas with all objects
-          fabricCanvas!.loadFromJSON(
-            {
-              version: "6.9.0",
-              objects: allObjects,
-            },
-            () => {
+          // Use enlivenObjects for faster path creation instead of loadFromJSON
+          // This avoids re-rendering the entire canvas
+          import("fabric").then(({ util }) => {
+            util.enlivenObjects([event.data]).then((objects: FabricObject[]) => {
               if (!isCanvasValid(fabricCanvas)) {
                 isReceivingRef.current = false;
                 return;
               }
-              // Make all objects non-interactive immediately
-              const objects = fabricCanvas!.getObjects();
+              
               objects.forEach((obj) => {
+                // Make non-interactive
                 obj.selectable = false;
                 obj.evented = false;
                 obj.hoverCursor = 'default';
                 obj.moveCursor = 'default';
-                // Disable object caching to ensure visibility
                 obj.objectCaching = false;
+                
+                // Add directly to canvas
+                fabricCanvas!.add(obj);
               });
               
-              // Ensure canvas selection is disabled
-              fabricCanvas!.selection = false;
-              
-              // Use requestRenderAll for better rendering (forces repaint)
-              if (fabricCanvas!.requestRenderAll) {
-                fabricCanvas!.requestRenderAll();
-              } else {
-                fabricCanvas!.renderAll();
-              }
-              
-              // Force browser repaint using requestAnimationFrame
-              requestAnimationFrame(() => {
-                if (isCanvasValid(fabricCanvas)) {
-                  if (fabricCanvas!.requestRenderAll) {
-                    fabricCanvas!.requestRenderAll();
-                  } else {
-                    fabricCanvas!.renderAll();
-                  }
-                }
-              });
-              
-              console.debug("[Canvas] Drawing event processed, objects rendered", {
-                objectCount: objects.length,
-              });
+              // Single render call
+              fabricCanvas!.requestRenderAll();
               isReceivingRef.current = false;
-            }
-          );
+            }).catch((err: Error) => {
+              console.error("[Canvas] Error enlivening objects:", err);
+              isReceivingRef.current = false;
+            });
+          });
         } catch (error) {
           console.error("[Canvas] Error handling drawing event:", error);
           isReceivingRef.current = false;
@@ -415,35 +408,50 @@ export const Canvas = () => {
       try {
         fabricCanvas!.clear();
         fabricCanvas!.backgroundColor = "#ffffff";
-        // Use requestRenderAll for better rendering
-        if (fabricCanvas!.requestRenderAll) {
-          fabricCanvas!.requestRenderAll();
-        } else {
-          fabricCanvas!.renderAll();
-        }
-        // Force repaint
-        requestAnimationFrame(() => {
-          if (isCanvasValid(fabricCanvas)) {
-            if (fabricCanvas!.requestRenderAll) {
-              fabricCanvas!.requestRenderAll();
-            } else {
-              fabricCanvas!.renderAll();
-            }
-          }
-        });
+        fabricCanvas!.requestRenderAll();
         console.debug("[Canvas] Canvas cleared for guesser");
       } catch (error) {
         console.error("[Canvas] Error clearing canvas from event:", error);
       }
       isReceivingRef.current = false;
     };
+    
+    // Also listen for round-ended to clear canvas
+    const handleRoundEnded = () => {
+      if (!isCanvasValid(fabricCanvas)) return;
+      console.debug("[Canvas] Round ended, clearing canvas");
+      try {
+        fabricCanvas!.clear();
+        fabricCanvas!.backgroundColor = "#ffffff";
+        fabricCanvas!.requestRenderAll();
+      } catch (error) {
+        console.error("[Canvas] Error clearing canvas on round end:", error);
+      }
+    };
+    
+    // Listen for round-started to clear canvas for the new round
+    const handleRoundStarted = () => {
+      if (!isCanvasValid(fabricCanvas)) return;
+      console.debug("[Canvas] Round started, clearing canvas");
+      try {
+        fabricCanvas!.clear();
+        fabricCanvas!.backgroundColor = "#ffffff";
+        fabricCanvas!.requestRenderAll();
+      } catch (error) {
+        console.error("[Canvas] Error clearing canvas on round start:", error);
+      }
+    };
 
     window.addEventListener("drawing-event", handleDrawingEvent);
     window.addEventListener("canvas-cleared", handleCanvasCleared);
+    window.addEventListener("round-ended", handleRoundEnded);
+    window.addEventListener("round-started", handleRoundStarted);
 
     return () => {
       window.removeEventListener("drawing-event", handleDrawingEvent);
       window.removeEventListener("canvas-cleared", handleCanvasCleared);
+      window.removeEventListener("round-ended", handleRoundEnded);
+      window.removeEventListener("round-started", handleRoundStarted);
     };
   }, [fabricCanvas, gameState.isDrawer, gameState.isGameActive]);
 
@@ -480,16 +488,35 @@ export const Canvas = () => {
     }
   };
 
-  if (!gameState.isGameActive) {
+  // Show waiting state when game is not active or during round transition
+  if (!gameState.isGameActive || gameState.gamePhase === "round-ended" || gameState.gamePhase === "game-ended") {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <p className="text-lg font-semibold mb-2">Waiting for game to start...</p>
-          <p className="text-muted-foreground">
-            {gameState.players.length < 2
-              ? "Need at least 2 players to start"
-              : "Click 'Start Game' when ready"}
-          </p>
+          {gameState.gamePhase === "round-ended" ? (
+            <>
+              <p className="text-lg font-semibold mb-2">Round Complete!</p>
+              <p className="text-muted-foreground">
+                Next round starting soon...
+              </p>
+            </>
+          ) : gameState.gamePhase === "game-ended" ? (
+            <>
+              <p className="text-lg font-semibold mb-2">Game Over!</p>
+              <p className="text-muted-foreground">
+                Start a new game when ready
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-semibold mb-2">Waiting for game to start...</p>
+              <p className="text-muted-foreground">
+                {gameState.players.length < 2
+                  ? "Need at least 2 players to start"
+                  : "Click 'Start Game' when ready"}
+              </p>
+            </>
+          )}
         </div>
       </div>
     );

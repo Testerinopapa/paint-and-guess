@@ -29,6 +29,8 @@ interface Player {
   avatar?: string | AvatarConfig; // Support both old string format and new config
 }
 
+type GamePhase = "lobby" | "choosing" | "drawing" | "round-ended" | "game-ended";
+
 interface GameState {
   roomId: string | null;
   players: Player[];
@@ -43,6 +45,9 @@ interface GameState {
   ownerId: string | null;
   maxRounds: number;
   selfId: string | null;
+  gamePhase: GamePhase;
+  revealedWord: string | null; // Word shown to everyone at round end
+  roundWinner: Player | null; // Player who guessed correctly first
 }
 
 interface GameContextType {
@@ -88,6 +93,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     ownerId: null,
     maxRounds: 6,
     selfId: null,
+    gamePhase: "lobby",
+    revealedWord: null,
+    roundWinner: null,
   });
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
@@ -170,6 +178,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
           timeLeft: roundTime,
           isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
           roundNumber,
+          gamePhase: "drawing",
+          revealedWord: null,
+          roundWinner: null,
         }));
         toast.info("Game started!");
       }
@@ -194,9 +205,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
           isDrawer: prev.selfId ? drawer.id === prev.selfId : false,
           roundNumber,
           currentWord: null,
+          gamePhase: "drawing",
+          revealedWord: null,
+          roundWinner: null,
         }));
         setChatMessages([]);
-        toast.info(`Round ${roundNumber} started!`);
+        // Dispatch event to clear canvas for the new round
+        window.dispatchEvent(new CustomEvent("round-started"));
+        toast.info(`Round ${roundNumber} - ${drawer.name} is drawing!`);
       }
     );
 
@@ -213,9 +229,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setGameState((prev) => ({
           ...prev,
           players: scores,
-          currentWord: word,
+          currentWord: null, // Clear current word (it's a secret)
+          revealedWord: word, // Set revealed word for display
           roundNumber,
+          gamePhase: "round-ended",
         }));
+        // Dispatch event to clear canvas
+        window.dispatchEvent(new CustomEvent("round-ended"));
         toast.info(`Round ended! The word was: ${word}`);
       }
     );
@@ -228,7 +248,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           {
             id: Date.now().toString(),
             player,
-            message: `Correctly guessed "${word}"! +${points} points`,
+            message: `Correctly guessed! +${points} points`,
             timestamp: Date.now(),
             type: "correct-guess",
           },
@@ -238,6 +258,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           players: players ?? prev.players.map((p) =>
             p.id === player.id ? { ...p, score: p.score + points } : p
           ),
+          // Track first correct guesser as round winner
+          roundWinner: prev.roundWinner ?? player,
         }));
         if (player.id !== gameState.selfId) {
           toast.success(`${player.name} guessed correctly!`);
@@ -295,6 +317,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           ...prev,
           isGameActive: false,
           players: scores ?? prev.players,
+          gamePhase: "game-ended",
+          currentWord: null,
         }));
         toast.info(`Game ended: ${reason}`);
       }
@@ -417,6 +441,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       ownerId: null,
       maxRounds: 6,
       selfId: null,
+      gamePhase: "lobby",
+      revealedWord: null,
+      roundWinner: null,
     });
     setChatMessages([]);
   };

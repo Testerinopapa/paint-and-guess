@@ -33,8 +33,8 @@ export function Chat() {
   };
 
   return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader>
+    <Card className="h-full flex flex-col max-h-[600px] lg:max-h-full">
+      <CardHeader className="flex-shrink-0 pb-2">
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="w-5 h-5" />
           {gameState.isGameActive && !gameState.isDrawer
@@ -42,9 +42,18 @@ export function Chat() {
             : "Chat"}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col flex-1 min-h-0">
+      <CardContent className="flex flex-col flex-1 min-h-0 pt-2">
         <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
           <div className="space-y-2">
+            {chatMessages.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {gameState.isGameActive
+                  ? gameState.isDrawer
+                    ? "Watch the guesses appear here!"
+                    : "Start guessing the word!"
+                  : "Chat with other players"}
+              </p>
+            )}
             {chatMessages.map((msg) => (
               <div
                 key={msg.id}
@@ -52,14 +61,14 @@ export function Chat() {
                   msg.type === "correct-guess"
                     ? "bg-green-500/20 border border-green-500"
                     : msg.type === "wrong-guess"
-                    ? "bg-red-500/20 border border-red-500"
+                    ? "bg-muted"
                     : "bg-muted"
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-bold text-sm">{msg.player.name}</span>
                   {msg.type === "correct-guess" && (
-                    <Badge variant="default" className="text-xs">
+                    <Badge variant="default" className="text-xs bg-green-500">
                       Correct!
                     </Badge>
                   )}
@@ -69,7 +78,7 @@ export function Chat() {
             ))}
           </div>
         </ScrollArea>
-        <form onSubmit={handleSubmit} className="mt-4 flex gap-2">
+        <form onSubmit={handleSubmit} className="mt-4 flex gap-2 flex-shrink-0">
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -78,15 +87,15 @@ export function Chat() {
                 ? "Type your guess..."
                 : "Type a message..."
             }
-            disabled={!gameState.isGameActive && gameState.players.length < 2}
+            disabled={(!gameState.isGameActive && gameState.players.length < 2) || gameState.gamePhase === "round-ended"}
           />
-          <Button type="submit" size="icon">
+          <Button type="submit" size="icon" disabled={gameState.gamePhase === "round-ended"}>
             <Send className="w-4 h-4" />
           </Button>
         </form>
-        {gameState.isDrawer && gameState.isGameActive && (
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            You're drawing! Others are guessing your word.
+        {gameState.isDrawer && gameState.isGameActive && gameState.gamePhase === "drawing" && (
+          <p className="text-xs text-muted-foreground mt-2 text-center flex-shrink-0">
+            You're drawing! Watch the guesses appear above.
           </p>
         )}
       </CardContent>
