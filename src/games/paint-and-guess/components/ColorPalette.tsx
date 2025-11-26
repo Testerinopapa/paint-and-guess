@@ -1,7 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check } from "lucide-react";
+import { Check, Palette, ChevronDown, ChevronUp } from "lucide-react";
+import { HexColorPicker } from "react-colorful";
+import { colord } from "colord";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface ColorPaletteProps {
   activeColor: string;
@@ -34,6 +41,8 @@ const isValidHexColor = (value: string): boolean => {
 export const ColorPalette = ({ activeColor, onColorChange }: ColorPaletteProps) => {
   // Sync customColor with activeColor prop
   const [customColor, setCustomColor] = useState(activeColor);
+  const [showAdvancedPicker, setShowAdvancedPicker] = useState(false);
+  const [showHarmonies, setShowHarmonies] = useState(false);
   
   // Load recent colors from localStorage
   const [recentColors, setRecentColors] = useState<string[]>(() => {
@@ -48,6 +57,26 @@ export const ColorPalette = ({ activeColor, onColorChange }: ColorPaletteProps) 
   // Sync customColor when activeColor prop changes
   useEffect(() => {
     setCustomColor(activeColor);
+  }, [activeColor]);
+
+  // Generate color harmonies using colord
+  const colorHarmonies = useMemo(() => {
+    try {
+      const color = colord(activeColor);
+      return {
+        complementary: color.rotate(180).toHex(),
+        triadic1: color.rotate(120).toHex(),
+        triadic2: color.rotate(240).toHex(),
+        analogous1: color.rotate(-30).toHex(),
+        analogous2: color.rotate(30).toHex(),
+        lighter: color.lighten(0.2).toHex(),
+        darker: color.darken(0.2).toHex(),
+        saturated: color.saturate(0.2).toHex(),
+        desaturated: color.desaturate(0.2).toHex(),
+      };
+    } catch {
+      return null;
+    }
   }, [activeColor]);
 
   // Persist recent colors to localStorage
@@ -144,43 +173,185 @@ export const ColorPalette = ({ activeColor, onColorChange }: ColorPaletteProps) 
           )}
         </div>
 
+        {/* Color Harmonies */}
+        {colorHarmonies && (
+          <div>
+            <button
+              onClick={() => setShowHarmonies(!showHarmonies)}
+              className="flex items-center justify-between w-full text-sm font-semibold mb-3 text-foreground hover:text-primary transition-colors"
+              aria-expanded={showHarmonies}
+            >
+              <span className="flex items-center gap-2">
+                <Palette className="w-4 h-4" />
+                Color Harmonies
+              </span>
+              {showHarmonies ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
+            {showHarmonies && (
+              <div className="space-y-3">
+                <div>
+                  <span className="text-xs text-muted-foreground mb-2 block">Complementary & Triadic</span>
+                  <div className="flex gap-2 flex-wrap">
+                    <ColorSwatch
+                      color={colorHarmonies.complementary}
+                      label="Complementary"
+                      onClick={() => handleColorSelect(colorHarmonies.complementary)}
+                      isActive={activeColor === colorHarmonies.complementary}
+                    />
+                    <ColorSwatch
+                      color={colorHarmonies.triadic1}
+                      label="Triadic 1"
+                      onClick={() => handleColorSelect(colorHarmonies.triadic1)}
+                      isActive={activeColor === colorHarmonies.triadic1}
+                    />
+                    <ColorSwatch
+                      color={colorHarmonies.triadic2}
+                      label="Triadic 2"
+                      onClick={() => handleColorSelect(colorHarmonies.triadic2)}
+                      isActive={activeColor === colorHarmonies.triadic2}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground mb-2 block">Analogous</span>
+                  <div className="flex gap-2 flex-wrap">
+                    <ColorSwatch
+                      color={colorHarmonies.analogous1}
+                      label="Analogous 1"
+                      onClick={() => handleColorSelect(colorHarmonies.analogous1)}
+                      isActive={activeColor === colorHarmonies.analogous1}
+                    />
+                    <ColorSwatch
+                      color={colorHarmonies.analogous2}
+                      label="Analogous 2"
+                      onClick={() => handleColorSelect(colorHarmonies.analogous2)}
+                      isActive={activeColor === colorHarmonies.analogous2}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground mb-2 block">Variations</span>
+                  <div className="flex gap-2 flex-wrap">
+                    <ColorSwatch
+                      color={colorHarmonies.lighter}
+                      label="Lighter"
+                      onClick={() => handleColorSelect(colorHarmonies.lighter)}
+                      isActive={activeColor === colorHarmonies.lighter}
+                    />
+                    <ColorSwatch
+                      color={colorHarmonies.darker}
+                      label="Darker"
+                      onClick={() => handleColorSelect(colorHarmonies.darker)}
+                      isActive={activeColor === colorHarmonies.darker}
+                    />
+                    <ColorSwatch
+                      color={colorHarmonies.saturated}
+                      label="More Saturated"
+                      onClick={() => handleColorSelect(colorHarmonies.saturated)}
+                      isActive={activeColor === colorHarmonies.saturated}
+                    />
+                    <ColorSwatch
+                      color={colorHarmonies.desaturated}
+                      label="Less Saturated"
+                      onClick={() => handleColorSelect(colorHarmonies.desaturated)}
+                      isActive={activeColor === colorHarmonies.desaturated}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Custom Color Picker */}
         <div>
           <h3 className="text-sm font-semibold mb-3 text-foreground">Custom Color</h3>
-          <div className="flex gap-3 items-center">
-            <div className="relative">
+          <div className="space-y-3">
+            <div className="flex gap-3 items-center">
+              <Popover open={showAdvancedPicker} onOpenChange={setShowAdvancedPicker}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-20 h-12 p-0 border-2 rounded-xl cursor-pointer"
+                    style={{ backgroundColor: customColor }}
+                    aria-label="Open advanced color picker"
+                  >
+                    <span className="sr-only">Color preview</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-4" align="start">
+                  <div className="space-y-3">
+                    <HexColorPicker
+                      color={customColor}
+                      onChange={(color) => {
+                        setCustomColor(color);
+                        if (isValidHexColor(color)) {
+                          onColorChange(color);
+                          setRecentColors((prev) => {
+                            const filtered = prev.filter((c) => c !== color);
+                            return [color, ...filtered].slice(0, RECENT_COLORS_MAX);
+                          });
+                        }
+                      }}
+                    />
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        value={customColor.toUpperCase()}
+                        onChange={(e) => {
+                          const value = e.target.value.toUpperCase();
+                          if (value === "" || /^#[0-9A-F]{0,6}$/i.test(value)) {
+                            setCustomColor(value);
+                            if (isValidHexColor(value)) {
+                              onColorChange(value);
+                              setRecentColors((prev) => {
+                                const filtered = prev.filter((c) => c !== value);
+                                return [value, ...filtered].slice(0, RECENT_COLORS_MAX);
+                              });
+                            }
+                          }
+                        }}
+                        className="font-mono uppercase flex-1"
+                        placeholder="#000000"
+                        maxLength={7}
+                        aria-label="Custom color hex code"
+                      />
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Input
-                type="color"
-                value={customColor}
-                onChange={handleCustomColorChange}
-                className="w-20 h-12 cursor-pointer rounded-xl border-2"
-                aria-label="Color picker"
+                type="text"
+                value={customColor.toUpperCase()}
+                onChange={(e) => {
+                  const value = e.target.value.toUpperCase();
+                  // Allow empty or partial hex codes while typing
+                  if (value === "" || /^#[0-9A-F]{0,6}$/i.test(value)) {
+                    setCustomColor(value);
+                    // Only apply if valid complete hex color
+                    if (isValidHexColor(value)) {
+                      onColorChange(value);
+                      // Add to recent colors without calling handleColorSelect (avoid double call)
+                      setRecentColors((prev) => {
+                        const filtered = prev.filter((c) => c !== value);
+                        return [value, ...filtered].slice(0, RECENT_COLORS_MAX);
+                      });
+                    }
+                  }
+                }}
+                className="font-mono uppercase flex-1"
+                placeholder="#000000"
+                maxLength={7}
+                aria-label="Custom color hex code"
               />
             </div>
-            <Input
-              type="text"
-              value={customColor.toUpperCase()}
-              onChange={(e) => {
-                const value = e.target.value.toUpperCase();
-                // Allow empty or partial hex codes while typing
-                if (value === "" || /^#[0-9A-F]{0,6}$/i.test(value)) {
-                  setCustomColor(value);
-                  // Only apply if valid complete hex color
-                  if (isValidHexColor(value)) {
-                    onColorChange(value);
-                    // Add to recent colors without calling handleColorSelect (avoid double call)
-                    setRecentColors((prev) => {
-                      const filtered = prev.filter((c) => c !== value);
-                      return [value, ...filtered].slice(0, RECENT_COLORS_MAX);
-                    });
-                  }
-                }
-              }}
-              className="font-mono uppercase"
-              placeholder="#000000"
-              maxLength={7}
-              aria-label="Custom color hex code"
-            />
+            <div className="text-xs text-muted-foreground">
+              Click the color box to open advanced picker
+            </div>
           </div>
         </div>
 
@@ -195,5 +366,41 @@ export const ColorPalette = ({ activeColor, onColorChange }: ColorPaletteProps) 
         </div>
       </div>
     </div>
+  );
+};
+
+// Helper component for color swatches with labels
+interface ColorSwatchProps {
+  color: string;
+  label: string;
+  onClick: () => void;
+  isActive: boolean;
+}
+
+const ColorSwatch = ({ color, label, onClick, isActive }: ColorSwatchProps) => {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={`Select ${label} color ${color}`}
+      aria-pressed={isActive}
+      className="relative group flex flex-col items-center gap-1 transition-all hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg p-1"
+    >
+      <div
+        className="w-10 h-10 rounded-lg shadow-soft border-2 transition-all"
+        style={{
+          backgroundColor: color,
+          borderColor: isActive ? "var(--primary)" : "transparent",
+        }}
+      >
+        {isActive && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Check className="w-4 h-4 text-white drop-shadow-md" />
+          </div>
+        )}
+      </div>
+      <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
+        {label}
+      </span>
+    </button>
   );
 };

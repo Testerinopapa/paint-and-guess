@@ -18,6 +18,8 @@ const loadPreferences = () => {
         color: prefs.color || "#000000",
         size: prefs.size || 5,
         tool: prefs.tool || "draw",
+        opacity: prefs.opacity ?? 1,
+        hardness: prefs.hardness ?? 0.7,
       };
     }
   } catch {
@@ -27,6 +29,8 @@ const loadPreferences = () => {
     color: "#000000",
     size: 5,
     tool: "draw" as const,
+    opacity: 1,
+    hardness: 0.7,
   };
 };
 
@@ -37,6 +41,8 @@ export const Canvas = () => {
   const [activeColor, setActiveColor] = useState(preferences.color);
   const [brushSize, setBrushSize] = useState(preferences.size);
   const [debouncedBrushSize, setDebouncedBrushSize] = useState(preferences.size);
+  const [brushOpacity, setBrushOpacity] = useState(preferences.opacity);
+  const [brushHardness, setBrushHardness] = useState(preferences.hardness);
   const [activeTool, setActiveTool] = useState<"draw" | "erase">(preferences.tool);
   const { gameState, isDrawer, isGameActive, sendDrawingEvent, clearCanvas } = useGame();
   const isReceivingRef = useRef(false);
@@ -48,11 +54,13 @@ export const Canvas = () => {
         color: activeColor,
         size: brushSize,
         tool: activeTool,
+        opacity: brushOpacity,
+        hardness: brushHardness,
       }));
     } catch (error) {
       console.debug("[Canvas] Failed to save preferences:", error);
     }
-  }, [activeColor, brushSize, activeTool]);
+  }, [activeColor, brushSize, activeTool, brushOpacity, brushHardness]);
 
   // Debounce brush size changes
   useEffect(() => {
@@ -70,6 +78,8 @@ export const Canvas = () => {
     isGameActive,
     activeColor,
     brushSize: debouncedBrushSize,
+    brushOpacity,
+    brushHardness,
     activeTool,
   });
   
@@ -81,6 +91,8 @@ export const Canvas = () => {
     activeTool,
     activeColor,
     brushSize: debouncedBrushSize,
+    brushOpacity,
+    brushHardness,
     sendDrawingEvent,
     isCanvasValid,
     isReceivingRef,
@@ -182,8 +194,12 @@ export const Canvas = () => {
           <Toolbar
             activeTool={activeTool}
             brushSize={brushSize}
+            brushOpacity={brushOpacity}
+            brushHardness={brushHardness}
             onToolChange={handleToolChange}
             onBrushSizeChange={setBrushSize}
+            onBrushOpacityChange={setBrushOpacity}
+            onBrushHardnessChange={setBrushHardness}
             onUndo={handleUndo}
             onClear={() => handleClear(clearCanvas)}
             disabled={!isGameActive || gameState.phase !== "drawing"}

@@ -9,6 +9,8 @@ interface UseCanvasDrawingOptions {
   activeTool: "draw" | "erase";
   activeColor: string;
   brushSize: number;
+  brushOpacity: number;
+  brushHardness: number;
   sendDrawingEvent: (event: { type: string; data: any }) => void;
   isCanvasValid: (canvas: FabricCanvas | null) => boolean;
   isReceivingRef: React.MutableRefObject<boolean>;
@@ -24,22 +26,35 @@ export function useCanvasDrawing({
   activeTool,
   activeColor,
   brushSize,
+  brushOpacity,
+  brushHardness,
   sendDrawingEvent,
   isCanvasValid,
   isReceivingRef,
 }: UseCanvasDrawingOptions) {
-  // Update brush properties when tool or color changes
+  // Update brush properties when tool, color, opacity, or hardness changes
   useEffect(() => {
     if (!isCanvasValid(fabricCanvas) || !fabricCanvas?.freeDrawingBrush) return;
 
     if (activeTool === "erase") {
       fabricCanvas.freeDrawingBrush.color = "#ffffff";
       fabricCanvas.freeDrawingBrush.width = brushSize * 2;
+      // Reset shadow for eraser
+      (fabricCanvas.freeDrawingBrush as any).shadow = null;
     } else {
       fabricCanvas.freeDrawingBrush.color = activeColor;
       fabricCanvas.freeDrawingBrush.width = brushSize;
+      
+      // Apply hardness using shadowBlur (0 = hard edge, higher = softer)
+      const shadowBlur = brushHardness < 1 ? (1 - brushHardness) * brushSize * 2 : 0;
+      (fabricCanvas.freeDrawingBrush as any).shadow = shadowBlur > 0 ? {
+        blur: shadowBlur,
+        offsetX: 0,
+        offsetY: 0,
+        color: activeColor,
+      } : null;
     }
-  }, [activeTool, activeColor, brushSize, fabricCanvas, isCanvasValid]);
+  }, [activeTool, activeColor, brushSize, brushOpacity, brushHardness, fabricCanvas, isCanvasValid]);
 
   // Update drawing mode when role or game state changes
   useEffect(() => {
@@ -92,6 +107,29 @@ export function useCanvasDrawing({
       if (!isCanvasValid(fabricCanvas)) return;
 
       const path = e.path;
+      
+      // Apply opacity and hardness to the path object
+      if (activeTool !== "erase") {
+        path.set({
+          opacity: brushOpacity,
+        });
+        
+        // Apply hardness using shadowBlur
+        const shadowBlur = brushHardness < 1 ? (1 - brushHardness) * brushSize * 2 : 0;
+        if (shadowBlur > 0) {
+          path.set({
+            shadow: {
+              blur: shadowBlur,
+              offsetX: 0,
+              offsetY: 0,
+              color: activeColor,
+            },
+          });
+        } else {
+          path.set({ shadow: null });
+        }
+      }
+      
       const pathData = path.toJSON();
       
       // Debug: Extract point count and log
@@ -160,6 +198,8 @@ export function useCanvasDrawing({
             path: [...pathPoints],
             stroke: fabricCanvas.freeDrawingBrush.color,
             strokeWidth: fabricCanvas.freeDrawingBrush.width,
+            opacity: activeTool === "erase" ? 1 : brushOpacity,
+            hardness: activeTool === "erase" ? 1 : brushHardness,
           };
 
           // Debug: Track sent updates
@@ -218,6 +258,8 @@ export function useCanvasDrawing({
         pathId: currentPathId,
         color: fabricCanvas.freeDrawingBrush.color,
         width: fabricCanvas.freeDrawingBrush.width,
+        opacity: activeTool === "erase" ? 1 : brushOpacity,
+        hardness: activeTool === "erase" ? 1 : brushHardness,
       });
 
       // Note: We rely on mouse:move events for tracking.
@@ -247,7 +289,7 @@ export function useCanvasDrawing({
         fabricCanvas.off("mouse:up", handleMouseUp);
       }
     };
-  }, [fabricCanvas, isDrawer, isGameActive, sendDrawingEvent, isCanvasValid, isReceivingRef]);
+  }, [fabricCanvas, isDrawer, isGameActive, sendDrawingEvent, isCanvasValid, isReceivingRef, activeTool, brushOpacity, brushHardness]);
 
   // Undo handler
   const handleUndo = () => {

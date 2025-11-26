@@ -1092,17 +1092,49 @@ io.on("connection", (socket) => {
           return;
         }
 
+        // Verify drawer is still valid after persistRoom (which may have marked players as disconnected)
+        // If drawer is invalid, try to select a new one
+        if (!room.currentDrawer || !room.currentDrawer.connected || !room.currentDrawer.socketId) {
+          const activePlayers = room.getActivePlayers();
+          if (activePlayers.length < 2) {
+            console.log(`[Server] ⚠️ Not enough active players for next round in room ${roomId}, ending game`);
+            room.isGameActive = false;
+            room.currentDrawer = null;
+            const keptAfterEnd = await persistRoom(room);
+            if (!keptAfterEnd) {
+              return;
+            }
+            io.to(roomId).emit("game-ended", {
+              reason: "not enough players",
+              scores: serializePlayers(room.players),
+            });
+            return;
+          }
+          
+          // Select a new drawer from active players
+          console.log(`[Server] ⚠️ Drawer invalid after persistRoom in room ${roomId}, selecting new drawer`);
+          room.currentDrawer = activePlayers[Math.floor(Math.random() * activePlayers.length)];
+          
+          // Double-check the new drawer has socketId
+          if (!room.currentDrawer?.socketId) {
+            console.error(`[Server] ❌ Selected drawer ${room.currentDrawer?.id} has no socketId in room ${roomId}`);
+            await endRound(roomId);
+            return;
+          }
+        }
+
         const drawer = serializePlayers([room.currentDrawer])[0] ?? null;
+        if (!drawer) {
+          console.error(`[Server] ❌ Failed to serialize drawer in room ${roomId}`);
+          await endRound(roomId);
+          return;
+        }
+
         io.to(roomId).emit("round-started", {
           drawer,
           roundTime: room.roundTime,
           roundNumber: room.roundNumber,
         });
-
-        if (!room.currentDrawer?.socketId) {
-          await endRound(roomId);
-          return;
-        }
 
         io.to(room.currentDrawer.socketId).emit("draw-word", {
           word: room.currentWord,

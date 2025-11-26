@@ -1,38 +1,70 @@
-# Canvas System Analysis
+# Paint & Guess Canvas System - Complete Documentation
 
 ## Overview
 
 The canvas system in Paint & Guess is a real-time collaborative drawing framework that enables players to draw and share their artwork synchronously during gameplay. The system uses Fabric.js for canvas manipulation, Socket.io for real-time synchronization, and provides a comprehensive set of drawing tools including brushes, erasers, color selection, and canvas management features.
 
+**Last Updated:** After Toolbar and ColorPalette improvements (accessibility, persistence, keyboard shortcuts, debouncing)
+
+---
+
 ## Architecture
+
+### Component Structure
+
+The canvas system has been refactored from a monolithic 559-line component into a modular architecture:
+
+```
+src/games/paint-and-guess/components/
+├── Canvas.tsx                    # Main component (~218 lines)
+├── Toolbar.tsx                   # Drawing tools toolbar (~105 lines)
+├── ColorPalette.tsx              # Color selection component (~199 lines)
+├── canvas/
+│   ├── index.ts                  # Barrel export
+│   ├── useCanvasLifecycle.ts     # Lifecycle management (~288 lines)
+│   ├── useCanvasDrawing.ts       # Drawing functionality (~205 lines)
+│   └── useCanvasSync.ts          # Synchronization (~190 lines)
+```
 
 ### Core Components
 
 #### 1. Canvas Component (`src/games/paint-and-guess/components/Canvas.tsx`)
 
 **Main Responsibilities:**
-- Initializes and manages Fabric.js canvas instance
-- Handles drawing mode activation/deactivation based on player role
-- Sends drawing events to server (drawer only)
-- Receives and renders drawing events from other players (guessers)
-- Manages canvas lifecycle (initialization, disposal, resizing)
-- Enforces role-based permissions (drawer vs guesser)
+- UI layout and rendering
+- Tool state management (color, brush size, tool type)
+- Composing hooks for lifecycle, drawing, and sync
+- User interactions and keyboard shortcuts
+- Preference persistence
 
 **Key Features:**
-- **Fabric.js Integration**: Uses `Canvas` (FabricCanvas) and `PencilBrush` for freehand drawing
-- **Role-Based Access**: 
-  - Drawers: Full drawing capabilities, interactive canvas
-  - Guessers: Read-only view, non-interactive canvas
-- **Responsive Design**: Adapts canvas size based on viewport (800x600 desktop, responsive mobile)
-- **Event Handling**: Listens for `path:created` events to capture drawings
-- **State Management**: Tracks canvas validity, disposal state, and readiness
+- **Modular Architecture**: Uses three custom hooks for separation of concerns
+- **State Management**: Manages activeColor, brushSize, activeTool
+- **Preference Persistence**: Saves/loads drawing preferences to localStorage
+- **Debounced Brush Size**: 100ms debounce to prevent excessive re-renders
+- **Keyboard Shortcuts**: B (brush), E (eraser), Ctrl+U/Cmd+U (undo)
+- **Role-Based Rendering**: Only shows Toolbar/ColorPalette for drawers during drawing phase
 
-**Key Functions:**
-- `isCanvasValid()`: Validates canvas instance before operations
-- Drawing event handlers for sending/receiving paths
-- Canvas clear handlers for synchronization
-- Undo functionality (removes last object)
-- Clear functionality (clears entire canvas)
+**State Management:**
+```typescript
+const [activeColor, setActiveColor] = useState(preferences.color);
+const [brushSize, setBrushSize] = useState(preferences.size);
+const [debouncedBrushSize, setDebouncedBrushSize] = useState(preferences.size);
+const [activeTool, setActiveTool] = useState<"draw" | "erase">(preferences.tool);
+```
+
+**Preference Persistence:**
+- Storage key: `"paint-and-guess-drawing-preferences"`
+- Persists: color, brush size, active tool
+- Loads on component mount
+- Saves on any preference change
+
+**Keyboard Shortcuts:**
+- `B` or `b`: Switch to brush tool
+- `E` or `e`: Switch to eraser tool
+- `Ctrl+U` / `Cmd+U`: Undo last action
+- Shortcuts only active when drawer and game is active
+- Shortcuts disabled when typing in inputs
 
 **Canvas Configuration:**
 ```typescript
@@ -47,8 +79,6 @@ The canvas system in Paint & Guess is a real-time collaborative drawing framewor
 }
 ```
 
-**Note:** Canvas size is now dynamically calculated based on container dimensions, maintaining a 4:3 aspect ratio while fitting within available space. This ensures the canvas adapts to any screen size without going out of frame.
-
 #### 2. Toolbar Component (`src/games/paint-and-guess/components/Toolbar.tsx`)
 
 **Main Responsibilities:**
@@ -61,48 +91,172 @@ The canvas system in Paint & Guess is a real-time collaborative drawing framewor
 - **Tool Selection**: Toggle between "draw" and "erase" modes
 - **Brush Size Control**: Slider with visual feedback (1-50 range)
 - **Action Buttons**: Undo (removes last path) and Clear (clears canvas)
-- **Disabled State**: Automatically disabled for guessers
+- **Disabled State**: Automatically disabled for guessers or when game not active
 - **Responsive Design**: Adapts layout for mobile/desktop
+- **Accessibility**: Full ARIA support, keyboard navigation hints
+
+**Props Interface:**
+```typescript
+interface ToolbarProps {
+  activeTool: "draw" | "erase";
+  brushSize: number;
+  onToolChange: (tool: "draw" | "erase") => void;
+  onBrushSizeChange: (size: number) => void;
+  onUndo: () => void;
+  onClear: () => void;
+  disabled?: boolean;
+}
+```
+
+**Accessibility Features:**
+- `aria-label` on all buttons
+- `aria-pressed` for tool buttons (indicates active state)
+- `aria-label`, `aria-valuemin`, `aria-valuemax`, `aria-valuenow` on slider
+- Screen reader text for keyboard shortcuts
+- Focus rings for keyboard navigation
 
 **UI Elements:**
-- Brush button with paintbrush icon
-- Eraser button with eraser icon
+- Brush button with paintbrush icon + "Brush" label (hidden on small screens)
+- Eraser button with eraser icon + "Eraser" label (hidden on small screens)
 - Size slider with numeric display
-- Undo button with curved arrow icon
-- Clear button with trash icon (destructive variant)
+- Undo button with curved arrow icon + "Undo" label
+- Clear button with trash icon + "Clear" label (destructive variant)
 
 #### 3. Color Palette Component (`src/games/paint-and-guess/components/ColorPalette.tsx`)
 
 **Main Responsibilities:**
 - Provides preset color selection (12 colors)
-- Tracks and displays recent colors
-- Offers custom color picker (hex input)
+- Tracks and displays recent colors (last 6)
+- Offers custom color picker (HTML5 input + hex text input)
 - Shows active color preview
+- Persists recent colors to localStorage
 
 **Features:**
 - **Preset Colors**: 12 predefined colors (black, white, red, orange, yellow, green, cyan, blue, purple, pink, violet, amber)
-- **Recent Colors**: Tracks last 6 used colors
-- **Custom Color Picker**: HTML5 color input + hex text input
+- **Recent Colors**: Tracks last 6 used colors, persists across sessions
+- **Custom Color Picker**: HTML5 color input + hex text input with validation
 - **Active Color Display**: Visual preview with hex code
 - **Color Validation**: Validates hex color format (#RRGGBB)
+- **State Synchronization**: Syncs with parent activeColor prop via useEffect
+- **Accessibility**: Full ARIA support, keyboard navigation
 
-**Color Management:**
-- Automatically adds selected colors to recent list
-- Validates hex input format
-- Updates brush color in real-time
+**Props Interface:**
+```typescript
+interface ColorPaletteProps {
+  activeColor: string;
+  onColorChange: (color: string) => void;
+}
+```
 
-#### 4. Integration Components
+**State Management:**
+- `customColor`: Synced with `activeColor` prop via useEffect
+- `recentColors`: Loaded from localStorage on mount, persisted on changes
+- Storage key: `"paint-and-guess-recent-colors"`
+- Maximum recent colors: 6
 
-**GameHeader** (`src/games/paint-and-guess/components/GameHeader.tsx`)
-- Displays room information and game state
-- Shows "You're Drawing!" badge for active drawer
-- Displays timer and round information
-- Shows current word (drawer only)
+**Color Validation:**
+```typescript
+const isValidHexColor = (value: string): boolean => {
+  return /^#[0-9A-F]{6}$/i.test(value);
+};
+```
 
-**Room Page** (`src/games/paint-and-guess/pages/Room.tsx`)
-- Layout coordinator for canvas, players, and chat
-- Grid layout: Players (left) | Canvas (center) | Chat (right)
-- Manages game state and player interactions
+**Accessibility Features:**
+- `aria-label` on all color buttons
+- `aria-pressed` for active color indication
+- Focus rings for keyboard navigation
+- Screen reader friendly labels
+
+**Color Selection Flow:**
+1. User clicks preset/recent color or picks custom color
+2. `handleColorSelect()` called
+3. `onColorChange(color)` called once (no double calls)
+4. `customColor` state updated
+5. Color added to recent colors (removes duplicates, maintains order)
+6. Recent colors persisted to localStorage
+
+#### 4. Canvas Hooks
+
+##### `useCanvasLifecycle.ts` (~288 lines)
+
+**Responsibilities:**
+- Canvas initialization
+- Canvas disposal
+- Size calculation based on container
+- ResizeObserver setup
+- Window resize handling
+- Canvas validation
+
+**Key Features:**
+- Handles Fabric.js canvas creation
+- Manages canvas disposal
+- Calculates optimal canvas size based on container (maintains 4:3 aspect ratio)
+- Accounts for toolbar and color palette space
+- Sets up resize observers
+- Validates canvas state before operations
+
+**Exports:**
+```typescript
+{
+  fabricCanvas: FabricCanvas | null;
+  isDisposed: boolean;
+  isCanvasValid: (canvas: FabricCanvas | null) => boolean;
+}
+```
+
+**Size Calculation:**
+- Calculates based on container dimensions
+- Maintains 4:3 aspect ratio
+- Accounts for UI elements (toolbar, color palette)
+- Responsive: adapts to mobile/desktop
+- Minimum sizes enforced
+
+##### `useCanvasDrawing.ts` (~205 lines)
+
+**Responsibilities:**
+- Brush property updates
+- Drawing mode management
+- Sending drawing events (drawer)
+- Undo functionality
+- Clear functionality
+
+**Key Features:**
+- Updates brush color and size
+- Manages drawing mode based on role
+- Captures path:created events
+- Sends incremental path updates during drawing
+- Sends final path on completion
+- Provides undo/clear handlers
+
+**Exports:**
+```typescript
+{
+  handleUndo: () => void;
+  handleClear: (clearCanvas: () => void) => void;
+}
+```
+
+**Drawing Event Flow:**
+1. User starts drawing → `mouse:down` → sends `path-start` event
+2. User moves mouse → `mouse:move` → sends `path-update` events (throttled)
+3. User releases mouse → `path:created` → sends `path-complete` event
+
+##### `useCanvasSync.ts` (~190 lines)
+
+**Responsibilities:**
+- Receiving drawing events (guessers)
+- Canvas clearing synchronization
+- Round transition handling
+- Making objects non-interactive
+
+**Key Features:**
+- Listens for drawing events from server
+- Uses `enlivenObjects` for efficient rendering
+- Handles canvas clear events
+- Listens for round-started/round-ended events
+- Ensures guesser objects are non-interactive
+
+---
 
 ## Data Flow
 
@@ -136,7 +290,7 @@ The canvas system in Paint & Guess is a real-time collaborative drawing framewor
    - Gets existing canvas objects
    - Adds new path to object array
    - Sets new path as non-interactive (selectable: false, evented: false)
-   - Reloads canvas with `loadFromJSON()`
+   - Uses `enlivenObjects` for efficient rendering
    - Renders updated canvas with `requestRenderAll()`
 
 ### Clear Canvas Flow
@@ -163,16 +317,21 @@ The canvas system in Paint & Guess is a real-time collaborative drawing framewor
 - Drawing mode enabled only for drawer
 - Canvas cleared at round start
 - Size adjusted based on viewport
+- Preferences loaded from localStorage
 
 **Round Transitions:**
 - Canvas automatically cleared when new round starts
 - Drawing mode updated based on new drawer
 - All objects reset to clean state
+- Preferences maintained across rounds
 
 **Role Changes:**
 - When player becomes drawer: Canvas becomes interactive
 - When player becomes guesser: Canvas becomes read-only
 - All objects marked as non-interactive for guessers
+- Toolbar/ColorPalette visibility updated
+
+---
 
 ## Real-Time Synchronization
 
@@ -206,6 +365,8 @@ The canvas system in Paint & Guess is a real-time collaborative drawing framewor
 - Drawer's local canvas doesn't receive broadcast events
 - Only guessers process incoming drawing events
 
+---
+
 ## UI Structure
 
 ### Visual Layout
@@ -222,7 +383,7 @@ The canvas system in Paint & Guess is a real-time collaborative drawing framewor
 │ - Alice  │  │                        │  │  Chat Messages   │
 │ - Bob    │  │                        │  │                  │
 │ - Carol  │  │    Drawing Canvas      │  │  [Input Field]   │
-│ - Diana  │  │    (800x600 desktop)   │  │                  │
+│ - Diana  │  │    (container-adaptive)│  │                  │
 │          │  │                        │  │                  │
 │ [Ready]  │  └────────────────────────┘  │                  │
 │ [Start]  │                              │                   │
@@ -262,7 +423,7 @@ Room
 │   └── Start Game Button (host only)
 │
 ├── Canvas (Center)
-│   ├── Toolbar
+│   ├── Toolbar (drawer only, during drawing phase)
 │   │   ├── Brush Button
 │   │   ├── Eraser Button
 │   │   ├── Size Slider
@@ -272,7 +433,7 @@ Room
 │   ├── Fabric.js Canvas Element
 │   │   └── Drawing Surface
 │   │
-│   └── ColorPalette (drawer only)
+│   └── ColorPalette (drawer only, during drawing phase)
 │       ├── Preset Colors Grid
 │       ├── Recent Colors
 │       ├── Custom Color Picker
@@ -296,9 +457,11 @@ Room
 - Color Palette: 6-column grid
 - Reduced padding and spacing
 
+---
+
 ## Drawer vs Guesser Perspectives
 
-The canvas system provides fundamentally different experiences for drawers and guessers. Understanding these differences is crucial for both users and developers.
+The canvas system provides fundamentally different experiences for drawers and guessers.
 
 ### Drawer Perspective
 
@@ -311,15 +474,15 @@ The canvas system provides fundamentally different experiences for drawers and g
 
 **Canvas Area:**
 - ✅ **Interactive Canvas** - Full drawing capabilities
-- ✅ **Toolbar** - Fully enabled with all tools:
+- ✅ **Toolbar** - Fully enabled with all tools (only during drawing phase):
   - Brush button (active)
   - Eraser button (active)
   - Size slider (1-50px, functional)
   - Undo button (removes last path)
   - Clear button (clears entire canvas)
-- ✅ **Color Palette** - Visible and fully functional:
+- ✅ **Color Palette** - Visible and fully functional (only during drawing phase):
   - 12 preset colors (clickable)
-  - Recent colors section
+  - Recent colors section (persists across sessions)
   - Custom color picker
   - Active color preview
 - ✅ **Drawing Surface** - Can draw, erase, and interact with canvas
@@ -336,30 +499,17 @@ The canvas system provides fundamentally different experiences for drawers and g
 **Drawing Actions:**
 - ✅ Draw freehand paths with brush
 - ✅ Erase using eraser tool (white strokes)
-- ✅ Change brush size (1-50px)
+- ✅ Change brush size (1-50px, debounced)
 - ✅ Change brush color (12 presets + custom)
 - ✅ Undo last drawing action
 - ✅ Clear entire canvas
+- ✅ Keyboard shortcuts (B, E, Ctrl+U/Cmd+U)
 
 **Event Transmission:**
 - ✅ Sends `drawing-event` to server on each path creation
 - ✅ Sends `clear-canvas` event when clearing
 - ✅ Events broadcast to all guessers in room
 - ❌ Does NOT receive own drawing events (echo prevention)
-
-**Technical Details:**
-```typescript
-// Drawer Canvas Configuration
-{
-  isDrawingMode: true,
-  skipTargetFind: false,
-  selection: true,
-  freeDrawingBrush: {
-    color: activeColor,
-    width: brushSize
-  }
-}
-```
 
 ### Guesser Perspective
 
@@ -372,11 +522,8 @@ The canvas system provides fundamentally different experiences for drawers and g
 
 **Canvas Area:**
 - ✅ **Read-Only Canvas** - View-only, no interaction
-- ✅ **Toolbar** - Visible but **disabled**:
-  - All buttons grayed out
-  - Slider non-functional
-  - Visual feedback shows disabled state
-- ❌ **Color Palette** - **Hidden** (not rendered)
+- ❌ **Toolbar** - Hidden (not rendered)
+- ❌ **Color Palette** - Hidden (not rendered)
 - ✅ **"Watch and guess the word!" Overlay** - Instructional message at top of canvas
 - ✅ **Drawing Surface** - Can only view, cannot interact
 
@@ -405,198 +552,75 @@ The canvas system provides fundamentally different experiences for drawers and g
 - ✅ Processes events and renders on canvas
 - ❌ Does NOT send any drawing events
 
-**Technical Details:**
-```typescript
-// Guesser Canvas Configuration
-{
-  isDrawingMode: false,
-  skipTargetFind: true,
-  selection: false,
-  defaultCursor: 'default',
-  hoverCursor: 'default',
-  moveCursor: 'default',
-  // All objects:
-  // selectable: false,
-  // evented: false
-}
-```
-
 ### Side-by-Side Comparison
 
 | Feature | Drawer | Guesser |
 |---------|--------|---------|
 | **Canvas Interaction** | ✅ Full drawing | ❌ View only |
-| **Toolbar** | ✅ Enabled | ⚠️ Visible but disabled |
-| **Color Palette** | ✅ Visible & functional | ❌ Hidden |
+| **Toolbar** | ✅ Visible & enabled (drawing phase) | ❌ Hidden |
+| **Color Palette** | ✅ Visible & functional (drawing phase) | ❌ Hidden |
 | **Current Word** | ✅ Shown in header | ❌ Hidden |
 | **Drawing Badge** | ✅ "You're Drawing!" | ❌ None |
 | **Canvas Overlay** | ❌ None | ✅ "Watch and guess!" |
 | **Send Events** | ✅ Yes | ❌ No |
 | **Receive Events** | ❌ No (echo prevention) | ✅ Yes |
-| **Undo/Clear** | ✅ Available | ❌ Disabled |
-| **Brush Controls** | ✅ Functional | ❌ Disabled |
+| **Undo/Clear** | ✅ Available | ❌ N/A |
+| **Brush Controls** | ✅ Functional | ❌ N/A |
+| **Keyboard Shortcuts** | ✅ B, E, Ctrl+U | ❌ N/A |
+| **Preference Persistence** | ✅ Yes | ❌ N/A |
 | **Cursor Type** | Drawing cursor | Default cursor |
 
-### Event Flow Differences
+---
 
-#### Drawer Event Flow
+## Recent Improvements
 
-```
-User Draws
-  ↓
-Fabric.js path:created event
-  ↓
-Canvas captures path.toJSON()
-  ↓
-sendDrawingEvent() → GameContext
-  ↓
-Socket.io emit("drawing-event")
-  ↓
-Server validates & broadcasts
-  ↓
-[Drawer does NOT receive own event]
-  ↓
-Guessers receive & render
-```
+### Toolbar & ColorPalette Enhancements (Latest Update)
 
-#### Guesser Event Flow
+#### 1. State Synchronization
+- ✅ **Fixed**: ColorPalette now syncs `customColor` with `activeColor` prop via useEffect
+- ✅ **Fixed**: Removed double `onColorChange` calls that were causing strokes to be deleted
+- ✅ **Result**: Color selection works correctly without side effects
 
-```
-Server broadcasts drawing-event
-  ↓
-GameContext receives via socket
-  ↓
-Dispatches custom DOM event
-  ↓
-Canvas listens for "drawing-event"
-  ↓
-Extracts path data
-  ↓
-Adds to canvas via loadFromJSON()
-  ↓
-Renders with requestRenderAll()
-```
+#### 2. Accessibility Features
+- ✅ **Added**: Full ARIA support on all interactive elements
+- ✅ **Added**: `aria-label` on buttons and inputs
+- ✅ **Added**: `aria-pressed` for tool buttons
+- ✅ **Added**: `aria-valuemin`, `aria-valuemax`, `aria-valuenow` on slider
+- ✅ **Added**: Screen reader text for keyboard shortcuts
+- ✅ **Added**: Focus rings for keyboard navigation
 
-### UI Layout Differences
+#### 3. Keyboard Shortcuts
+- ✅ **Added**: `B` or `b` - Switch to brush tool
+- ✅ **Added**: `E` or `e` - Switch to eraser tool
+- ✅ **Added**: `Ctrl+U` / `Cmd+U` - Undo last action
+- ✅ **Smart**: Shortcuts disabled when typing in inputs
+- ✅ **Smart**: Shortcuts only active when drawer and game is active
 
-#### Drawer Layout
-```
-┌─────────────────────────────────────┐
-│ GameHeader: "You're Drawing!"       │
-│ Word: FOREST                         │
-├─────────────────────────────────────┤
-│ Toolbar: [Brush][Eraser][Size][Undo][Clear] │
-│ ┌─────────────────────────────────┐  │
-│ │                                 │  │
-│ │     Interactive Canvas          │  │
-│ │     (Can Draw Here)             │  │
-│ │                                 │  │
-│ └─────────────────────────────────┘  │
-│ Color Palette: [●][●][●][●]...      │
-│ Custom: [■] #000000                 │
-└─────────────────────────────────────┘
-```
+#### 4. Preference Persistence
+- ✅ **Added**: Drawing preferences saved to localStorage
+  - Active color
+  - Brush size
+  - Active tool (brush/eraser)
+- ✅ **Added**: Recent colors persisted to localStorage
+- ✅ **Result**: User preferences maintained across sessions
 
-#### Guesser Layout
-```
-┌─────────────────────────────────────┐
-│ GameHeader: (No badge, no word)      │
-├─────────────────────────────────────┤
-│ Toolbar: [Brush][Eraser][Size][Undo][Clear] │
-│        (All Disabled/Grayed Out)    │
-│ ┌─────────────────────────────────┐  │
-│ │ "Watch and guess the word!"     │  │
-│ │                                 │  │
-│ │     Read-Only Canvas            │  │
-│ │     (View Only)                  │  │
-│ │                                 │  │
-│ └─────────────────────────────────┘  │
-│ (No Color Palette)                   │
-└─────────────────────────────────────┘
-```
+#### 5. Performance Optimizations
+- ✅ **Added**: Brush size changes debounced (100ms)
+- ✅ **Result**: Prevents excessive canvas re-renders during slider movement
+- ✅ **Result**: Smoother drawing experience
 
-### Code-Level Differences
+#### 6. Color Validation
+- ✅ **Improved**: Better hex color validation
+- ✅ **Fixed**: Prevents invalid colors from being set
+- ✅ **Improved**: Better handling of partial hex input while typing
 
-#### Canvas Initialization
+#### 7. UI/UX Improvements
+- ✅ **Fixed**: Toolbar and ColorPalette only show during "drawing" phase
+- ✅ **Fixed**: Proper disabled state based on game state
+- ✅ **Improved**: Recent colors section always visible (with empty state)
+- ✅ **Removed**: Unnecessary toast notifications on tool changes
 
-**Drawer:**
-```typescript
-canvas.isDrawingMode = true;
-canvas.skipTargetFind = false;
-canvas.selection = true;
-// Toolbar and ColorPalette rendered
-```
-
-**Guesser:**
-```typescript
-canvas.isDrawingMode = false;
-canvas.skipTargetFind = true;
-canvas.selection = false;
-canvas.defaultCursor = 'default';
-// Only Toolbar rendered (disabled)
-// ColorPalette NOT rendered
-```
-
-#### Event Handlers
-
-**Drawer:**
-```typescript
-// Sends events
-fabricCanvas.on("path:created", (e) => {
-  sendDrawingEvent({ type: "path", data: e.path.toJSON() });
-});
-
-// Does NOT listen for incoming events
-```
-
-**Guesser:**
-```typescript
-// Does NOT send events
-
-// Listens for incoming events
-window.addEventListener("drawing-event", (e) => {
-  const pathData = e.detail.data;
-  fabricCanvas.loadFromJSON({ objects: [...existing, pathData] });
-});
-```
-
-### Role Transition
-
-When a player's role changes during the game:
-
-**Becoming Drawer:**
-1. `isDrawer` state changes to `true`
-2. Canvas `isDrawingMode` enabled
-3. Toolbar becomes enabled
-4. Color Palette appears
-5. "You're Drawing!" badge shows
-6. Current word displayed
-7. Canvas overlay removed
-8. Event listeners switch to sending mode
-
-**Becoming Guesser:**
-1. `isDrawer` state changes to `false`
-2. Canvas `isDrawingMode` disabled
-3. Toolbar becomes disabled
-4. Color Palette hidden
-5. Badge removed
-6. Current word hidden
-7. "Watch and guess!" overlay appears
-8. Event listeners switch to receiving mode
-9. All canvas objects marked non-interactive
-
-### Security & Validation
-
-**Server-Side Protection:**
-- Server validates sender is current drawer before accepting events
-- Non-drawers cannot send drawing events (rejected at server)
-- Prevents unauthorized drawing attempts
-
-**Client-Side Protection:**
-- UI elements disabled for guessers
-- Canvas interactions disabled via Fabric.js settings
-- Event handlers conditionally registered based on role
-- Echo prevention ensures drawer doesn't process own events
+---
 
 ## Integration Points
 
@@ -610,6 +634,7 @@ When a player's role changes during the game:
 **State Dependencies:**
 - `gameState.isDrawer`: Controls drawing mode
 - `gameState.isGameActive`: Enables/disables canvas
+- `gameState.phase`: Controls Toolbar/ColorPalette visibility
 - `gameState.roundNumber`: Triggers canvas clear on change
 
 ### Socket Integration
@@ -627,14 +652,16 @@ When a player's role changes during the game:
 ### Room Integration
 
 **Layout:**
-- Canvas occupies center 2 columns (lg:col-span-2)
-- Responsive grid: 1 column mobile, 4 columns desktop
+- Canvas occupies center area
+- Responsive grid layout
 - Player list and chat flank canvas
 
 **State Coordination:**
 - Room page manages overall layout
 - Canvas component handles drawing logic
 - GameHeader displays game state
+
+---
 
 ## Rendering & Performance
 
@@ -647,9 +674,10 @@ When a player's role changes during the game:
 
 **Performance Optimizations:**
 - Object caching disabled for guessers (ensures visibility)
-- Batch updates via `loadFromJSON()` for multiple objects
+- Batch updates via `enlivenObjects` for multiple objects
 - `requestAnimationFrame` for smooth animations
 - Canvas disposal on unmount to prevent memory leaks
+- **Debounced brush size changes** (100ms) to prevent excessive re-renders
 
 ### Canvas Lifecycle
 
@@ -658,13 +686,15 @@ When a player's role changes during the game:
 2. Configure drawing brush (PencilBrush)
 3. Set initial drawing mode
 4. Set up event listeners
-5. Mark canvas as ready
+5. Load preferences from localStorage
+6. Mark canvas as ready
 
 **Active State:**
 - Drawing events captured and sent
 - Receiving events processed and rendered
 - Tool changes update brush properties
 - Canvas resizes on window resize
+- Preferences saved on changes
 
 **Disposal:**
 1. Remove event listeners
@@ -672,6 +702,8 @@ When a player's role changes during the game:
 3. Clear canvas state
 4. Call `canvas.dispose()`
 5. Clean up refs
+
+---
 
 ## Error Handling
 
@@ -700,6 +732,8 @@ When a player's role changes during the game:
 - Error logging for debugging
 - User notifications via toast
 
+---
+
 ## Dependencies
 
 ### External Libraries
@@ -709,8 +743,7 @@ When a player's role changes during the game:
   - `PencilBrush`: Freehand drawing brush
   - `FabricObject`: Base class for canvas objects
 - **socket.io-client**: Real-time communication
-- **sonner**: Toast notifications
-- **lucide-react**: Icons (Paintbrush, Eraser, Undo, Trash2, etc.)
+- **lucide-react**: Icons (Paintbrush, Eraser, Undo, Trash2, Check, etc.)
 
 ### Internal Dependencies
 
@@ -718,28 +751,36 @@ When a player's role changes during the game:
 - `@/games/paint-and-guess`: Game context and hooks
 - `@/lib/utils`: Utility functions
 
+---
+
 ## File Structure
 
 ```
 src/games/paint-and-guess/
 ├── components/
 │   ├── Canvas.tsx              # Main canvas component
-│   ├── Toolbar.tsx              # Drawing tools toolbar
-│   ├── ColorPalette.tsx         # Color selection component
-│   ├── GameHeader.tsx           # Game state header
-│   └── ...
+│   ├── Toolbar.tsx             # Drawing tools toolbar
+│   ├── ColorPalette.tsx        # Color selection component
+│   ├── GameHeader.tsx          # Game state header
+│   └── canvas/
+│       ├── index.ts            # Barrel export
+│       ├── useCanvasLifecycle.ts    # Lifecycle management
+│       ├── useCanvasDrawing.ts     # Drawing functionality
+│       └── useCanvasSync.ts         # Synchronization
 │
 ├── pages/
-│   └── Room.tsx                 # Room layout coordinator
+│   └── Room.tsx                # Room layout coordinator
 │
 └── state/
-    └── GameContext.tsx          # Game state & socket management
+    └── GameContext.tsx         # Game state & socket management
 
 backend/src/
-└── server.js                    # Socket.io event handlers
-    ├── drawing-event handler    # Line 724-734
-    └── clear-canvas handler     # Line 736-742
+└── server.js                   # Socket.io event handlers
+    ├── drawing-event handler
+    └── clear-canvas handler
 ```
+
+---
 
 ## Event System
 
@@ -768,28 +809,35 @@ window.addEventListener("drawing-event", handleDrawingEvent);
 return () => window.removeEventListener("drawing-event", handleDrawingEvent);
 ```
 
+---
+
 ## Tool System
 
 ### Drawing Tools
 
 **Brush Tool:**
 - Uses selected color
-- Configurable size (1-50px)
+- Configurable size (1-50px, debounced)
 - Creates `Path` objects in Fabric.js
 - Smooth freehand drawing
+- Keyboard shortcut: `B`
 
 **Eraser Tool:**
 - Uses white color (#ffffff)
 - Double brush size for better erasing
 - Same drawing mechanism as brush
 - Appears as white strokes
+- Keyboard shortcut: `E`
 
 ### Tool State Management
 
 - Active tool stored in component state
 - Brush properties updated on tool change
 - Visual feedback via button variants
-- Toast notifications on tool change
+- Tool preference persisted to localStorage
+- No toast notifications (visual feedback sufficient)
+
+---
 
 ## Color System
 
@@ -800,17 +848,21 @@ return () => window.removeEventListener("drawing-event", handleDrawingEvent);
 - Quick selection with single click
 - Visual checkmark for active color
 - Accessible color names
+- ARIA labels for screen readers
 
 **Recent Colors:**
 - Tracks last 6 used colors
-- Persists during session
+- Persists across sessions (localStorage)
 - Quick access to frequently used colors
+- Always visible section (with empty state)
+- Removes duplicates, maintains order
 
 **Custom Colors:**
 - HTML5 color picker
 - Hex text input with validation
 - Supports full color spectrum
 - Real-time preview
+- Validates hex format (#RRGGBB)
 
 ### Color Application
 
@@ -818,17 +870,28 @@ return () => window.removeEventListener("drawing-event", handleDrawingEvent);
 - Eraser always uses white
 - Color persists until changed
 - Active color displayed prominently
+- Color preference persisted to localStorage
+
+### Color State Management
+
+- `customColor` synced with `activeColor` prop via useEffect
+- Recent colors loaded from localStorage on mount
+- Recent colors persisted on changes
+- No double `onColorChange` calls (fixed bug)
+
+---
 
 ## Canvas Features
 
 ### Drawing Features
 
 - **Freehand Drawing**: Smooth path creation
-- **Brush Size Control**: 1-50px range
-- **Color Selection**: 12 presets + custom
+- **Brush Size Control**: 1-50px range (debounced)
+- **Color Selection**: 12 presets + custom (persisted)
 - **Eraser Tool**: White drawing for erasing
-- **Undo**: Remove last drawn path
+- **Undo**: Remove last drawn path (keyboard shortcut: Ctrl+U/Cmd+U)
 - **Clear**: Reset entire canvas
+- **Keyboard Shortcuts**: B (brush), E (eraser), Ctrl+U/Cmd+U (undo)
 
 ### Synchronization Features
 
@@ -836,13 +899,17 @@ return () => window.removeEventListener("drawing-event", handleDrawingEvent);
 - **Role-based Access**: Drawers draw, guessers watch
 - **Round Management**: Auto-clear on round start
 - **State Persistence**: Maintains drawing during round
+- **Preference Persistence**: Saves color, size, tool across sessions
 
 ### UI Features
 
 - **Responsive Design**: Adapts to screen size
 - **Visual Feedback**: Active tool highlighting
-- **Toast Notifications**: User action confirmations
-- **Accessibility**: Keyboard navigation support
+- **Accessibility**: Full ARIA support, keyboard navigation
+- **Preference Persistence**: Remembers user settings
+- **Performance**: Debounced updates, optimized rendering
+
+---
 
 ## Future Enhancements
 
@@ -857,7 +924,10 @@ return () => window.removeEventListener("drawing-event", handleDrawingEvent);
 7. **Text Tool**: Add text annotations
 8. **Drawing Replay**: Animate drawing playback
 9. **Offline Support**: Queue events when offline
-10. **Performance**: Optimize for high-frequency drawing
+10. **Performance**: Further optimize for high-frequency drawing
+11. **Layout Measurement**: Measure actual toolbar/palette heights for better canvas sizing
+
+---
 
 ## Testing
 
@@ -870,6 +940,10 @@ return () => window.removeEventListener("drawing-event", handleDrawingEvent);
 - Role-based access control
 - Responsive layout behavior
 - Error handling and recovery
+- Preference persistence
+- Keyboard shortcuts
+- Color selection and validation
+- State synchronization
 
 ### Debug Features
 
@@ -877,6 +951,8 @@ return () => window.removeEventListener("drawing-event", handleDrawingEvent);
 - Event tracking for debugging
 - Canvas state validation checks
 - Network event monitoring
+
+---
 
 ## Notes
 
@@ -887,6 +963,12 @@ return () => window.removeEventListener("drawing-event", handleDrawingEvent);
 - All canvas operations are validated before execution
 - Canvas disposal is critical to prevent memory leaks
 - Custom DOM events bridge socket.io and React components
+- Preferences persisted to localStorage for better UX
+- Brush size changes debounced to prevent performance issues
+- Color selection fixed to prevent double calls and stroke deletion
+- Full accessibility support added for keyboard and screen reader users
+
+---
 
 ## Visual Reference
 
@@ -894,16 +976,16 @@ The canvas UI is displayed in the game room with the following layout:
 
 **Desktop View (Drawer):**
 - Large drawing canvas (container-adaptive, 4:3 aspect ratio) in center
-- Toolbar above canvas with brush/eraser tools and size control (enabled)
-- Color palette below canvas with preset colors and custom picker (visible)
+- Toolbar above canvas with brush/eraser tools and size control (enabled, only during drawing phase)
+- Color palette below canvas with preset colors and custom picker (visible, only during drawing phase)
 - Player list on left showing all participants
 - Chat on right for guesses and messages
 - Game header at top with "You're Drawing!" badge, timer, round info, and current word
 
 **Desktop View (Guesser):**
 - Large viewing canvas (container-adaptive, 4:3 aspect ratio) in center
-- Toolbar above canvas (visible but all controls disabled/grayed out)
 - "Watch and guess the word!" overlay on canvas
+- No toolbar (hidden)
 - No color palette (hidden)
 - Player list on left showing all participants
 - Chat on right for guesses and messages
@@ -911,10 +993,40 @@ The canvas UI is displayed in the game room with the following layout:
 
 **Mobile View:**
 - Responsive canvas sized to container (maintains aspect ratio)
-- Stacked toolbar (enabled for drawer, disabled for guesser)
-- Color palette only visible for drawer
+- Stacked toolbar (enabled for drawer during drawing phase, hidden for guesser)
+- Color palette only visible for drawer during drawing phase
 - Collapsible sidebars for players and chat
 - Optimized touch interactions
 
-For a visual example, see: `test-screenshots-four-players/04-round-1-Diana-drawing.png`
+---
+
+## Changelog
+
+### Latest Update (Toolbar & ColorPalette Improvements)
+
+**Fixed:**
+- ✅ Color selection no longer deletes strokes (removed double `onColorChange` calls)
+- ✅ ColorPalette state synchronization with parent
+- ✅ Toolbar disabled state based on game phase
+
+**Added:**
+- ✅ Full accessibility support (ARIA labels, keyboard navigation)
+- ✅ Keyboard shortcuts (B, E, Ctrl+U/Cmd+U)
+- ✅ Preference persistence (color, brush size, tool)
+- ✅ Recent colors persistence
+- ✅ Brush size debouncing (100ms)
+
+**Improved:**
+- ✅ Color validation
+- ✅ UI/UX (removed unnecessary toasts, better state management)
+- ✅ Performance (debounced updates)
+
+**Removed:**
+- ✅ Toast notifications on tool changes (visual feedback sufficient)
+
+---
+
+## Conclusion
+
+The Paint & Guess canvas system is a comprehensive, real-time collaborative drawing framework that has been refactored for maintainability and enhanced with accessibility, persistence, and performance improvements. The modular architecture makes it easy to understand, test, and extend, while the recent improvements ensure a smooth, accessible user experience.
 

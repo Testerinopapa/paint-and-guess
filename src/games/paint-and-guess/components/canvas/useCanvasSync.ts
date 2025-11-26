@@ -154,6 +154,8 @@ export function useCanvasSync({
     const activePaths = new Map<string, FabricObject>();
     // Track paths that have been finalized (to ignore late path-update events)
     const finalizedPaths = new Set<string>();
+    // Track brush properties (opacity, hardness) for each path
+    const pathProperties = new Map<string, { opacity: number; hardness: number; strokeWidth: number }>();
     
     // Debug: Track path debugging info
     if (isDebugEnabled()) {
@@ -260,6 +262,13 @@ export function useCanvasSync({
           // Remove from finalized set if it was there (new stroke with same ID pattern)
           finalizedPaths.delete(event.pathId);
           
+          // Store brush properties from path-start event
+          pathProperties.set(event.pathId, {
+            opacity: event.opacity ?? 1,
+            hardness: event.hardness ?? 1,
+            strokeWidth: event.width ?? 5,
+          });
+          
           if (isDebugEnabled()) {
             logCanvasState(`path-start: ${event.pathId}`, event.pathId);
           }
@@ -290,6 +299,15 @@ export function useCanvasSync({
           
           if (!pathPoints || pathPoints.length === 0) return;
           
+          // Get or update stored properties from path-update
+          const existing = pathProperties.get(event.pathId) || { opacity: 1, hardness: 1, strokeWidth: 5 };
+          const currentProps = {
+            opacity: event.data.opacity ?? existing.opacity,
+            hardness: event.data.hardness ?? existing.hardness,
+            strokeWidth: event.data.strokeWidth ?? existing.strokeWidth,
+          };
+          pathProperties.set(event.pathId, currentProps);
+          
           // Debug: Track update info
           if (isDebugEnabled()) {
             const debugInfo = pathDebugMap.get(event.pathId);
@@ -309,13 +327,24 @@ export function useCanvasSync({
               fabricPath.push(['L', pathPoints[i][0], pathPoints[i][1]]);
             }
 
+            const opacity = event.data.opacity ?? 1;
+            const hardness = event.data.hardness ?? 1;
+            const shadowBlur = hardness < 1 ? (1 - hardness) * (event.data.strokeWidth || 5) * 2 : 0;
+            
             path = new Path(fabricPath, {
               stroke: event.data.stroke || "#000000",
               strokeWidth: event.data.strokeWidth || 5,
+              opacity: opacity,
               fill: "",
               selectable: false,
               evented: false,
               objectCaching: false,
+              shadow: shadowBlur > 0 ? {
+                blur: shadowBlur,
+                offsetX: 0,
+                offsetY: 0,
+                color: event.data.stroke || "#000000",
+              } : null,
             });
 
             activePaths.set(event.pathId, path);
@@ -330,10 +359,22 @@ export function useCanvasSync({
               fabricPath.push(['L', pathPoints[i][0], pathPoints[i][1]]);
             }
 
+            // Use stored properties as fallback
+            const opacity = currentProps.opacity;
+            const hardness = currentProps.hardness;
+            const shadowBlur = hardness < 1 ? (1 - hardness) * currentProps.strokeWidth * 2 : 0;
+            
             (path as any).set({
               path: fabricPath,
               stroke: event.data.stroke,
-              strokeWidth: event.data.strokeWidth,
+              strokeWidth: currentProps.strokeWidth,
+              opacity: opacity,
+              shadow: shadowBlur > 0 ? {
+                blur: shadowBlur,
+                offsetX: 0,
+                offsetY: 0,
+                color: event.data.stroke || "#000000",
+              } : null,
             });
 
             // Schedule render for next frame (batched for performance)
@@ -442,6 +483,39 @@ export function useCanvasSync({
               obj.hoverCursor = 'default';
               obj.moveCursor = 'default';
               obj.objectCaching = false;
+              
+              // Ensure opacity and shadow are applied from stored properties or event data
+              if (obj.type === 'path') {
+                // Get properties from stored path properties (from path-start) or event data
+                const storedProps = pathProperties.get(targetPathId);
+                const opacity = storedProps?.opacity ?? event.data.opacity ?? obj.opacity ?? 1;
+                const hardness = storedProps?.hardness ?? event.data.hardness ?? 1;
+                const strokeWidth = obj.strokeWidth || storedProps?.strokeWidth || event.data.strokeWidth || 5;
+                const strokeColor = obj.stroke || event.data.stroke || "#000000";
+                
+                // Apply opacity
+                obj.set({ opacity: opacity });
+                
+                // Apply hardness using shadowBlur
+                if (hardness < 1) {
+                  const shadowBlur = (1 - hardness) * strokeWidth * 2;
+                  obj.set({
+                    shadow: {
+                      blur: shadowBlur,
+                      offsetX: 0,
+                      offsetY: 0,
+                      color: strokeColor,
+                    },
+                  });
+                } else {
+                  // Hard brush - no shadow
+                  obj.set({ shadow: null });
+                }
+                
+                // Clean up stored properties
+                pathProperties.delete(targetPathId);
+              }
+              
               fabricCanvas.add(obj);
             });
             

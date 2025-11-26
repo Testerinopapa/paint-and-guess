@@ -13,6 +13,8 @@ interface UseCanvasLifecycleOptions {
   isGameActive: boolean;
   activeColor: string;
   brushSize: number;
+  brushOpacity: number;
+  brushHardness: number;
   activeTool: "draw" | "erase";
 }
 
@@ -32,6 +34,8 @@ export function useCanvasLifecycle({
   isGameActive,
   activeColor,
   brushSize,
+  brushOpacity,
+  brushHardness,
   activeTool,
 }: UseCanvasLifecycleOptions): UseCanvasLifecycleReturn {
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
@@ -160,6 +164,19 @@ export function useCanvasLifecycle({
     canvas.freeDrawingBrush = new PencilBrush(canvas);
     canvas.freeDrawingBrush.color = activeColor;
     canvas.freeDrawingBrush.width = activeTool === "erase" ? brushSize * 2 : brushSize;
+    
+    // Set brush opacity (Fabric.js uses shadowBlur and shadowColor for soft edges)
+    // For opacity, we'll need to handle it in the drawing context
+    // For hardness, we use shadowBlur (0 = hard, higher = soft)
+    if (activeTool !== "erase") {
+      const shadowBlur = brushHardness < 1 ? (1 - brushHardness) * brushSize * 2 : 0;
+      (canvas.freeDrawingBrush as any).shadow = {
+        blur: shadowBlur,
+        offsetX: 0,
+        offsetY: 0,
+        color: activeColor,
+      };
+    }
 
     canvas.isDrawingMode = isGameActive && isDrawer;
 
@@ -277,7 +294,30 @@ export function useCanvasLifecycle({
         console.debug("[CanvasLifecycle] Error disposing canvas:", error);
       }
     };
-  }, [canvasRef, containerRef, isGameActive, isDrawer, calculateCanvasSize, isCanvasValid, activeColor, brushSize, activeTool]);
+  }, [canvasRef, containerRef, isGameActive, isDrawer, calculateCanvasSize, isCanvasValid]);
+
+  // Update brush properties when they change (without re-initializing canvas)
+  useEffect(() => {
+    if (!isCanvasValid(fabricCanvas) || !fabricCanvas?.freeDrawingBrush) return;
+
+    if (activeTool === "erase") {
+      fabricCanvas.freeDrawingBrush.color = "#ffffff";
+      fabricCanvas.freeDrawingBrush.width = brushSize * 2;
+      (fabricCanvas.freeDrawingBrush as any).shadow = null;
+    } else {
+      fabricCanvas.freeDrawingBrush.color = activeColor;
+      fabricCanvas.freeDrawingBrush.width = brushSize;
+      
+      // Apply hardness using shadowBlur
+      const shadowBlur = brushHardness < 1 ? (1 - brushHardness) * brushSize * 2 : 0;
+      (fabricCanvas.freeDrawingBrush as any).shadow = shadowBlur > 0 ? {
+        blur: shadowBlur,
+        offsetX: 0,
+        offsetY: 0,
+        color: activeColor,
+      } : null;
+    }
+  }, [fabricCanvas, isCanvasValid, activeColor, brushSize, brushOpacity, brushHardness, activeTool]);
 
   return {
     fabricCanvas,
