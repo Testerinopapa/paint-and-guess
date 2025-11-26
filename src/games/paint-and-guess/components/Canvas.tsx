@@ -1,20 +1,66 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Toolbar } from "./Toolbar";
 import { ColorPalette } from "./ColorPalette";
 import { useGame } from "@/games/paint-and-guess";
-import { toast } from "sonner";
 import { useCanvasLifecycle } from "./canvas/useCanvasLifecycle";
 import { useCanvasDrawing } from "./canvas/useCanvasDrawing";
 import { useCanvasSync } from "./canvas/useCanvasSync";
 
+const STORAGE_KEY = "paint-and-guess-drawing-preferences";
+
+// Load preferences from localStorage
+const loadPreferences = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const prefs = JSON.parse(saved);
+      return {
+        color: prefs.color || "#000000",
+        size: prefs.size || 5,
+        tool: prefs.tool || "draw",
+      };
+    }
+  } catch {
+    // Ignore errors
+  }
+  return {
+    color: "#000000",
+    size: 5,
+    tool: "draw" as const,
+  };
+};
+
 export const Canvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [activeColor, setActiveColor] = useState("#000000");
-  const [brushSize, setBrushSize] = useState(5);
-  const [activeTool, setActiveTool] = useState<"draw" | "erase">("draw");
+  const [preferences] = useState(loadPreferences);
+  const [activeColor, setActiveColor] = useState(preferences.color);
+  const [brushSize, setBrushSize] = useState(preferences.size);
+  const [debouncedBrushSize, setDebouncedBrushSize] = useState(preferences.size);
+  const [activeTool, setActiveTool] = useState<"draw" | "erase">(preferences.tool);
   const { gameState, isDrawer, isGameActive, sendDrawingEvent, clearCanvas } = useGame();
   const isReceivingRef = useRef(false);
+  
+  // Persist preferences to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        color: activeColor,
+        size: brushSize,
+        tool: activeTool,
+      }));
+    } catch (error) {
+      console.debug("[Canvas] Failed to save preferences:", error);
+    }
+  }, [activeColor, brushSize, activeTool]);
+
+  // Debounce brush size changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedBrushSize(brushSize);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [brushSize]);
   
   // Canvas lifecycle management
   const { fabricCanvas, isCanvasValid } = useCanvasLifecycle({
@@ -23,7 +69,7 @@ export const Canvas = () => {
     isDrawer,
     isGameActive,
     activeColor,
-    brushSize,
+    brushSize: debouncedBrushSize,
     activeTool,
   });
   
@@ -34,7 +80,7 @@ export const Canvas = () => {
     isGameActive,
     activeTool,
     activeColor,
-    brushSize,
+    brushSize: debouncedBrushSize,
     sendDrawingEvent,
     isCanvasValid,
     isReceivingRef,
@@ -51,10 +97,44 @@ export const Canvas = () => {
   });
 
   const handleToolChange = (tool: "draw" | "erase") => {
-    if (!isDrawer) return;
+    if (!isDrawer || !isGameActive) return;
     setActiveTool(tool);
-    toast.info(tool === "draw" ? "Brush selected" : "Eraser selected");
   };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (!isDrawer || !isGameActive) return;
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't interfere with browser shortcuts or when typing in inputs
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        // Allow Ctrl+U / Cmd+U for undo
+        if ((e.ctrlKey || e.metaKey) && e.key === "u" && !e.shiftKey) {
+          e.preventDefault();
+          if (handleUndo) handleUndo();
+        }
+        return;
+      }
+
+      // Don't trigger shortcuts when typing in inputs
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+        return;
+      }
+
+      // Tool shortcuts
+      if (e.key === "b" || e.key === "B") {
+        e.preventDefault();
+        setActiveTool("draw");
+      } else if (e.key === "e" || e.key === "E") {
+        e.preventDefault();
+        setActiveTool("erase");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [isDrawer, isGameActive, handleUndo]);
 
   // Show waiting state when game is not active or during round transition
   if (!isGameActive || gameState.phase === "round-ended" || gameState.phase === "game-ended") {
@@ -96,8 +176,8 @@ export const Canvas = () => {
       className="flex flex-col items-center gap-2 sm:gap-4 md:gap-6 p-2 sm:p-4 md:p-8 h-full w-full min-w-0 max-h-full overflow-hidden"
       style={{ minHeight: 0 }} // Ensure flex child can shrink
     >
-      {/* Only show toolbar for drawers */}
-      {isDrawer && (
+      {/* Only show toolbar for drawers during active drawing phase */}
+      {isDrawer && gameState.phase === "drawing" && (
         <div className="w-full min-w-0 max-w-full flex-shrink-0">
           <Toolbar
             activeTool={activeTool}
@@ -106,6 +186,7 @@ export const Canvas = () => {
             onBrushSizeChange={setBrushSize}
             onUndo={handleUndo}
             onClear={() => handleClear(clearCanvas)}
+            disabled={!isGameActive || gameState.phase !== "drawing"}
           />
         </div>
       )}
@@ -127,7 +208,7 @@ export const Canvas = () => {
         </div>
       </div>
 
-      {isDrawer && (
+      {isDrawer && gameState.phase === "drawing" && (
         <div className="w-full min-w-0 max-w-full flex-shrink-0">
           <ColorPalette activeColor={activeColor} onColorChange={setActiveColor} />
         </div>

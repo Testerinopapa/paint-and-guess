@@ -216,6 +216,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         // Determine phase from isGameActive
         const phase: GamePhase = isGameActive ? "drawing" : "lobby";
         
+        // Clear round-end state (revealedWord, winner) when not in round-ended or game-ended phase
+        // This prevents stale round-end data from persisting when joining a new room or resetting state
+        const shouldClearRoundEndState = phase !== "round-ended" && phase !== "game-ended";
+        
         return {
           ...prev,
           roomId: nextRoomId,
@@ -226,10 +230,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
             number: roundNumber ?? prev.round.number,
             drawer: currentDrawer ?? prev.round.drawer,
             word: currentWord ?? prev.round.word,
-            revealedWord: prev.round.revealedWord, // Preserve if set
+            revealedWord: shouldClearRoundEndState ? null : prev.round.revealedWord,
             timeLeft: timeLeft ?? prev.round.timeLeft,
             roundTime: roundTime ?? prev.round.roundTime,
-            winner: prev.round.winner, // Preserve if set
+            winner: shouldClearRoundEndState ? null : prev.round.winner,
           },
         };
       });

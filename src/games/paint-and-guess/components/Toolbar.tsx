@@ -31,20 +31,26 @@ export const Toolbar = ({
             size="lg"
             onClick={() => onToolChange("draw")}
             disabled={disabled}
+            aria-label="Brush tool"
+            aria-pressed={activeTool === "draw"}
             className="gap-2 transition-all hover:scale-105"
           >
             <Paintbrush className="w-5 h-5" />
             <span className="hidden sm:inline">Brush</span>
+            <span className="sr-only"> (Press B)</span>
           </Button>
           <Button
             variant={activeTool === "erase" ? "default" : "outline"}
             size="lg"
             onClick={() => onToolChange("erase")}
             disabled={disabled}
+            aria-label="Eraser tool"
+            aria-pressed={activeTool === "erase"}
             className="gap-2 transition-all hover:scale-105"
           >
             <Eraser className="w-5 h-5" />
             <span className="hidden sm:inline">Eraser</span>
+            <span className="sr-only"> (Press E)</span>
           </Button>
         </div>
 
@@ -59,6 +65,10 @@ export const Toolbar = ({
             step={1}
             disabled={disabled}
             className="flex-1 min-w-0"
+            aria-label="Brush size"
+            aria-valuemin={1}
+            aria-valuemax={50}
+            aria-valuenow={brushSize}
           />
           <span className="text-sm font-medium w-8 text-center flex-shrink-0">{brushSize}</span>
         </div>
@@ -70,16 +80,19 @@ export const Toolbar = ({
             size="lg"
             onClick={onUndo}
             disabled={disabled}
+            aria-label="Undo last action"
             className="gap-2 transition-all hover:scale-105"
           >
             <Undo className="w-5 h-5" />
             <span className="hidden sm:inline">Undo</span>
+            <span className="sr-only"> (Press Ctrl+U or Cmd+U)</span>
           </Button>
           <Button
             variant="destructive"
             size="lg"
             onClick={onClear}
             disabled={disabled}
+            aria-label="Clear canvas"
             className="gap-2 transition-all hover:scale-105"
           >
             <Trash2 className="w-5 h-5" />

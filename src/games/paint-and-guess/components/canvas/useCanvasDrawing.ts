@@ -69,6 +69,22 @@ export function useCanvasDrawing({
     let currentPathId: string | null = null;
     let lastSentPath: any = null;
     let pathPoints: number[][] = [];
+    
+    // Debug: Track sent events (check dynamically)
+    const isDebugEnabled = () => {
+      return process.env.NODE_ENV === 'development' && 
+        (typeof window !== 'undefined' && (window as any).__DEBUG_CANVAS_SYNC__ !== false);
+    };
+    
+    let drawerEventSequence = 0;
+    const drawerPathDebug: {
+      pathId: string;
+      startTime: number;
+      updateCount: number;
+      lastUpdatePointCount: number;
+      completeTime?: number;
+      completePointCount?: number;
+    }[] = [];
 
     // Handle path completion (finalize)
     const handlePathCreated = (e: { path: FabricObject }) => {
@@ -77,6 +93,35 @@ export function useCanvasDrawing({
 
       const path = e.path;
       const pathData = path.toJSON();
+      
+      // Debug: Extract point count and log
+      let completePointCount = 0;
+      if (isDebugEnabled() && currentPathId) {
+        try {
+          if (pathData.path && Array.isArray(pathData.path)) {
+            completePointCount = pathData.path.filter((cmd: any) => 
+              Array.isArray(cmd) && cmd[0] !== 'M'
+            ).length + 1;
+          }
+          
+          const debugEntry = drawerPathDebug.find(d => d.pathId === currentPathId);
+          if (debugEntry) {
+            debugEntry.completeTime = Date.now();
+            debugEntry.completePointCount = completePointCount;
+            
+            const timeDiff = debugEntry.completeTime - debugEntry.startTime;
+            console.log(`[CanvasDrawing Debug] SENT path-complete for ${currentPathId}:`, {
+              totalUpdates: debugEntry.updateCount,
+              lastUpdatePoints: debugEntry.lastUpdatePointCount,
+              completePoints: completePointCount,
+              timeToComplete: `${timeDiff}ms`,
+              totalPathPoints: pathPoints.length,
+            });
+          }
+        } catch (e) {
+          console.warn('[CanvasDrawing Debug] Error extracting point count:', e);
+        }
+      }
       
       // Send final path
       sendDrawingEvent({
@@ -93,15 +138,23 @@ export function useCanvasDrawing({
     };
 
     // Send incremental updates during mouse move (only when drawing)
+    // Note: We track drawing state via mouse:down/mouse:up, not button state,
+    // because button state can become unreliable during long continuous strokes
     const handleMouseMove = (options: any) => {
-      if (!isDrawing || !fabricCanvas?.isDrawingMode) return;
-      if (!options.e.buttons && !options.e.which) return; // Only when mouse button is down
+      // Only check isDrawing flag - don't check isDrawingMode as it might be
+      // temporarily disabled during certain operations, but we're still drawing
+      if (!isDrawing || !fabricCanvas) return;
+      // Don't check options.e.buttons - it can become unreliable during long strokes
+      // Don't check isDrawingMode - it might be temporarily disabled but drawing continues
+      // Instead, rely on the isDrawing flag set by mouse:down/mouse:up
       
       try {
         const pointer = fabricCanvas.getPointer(options.e);
         pathPoints.push([pointer.x, pointer.y]);
 
-        // Send updates every 2 points (throttle to ~30-60fps depending on mouse speed)
+        // Send updates frequently for low latency (every 2 points for smooth real-time sync)
+        // This balances responsiveness with network efficiency
+        // The receiving side processes immediately (no async delays) and batches renders
         if (pathPoints.length >= 2 && pathPoints.length % 2 === 0) {
           const pathData = {
             path: [...pathPoints],
@@ -109,19 +162,34 @@ export function useCanvasDrawing({
             strokeWidth: fabricCanvas.freeDrawingBrush.width,
           };
 
-          // Only send if path has changed (check last few points to avoid duplicate sends)
-          const recentPoints = pathPoints.slice(-5);
-          const pathString = JSON.stringify(recentPoints);
-          const lastPathString = lastSentPath ? JSON.stringify(lastSentPath.path.slice(-5)) : null;
-          
-          if (pathString !== lastPathString) {
-            sendDrawingEvent({
-              type: "path-update",
-              pathId: currentPathId,
-              data: pathData,
+          // Debug: Track sent updates
+          if (isDebugEnabled() && currentPathId) {
+            let debugEntry = drawerPathDebug.find(d => d.pathId === currentPathId);
+            if (!debugEntry) {
+              debugEntry = {
+                pathId: currentPathId,
+                startTime: Date.now(),
+                updateCount: 0,
+                lastUpdatePointCount: 0,
+              };
+              drawerPathDebug.push(debugEntry);
+            }
+            debugEntry.updateCount++;
+            debugEntry.lastUpdatePointCount = pathPoints.length;
+            
+            console.log(`[CanvasDrawing Debug] SENT path-update #${++drawerEventSequence} for ${currentPathId}:`, {
+              pointCount: pathPoints.length,
+              sequence: drawerEventSequence,
             });
-            lastSentPath = pathData;
           }
+
+          // Send immediately - no additional throttling
+          sendDrawingEvent({
+            type: "path-update",
+            pathId: currentPathId,
+            data: pathData,
+          });
+          lastSentPath = pathData;
         }
       } catch (error) {
         console.debug("[CanvasDrawing] Error getting path update:", error);
@@ -132,6 +200,13 @@ export function useCanvasDrawing({
     const handleMouseDown = (options: any) => {
       if (!fabricCanvas?.isDrawingMode) return;
       if (isReceivingRef.current) return;
+
+      // Ensure we're not already drawing (safety check)
+      if (isDrawing) {
+        // If we're already drawing, finalize the previous path first
+        isDrawing = false;
+        pathPoints = [];
+      }
 
       isDrawing = true;
       pathPoints = [];
@@ -144,12 +219,19 @@ export function useCanvasDrawing({
         color: fabricCanvas.freeDrawingBrush.color,
         width: fabricCanvas.freeDrawingBrush.width,
       });
+
+      // Note: We rely on mouse:move events for tracking.
+      // If mouse:move stops firing, Fabric.js will still create the path
+      // and path:created will fire when the mouse is released, sending the complete path.
     };
 
     // Reset path points on mouse up
     const handleMouseUp = () => {
-      isDrawing = false;
-      pathPoints = [];
+      // Only reset if we were actually drawing
+      if (isDrawing) {
+        isDrawing = false;
+        pathPoints = [];
+      }
     };
 
     fabricCanvas.on("path:created", handlePathCreated);

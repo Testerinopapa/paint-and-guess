@@ -721,16 +721,67 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("drawing-event", (event) => {
+  socket.on("drawing-event", async (event) => {
     const { roomId, playerId } = socket.data;
-    if (!roomId || !playerId) return;
+    if (!roomId || !playerId) {
+      console.warn(`[Server] ⚠️ drawing-event rejected: missing roomId or playerId`, { roomId, playerId, socketId: socket.id });
+      return;
+    }
 
     const room = roomRepository.getRoom(roomId);
-    if (!room || !room.isGameActive) return;
+    if (!room || !room.isGameActive) {
+      console.warn(`[Server] ⚠️ drawing-event rejected: room not found or game not active`, { roomId, isGameActive: room?.isGameActive });
+      return;
+    }
 
-    if (playerId !== room.currentDrawer?.id) return;
+    if (playerId !== room.currentDrawer?.id) {
+      console.warn(`[Server] ⚠️ drawing-event rejected: player is not current drawer`, { 
+        playerId, 
+        currentDrawerId: room.currentDrawer?.id,
+        socketId: socket.id 
+      });
+      return;
+    }
 
+    // Check if socket is in the room
+    const roomSockets = await io.in(roomId).fetchSockets();
+    const socketInRoom = roomSockets.some(s => s.id === socket.id);
+    
+    if (!socketInRoom) {
+      console.error(`[Server] ❌ drawing-event: socket ${socket.id} (player ${playerId}) is NOT in room ${roomId}!`);
+      // Try to rejoin the room
+      socket.join(roomId);
+      console.log(`[Server] 🔧 Rejoined socket ${socket.id} to room ${roomId}`);
+    }
+
+    // Broadcast to all other players in the room (excluding sender)
+    // Use socket.to() to exclude the sender (drawer shouldn't receive their own events)
     socket.to(roomId).emit("drawing-event", event);
+    
+    // Debug: Log broadcast details
+    const otherSockets = roomSockets.filter(s => s.id !== socket.id);
+    const isHost = room.ownerId === playerId;
+    console.debug(`[Server] ✏️ drawing-event broadcast`, {
+      roomId,
+      drawerId: playerId,
+      drawerSocketId: socket.id,
+      isHost,
+      eventType: event?.type,
+      pathId: event?.pathId,
+      totalSocketsInRoom: roomSockets.length,
+      otherPlayersInRoom: otherSockets.length,
+      otherSocketIds: otherSockets.map(s => s.id),
+      socketInRoom: socketInRoom,
+    });
+    
+    // If socket wasn't in room, also try broadcasting with io.to() as fallback
+    if (!socketInRoom) {
+      console.warn(`[Server] ⚠️ Socket not in room, using io.to() as fallback`);
+      // Exclude the sender manually
+      otherSockets.forEach(otherSocket => {
+        otherSocket.emit("drawing-event", event);
+      });
+    }
   });
 
   socket.on("clear-canvas", () => {

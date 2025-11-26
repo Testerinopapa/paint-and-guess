@@ -33,6 +33,13 @@ export function RoundSummary() {
     return null;
   }
 
+  // Don't show round-ended summary if no round has actually occurred
+  // This prevents the summary from showing when phase is incorrectly set to "round-ended"
+  // without an actual round having happened (e.g., roundNumber === 0)
+  if (gameState.phase === "round-ended" && roundNumber === 0) {
+    return null;
+  }
+
   // For game-ended, allow manual dismissal
   if (isDismissed && gameState.phase === "game-ended") {
     return null;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Check } from "lucide-react";
@@ -21,27 +21,68 @@ const PRESET_COLORS = [
   "#EC4899", // Pink
   "#A855F7", // Violet
   "#F59E0B", // Amber
-];
+] as const;
+
+const RECENT_COLORS_MAX = 6;
+const STORAGE_KEY = "paint-and-guess-recent-colors";
+
+// Validate hex color format
+const isValidHexColor = (value: string): boolean => {
+  return /^#[0-9A-F]{6}$/i.test(value);
+};
 
 export const ColorPalette = ({ activeColor, onColorChange }: ColorPaletteProps) => {
+  // Sync customColor with activeColor prop
   const [customColor, setCustomColor] = useState(activeColor);
-  const [recentColors, setRecentColors] = useState<string[]>([]);
+  
+  // Load recent colors from localStorage
+  const [recentColors, setRecentColors] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Sync customColor when activeColor prop changes
+  useEffect(() => {
+    setCustomColor(activeColor);
+  }, [activeColor]);
+
+  // Persist recent colors to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(recentColors));
+    } catch (error) {
+      console.debug("[ColorPalette] Failed to save recent colors:", error);
+    }
+  }, [recentColors]);
 
   const handleColorSelect = (color: string) => {
     onColorChange(color);
     setCustomColor(color);
     
-    // Add to recent colors
-    if (!recentColors.includes(color)) {
-      setRecentColors((prev) => [color, ...prev].slice(0, 6));
-    }
+    // Add to recent colors (remove if already exists, then add to front)
+    setRecentColors((prev) => {
+      const filtered = prev.filter((c) => c !== color);
+      return [color, ...filtered].slice(0, RECENT_COLORS_MAX);
+    });
   };
 
   const handleCustomColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const color = e.target.value;
     setCustomColor(color);
-    onColorChange(color);
-    handleColorSelect(color);
+    
+    // Only update active color if valid
+    if (isValidHexColor(color)) {
+      onColorChange(color);
+      // Add to recent colors without calling handleColorSelect (avoid double call)
+      setRecentColors((prev) => {
+        const filtered = prev.filter((c) => c !== color);
+        return [color, ...filtered].slice(0, RECENT_COLORS_MAX);
+      });
+    }
   };
 
   return (
@@ -55,7 +96,9 @@ export const ColorPalette = ({ activeColor, onColorChange }: ColorPaletteProps) 
               <button
                 key={color}
                 onClick={() => handleColorSelect(color)}
-                className="relative w-full aspect-square rounded-xl transition-all hover:scale-110 active:scale-95 shadow-soft"
+                aria-label={`Select color ${color}`}
+                aria-pressed={activeColor === color}
+                className="relative w-full aspect-square rounded-xl transition-all hover:scale-110 active:scale-95 shadow-soft focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 style={{
                   backgroundColor: color,
                   border: color === "#FFFFFF" ? "2px solid #e5e7eb" : "none",
@@ -75,15 +118,17 @@ export const ColorPalette = ({ activeColor, onColorChange }: ColorPaletteProps) 
         </div>
 
         {/* Recent Colors */}
-        {recentColors.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold mb-3 text-foreground">Recent</h3>
+        <div>
+          <h3 className="text-sm font-semibold mb-3 text-foreground">Recent</h3>
+          {recentColors.length > 0 ? (
             <div className="flex gap-2 flex-wrap">
               {recentColors.map((color, index) => (
                 <button
                   key={`${color}-${index}`}
                   onClick={() => handleColorSelect(color)}
-                  className="relative w-12 h-12 rounded-xl transition-all hover:scale-110 active:scale-95 shadow-soft"
+                  aria-label={`Select recent color ${color}`}
+                  aria-pressed={activeColor === color}
+                  className="relative w-12 h-12 rounded-xl transition-all hover:scale-110 active:scale-95 shadow-soft focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   style={{ backgroundColor: color }}
                 >
                   {activeColor === color && (
@@ -94,8 +139,10 @@ export const ColorPalette = ({ activeColor, onColorChange }: ColorPaletteProps) 
                 </button>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-sm text-muted-foreground">No recent colors yet</div>
+          )}
+        </div>
 
         {/* Custom Color Picker */}
         <div>
@@ -107,24 +154,32 @@ export const ColorPalette = ({ activeColor, onColorChange }: ColorPaletteProps) 
                 value={customColor}
                 onChange={handleCustomColorChange}
                 className="w-20 h-12 cursor-pointer rounded-xl border-2"
+                aria-label="Color picker"
               />
             </div>
             <Input
               type="text"
               value={customColor.toUpperCase()}
               onChange={(e) => {
-                const value = e.target.value;
-                if (/^#[0-9A-F]{0,6}$/i.test(value)) {
+                const value = e.target.value.toUpperCase();
+                // Allow empty or partial hex codes while typing
+                if (value === "" || /^#[0-9A-F]{0,6}$/i.test(value)) {
                   setCustomColor(value);
-                  if (value.length === 7) {
+                  // Only apply if valid complete hex color
+                  if (isValidHexColor(value)) {
                     onColorChange(value);
-                    handleColorSelect(value);
+                    // Add to recent colors without calling handleColorSelect (avoid double call)
+                    setRecentColors((prev) => {
+                      const filtered = prev.filter((c) => c !== value);
+                      return [value, ...filtered].slice(0, RECENT_COLORS_MAX);
+                    });
                   }
                 }
               }}
               className="font-mono uppercase"
               placeholder="#000000"
               maxLength={7}
+              aria-label="Custom color hex code"
             />
           </div>
         </div>
