@@ -12,6 +12,8 @@ import { PrismaRoomStore } from "./store/prismaRoomStore.js";
 import { RoomRepository } from "./store/roomRepository.js";
 import { initializeRedis, getRedisSubscriber, getRedisPublisher, isRedisEnabled, shutdownRedis } from "./redisClient.js";
 import { getRegistryResponse, loadGameRegistry } from "./gameRegistry.js";
+import { TriviaRoomRepository } from "./triviaRoomRepository.js";
+import { getSampleQuestions } from "./triviaQuestions.js";
 
 const LOG_LEVELS = {
   error: 0,
@@ -159,6 +161,7 @@ await fs.mkdir(dataDir, { recursive: true });
 
 const roomStore = new PrismaRoomStore();
 const roomRepository = new RoomRepository(roomStore);
+const triviaRoomRepository = new TriviaRoomRepository();
 
 let roomSweepTimer = null;
 let sweepInProgress = false;
@@ -999,12 +1002,346 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    const { roomId, playerId } = socket.data;
+    const { roomId, playerId, isTrivia } = socket.data;
     if (!roomId || !playerId) {
       console.log(`[Server] 🔌 Client disconnected: ${socket.id} (not in a room)`);
       return;
     }
 
+    // Handle trivia room disconnects
+    if (isTrivia) {
+      const room = triviaRoomRepository.getRoom(roomId);
+      if (!room) return;
+
+      room.markPlayerDisconnected(playerId);
+      socket.leave(roomId);
+      socket.data.roomId = null;
+      socket.data.playerId = null;
+
+      if (room.players.length === 0) {
+        triviaRoomRepository.deleteRoom(roomId);
+      } else {
+        io.to(roomId).emit("trivia:player-left", {
+          playerId,
+          players: room.toJSON().players,
+        });
+      }
+      return;
+    }
+
+    // Handle paint-and-guess room disconnects
+    const room = roomRepository.getRoom(roomId);
+    if (!room) {
+      console.log(`[Server] 🔌 Client disconnected: ${socket.id}, room ${roomId} not found`);
+      return;
+    }
+
+    const player = room.getPlayerById(playerId);
+    const wasDrawer = room.currentDrawer?.id === playerId;
+    const activeBefore = room.getActivePlayerCount();
+
+    console.log(`[Server] 🔌 Player disconnecting: ${playerId} (${player?.name || 'unknown'}), wasDrawer: ${wasDrawer}, activeBefore: ${activeBefore}`);
+
+    room.markPlayerDisconnected(playerId);
+    socket.leave(roomId);
+    socket.data.roomId = null;
+    socket.data.playerId = null;
+
+    const activeAfter = room.getActivePlayerCount();
+    console.log(`[Server] 📊 Room ${roomId} state: ${activeAfter}/${room.players.length} active (was ${activeBefore}), gameActive: ${room.isGameActive}`);
+
+    const kept = await persistRoom(room);
+
+    if (kept) {
+      io.to(roomId).emit("player-left", {
+        playerId,
+        players: serializePlayers(room.players),
+        ownerId: room.ownerId,
+      });
+
+      if (room.isGameActive && wasDrawer) {
+        console.log(`[Server] ⚠️ Drawer disconnected during active game, ending round`);
+        await endRound(roomId);
+      }
+    } else {
+      console.log(`[Server] 🗑️ Room ${roomId} deleted (no players left)`);
+    }
+
+    console.log(`[Server] ✅ Disconnect handled for ${socket.id}`);
+  });
+
+  // Trivia Blitz socket handlers
+  socket.on("trivia:create-room", async ({ roomName, playerName, avatar }) => {
+    const roomId = generateRoomId();
+    const questions = getSampleQuestions();
+    
+    const room = triviaRoomRepository.createRoom({
+      id: roomId,
+      name: sanitizeName(roomName, `Room ${roomId}`),
+      isPublic: true,
+      maxPlayers: 12,
+      questions,
+      ownerId: null,
+    });
+
+    const player = {
+      id: uuidv4(),
+      name: sanitizeName(playerName, "Host"),
+      avatar: sanitizeAvatar(avatar),
+      socketId: socket.id,
+    };
+
+    room.addPlayer(player);
+    room.ownerId = player.id;
+
+    socket.join(roomId);
+    socket.data.roomId = roomId;
+    socket.data.playerId = player.id;
+    socket.data.isTrivia = true;
+
+    socket.emit("session", { playerId: player.id });
+
+    socket.emit("trivia:room-created", {
+      roomId,
+      gamePin: room.gamePin,
+      room: room.toJSON(),
+    });
+
+    socket.emit("trivia:room-state", room.toJSON());
+  });
+
+  socket.on("trivia:join-room", async ({ gamePin, playerName, avatar }) => {
+    const room = triviaRoomRepository.getRoomByPin(gamePin);
+    if (!room) {
+      socket.emit("error", { message: "Invalid game PIN" });
+      return;
+    }
+
+    if (room.getActivePlayerCount() >= room.maxPlayers) {
+      socket.emit("error", { message: "Room is full" });
+      return;
+    }
+
+    const player = {
+      id: uuidv4(),
+      name: sanitizeName(playerName, `Player ${room.getActivePlayerCount() + 1}`),
+      avatar: sanitizeAvatar(avatar),
+      socketId: socket.id,
+    };
+
+    room.addPlayer(player);
+
+    socket.join(room.id);
+    socket.data.roomId = room.id;
+    socket.data.playerId = player.id;
+    socket.data.isTrivia = true;
+
+    socket.emit("session", { playerId: player.id });
+
+    socket.emit("trivia:joined", {
+      roomId: room.id,
+      room: room.toJSON(),
+    });
+
+    io.to(room.id).emit("trivia:player-joined", {
+      player: { id: player.id, name: player.name, avatar: player.avatar },
+      players: room.toJSON().players,
+    });
+
+    socket.emit("trivia:room-state", room.toJSON());
+  });
+
+  socket.on("trivia:start-game", async () => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
+
+    const room = triviaRoomRepository.getRoom(roomId);
+    if (!room || room.isGameActive) return;
+
+    if (room.ownerId !== playerId) {
+      socket.emit("error", { message: "Only the host can start the game" });
+      return;
+    }
+
+    try {
+      room.startGame();
+    } catch (error) {
+      socket.emit("error", { message: error.message });
+      return;
+    }
+
+    io.to(roomId).emit("trivia:phase-changed", {
+      phase: room.phase,
+      questionIndex: room.currentQuestionIndex,
+    });
+
+    // Start question intro phase
+    setTimeout(() => {
+      room.phase = "question";
+      room.questionStartTime = Date.now();
+      const question = room.getCurrentQuestion();
+      
+      io.to(roomId).emit("trivia:phase-changed", {
+        phase: room.phase,
+        questionIndex: room.currentQuestionIndex,
+      });
+
+      io.to(roomId).emit("trivia:question", {
+        question,
+        questionIndex: room.currentQuestionIndex,
+        totalQuestions: room.questions.length,
+      });
+
+      // End question after time limit
+      setTimeout(() => {
+        if (room.phase === "question") {
+          room.phase = "answer-reveal";
+          io.to(roomId).emit("trivia:phase-changed", {
+            phase: room.phase,
+            questionIndex: room.currentQuestionIndex,
+          });
+
+          io.to(roomId).emit("trivia:answer-reveal", {
+            correctOptionId: question.correctOptionId,
+            answerStats: room.answerStats,
+          });
+
+          setTimeout(() => {
+            room.phase = "scoring";
+            io.to(roomId).emit("trivia:phase-changed", {
+              phase: room.phase,
+              questionIndex: room.currentQuestionIndex,
+            });
+
+            io.to(roomId).emit("trivia:scoring", {
+              players: room.toJSON().players,
+            });
+
+            setTimeout(() => {
+              const leaderboard = room.getLeaderboard();
+              room.phase = "leaderboard";
+              io.to(roomId).emit("trivia:phase-changed", {
+                phase: room.phase,
+                questionIndex: room.currentQuestionIndex,
+              });
+
+              io.to(roomId).emit("trivia:leaderboard", {
+                leaderboard,
+              });
+
+              setTimeout(() => {
+                const hasMore = room.nextQuestion();
+                if (!hasMore) {
+                  // Game ended - show podium
+                  const podium = room.getPodium();
+                  io.to(roomId).emit("trivia:phase-changed", {
+                    phase: room.phase,
+                  });
+                  io.to(roomId).emit("trivia:podium", {
+                    podium,
+                    finalScores: room.toJSON().players,
+                  });
+                } else {
+                  // Next question
+                  io.to(roomId).emit("trivia:phase-changed", {
+                    phase: room.phase,
+                    questionIndex: room.currentQuestionIndex,
+                  });
+                }
+              }, 3000);
+            }, 2000);
+          }, 3000);
+        }
+      }, question.timeLimit * 1000);
+    }, 2000);
+  });
+
+  socket.on("trivia:submit-answer", async ({ optionId }) => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
+
+    const room = triviaRoomRepository.getRoom(roomId);
+    if (!room || room.phase !== "question") return;
+
+    const timeElapsed = Date.now() - (room.questionStartTime || Date.now());
+    const result = room.submitAnswer(playerId, optionId, timeElapsed);
+
+    if (result.error) {
+      socket.emit("error", { message: result.error });
+      return;
+    }
+
+    socket.emit("trivia:answer-result", {
+      isCorrect: result.isCorrect,
+      points: result.points,
+      newScore: result.newScore,
+      newStreak: result.newStreak,
+    });
+
+    // Broadcast to host if all answered
+    if (room.allPlayersAnswered()) {
+      io.to(roomId).emit("trivia:all-answered");
+    }
+  });
+
+  socket.on("trivia:next-question", async () => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
+
+    const room = triviaRoomRepository.getRoom(roomId);
+    if (!room) return;
+
+    if (room.ownerId !== playerId) {
+      socket.emit("error", { message: "Only the host can advance" });
+      return;
+    }
+
+    const hasMore = room.nextQuestion();
+    if (!hasMore) {
+      const podium = room.getPodium();
+      io.to(roomId).emit("trivia:phase-changed", {
+        phase: room.phase,
+      });
+      io.to(roomId).emit("trivia:podium", {
+        podium,
+        finalScores: room.toJSON().players,
+      });
+    } else {
+      io.to(roomId).emit("trivia:phase-changed", {
+        phase: room.phase,
+        questionIndex: room.currentQuestionIndex,
+      });
+    }
+  });
+
+  socket.on("disconnect", async () => {
+    const { roomId, playerId, isTrivia } = socket.data;
+    if (!roomId || !playerId) {
+      console.log(`[Server] 🔌 Client disconnected: ${socket.id} (not in a room)`);
+      return;
+    }
+
+    if (isTrivia) {
+      const room = triviaRoomRepository.getRoom(roomId);
+      if (!room) return;
+
+      room.markPlayerDisconnected(playerId);
+      socket.leave(roomId);
+      socket.data.roomId = null;
+      socket.data.playerId = null;
+
+      if (room.players.length === 0) {
+        triviaRoomRepository.deleteRoom(roomId);
+      } else {
+        io.to(roomId).emit("trivia:player-left", {
+          playerId,
+          players: room.toJSON().players,
+        });
+      }
+      return;
+    }
+
+    // Handle paint-and-guess room disconnects
     const room = roomRepository.getRoom(roomId);
     if (!room) {
       console.log(`[Server] 🔌 Client disconnected: ${socket.id}, room ${roomId} not found`);

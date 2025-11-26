@@ -7,6 +7,9 @@ import NotFound from "@/games/paint-and-guess/pages/NotFound";
 import Room from "@/games/paint-and-guess/pages/Room";
 import PingPongIndex from "@/games/ping-pong/pages/Index";
 import RpgIndex from "@/games/rpg/pages/Index";
+import TriviaBlitzLobby from "@/games/trivia-blitz/pages/Lobby";
+import TriviaBlitzRoom from "@/games/trivia-blitz/pages/Room";
+import { TriviaBlitzApp } from "@/games/trivia-blitz/pages/TriviaBlitzApp";
 
 const RoomRedirect = () => {
   const { roomId } = useParams();
@@ -30,6 +33,10 @@ const AppRoutes = () => {
           </Route>
           <Route path="chronicles-of-the-abyss">
             <Route index element={<RpgIndex />} />
+          </Route>
+          <Route path="trivia-blitz" element={<TriviaBlitzApp />}>
+            <Route index element={<TriviaBlitzLobby />} />
+            <Route path="room/:roomId" element={<TriviaBlitzRoom />} />
           </Route>
         </Route>
       </Route>
