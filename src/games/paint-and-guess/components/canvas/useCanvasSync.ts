@@ -156,6 +156,14 @@ export function useCanvasSync({
     const finalizedPaths = new Set<string>();
     // Track brush properties (opacity, hardness) for each path
     const pathProperties = new Map<string, { opacity: number; hardness: number; strokeWidth: number }>();
+    // Buffer path-update events that arrive after path-complete (for network latency handling)
+    const pendingPathCompletes = new Map<string, {
+      event: any;
+      timestamp: number;
+      bufferedUpdates: Array<{ event: any; timestamp: number; sequence: number }>;
+    }>();
+    // Track the highest sequence number seen for each path
+    const pathMaxSequence = new Map<string, number>();
     
     // Debug: Track path debugging info
     if (isDebugEnabled()) {
@@ -280,14 +288,40 @@ export function useCanvasSync({
 
       // Handle path update - update existing path in real-time
       if (event.type === "path-update" && event.pathId && event.data) {
+        const eventSequence = event.sequence || 0;
+        const pathId = event.pathId;
+        
+        // Track max sequence for this path
+        const currentMax = pathMaxSequence.get(pathId) || 0;
+        if (eventSequence > currentMax) {
+          pathMaxSequence.set(pathId, eventSequence);
+        }
+        
+        // If path-complete is pending, buffer this update instead of applying immediately
+        const pendingComplete = pendingPathCompletes.get(pathId);
+        if (pendingComplete) {
+          // Buffer this update - it will be applied before finalizing
+          pendingComplete.bufferedUpdates.push({
+            event,
+            timestamp: eventTimestamp,
+            sequence: eventSequence,
+          });
+          // Sort by sequence to ensure correct order
+          pendingComplete.bufferedUpdates.sort((a, b) => a.sequence - b.sequence);
+          if (isDebugEnabled()) {
+            console.log(`[CanvasSync Debug] Buffered path-update #${eventSequence} for path ${pathId} (${pendingComplete.bufferedUpdates.length} buffered)`);
+          }
+          return;
+        }
+        
         // Ignore path-update events for paths that have already been finalized
         // This prevents race conditions where path-complete arrives before all path-updates
-        if (finalizedPaths.has(event.pathId)) {
+        if (finalizedPaths.has(pathId)) {
           if (isDebugEnabled()) {
-            const debugInfo = pathDebugMap.get(event.pathId);
+            const debugInfo = pathDebugMap.get(pathId);
             if (debugInfo) {
               debugInfo.ignoredUpdates++;
-              console.warn(`[CanvasSync Debug] Ignored path-update #${sequence} for finalized path ${event.pathId} (${debugInfo.ignoredUpdates} total ignored)`);
+              console.warn(`[CanvasSync Debug] Ignored path-update #${eventSequence} for finalized path ${pathId} (${debugInfo.ignoredUpdates} total ignored)`);
             }
           }
           return;
@@ -349,8 +383,12 @@ export function useCanvasSync({
 
             activePaths.set(event.pathId, path);
             fabricCanvas.add(path);
-            // Schedule render for next frame (batched for performance)
-            scheduleRender();
+            // Immediate render for new paths (first update)
+            if (fabricCanvas.requestRenderAll) {
+              fabricCanvas.requestRenderAll();
+            } else {
+              fabricCanvas.renderAll();
+            }
           } else {
             // Update existing path with new points
             // Build path array for Fabric.js
@@ -377,7 +415,7 @@ export function useCanvasSync({
               } : null,
             });
 
-            // Schedule render for next frame (batched for performance)
+            // Use batched rendering for updates (smoother performance)
             scheduleRender();
           }
           
@@ -413,65 +451,128 @@ export function useCanvasSync({
           }
         }
         
-        // Mark this path as finalized immediately to prevent late path-update events
-        finalizedPaths.add(targetPathId);
+        const eventSequence = event.sequence || 0;
+        const maxSequence = pathMaxSequence.get(targetPathId) || 0;
         
-        // Debug: Extract point count from path-complete data
-        let completePointCount = 0;
+        // Store pending complete event and wait for late path-update events
+        // This handles network latency on live servers where path-complete can arrive before all path-updates
+        pendingPathCompletes.set(targetPathId, {
+          event,
+          timestamp: eventTimestamp,
+          bufferedUpdates: [],
+        });
+        
         if (isDebugEnabled()) {
-          try {
-            // Try to extract path points from the JSON data
-            const pathData = event.data;
-            if (pathData.path && Array.isArray(pathData.path)) {
-              // Count non-M commands (actual path segments)
-              completePointCount = pathData.path.filter((cmd: any) => 
-                Array.isArray(cmd) && cmd[0] !== 'M'
-              ).length + 1; // +1 for the M command
-            }
-            
-            const debugInfo = pathDebugMap.get(targetPathId);
-            if (debugInfo) {
-              debugInfo.completeTime = eventTimestamp;
-              debugInfo.completePointCount = completePointCount;
-              debugInfo.finalized = true;
-              
-              const timeDiff = eventTimestamp - debugInfo.startTime;
-              const updatesAfterComplete = debugInfo.events.filter(e => 
-                e.timestamp > eventTimestamp && e.type === 'path-update'
-              ).length;
-              
-              console.log(`[CanvasSync Debug] path-complete for ${targetPathId}:`, {
-                totalUpdates: debugInfo.updateCount,
-                lastUpdatePoints: debugInfo.lastUpdatePointCount,
-                completePoints: completePointCount,
-                timeToComplete: `${timeDiff}ms`,
-                updatesAfterComplete,
-                ignoredUpdates: debugInfo.ignoredUpdates,
-                eventSequence: debugInfo.events.map(e => `${e.type}#${e.sequence}`).join(' -> '),
-              });
-            }
-          } catch (e) {
-            console.warn('[CanvasSync Debug] Error extracting point count:', e);
-          }
+          console.log(`[CanvasSync Debug] path-complete received for ${targetPathId}, waiting for late updates (max sequence: ${maxSequence}, complete sequence: ${eventSequence})`);
         }
         
-        isReceivingRef.current = true;
-        
-        try {
-          // Remove temporary path if it exists
-          const tempPath = activePaths.get(targetPathId);
-          if (tempPath) {
-            try {
-              fabricCanvas.remove(tempPath);
-            } catch (e) {
-              // Path might already be removed, ignore
+        // Wait 50ms to catch any late path-update events (handles network latency)
+        // Reduced from 200ms for faster finalization while still catching late updates
+        setTimeout(() => {
+          const pending = pendingPathCompletes.get(targetPathId);
+          if (!pending) return; // Already processed
+          
+          // Apply any buffered path-update events first (they arrived after path-complete)
+          if (pending.bufferedUpdates.length > 0) {
+            if (isDebugEnabled()) {
+              console.log(`[CanvasSync Debug] Applying ${pending.bufferedUpdates.length} buffered path-update events for ${targetPathId}`);
+            }
+            
+            // Apply buffered updates in sequence order - use the latest one (most points)
+            const latestUpdate = pending.bufferedUpdates[pending.bufferedUpdates.length - 1];
+            const pathPoints = latestUpdate.event.data?.path;
+            
+            if (pathPoints && pathPoints.length > 0 && isCanvasValid(fabricCanvas)) {
+              let path = activePaths.get(targetPathId);
+              
+              if (path) {
+                // Update existing path with latest points
+                const fabricPath: any[] = [['M', pathPoints[0][0], pathPoints[0][1]]];
+                for (let i = 1; i < pathPoints.length; i++) {
+                  fabricPath.push(['L', pathPoints[i][0], pathPoints[i][1]]);
+                }
+                
+                const storedProps = pathProperties.get(targetPathId) || { opacity: 1, hardness: 1, strokeWidth: 5 };
+                const shadowBlur = storedProps.hardness < 1 ? (1 - storedProps.hardness) * storedProps.strokeWidth * 2 : 0;
+                
+                (path as any).set({
+                  path: fabricPath,
+                  stroke: latestUpdate.event.data.stroke,
+                  strokeWidth: storedProps.strokeWidth,
+                  opacity: storedProps.opacity,
+                  shadow: shadowBlur > 0 ? {
+                    blur: shadowBlur,
+                    offsetX: 0,
+                    offsetY: 0,
+                    color: latestUpdate.event.data.stroke || "#000000",
+                  } : null,
+                });
+                
+                scheduleRender();
+              }
             }
           }
-          activePaths.delete(targetPathId);
+          
+          // Now finalize the path
+          pendingPathCompletes.delete(targetPathId);
+          
+          // Mark this path as finalized to prevent late path-update events
+          finalizedPaths.add(targetPathId);
+          
+          // Debug: Extract point count from path-complete data
+          let completePointCount = 0;
+          if (isDebugEnabled()) {
+            try {
+              // Try to extract path points from the JSON data
+              const pathData = pending.event.data;
+              if (pathData.path && Array.isArray(pathData.path)) {
+                // Count non-M commands (actual path segments)
+                completePointCount = pathData.path.filter((cmd: any) => 
+                  Array.isArray(cmd) && cmd[0] !== 'M'
+                ).length + 1; // +1 for the M command
+              }
+              
+              const debugInfo = pathDebugMap.get(targetPathId);
+              if (debugInfo) {
+                debugInfo.completeTime = pending.timestamp;
+                debugInfo.completePointCount = completePointCount;
+                debugInfo.finalized = true;
+                
+                const timeDiff = pending.timestamp - debugInfo.startTime;
+                const bufferedCount = pending.bufferedUpdates.length;
+                
+                console.log(`[CanvasSync Debug] path-complete finalized for ${targetPathId}:`, {
+                  totalUpdates: debugInfo.updateCount,
+                  lastUpdatePoints: debugInfo.lastUpdatePointCount,
+                  completePoints: completePointCount,
+                  timeToComplete: `${timeDiff}ms`,
+                  bufferedUpdates: bufferedCount,
+                  ignoredUpdates: debugInfo.ignoredUpdates,
+                  eventSequence: debugInfo.events.map(e => `${e.type}#${e.sequence}`).join(' -> '),
+                });
+              }
+            } catch (e) {
+              console.warn('[CanvasSync Debug] Error extracting point count:', e);
+            }
+          }
+          
+          isReceivingRef.current = true;
+          
+          try {
+            // Remove temporary path if it exists
+            const tempPath = activePaths.get(targetPathId);
+            if (tempPath) {
+              try {
+                fabricCanvas.remove(tempPath);
+              } catch (e) {
+                // Path might already be removed, ignore
+              }
+            }
+            activePaths.delete(targetPathId);
 
-          // Use enlivenObjects for final path (this is the complete, optimized path)
-          // fabric.util is accessed from the fabric namespace
-          fabric.util.enlivenObjects([event.data]).then((objects: FabricObject[]) => {
+            // Use enlivenObjects for final path (this is the complete, optimized path)
+            // fabric.util is accessed from the fabric namespace
+            fabric.util.enlivenObjects([pending.event.data]).then((objects: FabricObject[]) => {
             if (!isCanvasValid(fabricCanvas)) {
               isReceivingRef.current = false;
               return;
@@ -549,6 +650,7 @@ export function useCanvasSync({
           console.error("[CanvasSync] Error handling path complete:", error);
           isReceivingRef.current = false;
         }
+        }, 200); // Wait 200ms for late path-update events (handles network latency)
         return;
       }
 

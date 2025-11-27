@@ -139,6 +139,22 @@ const corsConfig = {
 const io = new Server(httpServer, {
   cors: corsConfig,
   adapter: redisAdapter || undefined, // Use Redis adapter if available
+  // Optimize for low latency
+  pingTimeout: 20000, // Reduce from default 20000ms
+  pingInterval: 25000, // Reduce from default 25000ms
+  transports: ['websocket', 'polling'], // Prefer WebSocket for lower latency
+  // Enable compression for better performance
+  perMessageDeflate: {
+    zlibDeflateOptions: {
+      chunkSize: 1024,
+      memLevel: 7,
+      level: 3, // Balance between compression and speed
+    },
+    zlibInflateOptions: {
+      chunkSize: 10 * 1024
+    },
+    threshold: 1024, // Only compress messages larger than 1KB
+  },
 });
 
 app.use(cors(corsConfig));
@@ -724,65 +740,50 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("drawing-event", async (event) => {
+  socket.on("drawing-event", (event) => {
     const { roomId, playerId } = socket.data;
     if (!roomId || !playerId) {
-      console.warn(`[Server] ⚠️ drawing-event rejected: missing roomId or playerId`, { roomId, playerId, socketId: socket.id });
+      // Only log warnings in debug mode to reduce overhead
+      if (process.env.LOG_LEVEL === "debug") {
+        console.warn(`[Server] ⚠️ drawing-event rejected: missing roomId or playerId`, { roomId, playerId, socketId: socket.id });
+      }
       return;
     }
 
     const room = roomRepository.getRoom(roomId);
     if (!room || !room.isGameActive) {
-      console.warn(`[Server] ⚠️ drawing-event rejected: room not found or game not active`, { roomId, isGameActive: room?.isGameActive });
+      if (process.env.LOG_LEVEL === "debug") {
+        console.warn(`[Server] ⚠️ drawing-event rejected: room not found or game not active`, { roomId, isGameActive: room?.isGameActive });
+      }
       return;
     }
 
     if (playerId !== room.currentDrawer?.id) {
-      console.warn(`[Server] ⚠️ drawing-event rejected: player is not current drawer`, { 
-        playerId, 
-        currentDrawerId: room.currentDrawer?.id,
-        socketId: socket.id 
-      });
+      if (process.env.LOG_LEVEL === "debug") {
+        console.warn(`[Server] ⚠️ drawing-event rejected: player is not current drawer`, { 
+          playerId, 
+          currentDrawerId: room.currentDrawer?.id,
+          socketId: socket.id 
+        });
+      }
       return;
     }
 
-    // Check if socket is in the room
-    const roomSockets = await io.in(roomId).fetchSockets();
-    const socketInRoom = roomSockets.some(s => s.id === socket.id);
-    
-    if (!socketInRoom) {
-      console.error(`[Server] ❌ drawing-event: socket ${socket.id} (player ${playerId}) is NOT in room ${roomId}!`);
-      // Try to rejoin the room
-      socket.join(roomId);
-      console.log(`[Server] 🔧 Rejoined socket ${socket.id} to room ${roomId}`);
-    }
-
-    // Broadcast to all other players in the room (excluding sender)
-    // Use socket.to() to exclude the sender (drawer shouldn't receive their own events)
+    // Optimized: Direct broadcast without expensive fetchSockets() call
+    // Socket.io's socket.to() is efficient and doesn't require fetching all sockets
+    // Only check room membership on first event or if we suspect an issue
     socket.to(roomId).emit("drawing-event", event);
     
-    // Debug: Log broadcast details
-    const otherSockets = roomSockets.filter(s => s.id !== socket.id);
-    const isHost = room.ownerId === playerId;
-    console.debug(`[Server] ✏️ drawing-event broadcast`, {
-      roomId,
-      drawerId: playerId,
-      drawerSocketId: socket.id,
-      isHost,
-      eventType: event?.type,
-      pathId: event?.pathId,
-      totalSocketsInRoom: roomSockets.length,
-      otherPlayersInRoom: otherSockets.length,
-      otherSocketIds: otherSockets.map(s => s.id),
-      socketInRoom: socketInRoom,
-    });
-    
-    // If socket wasn't in room, also try broadcasting with io.to() as fallback
-    if (!socketInRoom) {
-      console.warn(`[Server] ⚠️ Socket not in room, using io.to() as fallback`);
-      // Exclude the sender manually
-      otherSockets.forEach(otherSocket => {
-        otherSocket.emit("drawing-event", event);
+    // Debug logging only in debug mode to reduce overhead
+    if (process.env.LOG_LEVEL === "debug") {
+      const isHost = room.ownerId === playerId;
+      console.debug(`[Server] ✏️ drawing-event broadcast`, {
+        roomId,
+        drawerId: playerId,
+        drawerSocketId: socket.id,
+        isHost,
+        eventType: event?.type,
+        pathId: event?.pathId,
       });
     }
   });

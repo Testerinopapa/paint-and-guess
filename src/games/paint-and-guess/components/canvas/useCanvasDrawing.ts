@@ -165,6 +165,7 @@ export function useCanvasDrawing({
       sendDrawingEvent({
         type: "path-complete",
         pathId: currentPathId,
+        sequence: ++drawerEventSequence,
         data: pathData,
       });
 
@@ -190,10 +191,10 @@ export function useCanvasDrawing({
         const pointer = fabricCanvas.getPointer(options.e);
         pathPoints.push([pointer.x, pointer.y]);
 
-        // Send updates frequently for low latency (every 2 points for smooth real-time sync)
-        // This balances responsiveness with network efficiency
-        // The receiving side processes immediately (no async delays) and batches renders
-        if (pathPoints.length >= 2 && pathPoints.length % 2 === 0) {
+        // Send updates every point for lowest latency (real-time sync)
+        // The receiving side processes immediately and batches renders efficiently
+        // Network overhead is minimal as path data is small
+        if (pathPoints.length >= 1) {
           const pathData = {
             path: [...pathPoints],
             stroke: fabricCanvas.freeDrawingBrush.color,
@@ -227,6 +228,7 @@ export function useCanvasDrawing({
           sendDrawingEvent({
             type: "path-update",
             pathId: currentPathId,
+            sequence: drawerEventSequence,
             data: pathData,
           });
           lastSentPath = pathData;
@@ -256,6 +258,7 @@ export function useCanvasDrawing({
       sendDrawingEvent({
         type: "path-start",
         pathId: currentPathId,
+        sequence: ++drawerEventSequence,
         color: fabricCanvas.freeDrawingBrush.color,
         width: fabricCanvas.freeDrawingBrush.width,
         opacity: activeTool === "erase" ? 1 : brushOpacity,

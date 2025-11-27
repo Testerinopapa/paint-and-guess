@@ -7,8 +7,9 @@ import { getPaintPreviewComponent } from "@/games/paint-and-guess/hubEntry";
 import { getPingPongPreviewComponent } from "@/games/ping-pong/hubEntry";
 import { getRpgPreviewComponent } from "@/games/rpg/hubEntry";
 import { getTriviaBlitzPreviewComponent } from "@/games/trivia-blitz/hubEntry";
+import { apiPath } from "@/config/api";
 
-const registryEndpoint = import.meta.env.VITE_GAME_REGISTRY_URL ?? "/api/games";
+const registryEndpoint = import.meta.env.VITE_GAME_REGISTRY_URL ?? apiPath("/api/games");
 const CACHE_TTL_MS = 60 * 1000;
 const DEBUG = import.meta.env.DEV || import.meta.env.VITE_GAME_REGISTRY_DEBUG === "true";
 
