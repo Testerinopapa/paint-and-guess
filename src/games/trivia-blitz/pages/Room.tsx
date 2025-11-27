@@ -48,6 +48,11 @@ export default function Room() {
             {gameState.gamePin && (
               <p className="text-muted-foreground">PIN: {gameState.gamePin}</p>
             )}
+            {gameState.quizName && (
+              <p className="text-sm text-muted-foreground">
+                Quiz: {gameState.quizName}
+              </p>
+            )}
           </div>
           <Button variant="outline" onClick={handleLeaveRoom}>
             Leave Room

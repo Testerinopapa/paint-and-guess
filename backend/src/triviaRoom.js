@@ -13,6 +13,8 @@ export class TriviaRoom {
     gamePin = null,
     questionStartTime = null,
     answerStats = {},
+    quizId = null,
+    quizName = null,
   }) {
     this.id = id;
     this.name = name;
@@ -36,6 +38,8 @@ export class TriviaRoom {
     this.gamePin = gamePin || this.generatePin();
     this.questionStartTime = questionStartTime;
     this.answerStats = answerStats; // { optionId: count }
+    this.quizId = quizId;
+    this.quizName = quizName;
   }
 
   generatePin() {
@@ -252,6 +256,8 @@ export class TriviaRoom {
       currentQuestionIndex: this.currentQuestionIndex,
       phase: this.phase,
       totalQuestions: this.questions.length,
+      quizId: this.quizId,
+      quizName: this.quizName,
     };
   }
 
@@ -270,6 +276,8 @@ export class TriviaRoom {
       gamePin: this.gamePin,
       questionStartTime: this.questionStartTime,
       answerStats: this.answerStats,
+      quizId: this.quizId,
+      quizName: this.quizName,
     };
   }
 

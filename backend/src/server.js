@@ -13,7 +13,7 @@ import { RoomRepository } from "./store/roomRepository.js";
 import { initializeRedis, getRedisSubscriber, getRedisPublisher, isRedisEnabled, shutdownRedis } from "./redisClient.js";
 import { getRegistryResponse, loadGameRegistry } from "./gameRegistry.js";
 import { TriviaRoomRepository } from "./triviaRoomRepository.js";
-import { getSampleQuestions } from "./triviaQuestions.js";
+import { getQuizById, getAllQuizzes } from "./triviaQuestions.js";
 
 const LOG_LEVELS = {
   error: 0,

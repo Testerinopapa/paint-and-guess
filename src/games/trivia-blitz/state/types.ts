@@ -43,5 +43,7 @@ export interface TriviaRoomState {
     second: Player | null;
     third: Player | null;
   };
+  quizId?: string | null;
+  quizName?: string | null;
 }
 

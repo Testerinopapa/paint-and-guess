@@ -36,7 +36,7 @@ interface TriviaContextType {
   socket: Socket | null;
   isConnected: boolean;
   isHost: boolean;
-  createRoom: (roomName: string, playerName: string, avatar?: string) => void;
+  createRoom: (roomName: string, playerName: string, avatar?: string, quizId?: string) => void;
   joinRoom: (gamePin: string, playerName: string, avatar?: string) => void;
   leaveRoom: () => void;
   startGame: () => void;
@@ -67,6 +67,8 @@ function createInitialState(): TriviaRoomState {
     },
     hasAnswered: false,
     lastAnswerResult: null,
+    quizId: null,
+    quizName: null,
   };
 }
 
@@ -92,6 +94,8 @@ export function TriviaProvider({ children }: { children: ReactNode }) {
         ownerId: room.ownerId,
         players: room.players,
         phase: "lobby",
+        quizId: room.quizId || null,
+        quizName: room.quizName || null,
       }));
       toast.success(`Room created! PIN: ${gamePin}`);
       // Navigation handled by Room component
@@ -104,6 +108,8 @@ export function TriviaProvider({ children }: { children: ReactNode }) {
         gamePin: room.gamePin,
         players: room.players,
         phase: "lobby",
+        quizId: room.quizId || null,
+        quizName: room.quizName || null,
       }));
       toast.success("Joined room!");
       // Navigation handled by Room component
@@ -119,6 +125,8 @@ export function TriviaProvider({ children }: { children: ReactNode }) {
         phase: state.phase || "lobby",
         currentQuestionIndex: state.currentQuestionIndex || 0,
         totalQuestions: state.totalQuestions || 0,
+        quizId: state.quizId || null,
+        quizName: state.quizName || null,
       }));
     });
 
@@ -227,9 +235,9 @@ export function TriviaProvider({ children }: { children: ReactNode }) {
     };
   }, [socket]);
 
-  const createRoom = (roomName: string, playerName: string, avatar?: string) => {
+  const createRoom = (roomName: string, playerName: string, avatar?: string, quizId?: string) => {
     if (!socket) return;
-    socket.emit("trivia:create-room", { roomName, playerName, avatar });
+    socket.emit("trivia:create-room", { roomName, playerName, avatar, quizId });
     setGameState((prev) => ({
       ...prev,
       playerName,

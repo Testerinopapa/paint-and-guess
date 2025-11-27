@@ -8,6 +8,28 @@ import { toast } from "sonner";
 import { Plus, LogIn } from "lucide-react";
 import { AvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
+import { cn } from "@/lib/utils";
+
+const QUIZZES = [
+  {
+    id: "general-knowledge",
+    name: "General Knowledge",
+    description: "Test your knowledge on a variety of topics",
+    questionCount: 5,
+  },
+  {
+    id: "science-tech",
+    name: "Science & Technology",
+    description: "Questions about science, technology, and innovation",
+    questionCount: 5,
+  },
+  {
+    id: "pop-culture",
+    name: "Pop Culture",
+    description: "Movies, music, TV shows, and entertainment",
+    questionCount: 5,
+  },
+];
 
 export default function Lobby() {
   const navigate = useNavigate();
@@ -22,6 +44,7 @@ export default function Lobby() {
   const [roomName, setRoomName] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [gamePin, setGamePin] = useState("");
+  const [selectedQuizId, setSelectedQuizId] = useState<string>("general-knowledge");
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
     return safeLoadAvatarConfig() || createDefaultAvatarConfig();
   });
@@ -46,7 +69,7 @@ export default function Lobby() {
       ? JSON.stringify(latestAvatar) 
       : latestAvatar;
     
-    createRoom(roomName, playerName, avatarString);
+    createRoom(roomName, playerName, avatarString, selectedQuizId);
     
     // Navigation will happen when room-created event is received
     setTimeout(() => {
@@ -131,6 +154,34 @@ export default function Lobby() {
                       maxLength={30}
                     />
                   </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Select Quiz</label>
+                    <div className="grid gap-2">
+                      {QUIZZES.map((quiz) => (
+                        <button
+                          key={quiz.id}
+                          type="button"
+                          onClick={() => setSelectedQuizId(quiz.id)}
+                          className={cn(
+                            "p-3 rounded-lg border-2 text-left transition-all hover:bg-accent",
+                            selectedQuizId === quiz.id
+                              ? "border-primary bg-primary/10"
+                              : "border-border bg-card"
+                          )}
+                        >
+                          <div className="font-medium text-sm">{quiz.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {quiz.description}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {quiz.questionCount} questions
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <Button
                     onClick={handleCreateRoom}
                     disabled={isCreating}
