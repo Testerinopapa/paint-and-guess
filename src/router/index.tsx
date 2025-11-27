@@ -7,6 +7,7 @@ import NotFound from "@/games/paint-and-guess/pages/NotFound";
 import Room from "@/games/paint-and-guess/pages/Room";
 import PingPongIndex from "@/games/ping-pong/pages/Index";
 import RpgIndex from "@/games/rpg/pages/Index";
+import SemanticGuessIndex from "@/games/semantic-guess/pages/Index";
 
 const RoomRedirect = () => {
   const { roomId } = useParams();
@@ -31,6 +32,9 @@ const AppRoutes = () => {
           <Route path="chronicles-of-the-abyss">
             <Route index element={<RpgIndex />} />
           </Route>
+	          <Route path="semantic-guess">
+	            <Route index element={<SemanticGuessIndex />} />
+	          </Route>
         </Route>
       </Route>
 

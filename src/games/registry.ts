@@ -6,6 +6,7 @@ import { NormalizedGameEntry, RegistryResponse, registryResponseSchema } from ".
 import { getPaintPreviewComponent } from "@/games/paint-and-guess/hubEntry";
 import { getPingPongPreviewComponent } from "@/games/ping-pong/hubEntry";
 import { getRpgPreviewComponent } from "@/games/rpg/hubEntry";
+import { getSemanticGuessPreviewComponent } from "@/games/semantic-guess/hubEntry";
 
 const registryEndpoint = import.meta.env.VITE_GAME_REGISTRY_URL ?? "/api/games";
 const CACHE_TTL_MS = 60 * 1000;
@@ -54,6 +55,9 @@ function getPreviewComponent(entry: NormalizedGameEntry) {
   }
   if (entry.plugin?.previewComponent === "rpgPreview") {
     return getRpgPreviewComponent();
+  }
+  if (entry.plugin?.previewComponent === "semanticGuessPreview") {
+    return getSemanticGuessPreviewComponent();
   }
   return undefined;
 }

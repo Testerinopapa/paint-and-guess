@@ -129,6 +129,23 @@ const fallbackRegistry = registrySchema.parse({
       visibleIf: ["internal"],
       route: { slug: "trivia-trails" },
     },
+	    {
+	      id: "semantic-guess",
+	      version: "0.1.0",
+	      name: { default: "Semantic Guess" },
+	      description: {
+	        default: "Guess the daily word using semantic similarity hints.",
+	      },
+	      status: "beta",
+	      supportedPlayers: { min: 1, max: 1, recommended: 1 },
+	      monetization: "free",
+	      category: ["word", "puzzle", "daily"],
+	      badges: ["new", "daily"],
+	      assets: {
+	        thumbnail: "/placeholder.svg",
+	      },
+	      route: { slug: "semantic-guess" },
+	    },
   ],
 });
 
