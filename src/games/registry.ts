@@ -7,6 +7,7 @@ import { getPaintPreviewComponent } from "@/games/paint-and-guess/hubEntry";
 import { getPingPongPreviewComponent } from "@/games/ping-pong/hubEntry";
 import { getRpgPreviewComponent } from "@/games/rpg/hubEntry";
 import { getTriviaBlitzPreviewComponent } from "@/games/trivia-blitz/hubEntry";
+import { getSemanticGuessPreviewComponent } from "@/games/semantic-guess/hubEntry";
 import { apiPath } from "@/config/api";
 
 const registryEndpoint = import.meta.env.VITE_GAME_REGISTRY_URL ?? apiPath("/api/games");
@@ -59,6 +60,9 @@ function getPreviewComponent(entry: NormalizedGameEntry) {
   }
   if (entry.plugin?.previewComponent === "triviaBlitzPreview") {
     return getTriviaBlitzPreviewComponent();
+  }
+  if (entry.plugin?.previewComponent === "semanticGuessPreview") {
+    return getSemanticGuessPreviewComponent();
   }
   return undefined;
 }
