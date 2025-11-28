@@ -1079,8 +1079,10 @@ io.on("connection", (socket) => {
   });
 
   // Trivia Blitz socket handlers
-  socket.on("trivia:create-room", async ({ roomName, playerName, avatar }) => {
+  socket.on("trivia:create-room", async ({ roomName, playerName, avatar, quizId }) => {
     const roomId = generateRoomId();
+    // For now, quizId is accepted but not used - all rooms use sample questions
+    // Future: Load questions based on quizId
     const questions = getSampleQuestions();
     
     const room = triviaRoomRepository.createRoom({

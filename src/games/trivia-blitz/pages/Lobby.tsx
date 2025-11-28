@@ -5,9 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTrivia } from "../state/TriviaContext";
 import { toast } from "sonner";
-import { Plus, LogIn } from "lucide-react";
+import { Users, Plus, LogIn } from "lucide-react";
 import { AvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
+import { cn } from "@/lib/utils";
+
+interface Quiz {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  questionCount: number;
+}
 
 export default function Lobby() {
   const navigate = useNavigate();
@@ -23,6 +32,17 @@ export default function Lobby() {
   const [roomName, setRoomName] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [gamePin, setGamePin] = useState("");
+  const [selectedQuiz, setSelectedQuiz] = useState<string>("general");
+  const [quizzes] = useState<Quiz[]>([
+    {
+      id: "general",
+      name: "General Knowledge",
+      description: "Mix of science, history, geography, and more",
+      icon: "🧠",
+      questionCount: 5,
+    },
+    // Future quizzes can be added here
+  ]);
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
     return safeLoadAvatarConfig() || createDefaultAvatarConfig();
   });
@@ -62,7 +82,7 @@ export default function Lobby() {
       ? JSON.stringify(latestAvatar) 
       : latestAvatar;
     
-    createRoom(roomName, playerName, avatarString);
+    createRoom(roomName, playerName, avatarString, selectedQuiz);
     
     // Navigation will happen when room-created event is received
     setTimeout(() => {
@@ -128,6 +148,10 @@ export default function Lobby() {
               />
             </div>
 
+            <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+              Customize your avatar from the left sidebar before creating or joining a room.
+            </div>
+
             <div className="grid md:grid-cols-2 gap-4">
               {/* Create Room */}
               <Card>
@@ -147,6 +171,39 @@ export default function Lobby() {
                       maxLength={30}
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Quiz Set</label>
+                    <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto p-1">
+                      {quizzes.map((quiz) => (
+                        <button
+                          key={quiz.id}
+                          type="button"
+                          onClick={() => setSelectedQuiz(quiz.id)}
+                          className={cn(
+                            "p-3 rounded-lg border-2 text-left transition-all hover:bg-accent",
+                            selectedQuiz === quiz.id
+                              ? "border-primary bg-primary/10"
+                              : "border-border bg-card"
+                          )}
+                        >
+                          <div className="flex items-start gap-2">
+                            <span className="text-2xl">{quiz.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm">{quiz.name}</div>
+                              <div className="text-xs text-muted-foreground line-clamp-1">
+                                {quiz.description}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {quiz.questionCount} questions
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <Button
                     onClick={handleCreateRoom}
                     disabled={isCreating}
@@ -185,6 +242,11 @@ export default function Lobby() {
                   </Button>
                 </CardContent>
               </Card>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Users className="w-4 h-4" />
+              <span>2-12 players per game</span>
             </div>
           </CardContent>
         </Card>

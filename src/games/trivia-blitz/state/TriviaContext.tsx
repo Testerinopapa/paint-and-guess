@@ -36,7 +36,7 @@ interface TriviaContextType {
   socket: Socket | null;
   isConnected: boolean;
   isHost: boolean;
-  createRoom: (roomName: string, playerName: string, avatar?: string) => void;
+  createRoom: (roomName: string, playerName: string, avatar?: string, quizId?: string) => void;
   joinRoom: (gamePin: string, playerName: string, avatar?: string) => void;
   leaveRoom: () => void;
   startGame: () => void;
@@ -227,9 +227,9 @@ export function TriviaProvider({ children }: { children: ReactNode }) {
     };
   }, [socket]);
 
-  const createRoom = (roomName: string, playerName: string, avatar?: string) => {
+  const createRoom = (roomName: string, playerName: string, avatar?: string, quizId?: string) => {
     if (!socket) return;
-    socket.emit("trivia:create-room", { roomName, playerName, avatar });
+    socket.emit("trivia:create-room", { roomName, playerName, avatar, quizId });
     setGameState((prev) => ({
       ...prev,
       playerName,
