@@ -129,6 +129,29 @@ const fallbackRegistry = registrySchema.parse({
       visibleIf: ["internal"],
       route: { slug: "trivia-trails" },
     },
+    {
+      id: "trivia-blitz",
+      version: "1.0.0",
+      name: { default: "Trivia Blitz" },
+      description: { default: "Fast-paced quiz game where speed and accuracy win. Answer questions faster than your friends!" },
+      status: "stable",
+      supportedPlayers: { min: 2, max: 12, recommended: 6 },
+      monetization: "free",
+      category: ["trivia", "party"],
+      badges: ["new"],
+      assets: { thumbnail: "/placeholder.svg" },
+      featureFlags: [],
+      visibleIf: ["public"],
+      route: { slug: "trivia-blitz" },
+      plugin: {
+        previewComponent: "triviaBlitzPreview",
+        moduleId: "@/games/trivia-blitz",
+      },
+      navigation: {
+        category: "trivia",
+        priority: 90,
+      },
+    },
   ],
 });
 

@@ -162,10 +162,17 @@ app.use(express.json());
 
 app.get("/api/games", async (req, res) => {
   try {
-    const registry = await getRegistryResponse();
+    const forceRefresh = req.query.refresh === "true";
+    const registry = await loadGameRegistry({ forceRefresh });
+    logger.info("[registry] Serving registry", {
+      source: registry.source,
+      entryCount: registry.entries.length,
+      entryIds: registry.entries.map((e) => e.id),
+      forceRefresh,
+    });
     res.json(registry);
   } catch (error) {
-    console.error("[registry] Failed to serve registry", error);
+    logger.error("[registry] Failed to serve registry", error);
     res.status(500).json({ status: "error", message: "Unable to load game registry" });
   }
 });
@@ -1152,21 +1159,187 @@ io.on("connection", (socket) => {
     socket.emit("trivia:room-state", room.toJSON());
   });
 
+  // Helper function to start a question (used for first question and subsequent questions)
+  function startQuestion(roomId) {
+    const room = triviaRoomRepository.getRoom(roomId);
+    if (!room) {
+      console.log(`[Trivia] ❌ startQuestion: Room ${roomId} not found`);
+      return;
+    }
+
+    if (!room.isGameActive) {
+      console.log(`[Trivia] ⚠️ startQuestion: Game not active in room ${roomId}`);
+      return;
+    }
+
+    if (room.phase !== "question-intro") {
+      console.log(`[Trivia] ⚠️ startQuestion: Room ${roomId} not in question-intro phase (current: ${room.phase})`);
+      return;
+    }
+
+    console.log(`[Trivia] 🎯 Starting question ${room.currentQuestionIndex + 1}/${room.questions.length} in room ${roomId}`);
+
+    // Transition from question-intro to question phase
+    setTimeout(() => {
+      const currentRoom = triviaRoomRepository.getRoom(roomId);
+      if (!currentRoom) {
+        console.log(`[Trivia] ❌ startQuestion timeout: Room ${roomId} not found`);
+        return;
+      }
+
+      currentRoom.phase = "question";
+      currentRoom.questionStartTime = Date.now();
+      const question = currentRoom.getCurrentQuestion();
+
+      if (!question) {
+        console.log(`[Trivia] ❌ startQuestion: No question found at index ${currentRoom.currentQuestionIndex}`);
+        return;
+      }
+
+      console.log(`[Trivia] 📝 Emitting question ${currentRoom.currentQuestionIndex + 1}: "${question.text}"`);
+
+      io.to(roomId).emit("trivia:phase-changed", {
+        phase: currentRoom.phase,
+        questionIndex: currentRoom.currentQuestionIndex,
+      });
+
+      io.to(roomId).emit("trivia:question", {
+        question,
+        questionIndex: currentRoom.currentQuestionIndex,
+        totalQuestions: currentRoom.questions.length,
+      });
+
+      // End question after time limit
+      const questionTimer = setTimeout(() => {
+        const timerRoom = triviaRoomRepository.getRoom(roomId);
+        if (!timerRoom || timerRoom.phase !== "question") {
+          console.log(`[Trivia] ⚠️ Question timer expired but room phase is ${timerRoom?.phase}, skipping`);
+          return;
+        }
+
+        // Get fresh question reference
+        const currentQuestion = timerRoom.getCurrentQuestion();
+        if (!currentQuestion) {
+          console.log(`[Trivia] ❌ No question found at index ${timerRoom.currentQuestionIndex}`);
+          return;
+        }
+
+        console.log(`[Trivia] ⏰ Question ${timerRoom.currentQuestionIndex + 1} time limit reached`);
+
+        timerRoom.phase = "answer-reveal";
+        io.to(roomId).emit("trivia:phase-changed", {
+          phase: timerRoom.phase,
+          questionIndex: timerRoom.currentQuestionIndex,
+        });
+
+        io.to(roomId).emit("trivia:answer-reveal", {
+          correctOptionId: currentQuestion.correctOptionId,
+          answerStats: timerRoom.answerStats,
+        });
+
+        console.log(`[Trivia] ✅ Answer reveal for question ${timerRoom.currentQuestionIndex + 1}, stats:`, timerRoom.answerStats);
+
+        setTimeout(() => {
+          const scoringRoom = triviaRoomRepository.getRoom(roomId);
+          if (!scoringRoom) return;
+
+          scoringRoom.phase = "scoring";
+          io.to(roomId).emit("trivia:phase-changed", {
+            phase: scoringRoom.phase,
+            questionIndex: scoringRoom.currentQuestionIndex,
+          });
+
+          io.to(roomId).emit("trivia:scoring", {
+            players: scoringRoom.toJSON().players,
+          });
+
+          console.log(`[Trivia] 💰 Scoring phase for question ${scoringRoom.currentQuestionIndex + 1}`);
+
+          setTimeout(() => {
+            const leaderboardRoom = triviaRoomRepository.getRoom(roomId);
+            if (!leaderboardRoom) return;
+
+            const leaderboard = leaderboardRoom.getLeaderboard();
+            leaderboardRoom.phase = "leaderboard";
+            io.to(roomId).emit("trivia:phase-changed", {
+              phase: leaderboardRoom.phase,
+              questionIndex: leaderboardRoom.currentQuestionIndex,
+            });
+
+            io.to(roomId).emit("trivia:leaderboard", {
+              leaderboard,
+            });
+
+            console.log(`[Trivia] 🏆 Leaderboard phase for question ${leaderboardRoom.currentQuestionIndex + 1}`);
+
+            setTimeout(() => {
+              const nextRoom = triviaRoomRepository.getRoom(roomId);
+              if (!nextRoom) return;
+
+              const hasMore = nextRoom.nextQuestion();
+              console.log(`[Trivia] 🔄 nextQuestion() called: hasMore=${hasMore}, newPhase=${nextRoom.phase}, newIndex=${nextRoom.currentQuestionIndex}`);
+
+              if (!hasMore) {
+                // Game ended - show podium
+                const podium = nextRoom.getPodium();
+                console.log(`[Trivia] 🎉 Game ended! Showing podium`);
+                io.to(roomId).emit("trivia:phase-changed", {
+                  phase: nextRoom.phase,
+                });
+                io.to(roomId).emit("trivia:podium", {
+                  podium,
+                  finalScores: nextRoom.toJSON().players,
+                });
+              } else {
+                // Next question - automatically start it
+                if (!nextRoom.isGameActive) {
+                  console.log(`[Trivia] ⚠️ Game no longer active, skipping next question`);
+                  return;
+                }
+                console.log(`[Trivia] ➡️ Starting next question (${nextRoom.currentQuestionIndex + 1}/${nextRoom.questions.length})`);
+                io.to(roomId).emit("trivia:phase-changed", {
+                  phase: nextRoom.phase,
+                  questionIndex: nextRoom.currentQuestionIndex,
+                });
+                // Automatically start the next question
+                startQuestion(roomId);
+              }
+            }, 3000);
+          }, 2000);
+        }, 3000);
+      }, question.timeLimit * 1000);
+    }, 2000);
+  }
+
   socket.on("trivia:start-game", async () => {
     const { roomId, playerId } = socket.data;
-    if (!roomId || !playerId) return;
+    if (!roomId || !playerId) {
+      console.log(`[Trivia] ❌ start-game: Missing roomId or playerId`);
+      return;
+    }
 
     const room = triviaRoomRepository.getRoom(roomId);
-    if (!room || room.isGameActive) return;
+    if (!room) {
+      console.log(`[Trivia] ❌ start-game: Room ${roomId} not found`);
+      return;
+    }
+
+    if (room.isGameActive) {
+      console.log(`[Trivia] ⚠️ start-game: Room ${roomId} already active`);
+      return;
+    }
 
     if (room.ownerId !== playerId) {
+      console.log(`[Trivia] ❌ start-game: Player ${playerId} is not owner (${room.ownerId})`);
       socket.emit("error", { message: "Only the host can start the game" });
       return;
     }
 
     try {
       room.startGame();
+      console.log(`[Trivia] 🎮 Game started in room ${roomId}, phase: ${room.phase}, questionIndex: ${room.currentQuestionIndex}`);
     } catch (error) {
+      console.log(`[Trivia] ❌ start-game error:`, error.message);
       socket.emit("error", { message: error.message });
       return;
     }
@@ -1176,101 +1349,39 @@ io.on("connection", (socket) => {
       questionIndex: room.currentQuestionIndex,
     });
 
-    // Start question intro phase
-    setTimeout(() => {
-      room.phase = "question";
-      room.questionStartTime = Date.now();
-      const question = room.getCurrentQuestion();
-      
-      io.to(roomId).emit("trivia:phase-changed", {
-        phase: room.phase,
-        questionIndex: room.currentQuestionIndex,
-      });
-
-      io.to(roomId).emit("trivia:question", {
-        question,
-        questionIndex: room.currentQuestionIndex,
-        totalQuestions: room.questions.length,
-      });
-
-      // End question after time limit
-      setTimeout(() => {
-        if (room.phase === "question") {
-          room.phase = "answer-reveal";
-          io.to(roomId).emit("trivia:phase-changed", {
-            phase: room.phase,
-            questionIndex: room.currentQuestionIndex,
-          });
-
-          io.to(roomId).emit("trivia:answer-reveal", {
-            correctOptionId: question.correctOptionId,
-            answerStats: room.answerStats,
-          });
-
-          setTimeout(() => {
-            room.phase = "scoring";
-            io.to(roomId).emit("trivia:phase-changed", {
-              phase: room.phase,
-              questionIndex: room.currentQuestionIndex,
-            });
-
-            io.to(roomId).emit("trivia:scoring", {
-              players: room.toJSON().players,
-            });
-
-            setTimeout(() => {
-              const leaderboard = room.getLeaderboard();
-              room.phase = "leaderboard";
-              io.to(roomId).emit("trivia:phase-changed", {
-                phase: room.phase,
-                questionIndex: room.currentQuestionIndex,
-              });
-
-              io.to(roomId).emit("trivia:leaderboard", {
-                leaderboard,
-              });
-
-              setTimeout(() => {
-                const hasMore = room.nextQuestion();
-                if (!hasMore) {
-                  // Game ended - show podium
-                  const podium = room.getPodium();
-                  io.to(roomId).emit("trivia:phase-changed", {
-                    phase: room.phase,
-                  });
-                  io.to(roomId).emit("trivia:podium", {
-                    podium,
-                    finalScores: room.toJSON().players,
-                  });
-                } else {
-                  // Next question
-                  io.to(roomId).emit("trivia:phase-changed", {
-                    phase: room.phase,
-                    questionIndex: room.currentQuestionIndex,
-                  });
-                }
-              }, 3000);
-            }, 2000);
-          }, 3000);
-        }
-      }, question.timeLimit * 1000);
-    }, 2000);
+    // Start first question
+    startQuestion(roomId);
   });
 
   socket.on("trivia:submit-answer", async ({ optionId }) => {
     const { roomId, playerId } = socket.data;
-    if (!roomId || !playerId) return;
+    if (!roomId || !playerId) {
+      console.log(`[Trivia] ❌ submit-answer: Missing roomId or playerId`);
+      return;
+    }
 
     const room = triviaRoomRepository.getRoom(roomId);
-    if (!room || room.phase !== "question") return;
+    if (!room) {
+      console.log(`[Trivia] ❌ submit-answer: Room ${roomId} not found`);
+      return;
+    }
+
+    if (room.phase !== "question") {
+      console.log(`[Trivia] ⚠️ submit-answer: Room ${roomId} not in question phase (current: ${room.phase})`);
+      return;
+    }
 
     const timeElapsed = Date.now() - (room.questionStartTime || Date.now());
     const result = room.submitAnswer(playerId, optionId, timeElapsed);
 
     if (result.error) {
+      console.log(`[Trivia] ❌ submit-answer error: ${result.error}`);
       socket.emit("error", { message: result.error });
       return;
     }
+
+    const player = room.getPlayerById(playerId);
+    console.log(`[Trivia] ✅ Player ${player?.name} (${playerId}) answered: ${result.isCorrect ? "CORRECT" : "WRONG"}, +${result.points} points, new score: ${result.newScore}`);
 
     socket.emit("trivia:answer-result", {
       isCorrect: result.isCorrect,
@@ -1281,6 +1392,7 @@ io.on("connection", (socket) => {
 
     // Broadcast to host if all answered
     if (room.allPlayersAnswered()) {
+      console.log(`[Trivia] 🎯 All players answered question ${room.currentQuestionIndex + 1}`);
       io.to(roomId).emit("trivia:all-answered");
     }
   });
