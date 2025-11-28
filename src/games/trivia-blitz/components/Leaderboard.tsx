@@ -9,6 +9,7 @@ export default function Leaderboard() {
   const leaderboard = gameState.leaderboard.length > 0 
     ? gameState.leaderboard 
     : gameState.players
+        .filter((player) => player.id !== gameState.ownerId) // Exclude host
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
 

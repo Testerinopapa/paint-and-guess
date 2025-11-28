@@ -225,7 +225,9 @@ export class TriviaRoom {
   }
 
   getLeaderboard() {
+    // Exclude host (owner) from leaderboard since they don't play
     return this.getActivePlayers()
+      .filter((player) => player.id !== this.ownerId)
       .sort((a, b) => b.score - a.score)
       .slice(0, 5)
       .map((player) => ({
@@ -237,7 +239,10 @@ export class TriviaRoom {
   }
 
   getPodium() {
-    const sorted = this.getActivePlayers().sort((a, b) => b.score - a.score);
+    // Exclude host (owner) from podium since they don't play
+    const sorted = this.getActivePlayers()
+      .filter((player) => player.id !== this.ownerId)
+      .sort((a, b) => b.score - a.score);
     return {
       first: sorted[0] ? { id: sorted[0].id, name: sorted[0].name, score: sorted[0].score } : null,
       second: sorted[1] ? { id: sorted[1].id, name: sorted[1].name, score: sorted[1].score } : null,
