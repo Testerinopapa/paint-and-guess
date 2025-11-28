@@ -86,8 +86,13 @@ export function useCanvasDrawing({
     let pathPoints: number[][] = [];
     let lastSentPointIndex = 0; // Track how many points we've sent
     let lastSendTime = 0; // Track when we last sent an update
+    let lastPointTime = 0; // Track when last point was added (for velocity detection)
+    let flushInterval: number | null = null; // Interval for periodic flushing during fast drawing
     const BATCH_INTERVAL_MS = 16; // ~60fps - send at most every frame
     const MIN_POINTS_PER_BATCH = 2; // Batch at least 2 points together (reduced for lower latency)
+    const FAST_DRAW_THRESHOLD_MS = 8; // If points arrive faster than 8ms apart, it's fast drawing
+    const FAST_DRAW_MIN_BATCH = 1; // During fast drawing, send every point (or every 2)
+    const FLUSH_INTERVAL_MS = 8; // Flush pending points every 8ms during active drawing
     
     // Debug: Track sent events (check dynamically)
     const isDebugEnabled = () => {
@@ -192,12 +197,17 @@ export function useCanvasDrawing({
       }
 
       // Clean up
+      if (flushInterval) {
+        clearInterval(flushInterval);
+        flushInterval = null;
+      }
       isDrawing = false;
       currentPathId = null;
       pathPoints = [];
       lastSentPath = null;
       lastSentPointIndex = 0;
       lastSendTime = 0;
+      lastPointTime = 0;
     };
 
     // Send incremental updates during mouse move (only when drawing)
@@ -217,12 +227,20 @@ export function useCanvasDrawing({
 
         const now = Date.now();
         const timeSinceLastSend = now - lastSendTime;
+        const timeSinceLastPoint = lastPointTime > 0 ? now - lastPointTime : Infinity;
         const newPointsCount = pathPoints.length - lastSentPointIndex;
         
-        // Batch points: send when we have enough new points OR enough time has passed
-        // This reduces network overhead while maintaining smooth updates
-        const shouldSend = newPointsCount >= MIN_POINTS_PER_BATCH || 
-                          (timeSinceLastSend >= BATCH_INTERVAL_MS && newPointsCount > 0);
+        // Detect fast drawing (points arriving very quickly)
+        const isFastDrawing = timeSinceLastPoint < FAST_DRAW_THRESHOLD_MS;
+        const minBatchSize = isFastDrawing ? FAST_DRAW_MIN_BATCH : MIN_POINTS_PER_BATCH;
+        
+        // Adaptive batching: during fast drawing, send more frequently to avoid dropping points
+        // During slow drawing, batch more aggressively to reduce network overhead
+        const shouldSend = newPointsCount >= minBatchSize || 
+                          (timeSinceLastSend >= BATCH_INTERVAL_MS && newPointsCount > 0) ||
+                          (isFastDrawing && newPointsCount >= 1); // Fast drawing: send every point or every 2
+        
+        lastPointTime = now;
         
         if (shouldSend && pathPoints.length > lastSentPointIndex) {
           // Send only NEW points (differential update) - much smaller payload
@@ -295,7 +313,44 @@ export function useCanvasDrawing({
       pathPoints = [];
       lastSentPointIndex = 0;
       lastSendTime = Date.now();
+      lastPointTime = Date.now();
       currentPathId = `path-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Start periodic flush during active drawing to catch fast swipes
+      if (flushInterval) {
+        clearInterval(flushInterval);
+      }
+      flushInterval = window.setInterval(() => {
+        if (!isDrawing || !currentPathId) {
+          if (flushInterval) {
+            clearInterval(flushInterval);
+            flushInterval = null;
+          }
+          return;
+        }
+        
+        // Flush pending points periodically during active drawing
+        if (pathPoints.length > lastSentPointIndex) {
+          const pendingPoints = pathPoints.slice(lastSentPointIndex);
+          if (pendingPoints.length > 0) {
+            sendDrawingEvent({
+              type: "path-update",
+              pathId: currentPathId,
+              sequence: ++drawerEventSequence,
+              data: {
+                newPoints: pendingPoints,
+                startIndex: lastSentPointIndex,
+                stroke: fabricCanvas.freeDrawingBrush.color,
+                strokeWidth: fabricCanvas.freeDrawingBrush.width,
+                opacity: activeTool === "erase" ? 1 : brushOpacity,
+                hardness: activeTool === "erase" ? 1 : brushHardness,
+              },
+            });
+            lastSentPointIndex = pathPoints.length;
+            lastSendTime = Date.now();
+          }
+        }
+      }, FLUSH_INTERVAL_MS);
       
       // Send path start event
       sendDrawingEvent({
@@ -315,10 +370,33 @@ export function useCanvasDrawing({
 
     // Reset path points on mouse up
     const handleMouseUp = () => {
-      // Only reset if we were actually drawing
+      // Flush any remaining points immediately on mouse up
+      // This ensures fast swipes don't lose points before path:created fires
+      if (isDrawing && pathPoints.length > lastSentPointIndex && currentPathId) {
+        const remainingPoints = pathPoints.slice(lastSentPointIndex);
+        if (remainingPoints.length > 0) {
+          sendDrawingEvent({
+            type: "path-update",
+            pathId: currentPathId,
+            sequence: ++drawerEventSequence,
+            data: {
+              newPoints: remainingPoints,
+              startIndex: lastSentPointIndex,
+              stroke: fabricCanvas.freeDrawingBrush.color,
+              strokeWidth: fabricCanvas.freeDrawingBrush.width,
+              opacity: activeTool === "erase" ? 1 : brushOpacity,
+              hardness: activeTool === "erase" ? 1 : brushHardness,
+            },
+          });
+          lastSentPointIndex = pathPoints.length;
+          lastSendTime = Date.now();
+        }
+      }
+      // Don't clear pathPoints here - let path:created handle cleanup
+      // This ensures path:created has access to all points for the complete path
+      // Only stop accepting new points
       if (isDrawing) {
         isDrawing = false;
-        pathPoints = [];
       }
     };
 
@@ -328,6 +406,11 @@ export function useCanvasDrawing({
     fabricCanvas.on("mouse:up", handleMouseUp);
 
     return () => {
+      // Clean up flush interval
+      if (flushInterval) {
+        clearInterval(flushInterval);
+        flushInterval = null;
+      }
       if (isCanvasValid(fabricCanvas)) {
         fabricCanvas.off("path:created", handlePathCreated);
         fabricCanvas.off("mouse:down", handleMouseDown);

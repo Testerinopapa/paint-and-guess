@@ -14,6 +14,7 @@ import { initializeRedis, getRedisSubscriber, getRedisPublisher, isRedisEnabled,
 import { getRegistryResponse, loadGameRegistry } from "./gameRegistry.js";
 import { TriviaRoomRepository } from "./triviaRoomRepository.js";
 import { getSampleQuestions } from "./triviaQuestions.js";
+import { canvaRoomRepository } from "./canvaRoomRepository.js";
 
 const LOG_LEVELS = {
   error: 0,
@@ -1010,7 +1011,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", async () => {
-    const { roomId, playerId, isTrivia } = socket.data;
+    const { roomId, playerId, isTrivia, isCanva } = socket.data;
     if (!roomId || !playerId) {
       console.log(`[Server] 🔌 Client disconnected: ${socket.id} (not in a room)`);
       return;
@@ -1030,6 +1031,27 @@ io.on("connection", (socket) => {
         triviaRoomRepository.deleteRoom(roomId);
       } else {
         io.to(roomId).emit("trivia:player-left", {
+          playerId,
+          players: room.toJSON().players,
+        });
+      }
+      return;
+    }
+
+    // Handle canva room disconnects
+    if (isCanva) {
+      const room = canvaRoomRepository.getRoom(roomId);
+      if (!room) return;
+
+      room.markPlayerDisconnected(playerId);
+      socket.leave(roomId);
+      socket.data.roomId = null;
+      socket.data.playerId = null;
+
+      if (room.players.length === 0) {
+        canvaRoomRepository.deleteRoom(roomId);
+      } else {
+        io.to(roomId).emit("canva:player-left", {
           playerId,
           players: room.toJSON().players,
         });
@@ -1449,8 +1471,89 @@ io.on("connection", (socket) => {
     }
   });
 
+  // Canva socket handlers
+  socket.on("canva:create-room", async ({ roomName, playerName, avatar }) => {
+    const roomId = generateRoomId();
+    
+    const room = canvaRoomRepository.createRoom({
+      name: sanitizeName(roomName, `Room ${roomId}`),
+      isPublic: true,
+      maxPlayers: 10,
+    });
+
+    const player = {
+      id: uuidv4(),
+      name: sanitizeName(playerName, "Host"),
+      avatar: sanitizeAvatar(avatar),
+      socketId: socket.id,
+    };
+
+    room.addPlayer(player);
+    room.ownerId = player.id;
+
+    socket.join(roomId);
+    socket.data.roomId = roomId;
+    socket.data.playerId = player.id;
+    socket.data.isCanva = true;
+
+    socket.emit("session", { playerId: player.id });
+
+    socket.emit("canva:room-created", {
+      roomId,
+      gamePin: room.gamePin,
+      room: room.toJSON(),
+    });
+
+    socket.emit("canva:room-state", room.toJSON());
+  });
+
+  socket.on("canva:join-room", async ({ gamePin, playerName, avatar }) => {
+    const room = canvaRoomRepository.getRoomByPin(gamePin);
+    if (!room) {
+      socket.emit("error", { message: "Invalid game PIN" });
+      return;
+    }
+
+    if (room.getActivePlayerCount() >= room.maxPlayers) {
+      socket.emit("error", { message: "Room is full" });
+      return;
+    }
+
+    const player = {
+      id: uuidv4(),
+      name: sanitizeName(playerName, "Player"),
+      avatar: sanitizeAvatar(avatar),
+      socketId: socket.id,
+    };
+
+    room.addPlayer(player);
+
+    socket.join(room.id);
+    socket.data.roomId = room.id;
+    socket.data.playerId = player.id;
+    socket.data.isCanva = true;
+
+    socket.emit("session", { playerId: player.id });
+    socket.emit("canva:joined", {
+      roomId: room.id,
+      playerId: player.id,
+    });
+    socket.emit("canva:room-state", room.toJSON());
+
+    // Notify other players
+    socket.to(room.id).emit("canva:player-joined", {
+      player: {
+        id: player.id,
+        name: player.name,
+        avatar: player.avatar,
+        connected: true,
+      },
+      players: room.toJSON().players,
+    });
+  });
+
   socket.on("disconnect", async () => {
-    const { roomId, playerId, isTrivia } = socket.data;
+    const { roomId, playerId, isTrivia, isCanva } = socket.data;
     if (!roomId || !playerId) {
       console.log(`[Server] 🔌 Client disconnected: ${socket.id} (not in a room)`);
       return;

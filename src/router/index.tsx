@@ -10,6 +10,7 @@ import RpgIndex from "@/games/rpg/pages/Index";
 import TriviaBlitzLobby from "@/games/trivia-blitz/pages/Lobby";
 import TriviaBlitzRoom from "@/games/trivia-blitz/pages/Room";
 import { TriviaBlitzApp } from "@/games/trivia-blitz/pages/TriviaBlitzApp";
+import { CanvaLobby, CanvaRoom, CanvaApp } from "@/games/canva";
 
 const RoomRedirect = () => {
   const { roomId } = useParams();
@@ -37,6 +38,10 @@ const AppRoutes = () => {
           <Route path="trivia-blitz" element={<TriviaBlitzApp />}>
             <Route index element={<TriviaBlitzLobby />} />
             <Route path="room/:roomId" element={<TriviaBlitzRoom />} />
+          </Route>
+          <Route path="canva" element={<CanvaApp />}>
+            <Route index element={<CanvaLobby />} />
+            <Route path="room/:roomId" element={<CanvaRoom />} />
           </Route>
         </Route>
       </Route>
