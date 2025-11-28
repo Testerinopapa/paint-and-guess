@@ -39,7 +39,7 @@ export default function LobbyView({ onLeaveRoom }: LobbyViewProps) {
   const canStart = playerCount >= minPlayers;
 
   return (
-    <div className="container mx-auto p-2 sm:p-4 lg:p-6 h-[calc(100vh-5rem)] max-h-screen overflow-y-auto">
+    <div className="container mx-auto p-2 sm:p-4 lg:p-6 h-[calc(100vh-8rem)] max-h-screen overflow-y-auto">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 auto-rows-fr">
         {/* Left Sidebar - Players */}
         <div className="lg:col-span-1 flex flex-col min-h-[200px] lg:min-h-0 lg:max-h-full">

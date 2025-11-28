@@ -40,26 +40,33 @@ export default function Room() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-4">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-2xl font-bold">Trivia Blitz</h1>
-            {gameState.gamePin && (
-              <p className="text-muted-foreground">PIN: {gameState.gamePin}</p>
-            )}
+      {/* Game Header Banner */}
+      {gameState.phase === "lobby" && (
+        <div className="bg-gradient-to-r from-primary to-secondary py-2 sm:py-3 md:py-4 shadow-medium">
+          <div className="container mx-auto px-2 sm:px-4">
+            <div className="flex items-center justify-between flex-wrap gap-2 sm:gap-4">
+              <h1 className="text-base sm:text-xl md:text-2xl font-bold text-primary-foreground truncate">
+                Room: {gameState.roomId}
+              </h1>
+              {gameState.gamePin && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm sm:text-base md:text-lg text-primary-foreground">
+                    PIN: {gameState.gamePin}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-          <Button variant="outline" onClick={handleLeaveRoom}>
-            Leave Room
-          </Button>
         </div>
+      )}
 
-        {/* Phase-based rendering */}
-        {gameState.phase === "lobby" && (
-          <LobbyView onLeaveRoom={handleLeaveRoom} />
-        )}
+      {/* Phase-based rendering */}
+      {gameState.phase === "lobby" && (
+        <LobbyView onLeaveRoom={handleLeaveRoom} />
+      )}
 
-        {gameState.phase === "question-intro" && (
+      {gameState.phase === "question-intro" && (
+        <div className="container mx-auto p-4">
           <div className="flex items-center justify-center min-h-[60vh]">
             <Card className="p-8 text-center">
               <h2 className="text-3xl font-bold mb-4">Get Ready!</h2>
@@ -68,19 +75,21 @@ export default function Room() {
               </p>
             </Card>
           </div>
-        )}
+        </div>
+      )}
 
-        {gameState.phase === "question" && (
-          <>
-            {isHost ? (
-              <HostView />
-            ) : (
-              <PlayerView />
-            )}
-          </>
-        )}
+      {gameState.phase === "question" && (
+        <div className="container mx-auto p-4">
+          {isHost ? (
+            <HostView />
+          ) : (
+            <PlayerView />
+          )}
+        </div>
+      )}
 
-        {gameState.phase === "answer-reveal" && (
+      {gameState.phase === "answer-reveal" && (
+        <div className="container mx-auto p-4">
           <div className="flex items-center justify-center min-h-[60vh]">
             <Card className="p-8 text-center max-w-2xl w-full">
               <h2 className="text-3xl font-bold mb-4">
@@ -111,24 +120,30 @@ export default function Room() {
               </div>
             </Card>
           </div>
-        )}
+        </div>
+      )}
 
-        {gameState.phase === "scoring" && (
+      {gameState.phase === "scoring" && (
+        <div className="container mx-auto p-4">
           <div className="flex items-center justify-center min-h-[60vh]">
             <Card className="p-8 text-center">
               <h2 className="text-3xl font-bold mb-4">Calculating Scores...</h2>
             </Card>
           </div>
-        )}
+        </div>
+      )}
 
-        {gameState.phase === "leaderboard" && (
+      {gameState.phase === "leaderboard" && (
+        <div className="container mx-auto p-4">
           <Leaderboard />
-        )}
+        </div>
+      )}
 
-        {gameState.phase === "podium" && (
+      {gameState.phase === "podium" && (
+        <div className="container mx-auto p-4">
           <Podium />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
