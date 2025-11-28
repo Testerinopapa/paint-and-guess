@@ -19,6 +19,7 @@ export default function Lobby() {
       navigate(`/games/trivia-blitz/room/${gameState.roomId}`);
     }
   }, [gameState.roomId, navigate]);
+
   const [roomName, setRoomName] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [gamePin, setGamePin] = useState("");
@@ -27,6 +28,21 @@ export default function Lobby() {
   });
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+
+  // Listen for avatar updates from HubLayout
+  useEffect(() => {
+    const handleAvatarUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<AvatarConfig>).detail;
+      if (detail) {
+        setAvatarConfig(detail);
+      }
+    };
+
+    window.addEventListener("avatar-config-updated", handleAvatarUpdate as EventListener);
+    return () => {
+      window.removeEventListener("avatar-config-updated", handleAvatarUpdate as EventListener);
+    };
+  }, []);
 
   const handleCreateRoom = () => {
     if (!playerName.trim()) {

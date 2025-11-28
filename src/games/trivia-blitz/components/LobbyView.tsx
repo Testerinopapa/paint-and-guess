@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTrivia } from "../state/TriviaContext";
 import { Users } from "lucide-react";
+import { AvatarPreview } from "@/games/paint-and-guess/components/avatar/preview/AvatarPreview";
+import { decodeAvatarConfig, createDefaultAvatarConfig, type AvatarConfig } from "@/lib/avatar/config";
 
 interface LobbyViewProps {
   onLeaveRoom: () => void;
@@ -33,27 +35,37 @@ export default function LobbyView({ onLeaveRoom }: LobbyViewProps) {
               Players ({gameState.players.length})
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {gameState.players.map((player) => (
-                <Card key={player.id} className="p-4">
-                  <div className="flex items-center gap-3">
-                    {player.avatar && (
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        {typeof player.avatar === 'string' ? (
-                          <span className="text-sm">{player.avatar[0]}</span>
-                        ) : (
-                          <span className="text-sm">{player.name[0]}</span>
+              {gameState.players.map((player) => {
+                // Get avatar config from player.avatar (string or object)
+                let avatarConfig: AvatarConfig | null = null;
+                if (player.avatar) {
+                  if (typeof player.avatar === 'string') {
+                    avatarConfig = decodeAvatarConfig(player.avatar);
+                  } else {
+                    avatarConfig = player.avatar as AvatarConfig;
+                  }
+                }
+                
+                return (
+                  <Card key={player.id} className="p-4">
+                    <div className="flex items-center gap-3">
+                      {avatarConfig ? (
+                        <AvatarPreview config={avatarConfig} size={40} />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-medium">{player.name[0].toUpperCase()}</span>
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-medium">{player.name}</p>
+                        {player.id === gameState.ownerId && (
+                          <p className="text-xs text-muted-foreground">Host</p>
                         )}
                       </div>
-                    )}
-                    <div>
-                      <p className="font-medium">{player.name}</p>
-                      {player.id === gameState.ownerId && (
-                        <p className="text-xs text-muted-foreground">Host</p>
-                      )}
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           </div>
 

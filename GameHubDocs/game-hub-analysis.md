@@ -1008,6 +1008,34 @@ export const fallbackRegistry = {
 - Visibility: `internal`
 - IAP monetization
 
+### Trivia Blitz
+
+**Status:** Stable  
+**Route:** `/games/trivia-blitz`  
+**Integration:** Full (preview component, routes, context, backend)
+
+**Features:**
+- Custom preview card
+- Multiple routes (lobby, room)
+- Full multiplayer support (2-12 players)
+- Real-time quiz gameplay with Kahoot-style flow
+- Quiz selection (host can choose from multiple quiz sets)
+- Scoring system based on speed and accuracy
+- Leaderboard and podium display
+- Integrated with hub navigation
+- Backend room management with separate `TriviaRoom` class
+
+**Architecture:**
+- **Backend Files:**
+  - `triviaRoom.js` - Game state management
+  - `triviaRoomRepository.js` - Room collection management
+  - `triviaQuestions.js` - Hardcoded quiz questions
+- **Frontend Files:**
+  - `TriviaContext.tsx` - React context for state management
+  - `Lobby.tsx` - Room creation/joining
+  - `Room.tsx` - Main game room with phase-based rendering
+  - Phase-specific components (HostView, PlayerView, Leaderboard, Podium)
+
 ## Future Enhancements
 
 ### Potential Improvements
