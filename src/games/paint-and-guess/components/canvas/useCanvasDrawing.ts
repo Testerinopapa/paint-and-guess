@@ -84,6 +84,10 @@ export function useCanvasDrawing({
     let currentPathId: string | null = null;
     let lastSentPath: any = null;
     let pathPoints: number[][] = [];
+    let lastSentPointIndex = 0; // Track how many points we've sent
+    let lastSendTime = 0; // Track when we last sent an update
+    const BATCH_INTERVAL_MS = 16; // ~60fps - send at most every frame
+    const MIN_POINTS_PER_BATCH = 2; // Batch at least 2 points together (reduced for lower latency)
     
     // Debug: Track sent events (check dynamically)
     const isDebugEnabled = () => {
@@ -169,11 +173,31 @@ export function useCanvasDrawing({
         data: pathData,
       });
 
+      // Send any remaining points that haven't been sent yet
+      if (pathPoints.length > lastSentPointIndex) {
+        const remainingPoints = pathPoints.slice(lastSentPointIndex);
+        sendDrawingEvent({
+          type: "path-update",
+          pathId: currentPathId,
+          sequence: ++drawerEventSequence,
+          data: {
+            newPoints: remainingPoints,
+            startIndex: lastSentPointIndex,
+            stroke: fabricCanvas.freeDrawingBrush.color,
+            strokeWidth: fabricCanvas.freeDrawingBrush.width,
+            opacity: activeTool === "erase" ? 1 : brushOpacity,
+            hardness: activeTool === "erase" ? 1 : brushHardness,
+          },
+        });
+      }
+
       // Clean up
       isDrawing = false;
       currentPathId = null;
       pathPoints = [];
       lastSentPath = null;
+      lastSentPointIndex = 0;
+      lastSendTime = 0;
     };
 
     // Send incremental updates during mouse move (only when drawing)
@@ -191,12 +215,22 @@ export function useCanvasDrawing({
         const pointer = fabricCanvas.getPointer(options.e);
         pathPoints.push([pointer.x, pointer.y]);
 
-        // Send updates every point for lowest latency (real-time sync)
-        // The receiving side processes immediately and batches renders efficiently
-        // Network overhead is minimal as path data is small
-        if (pathPoints.length >= 1) {
+        const now = Date.now();
+        const timeSinceLastSend = now - lastSendTime;
+        const newPointsCount = pathPoints.length - lastSentPointIndex;
+        
+        // Batch points: send when we have enough new points OR enough time has passed
+        // This reduces network overhead while maintaining smooth updates
+        const shouldSend = newPointsCount >= MIN_POINTS_PER_BATCH || 
+                          (timeSinceLastSend >= BATCH_INTERVAL_MS && newPointsCount > 0);
+        
+        if (shouldSend && pathPoints.length > lastSentPointIndex) {
+          // Send only NEW points (differential update) - much smaller payload
+          const newPoints = pathPoints.slice(lastSentPointIndex);
+          
           const pathData = {
-            path: [...pathPoints],
+            newPoints: newPoints, // Only new points since last update
+            startIndex: lastSentPointIndex, // Where these points start in the full path
             stroke: fabricCanvas.freeDrawingBrush.color,
             strokeWidth: fabricCanvas.freeDrawingBrush.width,
             opacity: activeTool === "erase" ? 1 : brushOpacity,
@@ -219,18 +253,23 @@ export function useCanvasDrawing({
             debugEntry.lastUpdatePointCount = pathPoints.length;
             
             console.log(`[CanvasDrawing Debug] SENT path-update #${++drawerEventSequence} for ${currentPathId}:`, {
-              pointCount: pathPoints.length,
+              totalPoints: pathPoints.length,
+              newPoints: newPoints.length,
+              startIndex: lastSentPointIndex,
               sequence: drawerEventSequence,
             });
           }
 
-          // Send immediately - no additional throttling
+          // Send batched update
           sendDrawingEvent({
             type: "path-update",
             pathId: currentPathId,
-            sequence: drawerEventSequence,
+            sequence: ++drawerEventSequence,
             data: pathData,
           });
+          
+          lastSentPointIndex = pathPoints.length;
+          lastSendTime = now;
           lastSentPath = pathData;
         }
       } catch (error) {
@@ -248,10 +287,14 @@ export function useCanvasDrawing({
         // If we're already drawing, finalize the previous path first
         isDrawing = false;
         pathPoints = [];
+        lastSentPointIndex = 0;
+        lastSendTime = 0;
       }
 
       isDrawing = true;
       pathPoints = [];
+      lastSentPointIndex = 0;
+      lastSendTime = Date.now();
       currentPathId = `path-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
       // Send path start event

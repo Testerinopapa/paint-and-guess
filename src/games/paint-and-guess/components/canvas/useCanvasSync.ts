@@ -172,12 +172,28 @@ export function useCanvasSync({
     }
     
     // Batch rendering updates using requestAnimationFrame for smoother performance
+    // Use a more aggressive batching strategy for network updates
     let renderScheduled = false;
-    const scheduleRender = () => {
+    let pendingRenders = 0;
+    const scheduleRender = (immediate = false) => {
+      if (immediate) {
+        // Immediate render for first update of a new path
+        if (isCanvasValid(fabricCanvas)) {
+          if (fabricCanvas.requestRenderAll) {
+            fabricCanvas.requestRenderAll();
+          } else {
+            fabricCanvas.renderAll();
+          }
+        }
+        return;
+      }
+      
       if (!renderScheduled && isCanvasValid(fabricCanvas)) {
         renderScheduled = true;
+        pendingRenders = 0;
         requestAnimationFrame(() => {
           if (isCanvasValid(fabricCanvas)) {
+            // Batch multiple pending renders into one
             if (fabricCanvas.requestRenderAll) {
               fabricCanvas.requestRenderAll();
             } else {
@@ -185,7 +201,10 @@ export function useCanvasSync({
             }
           }
           renderScheduled = false;
+          pendingRenders = 0;
         });
+      } else {
+        pendingRenders++;
       }
     };
 
@@ -261,6 +280,8 @@ export function useCanvasSync({
       
       // Handle path start - create temporary path placeholder
       if (event.type === "path-start" && event.pathId) {
+        // Initialize accumulated points for this new path
+        accumulatedPathPoints.set(event.pathId, []);
         try {
           // Just store the path ID, the actual path will be created on first update
           // This prevents creating an empty path that might cause rendering issues
@@ -329,9 +350,26 @@ export function useCanvasSync({
         
         try {
           let path = activePaths.get(event.pathId);
-          const pathPoints = event.data.path;
           
-          if (!pathPoints || pathPoints.length === 0) return;
+          // Handle both old format (full path) and new format (differential newPoints)
+          let newPoints: number[][] = [];
+          let allPathPoints: number[][] = [];
+          
+          if (event.data.newPoints) {
+            // New differential format: append new points to accumulated path
+            const accumulated = accumulatedPathPoints.get(event.pathId) || [];
+            newPoints = event.data.newPoints;
+            allPathPoints = [...accumulated, ...newPoints];
+            accumulatedPathPoints.set(event.pathId, allPathPoints);
+          } else if (event.data.path) {
+            // Legacy format: full path array (for backwards compatibility)
+            allPathPoints = event.data.path;
+            accumulatedPathPoints.set(event.pathId, allPathPoints);
+          } else {
+            return; // Invalid event data
+          }
+          
+          if (!allPathPoints || allPathPoints.length === 0) return;
           
           // Get or update stored properties from path-update
           const existing = pathProperties.get(event.pathId) || { opacity: 1, hardness: 1, strokeWidth: 5 };
@@ -347,7 +385,7 @@ export function useCanvasSync({
             const debugInfo = pathDebugMap.get(event.pathId);
             if (debugInfo) {
               debugInfo.updateCount++;
-              debugInfo.lastUpdatePointCount = pathPoints.length;
+              debugInfo.lastUpdatePointCount = allPathPoints.length;
             }
           }
 
@@ -356,9 +394,9 @@ export function useCanvasSync({
             if (!isCanvasValid(fabricCanvas)) return;
 
             // Build path array for Fabric.js (starts with M, then L commands)
-            const fabricPath: any[] = [['M', pathPoints[0][0], pathPoints[0][1]]];
-            for (let i = 1; i < pathPoints.length; i++) {
-              fabricPath.push(['L', pathPoints[i][0], pathPoints[i][1]]);
+            const fabricPath: any[] = [['M', allPathPoints[0][0], allPathPoints[0][1]]];
+            for (let i = 1; i < allPathPoints.length; i++) {
+              fabricPath.push(['L', allPathPoints[i][0], allPathPoints[i][1]]);
             }
 
             const opacity = event.data.opacity ?? 1;
@@ -383,18 +421,14 @@ export function useCanvasSync({
 
             activePaths.set(event.pathId, path);
             fabricCanvas.add(path);
-            // Immediate render for new paths (first update)
-            if (fabricCanvas.requestRenderAll) {
-              fabricCanvas.requestRenderAll();
-            } else {
-              fabricCanvas.renderAll();
-            }
+            // Immediate render for new paths (first update) - critical for perceived latency
+            scheduleRender(true);
           } else {
-            // Update existing path with new points
+            // Update existing path with accumulated points
             // Build path array for Fabric.js
-            const fabricPath: any[] = [['M', pathPoints[0][0], pathPoints[0][1]]];
-            for (let i = 1; i < pathPoints.length; i++) {
-              fabricPath.push(['L', pathPoints[i][0], pathPoints[i][1]]);
+            const fabricPath: any[] = [['M', allPathPoints[0][0], allPathPoints[0][1]]];
+            for (let i = 1; i < allPathPoints.length; i++) {
+              fabricPath.push(['L', allPathPoints[i][0], allPathPoints[i][1]]);
             }
 
             // Use stored properties as fallback
@@ -420,7 +454,7 @@ export function useCanvasSync({
           }
           
           if (isDebugEnabled()) {
-            logCanvasState(`path-update: ${event.pathId} (${pathPoints.length} points)`, event.pathId);
+            logCanvasState(`path-update: ${event.pathId} (${allPathPoints.length} total points, ${newPoints.length} new)`, event.pathId);
           }
         } catch (error) {
           console.error("[CanvasSync] Error updating path:", error);
@@ -466,8 +500,8 @@ export function useCanvasSync({
           console.log(`[CanvasSync Debug] path-complete received for ${targetPathId}, waiting for late updates (max sequence: ${maxSequence}, complete sequence: ${eventSequence})`);
         }
         
-        // Wait 50ms to catch any late path-update events (handles network latency)
-        // Reduced from 200ms for faster finalization while still catching late updates
+        // Wait 30ms to catch any late path-update events (handles network latency)
+        // Reduced further since we're now batching updates more efficiently
         setTimeout(() => {
           const pending = pendingPathCompletes.get(targetPathId);
           if (!pending) return; // Already processed
@@ -480,16 +514,28 @@ export function useCanvasSync({
             
             // Apply buffered updates in sequence order - use the latest one (most points)
             const latestUpdate = pending.bufferedUpdates[pending.bufferedUpdates.length - 1];
-            const pathPoints = latestUpdate.event.data?.path;
             
-            if (pathPoints && pathPoints.length > 0 && isCanvasValid(fabricCanvas)) {
+            // Handle both old format (full path) and new format (differential newPoints)
+            if (latestUpdate.event.data?.newPoints) {
+              // New format: append to accumulated points
+              const accumulated = accumulatedPathPoints.get(targetPathId) || [];
+              const newPoints = latestUpdate.event.data.newPoints;
+              accumulatedPathPoints.set(targetPathId, [...accumulated, ...newPoints]);
+            } else if (latestUpdate.event.data?.path) {
+              // Legacy format: replace accumulated points
+              accumulatedPathPoints.set(targetPathId, latestUpdate.event.data.path);
+            }
+            
+            const allPathPoints = accumulatedPathPoints.get(targetPathId) || [];
+            
+            if (allPathPoints.length > 0 && isCanvasValid(fabricCanvas)) {
               let path = activePaths.get(targetPathId);
               
               if (path) {
-                // Update existing path with latest points
-                const fabricPath: any[] = [['M', pathPoints[0][0], pathPoints[0][1]]];
-                for (let i = 1; i < pathPoints.length; i++) {
-                  fabricPath.push(['L', pathPoints[i][0], pathPoints[i][1]]);
+                // Update existing path with accumulated points
+                const fabricPath: any[] = [['M', allPathPoints[0][0], allPathPoints[0][1]]];
+                for (let i = 1; i < allPathPoints.length; i++) {
+                  fabricPath.push(['L', allPathPoints[i][0], allPathPoints[i][1]]);
                 }
                 
                 const storedProps = pathProperties.get(targetPathId) || { opacity: 1, hardness: 1, strokeWidth: 5 };
@@ -518,6 +564,8 @@ export function useCanvasSync({
           
           // Mark this path as finalized to prevent late path-update events
           finalizedPaths.add(targetPathId);
+          // Clean up accumulated points
+          accumulatedPathPoints.delete(targetPathId);
           
           // Debug: Extract point count from path-complete data
           let completePointCount = 0;
