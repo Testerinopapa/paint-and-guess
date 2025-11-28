@@ -36,6 +36,7 @@ export class TriviaRoom {
     this.gamePin = gamePin || this.generatePin();
     this.questionStartTime = questionStartTime;
     this.answerStats = answerStats; // { optionId: count }
+    this.questionTimer = null; // Timer reference for early termination
   }
 
   generatePin() {
@@ -191,11 +192,22 @@ export class TriviaRoom {
   }
 
   allPlayersAnswered() {
-    const activePlayers = this.getActivePlayers();
+    // Exclude host (owner) from the check - host doesn't answer questions
+    const activePlayers = this.getActivePlayers().filter((p) => p.id !== this.ownerId);
     return activePlayers.length > 0 && activePlayers.every((p) => p.hasAnswered);
   }
 
+  clearQuestionTimer() {
+    if (this.questionTimer) {
+      clearTimeout(this.questionTimer);
+      this.questionTimer = null;
+    }
+  }
+
   nextQuestion() {
+    // Clear any existing timer when moving to next question
+    this.clearQuestionTimer();
+    
     this.currentQuestionIndex++;
     if (this.currentQuestionIndex >= this.questions.length) {
       this.phase = "podium";

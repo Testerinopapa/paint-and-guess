@@ -1159,6 +1159,109 @@ io.on("connection", (socket) => {
     socket.emit("trivia:room-state", room.toJSON());
   });
 
+  // Helper function to transition from question phase to answer-reveal and subsequent phases
+  function transitionToAnswerReveal(roomId) {
+    const room = triviaRoomRepository.getRoom(roomId);
+    if (!room || room.phase !== "question") {
+      console.log(`[Trivia] ⚠️ transitionToAnswerReveal: Room ${roomId} not in question phase (current: ${room?.phase})`);
+      return;
+    }
+
+    // Clear the timer since we're transitioning early or it expired
+    room.clearQuestionTimer();
+
+    // Get fresh question reference
+    const currentQuestion = room.getCurrentQuestion();
+    if (!currentQuestion) {
+      console.log(`[Trivia] ❌ transitionToAnswerReveal: No question found at index ${room.currentQuestionIndex}`);
+      return;
+    }
+
+    console.log(`[Trivia] ⏰ Transitioning to answer-reveal for question ${room.currentQuestionIndex + 1}`);
+
+    room.phase = "answer-reveal";
+    io.to(roomId).emit("trivia:phase-changed", {
+      phase: room.phase,
+      questionIndex: room.currentQuestionIndex,
+    });
+
+    io.to(roomId).emit("trivia:answer-reveal", {
+      correctOptionId: currentQuestion.correctOptionId,
+      answerStats: room.answerStats,
+    });
+
+    console.log(`[Trivia] ✅ Answer reveal for question ${room.currentQuestionIndex + 1}, stats:`, room.answerStats);
+
+    setTimeout(() => {
+      const scoringRoom = triviaRoomRepository.getRoom(roomId);
+      if (!scoringRoom) return;
+
+      scoringRoom.phase = "scoring";
+      io.to(roomId).emit("trivia:phase-changed", {
+        phase: scoringRoom.phase,
+        questionIndex: scoringRoom.currentQuestionIndex,
+      });
+
+      io.to(roomId).emit("trivia:scoring", {
+        players: scoringRoom.toJSON().players,
+      });
+
+      console.log(`[Trivia] 💰 Scoring phase for question ${scoringRoom.currentQuestionIndex + 1}`);
+
+      setTimeout(() => {
+        const leaderboardRoom = triviaRoomRepository.getRoom(roomId);
+        if (!leaderboardRoom) return;
+
+        const leaderboard = leaderboardRoom.getLeaderboard();
+        leaderboardRoom.phase = "leaderboard";
+        io.to(roomId).emit("trivia:phase-changed", {
+          phase: leaderboardRoom.phase,
+          questionIndex: leaderboardRoom.currentQuestionIndex,
+        });
+
+        io.to(roomId).emit("trivia:leaderboard", {
+          leaderboard,
+        });
+
+        console.log(`[Trivia] 🏆 Leaderboard phase for question ${leaderboardRoom.currentQuestionIndex + 1}`);
+
+        setTimeout(() => {
+          const nextRoom = triviaRoomRepository.getRoom(roomId);
+          if (!nextRoom) return;
+
+          const hasMore = nextRoom.nextQuestion();
+          console.log(`[Trivia] 🔄 nextQuestion() called: hasMore=${hasMore}, newPhase=${nextRoom.phase}, newIndex=${nextRoom.currentQuestionIndex}`);
+
+          if (!hasMore) {
+            // Game ended - show podium
+            const podium = nextRoom.getPodium();
+            console.log(`[Trivia] 🎉 Game ended! Showing podium`);
+            io.to(roomId).emit("trivia:phase-changed", {
+              phase: nextRoom.phase,
+            });
+            io.to(roomId).emit("trivia:podium", {
+              podium,
+              finalScores: nextRoom.toJSON().players,
+            });
+          } else {
+            // Next question - automatically start it
+            if (!nextRoom.isGameActive) {
+              console.log(`[Trivia] ⚠️ Game no longer active, skipping next question`);
+              return;
+            }
+            console.log(`[Trivia] ➡️ Starting next question (${nextRoom.currentQuestionIndex + 1}/${nextRoom.questions.length})`);
+            io.to(roomId).emit("trivia:phase-changed", {
+              phase: nextRoom.phase,
+              questionIndex: nextRoom.currentQuestionIndex,
+            });
+            // Automatically start the next question
+            startQuestion(roomId);
+          }
+        }, 3000);
+      }, 2000);
+    }, 3000);
+  }
+
   // Helper function to start a question (used for first question and subsequent questions)
   function startQuestion(roomId) {
     const room = triviaRoomRepository.getRoom(roomId);
@@ -1209,104 +1312,19 @@ io.on("connection", (socket) => {
         totalQuestions: currentRoom.questions.length,
       });
 
+      // Clear any existing timer before setting a new one
+      currentRoom.clearQuestionTimer();
+
       // End question after time limit
-      const questionTimer = setTimeout(() => {
+      currentRoom.questionTimer = setTimeout(() => {
         const timerRoom = triviaRoomRepository.getRoom(roomId);
         if (!timerRoom || timerRoom.phase !== "question") {
           console.log(`[Trivia] ⚠️ Question timer expired but room phase is ${timerRoom?.phase}, skipping`);
           return;
         }
 
-        // Get fresh question reference
-        const currentQuestion = timerRoom.getCurrentQuestion();
-        if (!currentQuestion) {
-          console.log(`[Trivia] ❌ No question found at index ${timerRoom.currentQuestionIndex}`);
-          return;
-        }
-
         console.log(`[Trivia] ⏰ Question ${timerRoom.currentQuestionIndex + 1} time limit reached`);
-
-        timerRoom.phase = "answer-reveal";
-        io.to(roomId).emit("trivia:phase-changed", {
-          phase: timerRoom.phase,
-          questionIndex: timerRoom.currentQuestionIndex,
-        });
-
-        io.to(roomId).emit("trivia:answer-reveal", {
-          correctOptionId: currentQuestion.correctOptionId,
-          answerStats: timerRoom.answerStats,
-        });
-
-        console.log(`[Trivia] ✅ Answer reveal for question ${timerRoom.currentQuestionIndex + 1}, stats:`, timerRoom.answerStats);
-
-        setTimeout(() => {
-          const scoringRoom = triviaRoomRepository.getRoom(roomId);
-          if (!scoringRoom) return;
-
-          scoringRoom.phase = "scoring";
-          io.to(roomId).emit("trivia:phase-changed", {
-            phase: scoringRoom.phase,
-            questionIndex: scoringRoom.currentQuestionIndex,
-          });
-
-          io.to(roomId).emit("trivia:scoring", {
-            players: scoringRoom.toJSON().players,
-          });
-
-          console.log(`[Trivia] 💰 Scoring phase for question ${scoringRoom.currentQuestionIndex + 1}`);
-
-          setTimeout(() => {
-            const leaderboardRoom = triviaRoomRepository.getRoom(roomId);
-            if (!leaderboardRoom) return;
-
-            const leaderboard = leaderboardRoom.getLeaderboard();
-            leaderboardRoom.phase = "leaderboard";
-            io.to(roomId).emit("trivia:phase-changed", {
-              phase: leaderboardRoom.phase,
-              questionIndex: leaderboardRoom.currentQuestionIndex,
-            });
-
-            io.to(roomId).emit("trivia:leaderboard", {
-              leaderboard,
-            });
-
-            console.log(`[Trivia] 🏆 Leaderboard phase for question ${leaderboardRoom.currentQuestionIndex + 1}`);
-
-            setTimeout(() => {
-              const nextRoom = triviaRoomRepository.getRoom(roomId);
-              if (!nextRoom) return;
-
-              const hasMore = nextRoom.nextQuestion();
-              console.log(`[Trivia] 🔄 nextQuestion() called: hasMore=${hasMore}, newPhase=${nextRoom.phase}, newIndex=${nextRoom.currentQuestionIndex}`);
-
-              if (!hasMore) {
-                // Game ended - show podium
-                const podium = nextRoom.getPodium();
-                console.log(`[Trivia] 🎉 Game ended! Showing podium`);
-                io.to(roomId).emit("trivia:phase-changed", {
-                  phase: nextRoom.phase,
-                });
-                io.to(roomId).emit("trivia:podium", {
-                  podium,
-                  finalScores: nextRoom.toJSON().players,
-                });
-              } else {
-                // Next question - automatically start it
-                if (!nextRoom.isGameActive) {
-                  console.log(`[Trivia] ⚠️ Game no longer active, skipping next question`);
-                  return;
-                }
-                console.log(`[Trivia] ➡️ Starting next question (${nextRoom.currentQuestionIndex + 1}/${nextRoom.questions.length})`);
-                io.to(roomId).emit("trivia:phase-changed", {
-                  phase: nextRoom.phase,
-                  questionIndex: nextRoom.currentQuestionIndex,
-                });
-                // Automatically start the next question
-                startQuestion(roomId);
-              }
-            }, 3000);
-          }, 2000);
-        }, 3000);
+        transitionToAnswerReveal(roomId);
       }, question.timeLimit * 1000);
     }, 2000);
   }
@@ -1390,10 +1408,12 @@ io.on("connection", (socket) => {
       newStreak: result.newStreak,
     });
 
-    // Broadcast to host if all answered
+    // Check if all non-host players have answered - if so, end question early
     if (room.allPlayersAnswered()) {
-      console.log(`[Trivia] 🎯 All players answered question ${room.currentQuestionIndex + 1}`);
+      console.log(`[Trivia] 🎯 All non-host players answered question ${room.currentQuestionIndex + 1}, ending question early`);
       io.to(roomId).emit("trivia:all-answered");
+      // Transition to answer-reveal phase immediately
+      transitionToAnswerReveal(roomId);
     }
   });
 
