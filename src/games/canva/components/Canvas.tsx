@@ -63,7 +63,36 @@ export function CanvaCanvas() {
     
     // CRITICAL: Calculate canvas offset - without this, getPointer() returns wrong coordinates
     // This accounts for the canvas element's position on the page (offsetTop/offsetLeft)
+    
+    // Debug: Get canvas element position before calcOffset
+    const rectBefore = canvasElement.getBoundingClientRect();
+    console.log("[CanvaCanvas] Before calcOffset() - DOM element position:", {
+      left: rectBefore.left,
+      top: rectBefore.top,
+      width: rectBefore.width,
+      height: rectBefore.height,
+      offsetLeft: canvasElement.offsetLeft,
+      offsetTop: canvasElement.offsetTop,
+    });
+    
     canvas.calcOffset();
+    
+    // Debug: Get Fabric's calculated offset values
+    const fabricOffset = (canvas as any)._offset;
+    console.log("[CanvaCanvas] After calcOffset() - Fabric offset:", {
+      left: fabricOffset?.left,
+      top: fabricOffset?.top,
+    });
+    
+    // Debug: Verify canvas dimensions
+    console.log("[CanvaCanvas] Canvas dimensions:", {
+      fabricWidth: canvas.getWidth(),
+      fabricHeight: canvas.getHeight(),
+      elementWidth: canvasElement.width,
+      elementHeight: canvasElement.height,
+      styleWidth: canvasElement.style.width,
+      styleHeight: canvasElement.style.height,
+    });
     
     // Disable any viewport transforms that might affect coordinates
     canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
@@ -72,7 +101,17 @@ export function CanvaCanvas() {
 
     // Recalculate offset on window resize (layout changes can affect canvas position)
     const handleResize = () => {
+      const rectBeforeResize = canvasElement.getBoundingClientRect();
+      console.log("[CanvaCanvas] Resize detected - recalculating offset. Element position:", {
+        left: rectBeforeResize.left,
+        top: rectBeforeResize.top,
+      });
       canvas.calcOffset();
+      const fabricOffsetAfter = (canvas as any)._offset;
+      console.log("[CanvaCanvas] After resize calcOffset() - Fabric offset:", {
+        left: fabricOffsetAfter?.left,
+        top: fabricOffsetAfter?.top,
+      });
     };
     window.addEventListener('resize', handleResize);
 
@@ -116,7 +155,36 @@ export function CanvaCanvas() {
     const handleMouseDown = (options: any) => {
       if (localIsDrawing) return;
       
+      // Debug: Compare raw event coordinates with getPointer() result
+      const rawEvent = options.e;
+      const clientX = rawEvent.clientX || rawEvent.touches?.[0]?.clientX;
+      const clientY = rawEvent.clientY || rawEvent.touches?.[0]?.clientY;
+      const rect = canvas.getElement().getBoundingClientRect();
+      const manualCalc = {
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+      };
+      
       const pointer = canvas.getPointer(options.e);
+      
+      console.log("[CanvaCanvas] MouseDown - Coordinate calculation:", {
+        rawClientX: clientX,
+        rawClientY: clientY,
+        elementRect: {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height,
+        },
+        manualCalculation: manualCalc,
+        fabricGetPointer: { x: pointer.x, y: pointer.y },
+        difference: {
+          x: pointer.x - manualCalc.x,
+          y: pointer.y - manualCalc.y,
+        },
+        fabricOffset: (canvas as any)._offset,
+      });
+      
       // Clamp coordinates to canvas bounds to ensure consistency across clients
       const x = Math.max(0, Math.min(pointer.x, CANVAS_WIDTH));
       const y = Math.max(0, Math.min(pointer.y, CANVAS_HEIGHT));
@@ -199,6 +267,22 @@ export function CanvaCanvas() {
 
       try {
         const pointer = canvas.getPointer(options.e);
+        
+        // Debug: Log first few points to verify coordinate consistency
+        if (localPathPoints.length < 3) {
+          const rawEvent = options.e;
+          const clientX = rawEvent.clientX || rawEvent.touches?.[0]?.clientX;
+          const clientY = rawEvent.clientY || rawEvent.touches?.[0]?.clientY;
+          const rect = canvas.getElement().getBoundingClientRect();
+          console.log("[CanvaCanvas] MouseMove point", localPathPoints.length + 1, ":", {
+            fabricGetPointer: { x: pointer.x, y: pointer.y },
+            manualCalc: {
+              x: clientX - rect.left,
+              y: clientY - rect.top,
+            },
+          });
+        }
+        
         // Clamp coordinates to canvas bounds to ensure consistency
         const x = Math.max(0, Math.min(pointer.x, CANVAS_WIDTH));
         const y = Math.max(0, Math.min(pointer.y, CANVAS_HEIGHT));
@@ -328,6 +412,16 @@ export function CanvaCanvas() {
           originY: 'top',
         };
         
+        console.log("[CanvaCanvas] Sending path-complete:", {
+          pathId: localPathId,
+          totalPoints: localPathPoints.length,
+          firstPoint: localPathPoints[0],
+          lastPoint: localPathPoints[localPathPoints.length - 1],
+          pathDataFirstCommands: fabricPath.slice(0, 3),
+          pathDataLeft: pathData.left,
+          pathDataTop: pathData.top,
+        });
+        
         sendDrawingEvent({
           type: "path-complete",
           pathId: localPathId,
@@ -424,6 +518,15 @@ export function CanvaCanvas() {
               fabricPath.push(['L', allPathPoints[i][0], allPathPoints[i][1]]);
             }
 
+            // Debug: Log received path coordinates
+            console.log("[CanvaCanvas] Creating remote path from path-update:", {
+              pathId: event.pathId,
+              firstPoint: allPathPoints[0],
+              lastPoint: allPathPoints[allPathPoints.length - 1],
+              totalPoints: allPathPoints.length,
+              fabricPathCommands: fabricPath.slice(0, 3), // First 3 commands
+            });
+
             const shadowBlur = currentProps.hardness < 1 ? (1 - currentProps.hardness) * currentProps.strokeWidth * 2 : 0;
 
             path = new Path(fabricPath, {
@@ -492,9 +595,23 @@ export function CanvaCanvas() {
 
         // Use path-complete data to create final path
         // CRITICAL: Force deserialized objects to origin so path coordinates are absolute
+        console.log("[CanvaCanvas] path-complete received:", {
+          pathId: event.pathId,
+          dataKeys: Object.keys(event.data || {}),
+          dataLeft: (event.data as any)?.left,
+          dataTop: (event.data as any)?.top,
+          dataPath: (event.data as any)?.path?.slice(0, 3), // First 3 path commands
+        });
+        
         fabric.util.enlivenObjects([event.data])
           .then((objects: FabricObject[]) => {
             objects.forEach((obj) => {
+              const beforeSet = {
+                left: (obj as any).left,
+                top: (obj as any).top,
+                path: (obj as any).path?.slice(0, 3),
+              };
+              
               obj.selectable = false;
               obj.evented = false;
               // Override any position from JSON - coordinates in path data are absolute
@@ -504,6 +621,17 @@ export function CanvaCanvas() {
                 originX: 'left',
                 originY: 'top',
               });
+              
+              console.log("[CanvaCanvas] path-complete object after set:", {
+                pathId: event.pathId,
+                beforeSet,
+                afterSet: {
+                  left: (obj as any).left,
+                  top: (obj as any).top,
+                  path: (obj as any).path?.slice(0, 3),
+                },
+              });
+              
               canvas.add(obj);
             });
             canvas.renderAll();
