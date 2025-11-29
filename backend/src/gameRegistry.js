@@ -198,6 +198,29 @@ const fallbackRegistry = registrySchema.parse({
         priority: 80,
       },
     },
+    {
+      id: "canva",
+      version: "0.1.0",
+      name: { default: "Canva" },
+      description: { default: "Collaborative drawing canvas. Draw together with friends in real-time!" },
+      status: "stable",
+      supportedPlayers: { min: 1, max: 10, recommended: 4 },
+      monetization: "free",
+      category: ["drawing", "creative"],
+      badges: ["new"],
+      assets: { thumbnail: "/placeholder.svg" },
+      featureFlags: [],
+      visibleIf: ["public"],
+      route: { slug: "canva" },
+      plugin: {
+        previewComponent: "canvaPreview",
+        moduleId: "@/games/canva",
+      },
+      navigation: {
+        category: "creative",
+        priority: 85,
+      },
+    },
   ],
 });
 
