@@ -614,14 +614,21 @@ export function CanvaCanvas() {
           // Extract path commands directly - these are already absolute coordinates
           const fabricPath = pathData.path;
           
+          // Extract first coordinate to verify what we're receiving
+          const firstMove = fabricPath.find((cmd: any) => cmd[0] === 'M');
+          const firstLine = fabricPath.find((cmd: any) => cmd[0] === 'L');
+          
           console.log("[CanvaCanvas] Creating final path from path-complete:", {
             pathId: event.pathId,
-            pathCommands: fabricPath.slice(0, 3),
-            firstCommand: fabricPath[0],
+            firstMoveCommand: firstMove,
+            firstLineCommand: firstLine,
             totalCommands: fabricPath.length,
+            pathDataLeft: pathData.left,
+            pathDataTop: pathData.top,
           });
 
-          // Create Path directly with absolute coordinates, same as path-update
+          // Create Path exactly like path-update does - let Fabric calculate left/top automatically
+          // The path coordinates are absolute, so Fabric will set left/top to the minimum coordinates
           const finalPath = new Path(fabricPath, {
             stroke: pathData.stroke || "#000000",
             strokeWidth: pathData.strokeWidth || 5,
@@ -630,18 +637,19 @@ export function CanvaCanvas() {
             selectable: false,
             evented: false,
             objectCaching: false,
-            // CRITICAL: Force to origin - path coordinates are absolute
-            left: 0,
-            top: 0,
-            originX: 'left',
-            originY: 'top',
           });
 
-          console.log("[CanvaCanvas] Final path created:", {
+          // Debug: Check what Fabric calculated
+          const bbox = finalPath.getBoundingRect();
+          console.log("[CanvaCanvas] Path after creation (Fabric auto-calculated):", {
             pathId: event.pathId,
             pathLeft: (finalPath as any).left,
             pathTop: (finalPath as any).top,
-            pathCoords: (finalPath as any).path?.slice(0, 3),
+            bboxLeft: bbox.left,
+            bboxTop: bbox.top,
+            firstMoveCommand: firstMove,
+            expectedLeft: firstMove ? firstMove[1] : 'N/A',
+            expectedTop: firstMove ? firstMove[2] : 'N/A',
           });
 
           canvas.add(finalPath);
