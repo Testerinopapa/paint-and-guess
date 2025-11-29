@@ -675,8 +675,40 @@ export function CanvaCanvas() {
 
     window.addEventListener("canva:drawing-event", handleDrawingEvent);
 
+    // Handle canvas clear event
+    const handleCanvasClear = () => {
+      const canvas = fabricCanvasRef.current;
+      if (!canvas) return;
+      
+      console.log("[CanvaCanvas] Clearing canvas");
+      
+      // Remove all objects from canvas
+      canvas.clear();
+      canvas.backgroundColor = "#ffffff";
+      canvas.renderAll();
+      
+      // Clear all tracking maps
+      activePathsRef.current.clear();
+      accumulatedPathPointsRef.current.clear();
+      pathPropertiesRef.current.clear();
+      finalizedPathsRef.current.clear();
+      
+      // Reset drawing state
+      isDrawingRef.current = false;
+      pathPointsRef.current = [];
+      currentPathIdRef.current = null;
+      lastSentPointIndexRef.current = 0;
+      lastSendTimeRef.current = 0;
+      lastPointTimeRef.current = 0;
+      
+      console.log("[CanvaCanvas] Canvas cleared");
+    };
+
+    window.addEventListener("canva:canvas-clear", handleCanvasClear);
+
     return () => {
       window.removeEventListener("canva:drawing-event", handleDrawingEvent);
+      window.removeEventListener("canva:canvas-clear", handleCanvasClear);
     };
   }, []);
 
@@ -722,11 +754,7 @@ export function CanvaCanvas() {
           }} 
         />
         {!canDraw && gameState.isGameActive && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/10 pointer-events-none">
-            <div className="bg-background/90 px-4 py-2 rounded-lg text-sm font-medium">
-              {isDrawer ? "Round not active" : "Only the drawer can draw"}
-            </div>
-          </div>
+          <div className="absolute inset-0 pointer-events-none" />
         )}
       </div>
     </div>

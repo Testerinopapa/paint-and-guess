@@ -1700,6 +1700,9 @@ io.on("connection", (socket) => {
       roundNumber: room.roundNumber,
     });
 
+    // Clear canvas for all clients when game starts
+    io.to(roomId).emit("canva:canvas-cleared");
+
     if (room.currentDrawer?.socketId) {
       io.to(room.currentDrawer.socketId).emit("canva:draw-word", {
         word: room.currentWord,
@@ -1881,6 +1884,9 @@ io.on("connection", (socket) => {
             roundTime: nextRoom.roundTime,
             roundNumber: nextRoom.roundNumber,
           });
+
+          // Clear canvas for all clients when new round starts
+          io.to(roomId).emit("canva:canvas-cleared");
 
           // Send word to drawer
           if (nextRoom.currentDrawer?.socketId) {
