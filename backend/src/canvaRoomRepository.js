@@ -5,13 +5,16 @@ export class CanvaRoomRepository {
     this.rooms = new Map();
   }
 
-  createRoom({ name, isPublic = true, maxPlayers = 10 }) {
+  createRoom({ name, isPublic = true, maxPlayers = 10, wordPack = "classic", roundTime = 60, maxRounds = 6 }) {
     const id = `canva-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const room = new CanvaRoom({
       id,
       name,
       isPublic,
       maxPlayers,
+      wordPack,
+      roundTime,
+      maxRounds,
     });
     this.rooms.set(id, room);
     return room;

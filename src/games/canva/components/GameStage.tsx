@@ -5,6 +5,7 @@ import { useCanva } from "../state/CanvaContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { PlayerAvatar } from "./PlayerAvatar";
 
 interface GameStageProps {
   onLeaveRoom: () => void;
@@ -87,11 +88,7 @@ export function GameStage({ onLeaveRoom }: GameStageProps) {
                       className="flex items-center justify-between p-2 rounded border"
                     >
                       <div className="flex items-center gap-2">
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            player.connected ? "bg-green-500" : "bg-gray-400"
-                          }`}
-                        />
+                        <PlayerAvatar avatar={player.avatar} name={player.name} size={32} />
                         <span className={player.id === gameState.selfId ? "font-bold" : ""}>
                           {player.name}
                           {player.id === gameState.currentDrawer?.id && " 🎨"}

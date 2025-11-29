@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogOut, Play, Users } from "lucide-react";
 import { useCanva } from "../state/CanvaContext";
+import { PlayerAvatar } from "./PlayerAvatar";
 
 interface LobbyStageProps {
   onLeaveRoom: () => void;
@@ -40,11 +41,7 @@ export function LobbyStage({ onLeaveRoom }: LobbyStageProps) {
                       className="flex items-center justify-between p-2 rounded border"
                     >
                       <div className="flex items-center gap-2">
-                        <div
-                          className={`w-3 h-3 rounded-full ${
-                            player.connected ? "bg-green-500" : "bg-gray-400"
-                          }`}
-                        />
+                        <PlayerAvatar avatar={player.avatar} name={player.name} size={32} />
                         <span className={player.id === gameState.selfId ? "font-bold" : ""}>
                           {player.name}
                           {player.id === gameState.selfId && " (You)"}

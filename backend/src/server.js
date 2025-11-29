@@ -1472,12 +1472,15 @@ io.on("connection", (socket) => {
   });
 
   // Canva socket handlers
-  socket.on("canva:create-room", async ({ roomName, playerName, avatar }) => {
+  socket.on("canva:create-room", async ({ roomName, playerName, avatar, wordPack = "classic", roundTime = 60, maxRounds = 6 }) => {
     // Create room first - it will generate its own ID
     const room = canvaRoomRepository.createRoom({
       name: sanitizeName(roomName, "Canva Room"),
       isPublic: true,
       maxPlayers: 10,
+      wordPack,
+      roundTime,
+      maxRounds,
     });
     const roomId = room.id; // Use the room's actual ID
     console.log("[Server] canva:create-room: Room created", { roomId, gamePin: room.gamePin });
