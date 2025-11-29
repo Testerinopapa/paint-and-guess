@@ -46,22 +46,45 @@ async function fetchUser(): Promise<User> {
     throw new Error("No token");
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  try {
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-  if (!response.ok) {
-    if (response.status === 401) {
-      removeToken();
-      throw new Error("Unauthorized");
+    const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Don't remove token here, let the error handler do it
+        throw new Error("Unauthorized");
+      }
+      throw new Error(`Failed to fetch user: ${response.status} ${response.statusText}`);
     }
-    throw new Error("Failed to fetch user");
-  }
 
-  const data = await response.json();
-  return data.user;
+    const data = await response.json();
+    if (!data.user) {
+      throw new Error("Invalid user data received");
+    }
+    return data.user;
+  } catch (error) {
+    // Re-throw network errors as-is, but don't remove token (might be temporary)
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("Request timeout");
+    }
+    if (error instanceof Error && error.message === "Unauthorized") {
+      throw error; // Re-throw auth errors
+    }
+    // For other errors, log but throw with a clearer message
+    console.error("[Auth] fetchUser error:", error);
+    throw new Error("Network error: Could not connect to authentication server");
+  }
 }
 
 async function loginUser(email: string, password: string): Promise<{ user: User; token: string }> {
@@ -134,17 +157,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ["auth", "user"],
     queryFn: fetchUser,
     enabled: !!token,
-    retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: (failureCount, error) => {
+      // Only retry on network errors, not auth errors
+      if (error instanceof Error && error.message === "Unauthorized") {
+        return false;
+      }
+      // Retry network errors up to 2 times
+      return failureCount < 2;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for 5 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes even if query fails
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    refetchOnReconnect: false, // Don't refetch when network reconnects (like socket connection)
+    refetchOnMount: false, // Don't refetch every time component mounts if data is still fresh
+    // Keep previous data on error - don't clear user data if query fails
+    placeholderData: (previousData) => previousData,
   });
 
-  // Remove token if unauthorized
+  // Remove token only on actual 401 Unauthorized, not network errors
   useEffect(() => {
-    if (error && (error as Error).message === "Unauthorized") {
-      setTokenState(null);
-      removeToken();
+    if (error) {
+      const errorMessage = (error as Error).message;
+      // Only remove token on explicit unauthorized, not network failures
+      if (errorMessage === "Unauthorized") {
+        console.log("[Auth] Unauthorized, removing token");
+        setTokenState(null);
+        removeToken();
+        queryClient.setQueryData(["auth", "user"], null);
+      } else {
+        // Log other errors but don't remove token (might be network issue)
+        console.warn("[Auth] Error fetching user:", errorMessage);
+      }
     }
-  }, [error]);
+  }, [error, queryClient]);
 
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
@@ -213,9 +258,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await refetchUser();
   };
 
+  // Only show loading on initial load, not during refetches
+  const isInitialLoading = isLoading && !user && !!token;
+
   const value: AuthContextType = {
     user: user || null,
-    isLoading: isLoading || loginMutation.isPending || registerMutation.isPending,
+    isLoading: isInitialLoading || loginMutation.isPending || registerMutation.isPending,
     isAuthenticated: !!user && !!token,
     login,
     register,

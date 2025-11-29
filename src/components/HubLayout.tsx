@@ -50,7 +50,7 @@ export function buildNavigationLinks(games: HubGame[]): NavigationLink[] {
 const HubLayout = () => {
   const { games } = useGameRegistry();
   const navigation = useMemo(() => buildNavigationLinks(games), [games]);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
     // Try to load from user first, then localStorage
@@ -113,7 +113,11 @@ const HubLayout = () => {
 
         {/* User Profile / Auth Section */}
         <div className="mt-auto space-y-2">
-          {isAuthenticated && user ? (
+          {authLoading ? (
+            <div className="w-full p-3 text-center text-sm text-muted-foreground">
+              Loading...
+            </div>
+          ) : isAuthenticated && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
