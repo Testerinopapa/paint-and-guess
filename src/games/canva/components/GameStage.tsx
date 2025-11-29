@@ -12,14 +12,24 @@ interface GameStageProps {
 
 export function GameStage({ onLeaveRoom }: GameStageProps) {
   const { gameState, isDrawer, makeGuess, sendChatMessage } = useCanva();
-  const [guessInput, setGuessInput] = useState("");
+  const [chatInput, setChatInput] = useState("");
 
-  const handleGuess = (e: React.FormEvent) => {
+  // Determine if input should be used for guessing or chatting
+  const isGuessingMode = !isDrawer && gameState.isGameActive && gameState.isRoundActive && !gameState.currentWord;
+
+  const handleChatSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (guessInput.trim() && !isDrawer) {
-      makeGuess(guessInput.trim());
-      setGuessInput("");
+    const message = chatInput.trim();
+    if (!message) return;
+
+    if (isGuessingMode) {
+      // During active round, treat as guess
+      makeGuess(message);
+    } else {
+      // Otherwise, send as chat message
+      sendChatMessage(message);
     }
+    setChatInput("");
   };
 
   const formatTime = (seconds: number) => {
@@ -107,54 +117,31 @@ export function GameStage({ onLeaveRoom }: GameStageProps) {
 
         {/* Right Sidebar - Chat & Guess */}
         <div className="col-span-1 lg:col-span-2 flex flex-col min-h-[250px] sm:min-h-[300px] lg:min-h-0 lg:max-h-full gap-2">
-          {/* Guess Input (for non-drawers) */}
-          {!isDrawer && !gameState.currentWord && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Make a Guess</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleGuess} className="space-y-2">
-                  <Input
-                    value={guessInput}
-                    onChange={(e) => setGuessInput(e.target.value)}
-                    placeholder="Type your guess..."
-                    disabled={!!gameState.currentWord}
-                  />
-                  <Button type="submit" className="w-full" size="sm" disabled={!guessInput.trim()}>
-                    Guess
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Chat */}
           <Card className="flex-1 min-h-0 overflow-hidden flex flex-col">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Chat</CardTitle>
+              <CardTitle className="text-sm">
+                {isGuessingMode ? "Make a Guess" : "Chat"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col min-h-0">
               <div className="flex-1 overflow-y-auto mb-2 space-y-1">
                 {/* Chat messages would go here - simplified for now */}
                 <p className="text-xs text-muted-foreground text-center">
-                  Chat messages will appear here
+                  {isGuessingMode 
+                    ? "Type your guess below" 
+                    : "Chat messages will appear here"}
                 </p>
               </div>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const input = e.currentTarget.querySelector("input") as HTMLInputElement;
-                  if (input.value.trim()) {
-                    sendChatMessage(input.value.trim());
-                    input.value = "";
-                  }
-                }}
-                className="flex gap-2"
-              >
-                <Input placeholder="Type a message..." className="flex-1" />
-                <Button type="submit" size="sm">
-                  Send
+              <form onSubmit={handleChatSubmit} className="flex gap-2">
+                <Input 
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder={isGuessingMode ? "Type your guess..." : "Type a message..."} 
+                  className="flex-1" 
+                />
+                <Button type="submit" size="sm" disabled={!chatInput.trim()}>
+                  {isGuessingMode ? "Guess" : "Send"}
                 </Button>
               </form>
             </CardContent>

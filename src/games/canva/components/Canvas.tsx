@@ -750,7 +750,6 @@ export function CanvaCanvas() {
           style={{ 
             display: 'block',
             cursor: canDraw ? 'crosshair' : 'not-allowed',
-            opacity: canDraw ? 1 : 0.7,
           }} 
         />
         {!canDraw && gameState.isGameActive && (
