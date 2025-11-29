@@ -1802,6 +1802,10 @@ io.on("connection", (socket) => {
         players: room.toJSON().players,
       });
     } else {
+      // Get the previous word before starting next round
+      const previousWord = room.currentWord;
+      const previousRoundNumber = room.roundNumber;
+      
       const getWord = () => getRandomWordFromPack(room.wordPack || "classic");
       try {
         room.nextRound(getWord);
@@ -1810,24 +1814,35 @@ io.on("connection", (socket) => {
           name: room.currentDrawer.name,
         } : null;
 
+        // Emit round-ended first to show the previous word
         io.to(roomId).emit("canva:round-ended", {
-          word: room.currentWord,
+          word: previousWord, // Previous word
           nextDrawer: drawer,
           roundNumber: room.roundNumber,
         });
 
-        if (room.currentDrawer?.socketId) {
-          io.to(room.currentDrawer.socketId).emit("canva:draw-word", {
-            word: room.currentWord,
+        // Wait a moment before starting next round to show the word
+        setTimeout(() => {
+          // Start the new round
+          io.to(roomId).emit("canva:round-started", {
+            drawer,
+            roundNumber: room.roundNumber,
+            roundTime: room.roundTime,
           });
-        }
 
-        room.startRoundTimer(async (timeLeft) => {
-          io.to(roomId).emit("canva:round-timer", { timeLeft });
-          if (timeLeft === 0) {
-            await endCanvaRound(roomId);
+          if (room.currentDrawer?.socketId) {
+            io.to(room.currentDrawer.socketId).emit("canva:draw-word", {
+              word: room.currentWord,
+            });
           }
-        });
+
+          room.startRoundTimer(async (timeLeft) => {
+            io.to(roomId).emit("canva:round-timer", { timeLeft });
+            if (timeLeft === 0) {
+              await endCanvaRound(roomId);
+            }
+          });
+        }, 3000); // 3 second delay between rounds
       } catch (error) {
         console.error("[Server] Error starting next canva round:", error);
         room.isGameActive = false;

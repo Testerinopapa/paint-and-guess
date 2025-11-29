@@ -115,7 +115,10 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
         roundTime,
         timeRemaining: roundTime,
         currentDrawer: drawer,
+        currentWord: null, // Hide word initially
       }));
+      // Clear canvas when game starts
+      window.dispatchEvent(new CustomEvent("canva:canvas-clear"));
       toast.success("Game started!");
     };
 
@@ -145,10 +148,27 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
       setGameState((prev) => ({
         ...prev,
         isRoundActive: false,
-        currentWord: word, // Show the word
+        currentWord: word, // Show the previous word
         currentDrawer: nextDrawer,
         roundNumber,
+        timeRemaining: prev.roundTime, // Reset timer
       }));
+      toast.info(`Round ${roundNumber - 1} ended! Word was: ${word}`);
+    };
+
+    const onRoundStarted = ({ drawer, roundNumber, roundTime }: any) => {
+      setGameState((prev) => ({
+        ...prev,
+        isRoundActive: true,
+        currentDrawer: drawer,
+        roundNumber,
+        roundTime,
+        timeRemaining: roundTime,
+        currentWord: null, // Hide word until someone guesses or round ends
+      }));
+      // Clear canvas when new round starts
+      window.dispatchEvent(new CustomEvent("canva:canvas-clear"));
+      toast.success(`Round ${roundNumber} started!`);
     };
 
     const onGameEnded = ({ players }: any) => {
@@ -209,6 +229,7 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
     socket.on("canva:correct-guess", onCorrectGuess);
     socket.on("canva:wrong-guess", onWrongGuess);
     socket.on("canva:round-ended", onRoundEnded);
+    socket.on("canva:round-started", onRoundStarted);
     socket.on("canva:game-ended", onGameEnded);
     socket.on("canva:canvas-cleared", onCanvasCleared);
     socket.on("error", onError);
@@ -238,6 +259,7 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
       socket.off("canva:correct-guess", onCorrectGuess);
       socket.off("canva:wrong-guess", onWrongGuess);
       socket.off("canva:round-ended", onRoundEnded);
+      socket.off("canva:round-started", onRoundStarted);
       socket.off("canva:game-ended", onGameEnded);
       socket.off("canva:canvas-cleared", onCanvasCleared);
       socket.off("error", onError);
