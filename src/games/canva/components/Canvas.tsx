@@ -43,25 +43,44 @@ export function CanvaCanvas() {
 
     console.log("[CanvaCanvas] Initializing canvas...");
 
-    const canvas = new FabricCanvas(canvasRef.current, {
+    const canvasElement = canvasRef.current;
+    
+    // CRITICAL: Set explicit width/height on canvas element to prevent CSS scaling issues
+    // This ensures the canvas's internal coordinate system matches its display size
+    canvasElement.width = CANVAS_WIDTH;
+    canvasElement.height = CANVAS_HEIGHT;
+    canvasElement.style.width = `${CANVAS_WIDTH}px`;
+    canvasElement.style.height = `${CANVAS_HEIGHT}px`;
+
+    const canvas = new FabricCanvas(canvasElement, {
       width: CANVAS_WIDTH,
       height: CANVAS_HEIGHT,
       backgroundColor: "#ffffff",
     });
     
-    // Ensure canvas maintains its dimensions and doesn't get scaled by CSS
-    // This is critical for coordinate consistency across different screen sizes
+    // Ensure canvas maintains its dimensions and doesn't get scaled by Fabric
     canvas.setDimensions({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
+    
+    // CRITICAL: Calculate canvas offset - without this, getPointer() returns wrong coordinates
+    // This accounts for the canvas element's position on the page (offsetTop/offsetLeft)
+    canvas.calcOffset();
     
     // Disable any viewport transforms that might affect coordinates
     canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
 
-
     fabricCanvasRef.current = canvas;
+
+    // Recalculate offset on window resize (layout changes can affect canvas position)
+    const handleResize = () => {
+      canvas.calcOffset();
+    };
+    window.addEventListener('resize', handleResize);
+
     console.log("[CanvaCanvas] Canvas initialized successfully");
 
     return () => {
       console.log("[CanvaCanvas] Disposing canvas");
+      window.removeEventListener('resize', handleResize);
       canvas.dispose();
     };
   }, []);
