@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTrivia } from "../state/TriviaContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Users, Plus, LogIn } from "lucide-react";
 import { AvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
@@ -21,6 +22,7 @@ interface Quiz {
 export default function Lobby() {
   const navigate = useNavigate();
   const { createRoom, joinRoom, isConnected, gameState } = useTrivia();
+  const { user, isAuthenticated } = useAuth();
 
   // Navigate to room when created or joined
   useEffect(() => {
@@ -30,7 +32,10 @@ export default function Lobby() {
   }, [gameState.roomId, navigate]);
 
   const [roomName, setRoomName] = useState("");
-  const [playerName, setPlayerName] = useState("");
+  const [playerName, setPlayerName] = useState(() => {
+    // Auto-fill with username if authenticated
+    return user?.username || "";
+  });
   const [gamePin, setGamePin] = useState("");
   const [selectedQuiz, setSelectedQuiz] = useState<string>("general");
   const [quizzes] = useState<Quiz[]>([
@@ -44,6 +49,14 @@ export default function Lobby() {
     // Future quizzes can be added here
   ]);
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
+    // Try to load from user first, then localStorage
+    if (user?.avatarConfig) {
+      try {
+        return JSON.parse(user.avatarConfig);
+      } catch {
+        // Fall through to localStorage
+      }
+    }
     return safeLoadAvatarConfig() || createDefaultAvatarConfig();
   });
   const [isCreating, setIsCreating] = useState(false);
@@ -63,6 +76,25 @@ export default function Lobby() {
       window.removeEventListener("avatar-config-updated", handleAvatarUpdate as EventListener);
     };
   }, []);
+
+  // Update player name when user changes
+  useEffect(() => {
+    if (user?.username && !playerName) {
+      setPlayerName(user.username);
+    }
+  }, [user, playerName]);
+
+  // Update avatar config when user changes
+  useEffect(() => {
+    if (user?.avatarConfig) {
+      try {
+        const parsed = JSON.parse(user.avatarConfig);
+        setAvatarConfig(parsed);
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, [user]);
 
   const handleCreateRoom = () => {
     if (!playerName.trim()) {

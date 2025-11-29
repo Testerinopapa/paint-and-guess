@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCanva } from "../state/CanvaContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,10 +11,22 @@ import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 export function CanvaLobby() {
   const navigate = useNavigate();
   const { gameState, isConnected, createRoom, joinRoom } = useCanva();
+  const { user } = useAuth();
   const [roomName, setRoomName] = useState("");
-  const [playerName, setPlayerName] = useState("");
+  const [playerName, setPlayerName] = useState(() => {
+    // Auto-fill with username if authenticated
+    return user?.username || "";
+  });
   const [gamePin, setGamePin] = useState("");
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
+    // Try to load from user first, then localStorage
+    if (user?.avatarConfig) {
+      try {
+        return JSON.parse(user.avatarConfig);
+      } catch {
+        // Fall through to localStorage
+      }
+    }
     return safeLoadAvatarConfig() || createDefaultAvatarConfig();
   });
 
@@ -30,6 +43,25 @@ export function CanvaLobby() {
       window.removeEventListener("avatar-config-updated", handleAvatarUpdate as EventListener);
     };
   }, []);
+
+  // Update player name when user changes
+  useEffect(() => {
+    if (user?.username && !playerName) {
+      setPlayerName(user.username);
+    }
+  }, [user, playerName]);
+
+  // Update avatar config when user changes
+  useEffect(() => {
+    if (user?.avatarConfig) {
+      try {
+        const parsed = JSON.parse(user.avatarConfig);
+        setAvatarConfig(parsed);
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, [user]);
 
   const handleCreateRoom = () => {
     if (!roomName.trim() || !playerName.trim()) {
