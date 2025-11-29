@@ -17,9 +17,13 @@ const CANVAS_HEIGHT = 600;
 export function CanvaCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<FabricCanvas | null>(null);
-  const { socket } = useCanva();
+  const { socket, gameState, isDrawer } = useCanva();
   const [color, setColor] = useState("#000000");
   const [brushSize, setBrushSize] = useState(5);
+  
+  // Determine if drawing should be enabled
+  // Allow drawing if: game not active (free draw mode) OR (game active AND is drawer AND round active)
+  const canDraw = !gameState.isGameActive || (gameState.isGameActive && isDrawer && gameState.isRoundActive);
   
   // Drawing state tracking
   const isDrawingRef = useRef(false);
@@ -154,6 +158,11 @@ export function CanvaCanvas() {
     // Handle mouse down - start drawing and sending
     const handleMouseDown = (options: any) => {
       if (localIsDrawing) return;
+      
+      // Check if drawing is allowed
+      if (!canDraw) {
+        return;
+      }
       
       // Debug: Compare raw event coordinates with getPointer() result
       const rawEvent = options.e;
@@ -681,6 +690,7 @@ export function CanvaCanvas() {
             value={color}
             onChange={(e) => setColor(e.target.value)}
             className="w-12 h-8 rounded border"
+            disabled={!canDraw}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -692,12 +702,32 @@ export function CanvaCanvas() {
             value={brushSize}
             onChange={(e) => setBrushSize(Number(e.target.value))}
             className="w-24"
+            disabled={!canDraw}
           />
           <span className="text-sm w-8">{brushSize}</span>
         </div>
+        {gameState.isGameActive && !canDraw && (
+          <div className="text-sm text-muted-foreground">
+            {isDrawer ? "Wait for round to start" : "Only the drawer can draw"}
+          </div>
+        )}
       </div>
-      <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white" style={{ width: '800px', height: '600px' }}>
-        <canvas ref={canvasRef} style={{ display: 'block' }} />
+      <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white relative" style={{ width: '800px', height: '600px' }}>
+        <canvas 
+          ref={canvasRef} 
+          style={{ 
+            display: 'block',
+            cursor: canDraw ? 'crosshair' : 'not-allowed',
+            opacity: canDraw ? 1 : 0.7,
+          }} 
+        />
+        {!canDraw && gameState.isGameActive && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/10 pointer-events-none">
+            <div className="bg-background/90 px-4 py-2 rounded-lg text-sm font-medium">
+              {isDrawer ? "Round not active" : "Only the drawer can draw"}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

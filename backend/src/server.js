@@ -1606,6 +1606,11 @@ io.on("connection", (socket) => {
       return;
     }
 
+    // If game is active, only allow drawer to draw
+    if (room.isGameActive && room.isRoundActive && playerId !== room.currentDrawer?.id) {
+      return;
+    }
+
     // Ensure socket is in room
     if (!socket.rooms.has(roomId)) {
       console.log("[Server] canva:drawing-event: Socket not in room, joining", { roomId, socketId: socket.id });
@@ -1636,6 +1641,202 @@ io.on("connection", (socket) => {
       socket.broadcast.to(roomId).emit("canva:drawing-event", event);
     });
   });
+
+  // Canva game flow handlers
+  socket.on("canva:set-ready", async ({ isReady }) => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
+
+    const room = canvaRoomRepository.getRoom(roomId);
+    if (!room || room.isGameActive) return;
+
+    const player = room.getPlayerById(playerId);
+    if (!player || !player.connected) return;
+
+    room.setPlayerReady(playerId, isReady);
+    io.to(roomId).emit("canva:player-ready", {
+      playerId,
+      isReady,
+      allReady: room.allPlayersReady(),
+      players: room.toJSON().players,
+    });
+  });
+
+  socket.on("canva:start-game", async () => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
+
+    const room = canvaRoomRepository.getRoom(roomId);
+    if (!room || room.isGameActive) return;
+
+    if (room.ownerId !== playerId) {
+      socket.emit("error", { message: "Only the host can start the game" });
+      return;
+    }
+
+    try {
+      const getWord = () => getRandomWordFromPack(room.wordPack || "classic");
+      room.startGame(getWord);
+    } catch (error) {
+      socket.emit("error", { message: error.message });
+      return;
+    }
+
+    const drawer = room.currentDrawer ? {
+      id: room.currentDrawer.id,
+      name: room.currentDrawer.name,
+    } : null;
+
+    io.to(roomId).emit("canva:game-started", {
+      drawer,
+      roundTime: room.roundTime,
+      roundNumber: room.roundNumber,
+    });
+
+    if (room.currentDrawer?.socketId) {
+      io.to(room.currentDrawer.socketId).emit("canva:draw-word", {
+        word: room.currentWord,
+      });
+    }
+
+    room.startRoundTimer(async (timeLeft) => {
+      io.to(roomId).emit("canva:round-timer", { timeLeft });
+      if (timeLeft === 0) {
+        await endCanvaRound(roomId);
+      }
+    });
+  });
+
+  socket.on("canva:guess", async ({ guess }) => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
+
+    const room = canvaRoomRepository.getRoom(roomId);
+    if (!room || !room.isGameActive || !room.isRoundActive) return;
+
+    if (playerId === room.currentDrawer?.id) return;
+
+    const player = room.getPlayerById(playerId);
+    if (!player || !player.connected) return;
+
+    if (player.hasGuessed) return;
+
+    const sanitizedGuess = sanitizeMessage(guess);
+    if (!sanitizedGuess) return;
+
+    const normalizedGuess = sanitizedGuess.toLowerCase();
+    const normalizedWord = room.currentWord?.toLowerCase().trim();
+
+    if (!normalizedWord) return;
+
+    if (normalizedGuess === normalizedWord) {
+      const result = room.makeGuess(playerId, sanitizedGuess, true);
+      if (result) {
+        io.to(roomId).emit("canva:correct-guess", {
+          player: { id: player.id, name: player.name },
+          points: result.points,
+          word: room.currentWord,
+          players: room.toJSON().players,
+        });
+
+        const allGuessed = room
+          .getActivePlayers()
+          .filter((p) => p.id !== room.currentDrawer?.id)
+          .every((p) => p.hasGuessed);
+
+        if (allGuessed) {
+          await endCanvaRound(roomId);
+          return;
+        }
+      }
+    } else {
+      io.to(roomId).emit("canva:wrong-guess", {
+        player: { id: player.id, name: player.name },
+        guess: sanitizedGuess,
+      });
+    }
+  });
+
+  socket.on("canva:chat-message", ({ message }) => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
+
+    const room = canvaRoomRepository.getRoom(roomId);
+    if (!room) return;
+
+    const player = room.getPlayerById(playerId);
+    if (!player || !player.connected) return;
+
+    const filteredMessage = sanitizeMessage(message);
+    if (filteredMessage.length === 0) return;
+
+    io.to(roomId).emit("canva:chat-message", {
+      player: { id: player.id, name: player.name },
+      message: filteredMessage,
+      timestamp: Date.now(),
+    });
+  });
+
+  socket.on("canva:clear-canvas", () => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
+
+    const room = canvaRoomRepository.getRoom(roomId);
+    if (!room || !room.isGameActive || !room.isRoundActive) return;
+
+    if (playerId !== room.currentDrawer?.id) return;
+
+    io.to(roomId).emit("canva:canvas-cleared");
+  });
+
+  async function endCanvaRound(roomId) {
+    const room = canvaRoomRepository.getRoom(roomId);
+    if (!room || !room.isGameActive) return;
+
+    room.endRound();
+
+    const shouldEnd = room.shouldEndGame();
+    if (shouldEnd) {
+      room.isGameActive = false;
+      io.to(roomId).emit("canva:game-ended", {
+        players: room.toJSON().players,
+      });
+    } else {
+      const getWord = () => getRandomWordFromPack(room.wordPack || "classic");
+      try {
+        room.nextRound(getWord);
+        const drawer = room.currentDrawer ? {
+          id: room.currentDrawer.id,
+          name: room.currentDrawer.name,
+        } : null;
+
+        io.to(roomId).emit("canva:round-ended", {
+          word: room.currentWord,
+          nextDrawer: drawer,
+          roundNumber: room.roundNumber,
+        });
+
+        if (room.currentDrawer?.socketId) {
+          io.to(room.currentDrawer.socketId).emit("canva:draw-word", {
+            word: room.currentWord,
+          });
+        }
+
+        room.startRoundTimer(async (timeLeft) => {
+          io.to(roomId).emit("canva:round-timer", { timeLeft });
+          if (timeLeft === 0) {
+            await endCanvaRound(roomId);
+          }
+        });
+      } catch (error) {
+        console.error("[Server] Error starting next canva round:", error);
+        room.isGameActive = false;
+        io.to(roomId).emit("canva:game-ended", {
+          players: room.toJSON().players,
+        });
+      }
+    }
+  }
 
   socket.on("disconnect", async () => {
     const { roomId, playerId, isTrivia, isCanva } = socket.data;

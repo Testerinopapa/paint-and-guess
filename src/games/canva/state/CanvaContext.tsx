@@ -9,9 +9,15 @@ interface CanvaContextType {
   socket: Socket | null;
   isConnected: boolean;
   isHost: boolean;
+  isDrawer: boolean;
   createRoom: (roomName: string, playerName: string, avatar?: string) => void;
   joinRoom: (gamePin: string, playerName: string, avatar?: string) => void;
   leaveRoom: () => void;
+  setReady: (isReady: boolean) => void;
+  startGame: () => void;
+  makeGuess: (guess: string) => void;
+  sendChatMessage: (message: string) => void;
+  clearCanvas: () => void;
 }
 
 const CanvaContext = createContext<CanvaContextType | undefined>(undefined);
@@ -24,6 +30,15 @@ function createInitialState(): CanvaRoomState {
     ownerId: null,
     selfId: null,
     players: [],
+    isGameActive: false,
+    isRoundActive: false,
+    roundNumber: 0,
+    roundTime: 60,
+    timeRemaining: 60,
+    currentDrawer: null,
+    currentWord: null,
+    isReady: false,
+    allPlayersReady: false,
   };
 }
 
@@ -64,6 +79,12 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
         gamePin: room.gamePin,
         ownerId: room.ownerId,
         players: room.players,
+        isGameActive: room.isGameActive ?? false,
+        isRoundActive: room.isRoundActive ?? false,
+        roundNumber: room.roundNumber ?? 0,
+        roundTime: room.roundTime ?? 60,
+        currentDrawer: room.currentDrawer ?? null,
+        currentWord: room.currentWord ?? null,
       }));
     };
 
@@ -74,6 +95,75 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
 
     const onPlayerLeft = ({ players }: any) => {
       setGameState((prev) => ({ ...prev, players }));
+    };
+
+    const onPlayerReady = ({ playerId, isReady, allReady, players }: any) => {
+      setGameState((prev) => ({
+        ...prev,
+        players,
+        allPlayersReady: allReady ?? false,
+        isReady: playerId === prev.selfId ? isReady : prev.isReady,
+      }));
+    };
+
+    const onGameStarted = ({ drawer, roundTime, roundNumber }: any) => {
+      setGameState((prev) => ({
+        ...prev,
+        isGameActive: true,
+        isRoundActive: true,
+        roundNumber,
+        roundTime,
+        timeRemaining: roundTime,
+        currentDrawer: drawer,
+      }));
+      toast.success("Game started!");
+    };
+
+    const onDrawWord = ({ word }: { word: string }) => {
+      setGameState((prev) => ({ ...prev, currentWord: word }));
+      toast.info(`Your word: ${word}`);
+    };
+
+    const onRoundTimer = ({ timeLeft }: { timeLeft: number }) => {
+      setGameState((prev) => ({ ...prev, timeRemaining: timeLeft }));
+    };
+
+    const onCorrectGuess = ({ player, points, word, players }: any) => {
+      setGameState((prev) => ({
+        ...prev,
+        players,
+        currentWord: word, // Reveal word when someone guesses correctly
+      }));
+      toast.success(`${player.name} guessed correctly! +${points} points`);
+    };
+
+    const onWrongGuess = ({ player, guess }: any) => {
+      // Just update UI, no state change needed
+    };
+
+    const onRoundEnded = ({ word, nextDrawer, roundNumber }: any) => {
+      setGameState((prev) => ({
+        ...prev,
+        isRoundActive: false,
+        currentWord: word, // Show the word
+        currentDrawer: nextDrawer,
+        roundNumber,
+      }));
+    };
+
+    const onGameEnded = ({ players }: any) => {
+      setGameState((prev) => ({
+        ...prev,
+        isGameActive: false,
+        isRoundActive: false,
+        players,
+      }));
+      toast.success("Game ended!");
+    };
+
+    const onCanvasCleared = () => {
+      // Trigger canvas clear event
+      window.dispatchEvent(new CustomEvent("canva:canvas-clear"));
     };
 
     // CRITICAL: Set up drawing event listener - this MUST be registered
@@ -112,6 +202,15 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
     socket.on("canva:player-joined", onPlayerJoined);
     socket.on("canva:player-left", onPlayerLeft);
     socket.on("canva:drawing-event", onDrawingEvent);
+    socket.on("canva:player-ready", onPlayerReady);
+    socket.on("canva:game-started", onGameStarted);
+    socket.on("canva:draw-word", onDrawWord);
+    socket.on("canva:round-timer", onRoundTimer);
+    socket.on("canva:correct-guess", onCorrectGuess);
+    socket.on("canva:wrong-guess", onWrongGuess);
+    socket.on("canva:round-ended", onRoundEnded);
+    socket.on("canva:game-ended", onGameEnded);
+    socket.on("canva:canvas-cleared", onCanvasCleared);
     socket.on("error", onError);
 
     // Test: Listen to ALL events to see what's coming through
@@ -132,6 +231,15 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
       socket.off("canva:player-left", onPlayerLeft);
       socket.off("canva:drawing-event", onDrawingEvent);
       socket.off("canva:test-event", onTestEvent);
+      socket.off("canva:player-ready", onPlayerReady);
+      socket.off("canva:game-started", onGameStarted);
+      socket.off("canva:draw-word", onDrawWord);
+      socket.off("canva:round-timer", onRoundTimer);
+      socket.off("canva:correct-guess", onCorrectGuess);
+      socket.off("canva:wrong-guess", onWrongGuess);
+      socket.off("canva:round-ended", onRoundEnded);
+      socket.off("canva:game-ended", onGameEnded);
+      socket.off("canva:canvas-cleared", onCanvasCleared);
       socket.off("error", onError);
       socket.offAny(onAnyEvent);
       socket.onevent = originalOnevent;
@@ -160,7 +268,57 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
     setGameState(createInitialState());
   };
 
+  const setReady = (isReady: boolean) => {
+    if (!socket || !isConnected) {
+      toast.error("Not connected to server");
+      return;
+    }
+    socket.emit("canva:set-ready", { isReady });
+    setGameState((prev) => ({ ...prev, isReady }));
+  };
+
+  const startGame = () => {
+    if (!socket || !isConnected) {
+      toast.error("Not connected to server");
+      return;
+    }
+    if (!isHost) {
+      toast.error("Only the host can start the game");
+      return;
+    }
+    socket.emit("canva:start-game");
+  };
+
+  const makeGuess = (guess: string) => {
+    if (!socket || !isConnected) {
+      toast.error("Not connected to server");
+      return;
+    }
+    socket.emit("canva:guess", { guess });
+  };
+
+  const sendChatMessage = (message: string) => {
+    if (!socket || !isConnected) {
+      toast.error("Not connected to server");
+      return;
+    }
+    socket.emit("canva:chat-message", { message });
+  };
+
+  const clearCanvas = () => {
+    if (!socket || !isConnected) {
+      toast.error("Not connected to server");
+      return;
+    }
+    if (!isDrawer) {
+      toast.error("Only the drawer can clear the canvas");
+      return;
+    }
+    socket.emit("canva:clear-canvas");
+  };
+
   const isHost = gameState.ownerId === gameState.selfId;
+  const isDrawer = gameState.currentDrawer?.id === gameState.selfId;
 
   return (
     <CanvaContext.Provider
@@ -169,9 +327,15 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
         socket,
         isConnected,
         isHost,
+        isDrawer,
         createRoom,
         joinRoom,
         leaveRoom,
+        setReady,
+        startGame,
+        makeGuess,
+        sendChatMessage,
+        clearCanvas,
       }}
     >
       {children}
