@@ -594,7 +594,8 @@ export function CanvaCanvas() {
         }
 
         // Use path-complete data to create final path
-        // CRITICAL: Force deserialized objects to origin so path coordinates are absolute
+        // CRITICAL: Don't use enlivenObjects() - it recalculates bounding box incorrectly
+        // Instead, create Path directly from path data, same as path-update
         console.log("[CanvaCanvas] path-complete received:", {
           pathId: event.pathId,
           dataKeys: Object.keys(event.data || {}),
@@ -603,42 +604,51 @@ export function CanvaCanvas() {
           dataPath: (event.data as any)?.path?.slice(0, 3), // First 3 path commands
         });
         
-        fabric.util.enlivenObjects([event.data])
-          .then((objects: FabricObject[]) => {
-            objects.forEach((obj) => {
-              const beforeSet = {
-                left: (obj as any).left,
-                top: (obj as any).top,
-                path: (obj as any).path?.slice(0, 3),
-              };
-              
-              obj.selectable = false;
-              obj.evented = false;
-              // Override any position from JSON - coordinates in path data are absolute
-              (obj as any).set({
-                left: 0,
-                top: 0,
-                originX: 'left',
-                originY: 'top',
-              });
-              
-              console.log("[CanvaCanvas] path-complete object after set:", {
-                pathId: event.pathId,
-                beforeSet,
-                afterSet: {
-                  left: (obj as any).left,
-                  top: (obj as any).top,
-                  path: (obj as any).path?.slice(0, 3),
-                },
-              });
-              
-              canvas.add(obj);
-            });
-            canvas.renderAll();
-          })
-          .catch((err: Error) => {
-            console.error("[CanvaCanvas] Error enlivening path-complete:", err);
+        try {
+          const pathData = event.data as any;
+          if (!pathData.path || !Array.isArray(pathData.path)) {
+            console.error("[CanvaCanvas] path-complete: Invalid path data", pathData);
+            return;
+          }
+
+          // Extract path commands directly - these are already absolute coordinates
+          const fabricPath = pathData.path;
+          
+          console.log("[CanvaCanvas] Creating final path from path-complete:", {
+            pathId: event.pathId,
+            pathCommands: fabricPath.slice(0, 3),
+            firstCommand: fabricPath[0],
+            totalCommands: fabricPath.length,
           });
+
+          // Create Path directly with absolute coordinates, same as path-update
+          const finalPath = new Path(fabricPath, {
+            stroke: pathData.stroke || "#000000",
+            strokeWidth: pathData.strokeWidth || 5,
+            opacity: pathData.opacity ?? 1,
+            fill: pathData.fill || "",
+            selectable: false,
+            evented: false,
+            objectCaching: false,
+            // CRITICAL: Force to origin - path coordinates are absolute
+            left: 0,
+            top: 0,
+            originX: 'left',
+            originY: 'top',
+          });
+
+          console.log("[CanvaCanvas] Final path created:", {
+            pathId: event.pathId,
+            pathLeft: (finalPath as any).left,
+            pathTop: (finalPath as any).top,
+            pathCoords: (finalPath as any).path?.slice(0, 3),
+          });
+
+          canvas.add(finalPath);
+          canvas.renderAll();
+        } catch (err: any) {
+          console.error("[CanvaCanvas] Error creating path from path-complete:", err);
+        }
 
         // Clean up tracking
         accumulatedPathPointsRef.current.delete(pathId);
