@@ -10,6 +10,10 @@ const FAST_DRAW_THRESHOLD_MS = 8;
 const FAST_DRAW_MIN_BATCH = 1;
 const FLUSH_INTERVAL_MS = 8;
 
+// Fixed canvas dimensions - must be consistent across all clients
+const CANVAS_WIDTH = 800;
+const CANVAS_HEIGHT = 600;
+
 export function CanvaCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<FabricCanvas | null>(null);
@@ -40,10 +44,17 @@ export function CanvaCanvas() {
     console.log("[CanvaCanvas] Initializing canvas...");
 
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: 800,
-      height: 600,
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
       backgroundColor: "#ffffff",
     });
+    
+    // Ensure canvas maintains its dimensions and doesn't get scaled by CSS
+    // This is critical for coordinate consistency across different screen sizes
+    canvas.setDimensions({ width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
+    
+    // Disable any viewport transforms that might affect coordinates
+    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
 
 
     fabricCanvasRef.current = canvas;
@@ -87,8 +98,11 @@ export function CanvaCanvas() {
       if (localIsDrawing) return;
       
       const pointer = canvas.getPointer(options.e);
+      // Clamp coordinates to canvas bounds to ensure consistency across clients
+      const x = Math.max(0, Math.min(pointer.x, CANVAS_WIDTH));
+      const y = Math.max(0, Math.min(pointer.y, CANVAS_HEIGHT));
       localIsDrawing = true;
-      localPathPoints = [[pointer.x, pointer.y]];
+      localPathPoints = [[x, y]];
       lastSentPointIndexRef.current = 0;
       lastSendTimeRef.current = Date.now();
       lastPointTimeRef.current = Date.now();
@@ -96,7 +110,9 @@ export function CanvaCanvas() {
       currentPathIdRef.current = localPathId;
 
       // Create local path immediately for real-time rendering
-      const fabricPath: any[] = [['M', pointer.x, pointer.y]];
+      // CRITICAL: Set left/top to 0 so path coordinates are absolute canvas coordinates
+      // Fabric.js will otherwise auto-calculate left/top from bounding box, causing offset issues
+      const fabricPath: any[] = [['M', x, y]];
       localPath = new Path(fabricPath, {
         stroke: color,
         strokeWidth: brushSize,
@@ -104,6 +120,10 @@ export function CanvaCanvas() {
         selectable: false,
         evented: false,
         objectCaching: false,
+        left: 0,
+        top: 0,
+        originX: 'left',
+        originY: 'top',
       });
       canvas.add(localPath);
       canvas.renderAll();
@@ -160,15 +180,25 @@ export function CanvaCanvas() {
 
       try {
         const pointer = canvas.getPointer(options.e);
-        localPathPoints.push([pointer.x, pointer.y]);
+        // Clamp coordinates to canvas bounds to ensure consistency
+        const x = Math.max(0, Math.min(pointer.x, CANVAS_WIDTH));
+        const y = Math.max(0, Math.min(pointer.y, CANVAS_HEIGHT));
+        localPathPoints.push([x, y]);
         pathPointsRef.current = localPathPoints;
 
         // Update local path in real-time for immediate visual feedback
+        // CRITICAL: Keep left/top at 0 to maintain absolute coordinates
         const fabricPath: any[] = [['M', localPathPoints[0][0], localPathPoints[0][1]]];
         for (let i = 1; i < localPathPoints.length; i++) {
           fabricPath.push(['L', localPathPoints[i][0], localPathPoints[i][1]]);
         }
-        localPath.set({ path: fabricPath });
+        localPath.set({ 
+          path: fabricPath,
+          left: 0,
+          top: 0,
+          originX: 'left',
+          originY: 'top',
+        });
         canvas.renderAll();
 
         const now = Date.now();
@@ -234,8 +264,51 @@ export function CanvaCanvas() {
       }
 
       // Send path-complete with final path data
+      // CRITICAL: Don't use toJSON() - it serializes coordinates relative to path position
+      // Instead, manually construct path data from absolute coordinates we already have
       if (localPathPoints.length > 0 && localPath) {
-        const pathData = localPath.toJSON();
+        // Build Fabric path string from absolute coordinates
+        const fabricPath: any[] = [['M', localPathPoints[0][0], localPathPoints[0][1]]];
+        for (let i = 1; i < localPathPoints.length; i++) {
+          fabricPath.push(['L', localPathPoints[i][0], localPathPoints[i][1]]);
+        }
+        
+        // Manually construct the path data object with absolute coordinates
+        const pathData = {
+          type: 'path',
+          version: '5.3.0',
+          left: 0,
+          top: 0,
+          width: 0,
+          height: 0,
+          fill: '',
+          stroke: color,
+          strokeWidth: brushSize,
+          strokeDashArray: null,
+          strokeLineCap: 'round',
+          strokeDashOffset: 0,
+          strokeLineJoin: 'round',
+          strokeMiterLimit: 4,
+          scaleX: 1,
+          scaleY: 1,
+          angle: 0,
+          flipX: false,
+          flipY: false,
+          opacity: 1,
+          visible: true,
+          backgroundColor: '',
+          fillRule: 'nonzero',
+          paintFirst: 'fill',
+          globalCompositeOperation: 'source-over',
+          skewX: 0,
+          skewY: 0,
+          rx: 0,
+          ry: 0,
+          path: fabricPath,
+          originX: 'left',
+          originY: 'top',
+        };
+        
         sendDrawingEvent({
           type: "path-complete",
           pathId: localPathId,
@@ -399,11 +472,19 @@ export function CanvaCanvas() {
         }
 
         // Use path-complete data to create final path
+        // CRITICAL: Force deserialized objects to origin so path coordinates are absolute
         fabric.util.enlivenObjects([event.data])
           .then((objects: FabricObject[]) => {
             objects.forEach((obj) => {
               obj.selectable = false;
               obj.evented = false;
+              // Override any position from JSON - coordinates in path data are absolute
+              (obj as any).set({
+                left: 0,
+                top: 0,
+                originX: 'left',
+                originY: 'top',
+              });
               canvas.add(obj);
             });
             canvas.renderAll();
@@ -450,8 +531,8 @@ export function CanvaCanvas() {
           <span className="text-sm w-8">{brushSize}</span>
         </div>
       </div>
-      <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white">
-        <canvas ref={canvasRef} />
+      <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white" style={{ width: '800px', height: '600px' }}>
+        <canvas ref={canvasRef} style={{ display: 'block' }} />
       </div>
     </div>
   );

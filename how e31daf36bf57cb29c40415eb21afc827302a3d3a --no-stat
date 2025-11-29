@@ -1,0 +1,163 @@
+[1mdiff --git a/src/games/canva/components/Canvas.tsx b/src/games/canva/components/Canvas.tsx[m
+[1mindex 0fed021..6134592 100644[m
+[1m--- a/src/games/canva/components/Canvas.tsx[m
+[1m+++ b/src/games/canva/components/Canvas.tsx[m
+[36m@@ -45,12 +45,6 @@[m [mexport function CanvaCanvas() {[m
+       backgroundColor: "#ffffff",[m
+     });[m
+ [m
+[31m-    // Explicitly create PencilBrush[m
+[31m-    const brush = new PencilBrush(canvas);[m
+[31m-    canvas.freeDrawingBrush = brush;[m
+[31m-    canvas.freeDrawingBrush.width = brushSize;[m
+[31m-    canvas.freeDrawingBrush.color = color;[m
+[31m-    canvas.isDrawingMode = true;[m
+ [m
+     fabricCanvasRef.current = canvas;[m
+     console.log("[CanvaCanvas] Canvas initialized successfully");[m
+[36m@@ -82,23 +76,44 @@[m [mexport function CanvaCanvas() {[m
+       });[m
+     };[m
+ [m
+[31m-    // Handle mouse down - start drawing[m
+[31m-    const handleMouseDown = (options: any) => {[m
+[31m-      if (!canvas.isDrawingMode || isDrawingRef.current) return;[m
+[32m+[m[32m    // Track drawing state for sending events[m
+[32m+[m[32m    let localIsDrawing = false;[m
+[32m+[m[32m    let localPathPoints: number[][] = [];[m
+[32m+[m[32m    let localPathId: string | null = null;[m
+[32m+[m[32m    let localPath: Path | null = null; // Local path for rendering[m
+ [m
+[31m-      isDrawingRef.current = true;[m
+[31m-      pathPointsRef.current = [];[m
+[32m+[m[32m    // Handle mouse down - start drawing and sending[m
+[32m+[m[32m    const handleMouseDown = (options: any) => {[m
+[32m+[m[32m      if (localIsDrawing) return;[m
+[32m+[m[41m      [m
+[32m+[m[32m      const pointer = canvas.getPointer(options.e);[m
+[32m+[m[32m      localIsDrawing = true;[m
+[32m+[m[32m      localPathPoints = [[pointer.x, pointer.y]];[m
+       lastSentPointIndexRef.current = 0;[m
+       lastSendTimeRef.current = Date.now();[m
+       lastPointTimeRef.current = Date.now();[m
+[31m-      currentPathIdRef.current = `path-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;[m
+[32m+[m[32m      localPathId = `path-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;[m
+[32m+[m[32m      currentPathIdRef.current = localPathId;[m
+[32m+[m
+[32m+[m[32m      // Create local path immediately for real-time rendering[m
+[32m+[m[32m      const fabricPath: any[] = [['M', pointer.x, pointer.y]];[m
+[32m+[m[32m      localPath = new Path(fabricPath, {[m
+[32m+[m[32m        stroke: color,[m
+[32m+[m[32m        strokeWidth: brushSize,[m
+[32m+[m[32m        fill: '',[m
+[32m+[m[32m        selectable: false,[m
+[32m+[m[32m        evented: false,[m
+[32m+[m[32m        objectCaching: false,[m
+[32m+[m[32m      });[m
+[32m+[m[32m      canvas.add(localPath);[m
+[32m+[m[32m      canvas.renderAll();[m
+ [m
+       // Start periodic flush[m
+       if (flushIntervalRef.current) {[m
+         clearInterval(flushIntervalRef.current);[m
+       }[m
+       flushIntervalRef.current = window.setInterval(() => {[m
+[31m-        if (!isDrawingRef.current || !currentPathIdRef.current) {[m
+[32m+[m[32m        if (!localIsDrawing || !localPathId) {[m
+           if (flushIntervalRef.current) {[m
+             clearInterval(flushIntervalRef.current);[m
+             flushIntervalRef.current = null;[m
+[36m@@ -107,22 +122,22 @@[m [mexport function CanvaCanvas() {[m
+         }[m
+ [m
+         // Flush pending points periodically[m
+[31m-        if (pathPointsRef.current.length > lastSentPointIndexRef.current) {[m
+[31m-          const pendingPoints = pathPointsRef.current.slice(lastSentPointIndexRef.current);[m
+[32m+[m[32m        if (localPathPoints.length > lastSentPointIndexRef.current) {[m
+[32m+[m[32m          const pendingPoints = localPathPoints.slice(lastSentPointIndexRef.current);[m
+           if (pendingPoints.length > 0) {[m
+             sendDrawingEvent({[m
+               type: "path-update",[m
+[31m-              pathId: currentPathIdRef.current,[m
+[32m+[m[32m              pathId: localPathId,[m
+               data: {[m
+                 newPoints: pendingPoints,[m
+                 startIndex: lastSentPointIndexRef.current,[m
+[31m-                stroke: canvas.freeDrawingBrush.color,[m
+[31m-                strokeWidth: canvas.freeDrawingBrush.width,[m
+[32m+[m[32m                stroke: color,[m
+[32m+[m[32m                strokeWidth: brushSize,[m
+                 opacity: 1,[m
+                 hardness: 1,[m
+               },[m
+             });[m
+[31m-            lastSentPointIndexRef.current = pathPointsRef.current.length;[m
+[32m+[m[32m            lastSentPointIndexRef.current = localPathPoints.length;[m
+             lastSendTimeRef.current = Date.now();[m
+           }[m
+         }[m
+[36m@@ -131,26 +146,35 @@[m [mexport function CanvaCanvas() {[m
+       // Send path-start event[m
+       sendDrawingEvent({[m
+         type: "path-start",[m
+[31m-        pathId: currentPathIdRef.current,[m
+[31m-        color: canvas.freeDrawingBrush.color,[m
+[31m-        width: canvas.freeDrawingBrush.width,[m
+[32m+[m[32m        pathId: localPathId,[m
+[32m+[m[32m        color: color,[m
+[32m+[m[32m        width: brushSize,[m
+         opacity: 1,[m
+         hardness: 1,[m
+       });[m
+     };[m
+ [m
+[31m-    // Handle mouse move - track points and send updates[m
+[32m+[m[32m    // Handle mouse move - capture points, update local path, and send updates[m
+     const handleMouseMove = (options: any) => {[m
+[31m-      if (!isDrawingRef.current || !canvas) return;[m
+[32m+[m[32m      if (!localIsDrawing || !localPathId || !localPath) return;[m
+ [m
+       try {[m
+         const pointer = canvas.getPointer(options.e);[m
+[31m-        pathPointsRef.current.push([pointer.x, pointer.y]);[m
+[32m+[m[32m        localPathPoints.push([pointer.x, pointer.y]);[m
+[32m+[m[32m        pathPointsRef.current = localPathPoints;[m
+[32m+[m
+[32m+[m[32m        // Update local path in real-time for immediate visual feedback[m
+[32m+[m[32m        const fabricPath: any[] = [['M', localPathPoints[0][0], localPathPoints[0][1]]];[m
+[32m+[m[32m        for (let i = 1; i < localPathPoints.length; i++) {[m
+[32m+[m[32m          fabricPath.push(['L', localPathPoints[i][0], localPathPoints[i][1]]);[m
+[32m+[m[32m        }[m
+[32m+[m[32m        localPath.set({ path: fabricPath });[m
+[32m+[m[32m        canvas.renderAll();[m
+ [m
+         const now = Date.now();[m
+         const timeSinceLastSend = now - lastSendTimeRef.current;[m
+         const timeSinceLastPoint = lastPointTimeRef.current > 0 ? now - lastPointTimeRef.current : Infinity;[m
+[31m-        const newPointsCount = pathPointsRef.current.length - lastSentPointIndexRef.current;[m
+[32m+[m[32m        const newPointsCount = localPathPoints.length - lastSentPointIndexRef.current;[m
+ [m
+         // Detect fast drawing[m
+         const isFastDrawing = timeSinceLastPoint < FAST_DRAW_THRESHOLD_MS;[m
+[36m@@ -162,23 +186,23 @@[m [mexport function CanvaCanvas() {[m
+ [m
+         lastPointTimeRef.current = now;[m
+ [m
+[31m-        if (shouldSend && pathPointsRef.current.length > lastSentPointIndexRef.current && currentPathIdRef.current) {[m
+[31m-          const newPoints = pathPointsRef.current.slice(lastSentPointIndexRef.current);[m
+[32m+[m[32m        if (shouldSend && localPathPoints.length > lastSentPointIndexRef.current) {[m
+[32m+[m[32m          const newPoints = localPathPoints.slice(lastSentPointIndexRef.current);[m
+ [m
+           sendDrawingEvent({[m
+             type: "path-update",[m
+[31m-            pathId: currentPathIdRef.current,[m
+[32m+[m[32m            pathId: localPathId,[m
+             data: {[m
+               newPoints: newPoints,[m
+               startIndex: lastSentPointIndexRef.current,[m
+[31m-              stroke: canvas.freeDrawingBrush.color,[m
+[31m-              strokeWidth: canvas.freeDrawingBrush.width,[m
+[32m+[m[32m              stroke: color,[m
+[32m+[m[32m              strokeWidth: brushSize,[m
+               opacity: 1,[m
+               h
