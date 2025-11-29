@@ -115,10 +115,7 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
         roundTime,
         timeRemaining: roundTime,
         currentDrawer: drawer,
-        currentWord: null, // Hide word initially
       }));
-      // Clear canvas when game starts
-      window.dispatchEvent(new CustomEvent("canva:canvas-clear"));
       toast.success("Game started!");
     };
 
@@ -144,16 +141,14 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
       // Just update UI, no state change needed
     };
 
-    const onRoundEnded = ({ word, nextDrawer, roundNumber }: any) => {
+    const onRoundEnded = ({ word, roundNumber }: any) => {
       setGameState((prev) => ({
         ...prev,
         isRoundActive: false,
         currentWord: word, // Show the previous word
-        currentDrawer: nextDrawer,
         roundNumber,
-        timeRemaining: prev.roundTime, // Reset timer
       }));
-      toast.info(`Round ${roundNumber - 1} ended! Word was: ${word}`);
+      toast.info(`Round ${roundNumber} ended! Word was: ${word}`);
     };
 
     const onRoundStarted = ({ drawer, roundNumber, roundTime }: any) => {
