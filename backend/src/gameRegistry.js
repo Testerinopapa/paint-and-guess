@@ -76,23 +76,6 @@ const fallbackRegistry = registrySchema.parse({
   source: "fallback",
   entries: [
     {
-      id: "paint-and-guess",
-      version: "1.1.0",
-      name: { default: "Paint & Guess" },
-      description: { default: "Draw prompts, guess sketches, and keep the points flowing." },
-      status: "stable",
-      supportedPlayers: { min: 2, max: 12, recommended: 6 },
-      monetization: "free",
-      category: ["party", "drawing"],
-      assets: {
-        thumbnail: "/placeholder.svg",
-        patchNotesUrl: "https://example.com/paint-and-guess/patch-notes",
-      },
-      badges: ["hot"],
-      route: { slug: "paint-and-guess" },
-      metrics: { concurrentUsers: 1200, uptimePercentage: 99.9 },
-    },
-    {
       id: "mystery-mashup",
       version: "0.3.0",
       name: { default: "Mystery Mashup" },
