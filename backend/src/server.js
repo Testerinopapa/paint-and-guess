@@ -13,6 +13,7 @@ import { getRegistryResponse, loadGameRegistry } from "./gameRegistry.js";
 import { TriviaRoomRepository } from "./triviaRoomRepository.js";
 import { getSampleQuestions } from "./triviaQuestions.js";
 import { canvaRoomRepository } from "./canvaRoomRepository.js";
+import authRoutes from "./auth/routes.js";
 
 const LOG_LEVELS = {
   error: 0,
@@ -158,6 +159,9 @@ const io = new Server(httpServer, {
 
 app.use(cors(corsConfig));
 app.use(express.json());
+
+// Authentication routes
+app.use("/api/auth", authRoutes);
 
 app.get("/api/games", async (req, res) => {
   try {
