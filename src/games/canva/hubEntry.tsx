@@ -10,7 +10,7 @@ export function getCanvaPreviewEntry(): NormalizedGameEntry {
     description: {
       default: "Collaborative drawing canvas. Draw together with friends in real-time!",
     },
-    status: "alpha",
+    status: "stable",
     supportedPlayers: { min: 1, max: 10, recommended: 4 },
     monetization: "free",
     category: ["drawing", "creative"],
