@@ -4,6 +4,8 @@ import AllGames from "@/pages/AllGames";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import { AuthRedirect } from "@/components/AuthRedirect";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import PingPongIndex from "@/games/ping-pong/pages/Index";
 import RpgIndex from "@/games/rpg/pages/Index";
 import TriviaBlitzLobby from "@/games/trivia-blitz/pages/Lobby";
@@ -14,10 +16,22 @@ import { CanvaLobby, CanvaRoom, CanvaApp } from "@/games/canva";
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Root redirects based on auth status */}
+      <Route path="/" element={<AuthRedirect />} />
+      
+      {/* Public auth routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       
-      <Route path="/" element={<HubLayout />}>
+      {/* Protected hub routes - require authentication */}
+      <Route
+        path="/hub"
+        element={
+          <ProtectedRoute>
+            <HubLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<AllGames />} />
         <Route path="games">
           <Route path="ping-pong">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -23,10 +23,11 @@ export default function Register() {
   }>({});
 
   // Redirect if already authenticated
-  if (isAuthenticated) {
-    navigate("/");
-    return null;
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/hub", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const validate = () => {
     const newErrors: {
@@ -81,7 +82,7 @@ export default function Register() {
       const avatarConfigString = avatarConfig ? JSON.stringify(avatarConfig) : undefined;
 
       await register(email, username, password, avatarConfigString);
-      navigate("/");
+      navigate("/hub");
     } catch (error) {
       // Error is handled by AuthContext
     }

@@ -42,7 +42,7 @@ export function buildNavigationLinks(games: HubGame[]): NavigationLink[] {
     });
 
   return [
-    { label: "All Games", to: "/", category: "hub", priority: Number.POSITIVE_INFINITY },
+    { label: "All Games", to: "/hub", category: "hub", priority: Number.POSITIVE_INFINITY },
     ...derivedLinks,
   ];
 }
@@ -84,7 +84,7 @@ const HubLayout = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/");
+    navigate("/login");
   };
 
   return (
@@ -104,7 +104,7 @@ const HubLayout = () => {
                   isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent"
                 }`
               }
-              end={item.to === "/"}
+              end={item.to === "/hub"}
             >
               {item.label}
             </NavLink>
@@ -196,7 +196,7 @@ const HubLayout = () => {
           <div className="flex items-center gap-2 md:hidden">
             {navigation.map((item) => (
               <Button key={item.to} asChild variant="outline" size="sm">
-                <NavLink to={item.to} end={item.to === "/"}>
+                <NavLink to={item.to} end={item.to === "/hub"}>
                   {item.label}
                 </NavLink>
               </Button>
