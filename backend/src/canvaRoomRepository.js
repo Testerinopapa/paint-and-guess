@@ -34,6 +34,10 @@ export class CanvaRoomRepository {
     return this.rooms.delete(roomId);
   }
 
+  getRooms() {
+    return Array.from(this.rooms.values());
+  }
+
   listPublicRooms() {
     return Array.from(this.rooms.values())
       .filter((room) => room.isPublic && room.getActivePlayerCount() > 0)

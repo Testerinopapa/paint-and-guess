@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCanva } from "../state/CanvaContext";
 import { Button } from "@/components/ui/button";
@@ -27,9 +27,11 @@ export function CanvaLobby() {
   };
 
   // Navigate to room when roomId is set
-  if (gameState.roomId) {
-    navigate(`/games/canva/room/${gameState.roomId}`);
-  }
+  useEffect(() => {
+    if (gameState.roomId) {
+      navigate(`/games/canva/room/${gameState.roomId}`);
+    }
+  }, [gameState.roomId, navigate]);
 
   return (
     <div className="container mx-auto p-4 max-w-2xl">

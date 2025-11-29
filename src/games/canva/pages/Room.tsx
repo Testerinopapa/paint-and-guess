@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCanva } from "../state/CanvaContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CanvaCanvas } from "../components/Canvas";
 
 export function CanvaRoom() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -40,9 +41,7 @@ export function CanvaRoom() {
             <CardTitle>Canvas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg h-96 flex items-center justify-center bg-white">
-              <p className="text-muted-foreground">Canvas coming soon...</p>
-            </div>
+            <CanvaCanvas />
           </CardContent>
         </Card>
 

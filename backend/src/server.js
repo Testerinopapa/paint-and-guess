@@ -1473,13 +1473,14 @@ io.on("connection", (socket) => {
 
   // Canva socket handlers
   socket.on("canva:create-room", async ({ roomName, playerName, avatar }) => {
-    const roomId = generateRoomId();
-    
+    // Create room first - it will generate its own ID
     const room = canvaRoomRepository.createRoom({
-      name: sanitizeName(roomName, `Room ${roomId}`),
+      name: sanitizeName(roomName, "Canva Room"),
       isPublic: true,
       maxPlayers: 10,
     });
+    const roomId = room.id; // Use the room's actual ID
+    console.log("[Server] canva:create-room: Room created", { roomId, gamePin: room.gamePin });
 
     const player = {
       id: uuidv4(),
@@ -1491,15 +1492,26 @@ io.on("connection", (socket) => {
     room.addPlayer(player);
     room.ownerId = player.id;
 
-    socket.join(roomId);
+    // CRITICAL: Join the room using the room's actual ID
+    socket.join(room.id);
     socket.data.roomId = roomId;
     socket.data.playerId = player.id;
     socket.data.isCanva = true;
 
+    // Verify socket is in room
+    const socketRooms = Array.from(socket.rooms);
+    console.log("[Server] canva:create-room: Socket joined room", {
+      roomId,
+      socketId: socket.id,
+      playerId: player.id,
+      socketRooms,
+      isInRoom: socketRooms.includes(roomId),
+    });
+
     socket.emit("session", { playerId: player.id });
 
     socket.emit("canva:room-created", {
-      roomId,
+      roomId: room.id, // Use room's actual ID
       gamePin: room.gamePin,
       room: room.toJSON(),
     });
@@ -1508,11 +1520,23 @@ io.on("connection", (socket) => {
   });
 
   socket.on("canva:join-room", async ({ gamePin, playerName, avatar }) => {
+    console.log("[Server] canva:join-room: Attempting to join", { gamePin, playerName });
+    
+    // List all rooms and their PINs for debugging
+    const allRooms = canvaRoomRepository.getRooms();
+    console.log("[Server] canva:join-room: Available rooms", {
+      totalRooms: allRooms.length,
+      rooms: allRooms.map(r => ({ id: r.id, pin: r.gamePin, players: r.players.length })),
+    });
+    
     const room = canvaRoomRepository.getRoomByPin(gamePin);
     if (!room) {
+      console.error("[Server] canva:join-room: Room not found for PIN", gamePin);
       socket.emit("error", { message: "Invalid game PIN" });
       return;
     }
+    
+    console.log("[Server] canva:join-room: Found room", { roomId: room.id, pin: room.gamePin });
 
     if (room.getActivePlayerCount() >= room.maxPlayers) {
       socket.emit("error", { message: "Room is full" });
@@ -1533,6 +1557,16 @@ io.on("connection", (socket) => {
     socket.data.playerId = player.id;
     socket.data.isCanva = true;
 
+    // Verify socket is in room
+    const socketRooms = Array.from(socket.rooms);
+    console.log("[Server] canva:join-room: Socket joined room", {
+      roomId: room.id,
+      socketId: socket.id,
+      playerId: player.id,
+      socketRooms,
+      isInRoom: socketRooms.includes(room.id),
+    });
+
     socket.emit("session", { playerId: player.id });
     socket.emit("canva:joined", {
       roomId: room.id,
@@ -1549,6 +1583,57 @@ io.on("connection", (socket) => {
         connected: true,
       },
       players: room.toJSON().players,
+    });
+
+    // TEST: Send a test event to verify connection works
+    setTimeout(() => {
+      console.log("[Server] TEST: Sending test event to room", room.id);
+      io.to(room.id).emit("canva:test-event", { message: "TEST - Can you hear me?", timestamp: Date.now() });
+    }, 1000);
+  });
+
+  socket.on("canva:drawing-event", (event) => {
+    const { roomId, playerId } = socket.data;
+    
+    if (!roomId || !playerId) {
+      console.log("[Server] canva:drawing-event: Missing roomId or playerId", { roomId, playerId });
+      return;
+    }
+    
+    const room = canvaRoomRepository.getRoom(roomId);
+    if (!room) {
+      console.log("[Server] canva:drawing-event: Room not found", roomId);
+      return;
+    }
+
+    // Ensure socket is in room
+    if (!socket.rooms.has(roomId)) {
+      console.log("[Server] canva:drawing-event: Socket not in room, joining", { roomId, socketId: socket.id });
+      socket.join(roomId);
+    }
+
+    // Get all sockets in room to verify
+    io.in(roomId).fetchSockets().then((sockets) => {
+      const otherSockets = sockets.filter(s => s.id !== socket.id);
+      console.log("[Server] canva:drawing-event: Room sockets", {
+        roomId,
+        totalSockets: sockets.length,
+        otherSockets: otherSockets.length,
+        senderSocketId: socket.id,
+        otherSocketIds: otherSockets.map(s => s.id),
+      });
+
+      // Broadcast to all OTHER sockets in room (excludes sender)
+      if (otherSockets.length > 0) {
+        socket.broadcast.to(roomId).emit("canva:drawing-event", event);
+        console.log("[Server] canva:drawing-event: Broadcast sent to", otherSockets.length, "sockets");
+      } else {
+        console.warn("[Server] canva:drawing-event: No other sockets in room to receive!");
+      }
+    }).catch((err) => {
+      console.error("[Server] canva:drawing-event: Error fetching sockets", err);
+      // Fallback: try broadcast anyway
+      socket.broadcast.to(roomId).emit("canva:drawing-event", event);
     });
   });
 
