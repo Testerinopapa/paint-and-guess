@@ -45,12 +45,6 @@ export function CanvaCanvas() {
       backgroundColor: "#ffffff",
     });
 
-    // Explicitly create PencilBrush
-    const brush = new PencilBrush(canvas);
-    canvas.freeDrawingBrush = brush;
-    canvas.freeDrawingBrush.width = brushSize;
-    canvas.freeDrawingBrush.color = color;
-    canvas.isDrawingMode = true;
 
     fabricCanvasRef.current = canvas;
     console.log("[CanvaCanvas] Canvas initialized successfully");
@@ -82,23 +76,44 @@ export function CanvaCanvas() {
       });
     };
 
-    // Handle mouse down - start drawing
-    const handleMouseDown = (options: any) => {
-      if (!canvas.isDrawingMode || isDrawingRef.current) return;
+    // Track drawing state for sending events
+    let localIsDrawing = false;
+    let localPathPoints: number[][] = [];
+    let localPathId: string | null = null;
+    let localPath: Path | null = null; // Local path for rendering
 
-      isDrawingRef.current = true;
-      pathPointsRef.current = [];
+    // Handle mouse down - start drawing and sending
+    const handleMouseDown = (options: any) => {
+      if (localIsDrawing) return;
+      
+      const pointer = canvas.getPointer(options.e);
+      localIsDrawing = true;
+      localPathPoints = [[pointer.x, pointer.y]];
       lastSentPointIndexRef.current = 0;
       lastSendTimeRef.current = Date.now();
       lastPointTimeRef.current = Date.now();
-      currentPathIdRef.current = `path-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      localPathId = `path-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      currentPathIdRef.current = localPathId;
+
+      // Create local path immediately for real-time rendering
+      const fabricPath: any[] = [['M', pointer.x, pointer.y]];
+      localPath = new Path(fabricPath, {
+        stroke: color,
+        strokeWidth: brushSize,
+        fill: '',
+        selectable: false,
+        evented: false,
+        objectCaching: false,
+      });
+      canvas.add(localPath);
+      canvas.renderAll();
 
       // Start periodic flush
       if (flushIntervalRef.current) {
         clearInterval(flushIntervalRef.current);
       }
       flushIntervalRef.current = window.setInterval(() => {
-        if (!isDrawingRef.current || !currentPathIdRef.current) {
+        if (!localIsDrawing || !localPathId) {
           if (flushIntervalRef.current) {
             clearInterval(flushIntervalRef.current);
             flushIntervalRef.current = null;
@@ -107,22 +122,22 @@ export function CanvaCanvas() {
         }
 
         // Flush pending points periodically
-        if (pathPointsRef.current.length > lastSentPointIndexRef.current) {
-          const pendingPoints = pathPointsRef.current.slice(lastSentPointIndexRef.current);
+        if (localPathPoints.length > lastSentPointIndexRef.current) {
+          const pendingPoints = localPathPoints.slice(lastSentPointIndexRef.current);
           if (pendingPoints.length > 0) {
             sendDrawingEvent({
               type: "path-update",
-              pathId: currentPathIdRef.current,
+              pathId: localPathId,
               data: {
                 newPoints: pendingPoints,
                 startIndex: lastSentPointIndexRef.current,
-                stroke: canvas.freeDrawingBrush.color,
-                strokeWidth: canvas.freeDrawingBrush.width,
+                stroke: color,
+                strokeWidth: brushSize,
                 opacity: 1,
                 hardness: 1,
               },
             });
-            lastSentPointIndexRef.current = pathPointsRef.current.length;
+            lastSentPointIndexRef.current = localPathPoints.length;
             lastSendTimeRef.current = Date.now();
           }
         }
@@ -131,26 +146,35 @@ export function CanvaCanvas() {
       // Send path-start event
       sendDrawingEvent({
         type: "path-start",
-        pathId: currentPathIdRef.current,
-        color: canvas.freeDrawingBrush.color,
-        width: canvas.freeDrawingBrush.width,
+        pathId: localPathId,
+        color: color,
+        width: brushSize,
         opacity: 1,
         hardness: 1,
       });
     };
 
-    // Handle mouse move - track points and send updates
+    // Handle mouse move - capture points, update local path, and send updates
     const handleMouseMove = (options: any) => {
-      if (!isDrawingRef.current || !canvas) return;
+      if (!localIsDrawing || !localPathId || !localPath) return;
 
       try {
         const pointer = canvas.getPointer(options.e);
-        pathPointsRef.current.push([pointer.x, pointer.y]);
+        localPathPoints.push([pointer.x, pointer.y]);
+        pathPointsRef.current = localPathPoints;
+
+        // Update local path in real-time for immediate visual feedback
+        const fabricPath: any[] = [['M', localPathPoints[0][0], localPathPoints[0][1]]];
+        for (let i = 1; i < localPathPoints.length; i++) {
+          fabricPath.push(['L', localPathPoints[i][0], localPathPoints[i][1]]);
+        }
+        localPath.set({ path: fabricPath });
+        canvas.renderAll();
 
         const now = Date.now();
         const timeSinceLastSend = now - lastSendTimeRef.current;
         const timeSinceLastPoint = lastPointTimeRef.current > 0 ? now - lastPointTimeRef.current : Infinity;
-        const newPointsCount = pathPointsRef.current.length - lastSentPointIndexRef.current;
+        const newPointsCount = localPathPoints.length - lastSentPointIndexRef.current;
 
         // Detect fast drawing
         const isFastDrawing = timeSinceLastPoint < FAST_DRAW_THRESHOLD_MS;
@@ -162,23 +186,23 @@ export function CanvaCanvas() {
 
         lastPointTimeRef.current = now;
 
-        if (shouldSend && pathPointsRef.current.length > lastSentPointIndexRef.current && currentPathIdRef.current) {
-          const newPoints = pathPointsRef.current.slice(lastSentPointIndexRef.current);
+        if (shouldSend && localPathPoints.length > lastSentPointIndexRef.current) {
+          const newPoints = localPathPoints.slice(lastSentPointIndexRef.current);
 
           sendDrawingEvent({
             type: "path-update",
-            pathId: currentPathIdRef.current,
+            pathId: localPathId,
             data: {
               newPoints: newPoints,
               startIndex: lastSentPointIndexRef.current,
-              stroke: canvas.freeDrawingBrush.color,
-              strokeWidth: canvas.freeDrawingBrush.width,
+              stroke: color,
+              strokeWidth: brushSize,
               opacity: 1,
               hardness: 1,
             },
           });
 
-          lastSentPointIndexRef.current = pathPointsRef.current.length;
+          lastSentPointIndexRef.current = localPathPoints.length;
           lastSendTimeRef.current = now;
         }
       } catch (error) {
@@ -186,22 +210,22 @@ export function CanvaCanvas() {
       }
     };
 
-    // Handle mouse up - flush remaining points
+    // Handle mouse up - flush remaining points and send complete
     const handleMouseUp = () => {
-      if (!isDrawingRef.current || !currentPathIdRef.current) return;
+      if (!localIsDrawing || !localPathId) return;
 
       // Flush any remaining points immediately
-      if (pathPointsRef.current.length > lastSentPointIndexRef.current) {
-        const remainingPoints = pathPointsRef.current.slice(lastSentPointIndexRef.current);
+      if (localPathPoints.length > lastSentPointIndexRef.current) {
+        const remainingPoints = localPathPoints.slice(lastSentPointIndexRef.current);
         if (remainingPoints.length > 0) {
           sendDrawingEvent({
             type: "path-update",
-            pathId: currentPathIdRef.current,
+            pathId: localPathId,
             data: {
               newPoints: remainingPoints,
               startIndex: lastSentPointIndexRef.current,
-              stroke: canvas.freeDrawingBrush.color,
-              strokeWidth: canvas.freeDrawingBrush.width,
+              stroke: color,
+              strokeWidth: brushSize,
               opacity: 1,
               hardness: 1,
             },
@@ -209,49 +233,40 @@ export function CanvaCanvas() {
         }
       }
 
+      // Send path-complete with final path data
+      if (localPathPoints.length > 0 && localPath) {
+        const pathData = localPath.toJSON();
+        sendDrawingEvent({
+          type: "path-complete",
+          pathId: localPathId,
+          data: pathData,
+        });
+      }
+
       // Clean up
       if (flushIntervalRef.current) {
         clearInterval(flushIntervalRef.current);
         flushIntervalRef.current = null;
       }
-      isDrawingRef.current = false;
-      // Note: path-complete will be sent when path:created fires
-    };
-
-    // Handle path:created - send path-complete
-    const handlePathCreated = (e: { path: FabricObject }) => {
-      const path = e.path;
-      if (!path || !currentPathIdRef.current) return;
-
-      const pathData = path.toJSON();
-      
-      sendDrawingEvent({
-        type: "path-complete",
-        pathId: currentPathIdRef.current,
-        data: pathData,
-      });
-
-      // Reset drawing state
+      localIsDrawing = false;
+      localPathId = null;
+      localPath = null;
       currentPathIdRef.current = null;
-      pathPointsRef.current = [];
-      lastSentPointIndexRef.current = 0;
     };
 
     canvas.on("mouse:down", handleMouseDown);
     canvas.on("mouse:move", handleMouseMove);
     canvas.on("mouse:up", handleMouseUp);
-    canvas.on("path:created", handlePathCreated);
 
     return () => {
       canvas.off("mouse:down", handleMouseDown);
       canvas.off("mouse:move", handleMouseMove);
       canvas.off("mouse:up", handleMouseUp);
-      canvas.off("path:created", handlePathCreated);
       if (flushIntervalRef.current) {
         clearInterval(flushIntervalRef.current);
       }
     };
-  }, [socket]);
+  }, [socket, color, brushSize]);
 
   // Listen for drawing events from DOM (bridged from CanvaContext)
   useEffect(() => {
