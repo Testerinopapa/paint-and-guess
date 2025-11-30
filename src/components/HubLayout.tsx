@@ -6,7 +6,7 @@ import { useGameRegistry } from "@/games/registry";
 import type { HubGame } from "@/games/registry";
 import { AvatarPreview } from "@/games/paint-and-guess/components/avatar/preview";
 import { AvatarCustomizer } from "@/games/paint-and-guess/components/AvatarCustomizer";
-import { AvatarConfig, createDefaultAvatarConfig, saveAvatarConfigWithSync, setupAvatarCrossTabSync, encodeAvatarConfig, saveAvatarConfig, clearAvatarConfig } from "@/lib/avatar/config";
+import { AvatarConfig, createDefaultAvatarConfig, setupAvatarCrossTabSync, encodeAvatarConfig, saveAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -60,20 +60,34 @@ const HubLayout = () => {
   const { user, isAuthenticated, logout, isLoading: authLoading, updateAvatar, updateUser } = useAuth();
   const navigate = useNavigate();
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
-    // Prioritize database avatar if user is logged in
-    if (user?.avatarConfig) {
-      try {
-        return JSON.parse(user.avatarConfig);
-      } catch {
-        // Fall through to localStorage
-      }
-    }
-    // Load from localStorage (user-specific if logged in)
-    return safeLoadAvatarConfig(user?.id) || createDefaultAvatarConfig();
+    // Initialize with default - useEffect will load actual avatar when user data is ready
+    return createDefaultAvatarConfig();
   });
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
   useEffect(() => {
+    // Wait for auth loading to complete before processing avatar
+    if (authLoading) {
+      return;
+    }
+
+    // Only process if user object is loaded (not loading state)
+    if (!user && !isAuthenticated) {
+      // Not logged in - handle anonymous case
+      const anonymousStored = safeLoadAvatarConfig(null);
+      if (anonymousStored) {
+        setAvatarConfig(anonymousStored);
+      } else {
+        setAvatarConfig(createDefaultAvatarConfig());
+      }
+      return;
+    }
+
+    if (!user?.id) {
+      // User object not loaded yet, wait
+      return;
+    }
+
     // Load avatar config from database (priority) or localStorage
     if (user?.avatarConfig) {
       try {
@@ -82,16 +96,26 @@ const HubLayout = () => {
         // Save to user-specific localStorage for offline access and cross-tab sync
         saveAvatarConfig(parsed, false, user.id); // false = don't trigger cross-tab sync (we just loaded it)
         return;
-      } catch {
-        // Fall through
+      } catch (error) {
+        console.error('[HubLayout] Failed to parse database avatar config:', error);
+        // Fall through to localStorage
       }
     }
     
-    // If user is logged in but has no database avatar, use default (never use anonymous avatar)
+    // User is logged in but has no database avatar - check localStorage and sync to DB if found
     if (user?.id) {
       const stored = safeLoadAvatarConfig(user.id);
       if (stored) {
         setAvatarConfig(stored);
+        // Sync localStorage avatar to database if database doesn't have one
+        if (isAuthenticated && updateAvatar && !user.avatarConfig) {
+          const encoded = encodeAvatarConfig(stored);
+          updateAvatar(encoded).then(() => {
+            updateUser(); // Refetch user to update state
+          }).catch((error) => {
+            console.error('[HubLayout] Failed to sync localStorage avatar to database:', error);
+          });
+        }
       } else {
         // User has no saved avatar, use default (not anonymous avatar)
         const defaultConfig = createDefaultAvatarConfig();
@@ -101,15 +125,7 @@ const HubLayout = () => {
       }
       return;
     }
-    
-    // Anonymous user - use anonymous avatar or default
-    const anonymousStored = safeLoadAvatarConfig(null);
-    if (anonymousStored) {
-      setAvatarConfig(anonymousStored);
-    } else {
-      setAvatarConfig(createDefaultAvatarConfig());
-    }
-  }, [user]);
+  }, [user, isAuthenticated, authLoading, updateAvatar, updateUser]);
 
   // Set up cross-tab synchronization for avatar changes (user-specific)
   useEffect(() => {
@@ -121,10 +137,9 @@ const HubLayout = () => {
   }, [user?.id]);
 
   const handleLogout = async () => {
-    // Clear user-specific avatar from localStorage on logout
-    if (user?.id) {
-      clearAvatarConfig(user.id);
-    }
+    // Note: We keep the avatar in localStorage (user-specific key) so it persists
+    // When the user logs back in, their database avatar will be loaded and saved
+    // The user-specific key ensures no cross-contamination between accounts
     await logout();
     navigate("/login");
   };
@@ -228,20 +243,29 @@ const HubLayout = () => {
             
             // Save with backend sync if authenticated (user-specific storage)
             const encoded = encodeAvatarConfig(config);
-            await saveAvatarConfigWithSync(config, isAuthenticated && updateAvatar 
-              ? async () => {
-                  try {
-                    await updateAvatar(encoded);
-                    // Refetch user to update avatarConfig in state
-                    await updateUser();
-                  } catch (error) {
-                    console.error('[HubLayout] Failed to sync avatar to backend:', error);
-                    // Don't throw - local save succeeded
-                  }
-                }
-              : undefined,
-              user?.id // Pass userId for user-specific storage
-            );
+            
+            try {
+              if (isAuthenticated && updateAvatar && user?.id) {
+                // Save locally first
+                saveAvatarConfig(config, true, user.id);
+                
+                // Then sync to database and wait for completion
+                await updateAvatar(encoded);
+                
+                // Refetch user to ensure state is updated with database avatar
+                await updateUser();
+                
+                console.log('[HubLayout] Avatar saved and synced to database successfully');
+              } else {
+                // Not authenticated - just save locally
+                saveAvatarConfig(config, true, user?.id);
+              }
+            } catch (error) {
+              console.error('[HubLayout] Failed to sync avatar to backend:', error);
+              // Local save succeeded, but database sync failed
+              // Avatar is still in localStorage and will be available
+              // User will see an error but avatar is saved locally
+            }
           }}
         />
       </aside>
