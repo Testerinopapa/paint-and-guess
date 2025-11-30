@@ -245,19 +245,40 @@ export class CanvaRoom {
     this.isRoundActive = true;
     this.roundEndsAt = Date.now() + this.roundTime * 1000;
 
-    const tick = () => {
-      const timeLeft = this.getTimeRemainingSeconds();
-      this.elapsedTime = Math.max(0, this.roundTime - timeLeft);
-      Promise.resolve(onTick(timeLeft)).catch((error) => {
-        console.error("Failed to handle round timer tick", error);
-      });
+    let hasCalledEnd = false; // Prevent multiple calls to endCanvaRound
 
-      if (timeLeft === 0) {
+    const tick = () => {
+      // If round is no longer active, stop the timer immediately
+      if (!this.isRoundActive) {
         if (this.timer) {
           clearInterval(this.timer);
           this.timer = null;
         }
+        return;
       }
+
+      const timeLeft = this.getTimeRemainingSeconds();
+      this.elapsedTime = Math.max(0, this.roundTime - timeLeft);
+      
+      if (timeLeft > 0) {
+        // Normal tick - update clients with remaining time
+        Promise.resolve(onTick(timeLeft)).catch((error) => {
+          console.error("Failed to handle round timer tick", error);
+        });
+      } else if (timeLeft === 0 && !hasCalledEnd) {
+        // Time expired - call end logic exactly once
+        hasCalledEnd = true;
+        // Clear timer immediately to prevent any further ticks
+        if (this.timer) {
+          clearInterval(this.timer);
+          this.timer = null;
+        }
+        // Call onTick(0) which will trigger endCanvaRound
+        Promise.resolve(onTick(0)).catch((error) => {
+          console.error("Failed to handle round timer end", error);
+        });
+      }
+      // If timeLeft === 0 and hasCalledEnd is true, do nothing (timer already cleared)
     };
 
     // Emit an initial tick so clients have the full round time immediately

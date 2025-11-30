@@ -74,18 +74,23 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
     };
 
     const onRoomState = (room: any) => {
-      setGameState((prev) => ({
-        ...prev,
-        gamePin: room.gamePin,
-        ownerId: room.ownerId,
-        players: room.players,
-        isGameActive: room.isGameActive ?? false,
-        isRoundActive: room.isRoundActive ?? false,
-        roundNumber: room.roundNumber ?? 0,
-        roundTime: room.roundTime ?? 60,
-        currentDrawer: room.currentDrawer ?? null,
-        currentWord: room.currentWord ?? null,
-      }));
+      setGameState((prev) => {
+        // Don't overwrite currentDrawer if we're in an active round and have a valid drawer
+        // This prevents room-state from overwriting the drawer set by round-started
+        const shouldPreserveDrawer = prev.isGameActive && prev.isRoundActive && prev.currentDrawer?.id;
+        return {
+          ...prev,
+          gamePin: room.gamePin,
+          ownerId: room.ownerId,
+          players: room.players,
+          isGameActive: room.isGameActive ?? false,
+          isRoundActive: room.isRoundActive ?? false,
+          roundNumber: room.roundNumber ?? 0,
+          roundTime: room.roundTime ?? 60,
+          currentDrawer: shouldPreserveDrawer ? prev.currentDrawer : (room.currentDrawer ?? null),
+          currentWord: room.currentWord ?? null,
+        };
+      });
     };
 
     const onPlayerJoined = ({ players }: any) => {
@@ -153,6 +158,13 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
     };
 
     const onRoundStarted = ({ drawer, roundNumber, roundTime }: any) => {
+      console.log("[CanvaContext] onRoundStarted received", { drawer, roundNumber, roundTime, selfId: gameState.selfId });
+      
+      if (!drawer || !drawer.id) {
+        console.error("[CanvaContext] Invalid drawer in onRoundStarted", drawer);
+        return;
+      }
+
       setGameState((prev) => {
         const newState = {
           ...prev,
@@ -163,12 +175,14 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
           timeRemaining: roundTime,
           currentWord: null, // Hide word until someone guesses or round ends
         };
+        const isDrawerNow = newState.currentDrawer?.id === newState.selfId;
         console.log("[CanvaContext] Round started - state updated", { 
           drawer,
           currentDrawer: newState.currentDrawer, 
           selfId: newState.selfId, 
-          isDrawer: newState.currentDrawer?.id === newState.selfId,
+          isDrawer: isDrawerNow,
           isRoundActive: newState.isRoundActive,
+          wasDrawer: prev.currentDrawer?.id === prev.selfId,
         });
         return newState;
       });

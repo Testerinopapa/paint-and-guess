@@ -1139,14 +1139,9 @@ io.on("connection", (socket) => {
               }
             }
 
-            const drawer = nextRoom.currentDrawer ? {
-              id: nextRoom.currentDrawer.id,
-              name: nextRoom.currentDrawer.name,
-            } : null;
-
-            if (!drawer) {
-              console.error(`[Server] ❌ Failed to serialize drawer in canva room ${roomId}`);
-              // Don't recursively call endCanvaRound - just end the game
+            // CRITICAL: Ensure drawer is properly serialized with all required fields
+            if (!nextRoom.currentDrawer || !nextRoom.currentDrawer.id) {
+              console.error(`[Server] ❌ No drawer set after nextRound in canva room ${roomId}`);
               nextRoom.isGameActive = false;
               io.to(roomId).emit("canva:game-ended", {
                 players: nextRoom.toJSON().players,
@@ -1154,6 +1149,17 @@ io.on("connection", (socket) => {
               endingRoundRooms.delete(roomId);
               return;
             }
+
+            const drawer = {
+              id: nextRoom.currentDrawer.id,
+              name: nextRoom.currentDrawer.name,
+            };
+
+            console.log(`[Server] Emitting canva:round-started for room ${roomId}`, {
+              drawer,
+              roundNumber: nextRoom.roundNumber,
+              roundTime: nextRoom.roundTime,
+            });
 
             // Emit round-started with the new round info
             io.to(roomId).emit("canva:round-started", {
