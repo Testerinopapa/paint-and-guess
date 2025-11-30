@@ -208,8 +208,10 @@ export function GameStage({ onLeaveRoom }: GameStageProps) {
           )}
 
           {/* Canvas Container */}
-          <div className="flex-1 flex flex-col items-center justify-center min-h-0 relative z-10">
-            <CanvaCanvas />
+          <div className="flex-1 flex flex-col items-center justify-center min-h-0 relative z-10 overflow-hidden">
+            <div className="w-full h-full max-w-full max-h-full flex items-center justify-center p-2">
+              <CanvaCanvas />
+            </div>
           </div>
 
           {/* Progress Bar */}

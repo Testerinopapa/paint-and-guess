@@ -17,6 +17,7 @@ const CANVAS_HEIGHT = 600;
 export function CanvaCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<FabricCanvas | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { socket, gameState, isDrawer } = useCanva();
   const [color, setColor] = useState("#000000");
   const [brushSize, setBrushSize] = useState(5);
@@ -40,6 +41,46 @@ export function CanvaCanvas() {
   const accumulatedPathPointsRef = useRef<Map<string, number[][]>>(new Map());
   const pathPropertiesRef = useRef<Map<string, { opacity: number; hardness: number; strokeWidth: number }>>(new Map());
   const finalizedPathsRef = useRef<Set<string>>(new Set());
+
+  // Calculate and apply scale to fit container
+  useEffect(() => {
+    if (!containerRef.current || !canvasRef.current) return;
+
+    const updateScale = () => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const containerRect = container.parentElement?.getBoundingClientRect();
+      if (!containerRect) return;
+
+      const availableWidth = containerRect.width - 16; // Account for padding
+      const availableHeight = containerRect.height - 16;
+
+      const scaleX = availableWidth / CANVAS_WIDTH;
+      const scaleY = availableHeight / CANVAS_HEIGHT;
+      const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
+
+      if (scale < 1) {
+        container.style.transform = `scale(${scale})`;
+        container.style.transformOrigin = 'center';
+      } else {
+        container.style.transform = '';
+      }
+    };
+
+    updateScale();
+    const resizeObserver = new ResizeObserver(updateScale);
+    if (containerRef.current.parentElement) {
+      resizeObserver.observe(containerRef.current.parentElement);
+    }
+
+    window.addEventListener('resize', updateScale);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateScale);
+    };
+  }, []);
 
   // Initialize Fabric.js canvas
   useEffect(() => {
@@ -103,27 +144,47 @@ export function CanvaCanvas() {
 
     fabricCanvasRef.current = canvas;
 
-    // Recalculate offset on window resize (layout changes can affect canvas position)
-    const handleResize = () => {
-      const rectBeforeResize = canvasElement.getBoundingClientRect();
-      console.log("[CanvaCanvas] Resize detected - recalculating offset. Element position:", {
-        left: rectBeforeResize.left,
-        top: rectBeforeResize.top,
+    // Recalculate offset on window resize and container size changes
+    const recalcOffset = () => {
+      if (!canvas) return;
+      const rect = canvasElement.getBoundingClientRect();
+      console.log("[CanvaCanvas] Recalculating offset. Element position:", {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
       });
       canvas.calcOffset();
-      const fabricOffsetAfter = (canvas as any)._offset;
-      console.log("[CanvaCanvas] After resize calcOffset() - Fabric offset:", {
-        left: fabricOffsetAfter?.left,
-        top: fabricOffsetAfter?.top,
+      const fabricOffset = (canvas as any)._offset;
+      console.log("[CanvaCanvas] Fabric offset:", {
+        left: fabricOffset?.left,
+        top: fabricOffset?.top,
       });
     };
+
+    const handleResize = () => {
+      recalcOffset();
+    };
     window.addEventListener('resize', handleResize);
+
+    // Use ResizeObserver to detect container size changes
+    let resizeObserver: ResizeObserver | null = null;
+    if (containerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        // Small delay to ensure layout has settled
+        setTimeout(recalcOffset, 0);
+      });
+      resizeObserver.observe(containerRef.current);
+    }
 
     console.log("[CanvaCanvas] Canvas initialized successfully");
 
     return () => {
       console.log("[CanvaCanvas] Disposing canvas");
       window.removeEventListener('resize', handleResize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       canvas.dispose();
     };
   }, []);
@@ -749,7 +810,17 @@ export function CanvaCanvas() {
           </div>
         )}
       </div>
-      <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white relative" style={{ width: '800px', height: '600px' }}>
+      <div 
+        ref={containerRef}
+        className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white relative"
+        style={{ 
+          width: `${CANVAS_WIDTH}px`,
+          height: `${CANVAS_HEIGHT}px`,
+          maxWidth: '100%',
+          maxHeight: '100%',
+          aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}`,
+        }}
+      >
         <canvas 
           ref={canvasRef} 
           style={{ 
