@@ -81,8 +81,11 @@ async function fetchUser(): Promise<User> {
     if (error instanceof Error && error.message === "Unauthorized") {
       throw error; // Re-throw auth errors
     }
-    // For other errors, log but throw with a clearer message
-    console.error("[Auth] fetchUser error:", error);
+    // For other errors (network issues), log in development only
+    // Don't spam console in production - this is expected when backend is down
+    if (import.meta.env.DEV) {
+      console.warn("[Auth] Cannot connect to authentication server (backend may be down):", error);
+    }
     throw new Error("Network error: Could not connect to authentication server");
   }
 }
@@ -162,8 +165,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error instanceof Error && error.message === "Unauthorized") {
         return false;
       }
-      // Retry network errors up to 2 times
-      return failureCount < 2;
+      // Retry network errors up to 1 time (reduced from 2 to fail faster)
+      return failureCount < 1;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for 5 minutes
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes even if query fails
@@ -172,6 +175,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnMount: false, // Don't refetch every time component mounts if data is still fresh
     // Keep previous data on error - don't clear user data if query fails
     placeholderData: (previousData) => previousData,
+    // Don't throw errors to console - handle gracefully
+    throwOnError: false,
   });
 
   // Remove token only on actual 401 Unauthorized, not network errors
@@ -185,8 +190,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         removeToken();
         queryClient.setQueryData(["auth", "user"], null);
       } else {
-        // Log other errors but don't remove token (might be network issue)
-        console.warn("[Auth] Error fetching user:", errorMessage);
+        // Log other errors (network issues) in development only
+        // This is expected when backend is unavailable
+        if (import.meta.env.DEV) {
+          console.warn("[Auth] Cannot fetch user (backend may be unavailable):", errorMessage);
+        }
       }
     }
   }, [error, queryClient]);
