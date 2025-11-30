@@ -6,7 +6,7 @@ import { useGameRegistry } from "@/games/registry";
 import type { HubGame } from "@/games/registry";
 import { AvatarPreview } from "@/games/paint-and-guess/components/avatar/preview";
 import { AvatarCustomizer } from "@/games/paint-and-guess/components/AvatarCustomizer";
-import { AvatarConfig, createDefaultAvatarConfig, saveAvatarConfigWithSync, setupAvatarCrossTabSync, encodeAvatarConfig, saveAvatarConfig } from "@/lib/avatar/config";
+import { AvatarConfig, createDefaultAvatarConfig, saveAvatarConfigWithSync, setupAvatarCrossTabSync, encodeAvatarConfig, saveAvatarConfig, clearAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -60,7 +60,7 @@ const HubLayout = () => {
   const { user, isAuthenticated, logout, isLoading: authLoading, updateAvatar, updateUser } = useAuth();
   const navigate = useNavigate();
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
-    // Try to load from user first, then localStorage
+    // Prioritize database avatar if user is logged in
     if (user?.avatarConfig) {
       try {
         return JSON.parse(user.avatarConfig);
@@ -68,39 +68,63 @@ const HubLayout = () => {
         // Fall through to localStorage
       }
     }
-    return safeLoadAvatarConfig() || createDefaultAvatarConfig();
+    // Load from localStorage (user-specific if logged in)
+    return safeLoadAvatarConfig(user?.id) || createDefaultAvatarConfig();
   });
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
 
   useEffect(() => {
-    // Load avatar config from user or localStorage
+    // Load avatar config from database (priority) or localStorage
     if (user?.avatarConfig) {
       try {
         const parsed = JSON.parse(user.avatarConfig);
         setAvatarConfig(parsed);
-        // Save to localStorage for offline access and cross-tab sync
-        saveAvatarConfig(parsed, false); // false = don't trigger cross-tab sync (we just loaded it)
+        // Save to user-specific localStorage for offline access and cross-tab sync
+        saveAvatarConfig(parsed, false, user.id); // false = don't trigger cross-tab sync (we just loaded it)
         return;
       } catch {
         // Fall through
       }
     }
-    const stored = safeLoadAvatarConfig();
-    if (stored) {
-      setAvatarConfig(stored);
+    
+    // If user is logged in but has no database avatar, use default (never use anonymous avatar)
+    if (user?.id) {
+      const stored = safeLoadAvatarConfig(user.id);
+      if (stored) {
+        setAvatarConfig(stored);
+      } else {
+        // User has no saved avatar, use default (not anonymous avatar)
+        const defaultConfig = createDefaultAvatarConfig();
+        setAvatarConfig(defaultConfig);
+        // Save default to user's storage for consistency
+        saveAvatarConfig(defaultConfig, false, user.id);
+      }
+      return;
+    }
+    
+    // Anonymous user - use anonymous avatar or default
+    const anonymousStored = safeLoadAvatarConfig(null);
+    if (anonymousStored) {
+      setAvatarConfig(anonymousStored);
+    } else {
+      setAvatarConfig(createDefaultAvatarConfig());
     }
   }, [user]);
 
-  // Set up cross-tab synchronization for avatar changes
+  // Set up cross-tab synchronization for avatar changes (user-specific)
   useEffect(() => {
     const cleanup = setupAvatarCrossTabSync((config) => {
       console.log('[HubLayout] Avatar updated in another tab:', config);
       setAvatarConfig(config);
-    });
+    }, user?.id);
     return cleanup;
-  }, []);
+  }, [user?.id]);
 
   const handleLogout = async () => {
+    // Clear user-specific avatar from localStorage on logout
+    if (user?.id) {
+      clearAvatarConfig(user.id);
+    }
     await logout();
     navigate("/login");
   };
@@ -202,7 +226,7 @@ const HubLayout = () => {
             setAvatarConfig(config);
             window.dispatchEvent(new CustomEvent("avatar-config-updated", { detail: config }));
             
-            // Save with backend sync if authenticated
+            // Save with backend sync if authenticated (user-specific storage)
             const encoded = encodeAvatarConfig(config);
             await saveAvatarConfigWithSync(config, isAuthenticated && updateAvatar 
               ? async () => {
@@ -215,7 +239,8 @@ const HubLayout = () => {
                     // Don't throw - local save succeeded
                   }
                 }
-              : undefined
+              : undefined,
+              user?.id // Pass userId for user-specific storage
             );
           }}
         />

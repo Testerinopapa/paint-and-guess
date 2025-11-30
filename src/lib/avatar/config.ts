@@ -173,10 +173,22 @@ export const DEFAULT_AVATAR_CONFIG: AvatarConfig = {
 };
 
 /**
- * LocalStorage key for storing avatar configuration
- * @constant {string} AVATAR_STORAGE_KEY
+ * Base localStorage key for storing avatar configuration
+ * @constant {string} AVATAR_STORAGE_KEY_BASE
  */
-const AVATAR_STORAGE_KEY = 'paint-and-guess-avatar-config';
+const AVATAR_STORAGE_KEY_BASE = 'paint-and-guess-avatar-config';
+
+/**
+ * Get user-specific storage key for avatar configuration
+ * @param {string | null | undefined} userId - Optional user ID to make key user-specific
+ * @returns {string} Storage key (user-specific if userId provided, otherwise global for anonymous users)
+ */
+function getAvatarStorageKey(userId?: string | null): string {
+  if (userId) {
+    return `${AVATAR_STORAGE_KEY_BASE}-user-${userId}`;
+  }
+  return `${AVATAR_STORAGE_KEY_BASE}-anonymous`;
+}
 
 /**
  * Storage event type for cross-tab synchronization
@@ -298,23 +310,53 @@ function migrateAvatarConfig(config: any, fromVersion: number): AvatarConfig {
  * - Corrupted data cleanup
  * - Legacy format conversion
  * - Migration from old sessionStorage/tab-based storage
+ * - User-specific storage keys
  * 
+ * @param {string | null | undefined} userId - Optional user ID to load user-specific avatar
  * @returns {AvatarConfig | null} The loaded avatar config, or null if none exists or loading fails
  * 
  * @example
- * const config = loadAvatarConfig();
+ * const config = loadAvatarConfig(userId);
  * if (config) {
  *   console.log('Loaded avatar:', config.name);
  * } else {
  *   console.log('No saved avatar found');
  * }
  */
-export function loadAvatarConfig(): AvatarConfig | null {
+export function loadAvatarConfig(userId?: string | null): AvatarConfig | null {
   if (typeof window === 'undefined') return null;
   
   try {
-    // Try new localStorage format first
-    const stored = localStorage.getItem(AVATAR_STORAGE_KEY);
+    // Try user-specific key first if userId is provided
+    if (userId) {
+      const userKey = getAvatarStorageKey(userId);
+      const userStored = localStorage.getItem(userKey);
+      if (userStored) {
+        try {
+          const data = JSON.parse(userStored);
+          if (data.version !== undefined) {
+            const storedData = data as StoredAvatar;
+            if (storedData.version !== AVATAR_STORAGE_VERSION) {
+              console.log(`Migrating avatar config from version ${storedData.version} to ${AVATAR_STORAGE_VERSION}`);
+              const migrated = migrateAvatarConfig(storedData.config, storedData.version);
+              saveAvatarConfig(migrated, false, userId);
+              return migrated;
+            }
+            return storedData.config;
+          }
+          const migrated = migrateAvatarConfig(data, 0);
+          saveAvatarConfig(migrated, false, userId);
+          return migrated;
+        } catch (error) {
+          console.error('Failed to parse user avatar config:', error);
+          localStorage.removeItem(userKey);
+        }
+      }
+    }
+
+    // Try anonymous/global key for backward compatibility
+    const anonymousKey = getAvatarStorageKey(null);
+    const stored = localStorage.getItem(anonymousKey);
     if (stored) {
       const data = JSON.parse(stored);
       
@@ -378,7 +420,10 @@ export function loadAvatarConfig(): AvatarConfig | null {
     console.error('Failed to load avatar config:', error);
     // Clear corrupted data
     try {
-      localStorage.removeItem(AVATAR_STORAGE_KEY);
+      if (userId) {
+        localStorage.removeItem(getAvatarStorageKey(userId));
+      }
+      localStorage.removeItem(getAvatarStorageKey(null));
     } catch {
       // Ignore errors during cleanup
     }
@@ -393,16 +438,18 @@ export function loadAvatarConfig(): AvatarConfig | null {
  * Stores the config with version information for future migration support.
  * Handles quota exceeded errors gracefully.
  * Triggers cross-tab synchronization via custom storage event.
+ * Uses user-specific storage keys when userId is provided.
  * 
  * @param {AvatarConfig} config - The avatar configuration to save
  * @param {boolean} syncToOtherTabs - Whether to trigger cross-tab sync (default: true)
+ * @param {string | null | undefined} userId - Optional user ID to save to user-specific storage
  * @throws {Error} Logs error if save fails (doesn't throw to prevent app crash)
  * 
  * @example
  * const myConfig = createDefaultAvatarConfig('My Avatar');
- * saveAvatarConfig(myConfig);
+ * saveAvatarConfig(myConfig, true, userId);
  */
-export function saveAvatarConfig(config: AvatarConfig, syncToOtherTabs: boolean = true): void {
+export function saveAvatarConfig(config: AvatarConfig, syncToOtherTabs: boolean = true, userId?: string | null): void {
   if (typeof window === 'undefined') return;
   
   try {
@@ -422,14 +469,19 @@ export function saveAvatarConfig(config: AvatarConfig, syncToOtherTabs: boolean 
       console.warn('Avatar config is large:', sizeInMB.toFixed(2), 'MB');
     }
     
+    // Use user-specific key if userId provided, otherwise anonymous key
+    const storageKey = getAvatarStorageKey(userId);
+    
     // Mark as internal update to prevent cross-tab sync loop
     isInternalUpdate = true;
-    localStorage.setItem(AVATAR_STORAGE_KEY, json);
+    localStorage.setItem(storageKey, json);
     isInternalUpdate = false;
     
-    // Trigger custom event for cross-tab synchronization
+    // Trigger custom event for cross-tab synchronization with userId in detail
     if (syncToOtherTabs) {
-      window.dispatchEvent(new CustomEvent(AVATAR_STORAGE_EVENT, { detail: config }));
+      window.dispatchEvent(new CustomEvent(AVATAR_STORAGE_EVENT, { 
+        detail: { config, userId } 
+      }));
     }
   } catch (error: any) {
     isInternalUpdate = false;
@@ -447,8 +499,10 @@ export function saveAvatarConfig(config: AvatarConfig, syncToOtherTabs: boolean 
  * 
  * This function should be called once when the app initializes to listen
  * for avatar changes in other browser tabs/windows.
+ * Filters events to only sync avatars for the specified userId.
  * 
  * @param {function} callback - Callback function called when avatar changes in another tab
+ * @param {string | null | undefined} userId - Optional user ID to filter events for specific user
  * @returns {function} Cleanup function to remove the listener
  * 
  * @example
@@ -456,26 +510,33 @@ export function saveAvatarConfig(config: AvatarConfig, syncToOtherTabs: boolean 
  *   const cleanup = setupAvatarCrossTabSync((config) => {
  *     console.log('Avatar updated in another tab:', config);
  *     setAvatarConfig(config);
- *   });
+ *   }, userId);
  *   return cleanup;
- * }, []);
+ * }, [userId]);
  */
-export function setupAvatarCrossTabSync(callback: (config: AvatarConfig) => void): () => void {
+export function setupAvatarCrossTabSync(callback: (config: AvatarConfig) => void, userId?: string | null): () => void {
   if (typeof window === 'undefined') {
     return () => {};
   }
 
+  const userKey = userId ? getAvatarStorageKey(userId) : getAvatarStorageKey(null);
+
   // Listen for custom storage events (for same-origin sync)
   const handleCustomEvent = (event: Event) => {
-    const customEvent = event as CustomEvent<AvatarConfig>;
+    const customEvent = event as CustomEvent<{ config: AvatarConfig; userId?: string | null }>;
     if (customEvent.detail && !isInternalUpdate) {
-      callback(customEvent.detail);
+      // Only sync if userId matches (or both are null/undefined for anonymous)
+      const eventUserId = customEvent.detail.userId;
+      if ((userId === eventUserId) || (!userId && !eventUserId)) {
+        callback(customEvent.detail.config);
+      }
     }
   };
 
   // Listen for localStorage storage events (for cross-tab sync)
   const handleStorageEvent = (event: StorageEvent) => {
-    if (event.key === AVATAR_STORAGE_KEY && event.newValue && !isInternalUpdate) {
+    // Check if this is a storage event for our user's avatar key
+    if (event.key === userKey && event.newValue && !isInternalUpdate) {
       try {
         const data = JSON.parse(event.newValue) as StoredAvatar;
         if (data.config) {
@@ -494,6 +555,30 @@ export function setupAvatarCrossTabSync(callback: (config: AvatarConfig) => void
     window.removeEventListener(AVATAR_STORAGE_EVENT, handleCustomEvent);
     window.removeEventListener('storage', handleStorageEvent);
   };
+}
+
+/**
+ * Clear avatar configuration from localStorage
+ * 
+ * Removes avatar from storage for a specific user or anonymous users.
+ * Useful when logging out or switching accounts.
+ * 
+ * @param {string | null | undefined} userId - Optional user ID to clear user-specific avatar
+ * 
+ * @example
+ * clearAvatarConfig(userId); // Clear specific user's avatar
+ * clearAvatarConfig(); // Clear anonymous avatar
+ */
+export function clearAvatarConfig(userId?: string | null): void {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    const storageKey = getAvatarStorageKey(userId);
+    localStorage.removeItem(storageKey);
+    console.log('[avatarConfig] Cleared avatar config', { userId, storageKey });
+  } catch (error) {
+    console.error('Failed to clear avatar config:', error);
+  }
 }
 
 /**
@@ -610,19 +695,21 @@ export function decodeAvatarConfig(encoded: string): AvatarConfig | null {
  * 
  * @param {AvatarConfig} config - The avatar configuration to save
  * @param {function} [backendSyncFn] - Optional function to sync with backend (e.g., API call)
+ * @param {string | null | undefined} userId - Optional user ID to save to user-specific storage
  * @returns {Promise<void>} Promise that resolves when save completes (backend sync may happen asynchronously)
  * 
  * @example
  * await saveAvatarConfigWithSync(config, async (encoded) => {
  *   await updateAvatar(encoded);
- * });
+ * }, userId);
  */
 export async function saveAvatarConfigWithSync(
   config: AvatarConfig,
-  backendSyncFn?: (encoded: string) => Promise<void>
+  backendSyncFn?: (encoded: string) => Promise<void>,
+  userId?: string | null
 ): Promise<void> {
   // Always save locally first for immediate availability
-  saveAvatarConfig(config);
+  saveAvatarConfig(config, true, userId);
   
   // If backend sync function is provided, sync to backend
   if (backendSyncFn) {

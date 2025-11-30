@@ -152,10 +152,12 @@ export function sanitizeAvatarConfig(config: any): AvatarConfig {
 
 /**
  * Safe load with validation
+ * 
+ * @param {string | null | undefined} userId - Optional user ID to load user-specific avatar
  */
-export function safeLoadAvatarConfig(): AvatarConfig | null {
+export function safeLoadAvatarConfig(userId?: string | null): AvatarConfig | null {
   try {
-    const config = loadAvatarConfig();
+    const config = loadAvatarConfig(userId);
     
     if (!config) {
       return null;
