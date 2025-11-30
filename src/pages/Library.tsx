@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Search, Plus, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,88 +8,48 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { AvatarPreview } from "@/games/paint-and-guess/components/avatar/preview";
 import { createDefaultAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
-import { useEffect } from "react";
-
-// Mock book data - will be replaced with actual API
-const recommendedBooks = [
-  {
-    id: "1",
-    title: "A Teaspoon of Earth and Sea",
-    author: "Dina Nayeri",
-    genre: "Fiction",
-    coverColor: "bg-teal-500",
-  },
-  {
-    id: "2",
-    title: "Here is Real Magic",
-    author: "Nami Gordanfarh",
-    genre: "Fiction",
-    coverColor: "bg-yellow-400",
-  },
-  {
-    id: "3",
-    title: "The Water Cure",
-    author: "Sophie Lucasbrown",
-    genre: "Biography",
-    coverColor: "bg-green-400",
-  },
-  {
-    id: "4",
-    title: "Sugar Run",
-    author: "Mesha Maren",
-    genre: "Mystery",
-    coverColor: "bg-blue-600",
-  },
-];
-
-const allBooks = [
-  {
-    id: "1",
-    title: "The lovely bones",
-    author: "Alice Sebold",
-    category: "Mystery",
-    availability: "Coming soon",
-    status: "Booked 5/10/23",
-    action: "Book now",
-  },
-  {
-    id: "2",
-    title: "The Girl in Red",
-    author: "D'Arcy",
-    category: "Mystery",
-    availability: "Coming soon",
-    status: "Free",
-    action: "Take a book",
-  },
-  {
-    id: "3",
-    title: "The Bees",
-    author: "Laline Paull",
-    category: "Fiction",
-    availability: "Only reading room",
-    status: "Taken by you",
-    action: "Return till 2/1",
-  },
-  {
-    id: "4",
-    title: "Lord of the Flies",
-    author: "William Golding",
-    category: "Fiction",
-    availability: "Available",
-    status: "Free",
-    action: "Take a book",
-  },
-];
+import { useGutenbergBooks } from "@/hooks/useGutenbergBooks";
+import { transformGutenbergBook, getCoverColor, type LibraryBook } from "@/lib/gutenberg";
+import { useDebounce } from "@/shared/hooks/useDebounce";
 
 const Library = () => {
   const { user } = useAuth();
   const [avatarConfig, setAvatarConfig] = useState(() => createDefaultAvatarConfig());
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  
+  // Debounce search query to avoid too many API calls
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
+  // Fetch books from Gutenberg API
+  const { data, isLoading, error } = useGutenbergBooks({
+    search: debouncedSearch || undefined,
+    topic: selectedCategory !== "all" ? selectedCategory : undefined,
+    enabled: true,
+  });
+
+  // Transform Gutenberg books to Library format
+  const libraryBooks: LibraryBook[] = useMemo(() => {
+    if (!data?.results) return [];
+    return data.results.map(transformGutenbergBook);
+  }, [data]);
+
+  // Get recommended books (top downloaded, first 4)
+  const recommendedBooks = useMemo(() => {
+    const sorted = [...libraryBooks].sort((a, b) => b.downloadCount - a.downloadCount);
+    return sorted.slice(0, 4).map(book => ({
+      id: book.id,
+      title: book.title,
+      author: book.author,
+      genre: book.category,
+      coverColor: getCoverColor(book.category),
+    }));
+  }, [libraryBooks]);
 
   useEffect(() => {
     if (user?.id) {
@@ -104,6 +64,12 @@ const Library = () => {
       }
     }
   }, [user]);
+
+  const handleBookAction = (book: LibraryBook) => {
+    if (book.downloadUrl) {
+      window.open(book.downloadUrl, "_blank");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -170,39 +136,58 @@ const Library = () => {
             <TabsTrigger value="recently-saved">Recently Saved</TabsTrigger>
           </TabsList>
           <TabsContent value="recommended" className="mt-4">
-            <ScrollArea className="w-full" orientation="horizontal">
+            {isLoading ? (
               <div className="flex gap-4 pb-4">
-                {recommendedBooks.map((book) => (
-                  <Card key={book.id} className="min-w-[200px] flex-shrink-0">
-                    <div className={`${book.coverColor} h-64 rounded-t-lg flex items-center justify-center`}>
-                      <BookOpen className="w-16 h-16 text-white/80" />
-                    </div>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Card key={i} className="min-w-[200px] flex-shrink-0">
+                    <Skeleton className="h-64 w-full rounded-t-lg" />
                     <CardContent className="p-4">
-                      <Badge variant="secondary" className="mb-2 capitalize">
-                        {book.genre}
-                      </Badge>
-                      <h3 className="font-bold text-lg mb-1">{book.title}</h3>
-                      <p className="text-sm text-muted-foreground">{book.author}</p>
+                      <Skeleton className="h-4 w-16 mb-2" />
+                      <Skeleton className="h-5 w-full mb-1" />
+                      <Skeleton className="h-4 w-24" />
                     </CardContent>
                   </Card>
                 ))}
-                {/* Promotional Card */}
-                <Card className="min-w-[300px] flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-700 border-0">
-                  <CardContent className="p-6 text-white h-full flex flex-col justify-between">
-                    <div>
-                      <Badge className="bg-emerald-500 text-white mb-4">Till 30th June</Badge>
-                      <h3 className="text-2xl font-bold mb-2">TEXTBOOKS SHOULD BE PASSED</h3>
-                      <p className="text-blue-100">Share knowledge, pass it forward</p>
-                    </div>
-                    <div className="mt-4">
-                      <Button variant="secondary" className="w-full">
-                        Learn More
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
-            </ScrollArea>
+            ) : error ? (
+              <div className="text-center py-8 text-destructive">
+                Failed to load books. Please try again.
+              </div>
+            ) : (
+              <ScrollArea className="w-full" orientation="horizontal">
+                <div className="flex gap-4 pb-4">
+                  {recommendedBooks.map((book) => (
+                    <Card key={book.id} className="min-w-[200px] flex-shrink-0">
+                      <div className={`${book.coverColor} h-64 rounded-t-lg flex items-center justify-center`}>
+                        <BookOpen className="w-16 h-16 text-white/80" />
+                      </div>
+                      <CardContent className="p-4">
+                        <Badge variant="secondary" className="mb-2 capitalize">
+                          {book.genre}
+                        </Badge>
+                        <h3 className="font-bold text-lg mb-1 line-clamp-2">{book.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{book.author}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {/* Promotional Card */}
+                  <Card className="min-w-[300px] flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-700 border-0">
+                    <CardContent className="p-6 text-white h-full flex flex-col justify-between">
+                      <div>
+                        <Badge className="bg-emerald-500 text-white mb-4">Till 30th June</Badge>
+                        <h3 className="text-2xl font-bold mb-2">TEXTBOOKS SHOULD BE PASSED</h3>
+                        <p className="text-blue-100">Share knowledge, pass it forward</p>
+                      </div>
+                      <div className="mt-4">
+                        <Button variant="secondary" className="w-full">
+                          Learn More
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </ScrollArea>
+            )}
           </TabsContent>
           <TabsContent value="recently-saved" className="mt-4">
             <div className="text-center py-8 text-muted-foreground">
@@ -217,42 +202,70 @@ const Library = () => {
         <h2 className="text-xl font-semibold">Books</h2>
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Author</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Availability</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {allBooks.map((book) => (
-                  <TableRow key={book.id}>
-                    <TableCell className="font-medium">{book.title}</TableCell>
-                    <TableCell>{book.author}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {book.category}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{book.availability}</TableCell>
-                    <TableCell>
-                      <span className={book.status === "Free" ? "text-emerald-500" : "text-muted-foreground"}>
-                        {book.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm">
-                        {book.action}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+            {isLoading ? (
+              <div className="p-8 space-y-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex gap-4">
+                    <Skeleton className="h-12 flex-1" />
+                    <Skeleton className="h-12 w-32" />
+                    <Skeleton className="h-12 w-24" />
+                    <Skeleton className="h-12 w-32" />
+                    <Skeleton className="h-12 w-24" />
+                    <Skeleton className="h-12 w-28" />
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            ) : error ? (
+              <div className="text-center py-8 text-destructive">
+                Failed to load books. Please try again.
+              </div>
+            ) : libraryBooks.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {searchQuery ? "No books found. Try a different search." : "No books available."}
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Author</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Availability</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {libraryBooks.map((book) => (
+                    <TableRow key={book.id}>
+                      <TableCell className="font-medium">{book.title}</TableCell>
+                      <TableCell>{book.author}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="capitalize">
+                          {book.category}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{book.availability}</TableCell>
+                      <TableCell>
+                        <span className={book.status === "Free" ? "text-emerald-500" : "text-muted-foreground"}>
+                          {book.status}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleBookAction(book)}
+                          disabled={!book.downloadUrl}
+                        >
+                          {book.action}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>
