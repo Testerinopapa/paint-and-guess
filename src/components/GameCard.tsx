@@ -14,7 +14,10 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
   const [imageError, setImageError] = useState(false);
   
   // Use background image if available, fallback to thumbnail
-  const cardImage = game.assets.background || game.assets.thumbnail;
+  // Ensure path starts with / for absolute path from root
+  const cardImage = (game.assets.background || game.assets.thumbnail)?.startsWith('/') 
+    ? (game.assets.background || game.assets.thumbnail)
+    : `/${game.assets.background || game.assets.thumbnail}`;
 
   // Reset error state when image source changes
   useEffect(() => {
@@ -62,7 +65,20 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
             alt={game.displayName}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
             loading="lazy"
-            onError={() => setImageError(true)}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              console.error(`[GameCard] Failed to load image for ${game.id}:`, {
+                attemptedUrl: target.src,
+                cardImage,
+                gameId: game.id,
+              });
+              setImageError(true);
+            }}
+            onLoad={() => {
+              if (import.meta.env.DEV) {
+                console.log(`[GameCard] Successfully loaded image for ${game.id}:`, cardImage);
+              }
+            }}
           />
         ) : (
           <div className="absolute inset-0 w-full h-full bg-muted flex items-center justify-center">
