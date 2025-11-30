@@ -78,11 +78,41 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
         // Don't overwrite currentDrawer if we're in an active round and have a valid drawer
         // This prevents room-state from overwriting the drawer set by round-started
         const shouldPreserveDrawer = prev.isGameActive && prev.isRoundActive && prev.currentDrawer?.id;
+        
+        // Merge players intelligently to preserve score updates from correct-guess events
+        // Server is source of truth, but we merge to prevent race conditions where
+        // correct-guess updated scores but room-state hasn't caught up yet
+        const existingPlayersMap = new Map(prev.players.map((p) => [p.id, { ...p }]));
+        
+        // Merge server players with existing players
+        const mergedPlayers = (room.players || []).map((serverPlayer: any) => {
+          const existingPlayer = existingPlayersMap.get(serverPlayer.id);
+          if (existingPlayer) {
+            // Use maximum score to handle race conditions (scores only increase)
+            // Server is source of truth, but if local has higher score from recent correct-guess,
+            // keep it until server catches up
+            const maxScore = Math.max(existingPlayer.score || 0, serverPlayer.score || 0);
+            return {
+              ...existingPlayer,
+              ...serverPlayer, // Server data overrides
+              score: maxScore, // Use maximum to prevent losing recent score updates
+            };
+          }
+          return serverPlayer;
+        });
+        
+        // Add any existing players not in server list (disconnected but still in local state)
+        existingPlayersMap.forEach((existingPlayer, id) => {
+          if (!mergedPlayers.find((p: any) => p.id === id)) {
+            mergedPlayers.push(existingPlayer);
+          }
+        });
+        
         return {
           ...prev,
           gamePin: room.gamePin,
           ownerId: room.ownerId,
-          players: room.players,
+          players: mergedPlayers,
           isGameActive: room.isGameActive ?? false,
           isRoundActive: room.isRoundActive ?? false,
           roundNumber: room.roundNumber ?? 0,
