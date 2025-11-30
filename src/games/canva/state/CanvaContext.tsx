@@ -145,6 +145,7 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
       setGameState((prev) => ({
         ...prev,
         isRoundActive: false,
+        currentDrawer: null, // Clear drawer to prevent drawing between rounds
         currentWord: word, // Show the previous word
         roundNumber,
       }));
@@ -152,15 +153,25 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
     };
 
     const onRoundStarted = ({ drawer, roundNumber, roundTime }: any) => {
-      setGameState((prev) => ({
-        ...prev,
-        isRoundActive: true,
-        currentDrawer: drawer,
-        roundNumber,
-        roundTime,
-        timeRemaining: roundTime,
-        currentWord: null, // Hide word until someone guesses or round ends
-      }));
+      setGameState((prev) => {
+        const newState = {
+          ...prev,
+          isRoundActive: true,
+          currentDrawer: drawer, // Explicitly set the new drawer
+          roundNumber,
+          roundTime,
+          timeRemaining: roundTime,
+          currentWord: null, // Hide word until someone guesses or round ends
+        };
+        console.log("[CanvaContext] Round started - state updated", { 
+          drawer,
+          currentDrawer: newState.currentDrawer, 
+          selfId: newState.selfId, 
+          isDrawer: newState.currentDrawer?.id === newState.selfId,
+          isRoundActive: newState.isRoundActive,
+        });
+        return newState;
+      });
       // Clear canvas when new round starts
       window.dispatchEvent(new CustomEvent("canva:canvas-clear"));
       toast.success(`Round ${roundNumber} started!`);
