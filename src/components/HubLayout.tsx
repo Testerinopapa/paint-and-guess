@@ -1,6 +1,20 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { PaintBucket, Settings, Sparkles, LogIn, LogOut, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { 
+  PaintBucket, 
+  Settings, 
+  Sparkles, 
+  LogIn, 
+  LogOut, 
+  User, 
+  ChevronLeft, 
+  ChevronRight,
+  Home,
+  Gamepad2,
+  Brain,
+  Puzzle,
+  MoreHorizontal
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useGameRegistry } from "@/games/registry";
@@ -24,6 +38,26 @@ type NavigationLink = {
   to: string;
   category: string;
   priority: number;
+  icon?: React.ComponentType<{ className?: string }>;
+  subItems?: NavigationLink[];
+};
+
+// Icon mapping for games
+const getGameIcon = (gameId: string, label: string): React.ComponentType<{ className?: string }> => {
+  const id = gameId.toLowerCase();
+  const lowerLabel = label.toLowerCase();
+  
+  if (id.includes("paint") || id.includes("draw") || lowerLabel.includes("paint")) {
+    return PaintBucket;
+  }
+  if (id.includes("trivia") || lowerLabel.includes("trivia")) {
+    return Brain;
+  }
+  if (id.includes("puzzle") || lowerLabel.includes("puzzle")) {
+    return Puzzle;
+  }
+  // Default game icon
+  return Gamepad2;
 };
 
 export function buildNavigationLinks(games: HubGame[]): NavigationLink[] {
@@ -40,6 +74,7 @@ export function buildNavigationLinks(games: HubGame[]): NavigationLink[] {
         to: routePath,
         category: game.navCategory ?? game.category?.[0] ?? "uncategorized",
         priority: game.navPriority ?? 0,
+        icon: getGameIcon(game.id, game.navLabel ?? game.displayName ?? game.id),
       };
     })
     .sort((a, b) => {
@@ -50,7 +85,7 @@ export function buildNavigationLinks(games: HubGame[]): NavigationLink[] {
     });
 
   return [
-    { label: "All Games", to: "/hub", category: "hub", priority: Number.POSITIVE_INFINITY },
+    { label: "All Games", to: "/hub", category: "hub", priority: Number.POSITIVE_INFINITY, icon: Home },
     ...derivedLinks,
   ];
 }
@@ -60,6 +95,7 @@ const HubLayout = () => {
   const navigation = useMemo(() => buildNavigationLinks(games), [games]);
   const { user, isAuthenticated, logout, isLoading: authLoading, updateAvatar, updateUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
     // Initialize with default - useEffect will load actual avatar when user data is ready
     return createDefaultAvatarConfig();
@@ -188,8 +224,8 @@ const HubLayout = () => {
   return (
     <div className="min-h-screen bg-background text-foreground flex">
       <aside
-        className={`hidden md:flex border-r bg-muted/30 flex-col gap-6 transition-all duration-300 ease-in-out relative ${
-          isSidebarCollapsed ? "w-16 p-4" : "w-64 p-6"
+        className={`hidden md:flex border-r bg-background flex-col transition-all duration-300 ease-in-out relative ${
+          isSidebarCollapsed ? "w-16" : "w-64"
         }`}
       >
         {/* Toggle Button */}
@@ -205,48 +241,144 @@ const HubLayout = () => {
           )}
         </button>
 
-        <div className={`flex items-center gap-2 text-lg font-semibold ${isSidebarCollapsed ? "justify-center" : ""}`}>
+        {/* Header */}
+        <div className={`flex items-center gap-2 px-4 py-4 border-b ${isSidebarCollapsed ? "justify-center" : ""}`}>
           <Sparkles className="h-5 w-5 shrink-0" />
-          {!isSidebarCollapsed && <span>Game Hub</span>}
+          {!isSidebarCollapsed && <span className="text-lg font-semibold">Game Hub</span>}
         </div>
-        <nav className="space-y-2">
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1">
           <TooltipProvider delayDuration={0}>
             {navigation.map((item) => {
-              const navLink = (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-                    } ${isSidebarCollapsed ? "justify-center" : ""}`
-                  }
-                  end={item.to === "/hub"}
-                >
-                  {isSidebarCollapsed ? (
-                    <span className="truncate font-semibold">{item.label.charAt(0)}</span>
-                  ) : (
-                    <span>{item.label}</span>
-                  )}
-                </NavLink>
-              );
+              const Icon = item.icon || Gamepad2;
+              const hasSubItems = item.subItems && item.subItems.length > 0;
 
-              if (isSidebarCollapsed) {
+              const isActive = location.pathname === item.to || 
+                (item.to !== "/hub" && location.pathname.startsWith(item.to));
+
+              // Expanded state - full navigation
+              if (!isSidebarCollapsed) {
+                if (hasSubItems) {
+                  return (
+                    <DropdownMenu key={item.to}>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent/50 ${
+                            isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          <span className="flex-1 text-left">{item.label}</span>
+                          <ChevronRight className="h-4 w-4 shrink-0 rotate-90" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent side="right" align="start" className="w-48">
+                        {item.subItems?.map((subItem) => {
+                          const SubIcon = subItem.icon || Gamepad2;
+                          const isSubActive = location.pathname === subItem.to;
+                          return (
+                            <DropdownMenuItem key={subItem.to} asChild>
+                              <NavLink
+                                to={subItem.to}
+                                className={`flex items-center gap-2 cursor-pointer ${
+                                  isSubActive ? "bg-accent" : ""
+                                }`}
+                              >
+                                <SubIcon className="h-4 w-4" />
+                                <span>{subItem.label}</span>
+                              </NavLink>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  );
+                }
+
                 return (
-                  <Tooltip key={item.to}>
-                    <TooltipTrigger asChild>{navLink}</TooltipTrigger>
-                    <TooltipContent side="right">{item.label}</TooltipContent>
-                  </Tooltip>
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActive ? "bg-accent text-accent-foreground" : "hover:bg-accent/50 text-muted-foreground hover:text-foreground"
+                      }`
+                    }
+                    end={item.to === "/hub"}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </NavLink>
                 );
               }
 
-              return navLink;
+              // Collapsed state - icon with tooltip or dropdown
+              if (hasSubItems) {
+                return (
+                  <DropdownMenu key={item.to}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className={`w-full flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent/50 relative ${
+                              isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            <Icon className="h-4 w-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">{item.label}</TooltipContent>
+                    </Tooltip>
+                    <DropdownMenuContent side="right" align="start" className="w-48">
+                      <DropdownMenuLabel>{item.label}</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {item.subItems?.map((subItem) => {
+                        const SubIcon = subItem.icon || Gamepad2;
+                        const isSubActive = location.pathname === subItem.to;
+                        return (
+                          <DropdownMenuItem key={subItem.to} asChild>
+                            <NavLink
+                              to={subItem.to}
+                              className={`flex items-center gap-2 cursor-pointer ${
+                                isSubActive ? "bg-accent" : ""
+                              }`}
+                            >
+                              <SubIcon className="h-4 w-4" />
+                              <span>{subItem.label}</span>
+                            </NavLink>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                );
+              }
+
+              return (
+                <Tooltip key={item.to}>
+                  <TooltipTrigger asChild>
+                    <NavLink
+                      to={item.to}
+                      className={({ isActive }) =>
+                        `flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent/50 ${
+                          isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+                        }`
+                      }
+                      end={item.to === "/hub"}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </NavLink>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{item.label}</TooltipContent>
+                </Tooltip>
+              );
             })}
           </TooltipProvider>
         </nav>
 
         {/* User Profile / Auth Section */}
-        <div className="mt-auto space-y-2">
+        <div className="mt-auto border-t px-2 py-4 space-y-2">
           {authLoading ? (
             <div className={`w-full p-3 text-center text-sm text-muted-foreground ${isSidebarCollapsed ? "px-0" : ""}`}>
               {isSidebarCollapsed ? "..." : "Loading..."}
