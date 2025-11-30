@@ -110,9 +110,9 @@ After score calculation, the server:
 
 ### 4. Frontend Score Update
 
-Location: `src/games/canva/state/CanvaContext.tsx:136-169`
+Location: `src/games/canva/state/CanvaContext.tsx:163-199, 76-124`
 
-**State Update Process:**
+**State Update on Correct Guess:**
 
 ```javascript
 onCorrectGuess = ({ player, points, word, players }) => {
@@ -147,9 +147,46 @@ onCorrectGuess = ({ player, points, word, players }) => {
 };
 ```
 
+**State Update on Room State (Score Preservation):**
+
+The `onRoomState` handler uses intelligent merging to prevent score loss:
+
+```javascript
+onRoomState = (room) => {
+  setGameState((prev) => {
+    // Merge players intelligently to preserve score updates from correct-guess events
+    const existingPlayersMap = new Map(prev.players.map((p) => [p.id, { ...p }]));
+    
+    // Merge server players with existing players
+    const mergedPlayers = (room.players || []).map((serverPlayer) => {
+      const existingPlayer = existingPlayersMap.get(serverPlayer.id);
+      if (existingPlayer) {
+        // Use maximum score to handle race conditions (scores only increase)
+        // Server is source of truth, but if local has higher score from recent
+        // correct-guess, keep it until server catches up
+        const maxScore = Math.max(existingPlayer.score || 0, serverPlayer.score || 0);
+        return {
+          ...existingPlayer,
+          ...serverPlayer, // Server data overrides
+          score: maxScore, // Use maximum to prevent losing recent score updates
+        };
+      }
+      return serverPlayer;
+    });
+    
+    return {
+      ...prev,
+      players: mergedPlayers,
+      // ... other state updates
+    };
+  });
+};
+```
+
 **Key Points:**
 - Server is source of truth for scores
 - Frontend merges server data into local state
+- `onRoomState` preserves scores during race conditions using maximum score logic
 - Word is revealed to all players when correctly guessed
 - Toast notification shows points awarded
 
@@ -180,7 +217,7 @@ Location: `src/games/canva/components/GameStage.tsx:83-99`
 
 ## Score Initialization
 
-Location: `backend/src/canvaRoom.js:28-36`
+Location: `backend/src/canvaRoom.js:28-36, 66-80`
 
 **Player Creation:**
 
@@ -188,12 +225,45 @@ Scores are initialized when:
 1. Room is created (`constructor`)
 2. Player joins room (`addPlayer`)
 
+**Constructor Initialization:**
 ```javascript
 this.players = players.map((player) => ({
   ...player,
   score: player.score ?? 0,  // Default to 0 if not set
   // ... other properties
 }));
+```
+
+**AddPlayer Initialization:**
+```javascript
+addPlayer(player) {
+  const enrichedPlayer = {
+    ...player,
+    connected: true,
+    lastSeen: Date.now(),
+    socketId: player.socketId ?? null,
+    score: player.score ?? 0, // ✅ Initialize score to 0 if not provided
+    hasGuessed: player.hasGuessed ?? false,
+    isReady: player.isReady ?? false,
+  };
+  this.players.push(enrichedPlayer);
+}
+```
+
+**Score Guarantee in JSON Export:**
+Location: `backend/src/canvaRoom.js:334-342`
+
+The `toJSON()` method ensures scores are always included:
+```javascript
+players: this.getActivePlayers().map((p) => ({
+  id: p.id,
+  name: p.name,
+  avatar: p.avatar,
+  connected: p.connected,
+  score: p.score ?? 0, // ✅ Ensure score is always a number
+  isReady: p.isReady ?? false,
+  hasGuessed: p.hasGuessed ?? false,
+})),
 ```
 
 **Reset Behavior:**
@@ -265,8 +335,17 @@ player = {
 Scores are updated:
 - **Synchronously** on correct guess (immediate)
 - **Broadcast** via Socket.IO events
-- **Merged** into frontend state
+- **Merged** into frontend state with intelligent preservation logic
 - **Displayed** in real-time in UI
+
+### Score Data Integrity
+
+**Guarantees:**
+- ✅ Scores are always initialized to 0 when players join
+- ✅ Scores are always included in JSON exports (never undefined)
+- ✅ Score updates are preserved during state merges
+- ✅ Race conditions handled by taking maximum score value
+- ✅ Server is the source of truth, but frontend protects against stale data
 
 ## Special Cases & Edge Cases
 
@@ -354,9 +433,12 @@ When new round starts:
 | Component | File | Key Functions |
 |-----------|------|---------------|
 | Score Calculation | `backend/src/canvaRoom.js` | `makeGuess()` (lines 293-316) |
+| Score Initialization | `backend/src/canvaRoom.js` | `addPlayer()` (lines 66-80), constructor (lines 28-36) |
+| JSON Export | `backend/src/canvaRoom.js` | `toJSON()` (lines 334-342) |
 | Guess Handling | `backend/src/server.js` | `socket.on("canva:guess")` (lines 965-1015) |
 | Score Broadcast | `backend/src/server.js` | `canva:correct-guess` event (lines 992-997) |
-| Frontend Update | `src/games/canva/state/CanvaContext.tsx` | `onCorrectGuess()` (lines 136-169) |
+| Frontend Update (Guess) | `src/games/canva/state/CanvaContext.tsx` | `onCorrectGuess()` (lines 163-199) |
+| Frontend Update (State) | `src/games/canva/state/CanvaContext.tsx` | `onRoomState()` (lines 76-124) |
 | Score Display | `src/games/canva/components/GameStage.tsx` | Player list render (lines 83-99) |
 
 ## Formula Visualization
@@ -378,3 +460,36 @@ Points Awarded
 
 **Key Takeaway:** Points decrease linearly with time, encouraging fast guesses while still rewarding correct answers made later in the round.
 
+## Recent Bug Fixes
+
+### Issue: Scores Not Updating in UI
+
+**Problem:**
+- Player scores weren't updating when guesses were made correctly
+- Scores could be lost when `room-state` events overwrote player data
+
+**Root Causes:**
+1. Score property not initialized in `addPlayer()` method
+2. Score could be `undefined` in JSON exports
+3. `onRoomState` handler was directly replacing players array, losing score updates
+
+**Fixes Applied:**
+
+1. **Backend - Score Initialization** (`backend/src/canvaRoom.js:66-80`)
+   - Added score initialization in `addPlayer()`: `score: player.score ?? 0`
+   - Ensured all player properties are initialized consistently
+
+2. **Backend - JSON Export Guarantee** (`backend/src/canvaRoom.js:334-342`)
+   - Added fallback in `toJSON()`: `score: p.score ?? 0`
+   - Guarantees scores are always numbers, never undefined
+
+3. **Frontend - State Merge Logic** (`src/games/canva/state/CanvaContext.tsx:76-124`)
+   - Changed `onRoomState` from direct replacement to intelligent merging
+   - Uses maximum score to handle race conditions
+   - Preserves score updates from `onCorrectGuess` events
+
+**Result:**
+- ✅ Scores now initialize correctly when players join
+- ✅ Scores update immediately on correct guesses
+- ✅ Scores persist across all state updates
+- ✅ No score loss during room-state synchronization
