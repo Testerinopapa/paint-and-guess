@@ -40,7 +40,35 @@ export default function Room() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Game Header Banner */}
+      {/* Game Header Banner - Show for all phases */}
+      {gameState.phase !== "lobby" && (
+        <div className="bg-gradient-to-r from-primary to-secondary py-2 sm:py-3 md:py-4 shadow-medium">
+          <div className="container mx-auto px-2 sm:px-4">
+            <div className="flex items-center justify-between flex-wrap gap-2 sm:gap-4">
+              <h1 className="text-base sm:text-xl md:text-2xl font-bold text-primary-foreground truncate">
+                Room: {gameState.roomId}
+              </h1>
+              {gameState.gamePin && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm sm:text-base md:text-lg text-primary-foreground">
+                    PIN: {gameState.gamePin}
+                  </span>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                onClick={handleLeaveRoom}
+                className="bg-background/20 hover:bg-background/30 border-primary-foreground/30 text-primary-foreground"
+                size="sm"
+              >
+                Leave Room
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Game Header Banner - Lobby phase */}
       {gameState.phase === "lobby" && (
         <div className="bg-gradient-to-r from-primary to-secondary py-2 sm:py-3 md:py-4 shadow-medium">
           <div className="container mx-auto px-2 sm:px-4">
@@ -126,8 +154,44 @@ export default function Room() {
       {gameState.phase === "scoring" && (
         <div className="container mx-auto p-4">
           <div className="flex items-center justify-center min-h-[60vh]">
-            <Card className="p-8 text-center">
-              <h2 className="text-3xl font-bold mb-4">Calculating Scores...</h2>
+            <Card className="p-8 text-center max-w-2xl w-full">
+              <h2 className="text-3xl font-bold mb-6">Scores Updated!</h2>
+              {gameState.players.filter((p) => p.id !== gameState.ownerId).length > 0 ? (
+                <div className="space-y-3 mt-6">
+                  {gameState.players
+                    .filter((p) => p.id !== gameState.ownerId) // Exclude host
+                    .sort((a, b) => b.score - a.score)
+                    .map((player, index) => (
+                      <div
+                        key={player.id}
+                        className={`p-4 rounded-lg border-2 ${
+                          index === 0
+                            ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-950"
+                            : "border-gray-200 dark:border-gray-800"
+                        }`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                index === 0
+                                  ? "bg-yellow-500 text-white"
+                                  : "bg-gray-200 dark:bg-gray-800"
+                              }`}
+                            >
+                              {index + 1}
+                            </div>
+                            <span className="font-medium">{player.name}</span>
+                          </div>
+                          <span className="text-xl font-bold">{player.score}</span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground mt-6">Loading scores...</p>
+              )}
+              <p className="text-muted-foreground mt-6">Moving to leaderboard...</p>
             </Card>
           </div>
         </div>
