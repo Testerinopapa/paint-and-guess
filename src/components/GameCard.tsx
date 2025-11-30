@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Play } from "lucide-react";
 import type { HubGame } from "@/games/registry";
 
@@ -8,19 +8,16 @@ interface GameCardProps {
 }
 
 const GameCard = ({ game, lastPlayed }: GameCardProps) => {
-  const handlePlay = (e: React.MouseEvent) => {
-    if (!game.isEnabled) {
-      e.preventDefault();
-      return;
+  const navigate = useNavigate();
+
+  const handlePlay = () => {
+    if (game.isEnabled) {
+      navigate(game.derivedRoute);
     }
   };
 
   return (
-    <Link
-      to={game.isEnabled ? game.derivedRoute : "#"}
-      onClick={handlePlay}
-      className="group relative overflow-hidden rounded-lg bg-game-card transition-all duration-300 hover:bg-game-card-hover hover:scale-105 hover:shadow-xl hover:shadow-primary/20 cursor-pointer block"
-    >
+    <div className="group relative overflow-hidden rounded-lg bg-game-card transition-all duration-300 hover:bg-game-card-hover hover:scale-105 hover:shadow-xl hover:shadow-primary/20 cursor-pointer">
       <div className="aspect-[3/4] relative overflow-hidden">
         <img 
           src={game.assets.thumbnail} 
@@ -36,9 +33,12 @@ const GameCard = ({ game, lastPlayed }: GameCardProps) => {
               )}
             </div>
             {game.isEnabled ? (
-              <div className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all shadow-lg shadow-primary/50">
+              <button 
+                onClick={handlePlay}
+                className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all shadow-lg shadow-primary/50"
+              >
                 <Play className="w-5 h-5" fill="currentColor" />
-              </div>
+              </button>
             ) : (
               <div className="p-3 bg-muted text-muted-foreground rounded-full opacity-50">
                 <Play className="w-5 h-5" />
@@ -47,7 +47,7 @@ const GameCard = ({ game, lastPlayed }: GameCardProps) => {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 

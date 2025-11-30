@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGameRegistry } from "@/games/registry";
-import { GameHero } from "@/components/GameHero";
 import GameCard from "@/components/GameCard";
 
 const DEBUG = import.meta.env.DEV || import.meta.env.VITE_GAME_HUB_DEBUG === "true";
@@ -76,27 +75,6 @@ const AllGames = () => {
     });
   }, [games.length, isLoading, error, source]);
 
-  // Get featured game (first enabled game, or first game with "hot" badge, or first stable game)
-  const featuredGame = useMemo(() => {
-    if (games.length === 0) return null;
-    
-    // Try to find a game with "hot" badge
-    const hotGame = games.find(g => g.badges?.includes("hot") && g.isEnabled);
-    if (hotGame) return hotGame;
-    
-    // Try to find a stable game
-    const stableGame = games.find(g => g.status === "stable" && g.isEnabled);
-    if (stableGame) return stableGame;
-    
-    // Return first enabled game
-    return games.find(g => g.isEnabled) || games[0];
-  }, [games]);
-
-  // Get other games (excluding featured)
-  const otherGames = useMemo(() => {
-    if (!featuredGame) return games;
-    return games.filter(g => g.id !== featuredGame.id);
-  }, [games, featuredGame]);
 
   if (isLoading) {
     return <LoadingCards />;
@@ -105,47 +83,31 @@ const AllGames = () => {
   const errorMessage = error instanceof Error ? error.message : error ? "Unable to load CMS registry" : null;
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold">All Games</h1>
-        <p className="text-muted-foreground">Browse live, prototype, and upcoming party experiences.</p>
-        <p className="text-xs text-muted-foreground">Registry source: {source}</p>
-        {errorMessage ? <p className="text-sm text-red-600">Fell back to bundled registry: {errorMessage}</p> : null}
+    <div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">My Games</h1>
+        <p className="text-muted-foreground">Your gaming library</p>
       </div>
-
-      {/* Featured Game Hero */}
-      {featuredGame && (
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold">Featured</h2>
-          <GameHero game={featuredGame} />
-        </div>
-      )}
-
-      {/* Other Games Grid */}
-      {otherGames.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold">All Games</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {otherGames.map((game) => {
-              if (DEBUG) {
-                console.debug("[hub] Rendering tile", {
-                  id: game.id,
-                  status: game.status,
-                  enabled: game.isEnabled,
-                  route: game.derivedRoute,
-                });
-              }
-              return (
-                <GameCard
-                  key={game.id}
-                  game={game}
-                  lastPlayed={lastPlayedMap[game.id]}
-                />
-              );
-            })}
-          </div>
-        </div>
-      )}
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        {games.map((game) => {
+          if (DEBUG) {
+            console.debug("[hub] Rendering tile", {
+              id: game.id,
+              status: game.status,
+              enabled: game.isEnabled,
+              route: game.derivedRoute,
+            });
+          }
+          return (
+            <GameCard
+              key={game.id}
+              game={game}
+              lastPlayed={lastPlayedMap[game.id]}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };
