@@ -73,6 +73,9 @@ export class CanvaRoom {
       connected: true,
       lastSeen: Date.now(),
       socketId: player.socketId ?? null,
+      score: player.score ?? 0, // Initialize score to 0 if not provided
+      hasGuessed: player.hasGuessed ?? false,
+      isReady: player.isReady ?? false,
     };
 
     this.players.push(enrichedPlayer);
@@ -336,9 +339,9 @@ export class CanvaRoom {
         name: p.name,
         avatar: p.avatar,
         connected: p.connected,
-        score: p.score,
-        isReady: p.isReady,
-        hasGuessed: p.hasGuessed,
+        score: p.score ?? 0, // Ensure score is always a number
+        isReady: p.isReady ?? false,
+        hasGuessed: p.hasGuessed ?? false,
       })),
       isGameActive: this.isGameActive,
       ownerId: this.ownerId,
