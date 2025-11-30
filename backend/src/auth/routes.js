@@ -19,6 +19,10 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
+const updateAvatarSchema = z.object({
+  avatarConfig: z.string(),
+});
+
 /**
  * POST /api/auth/register
  * Register a new user
@@ -195,6 +199,55 @@ router.get("/me", authenticate, async (req, res) => {
 router.post("/logout", authenticate, async (req, res) => {
   logger.info("[Auth] User logged out", { userId: req.user.userId });
   res.json({ message: "Logged out successfully" });
+});
+
+/**
+ * PUT /api/auth/avatar
+ * Update user avatar configuration (protected route)
+ */
+router.put("/avatar", authenticate, async (req, res) => {
+  try {
+    // Validate input
+    const validated = updateAvatarSchema.parse(req.body);
+    const { avatarConfig } = validated;
+
+    // Update user avatar config
+    const user = await prisma.user.update({
+      where: { id: req.user.userId },
+      data: {
+        avatarConfig: avatarConfig,
+        updatedAt: new Date(),
+      },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        avatarConfig: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    logger.info("[Auth] User avatar updated", { userId: user.id });
+
+    res.json({
+      message: "Avatar updated successfully",
+      user,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        error: "Validation error",
+        details: error.errors,
+      });
+    }
+
+    logger.error("[Auth] Update avatar error", { error: error.message, stack: error.stack });
+    res.status(500).json({
+      error: "Failed to update avatar",
+      message: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
 });
 
 export default router;

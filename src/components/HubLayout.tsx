@@ -6,7 +6,7 @@ import { useGameRegistry } from "@/games/registry";
 import type { HubGame } from "@/games/registry";
 import { AvatarPreview } from "@/games/paint-and-guess/components/avatar/preview";
 import { AvatarCustomizer } from "@/games/paint-and-guess/components/AvatarCustomizer";
-import { AvatarConfig, createDefaultAvatarConfig } from "@/lib/avatar/config";
+import { AvatarConfig, createDefaultAvatarConfig, saveAvatarConfigWithSync, setupAvatarCrossTabSync, encodeAvatarConfig, saveAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -57,7 +57,7 @@ export function buildNavigationLinks(games: HubGame[]): NavigationLink[] {
 const HubLayout = () => {
   const { games } = useGameRegistry();
   const navigation = useMemo(() => buildNavigationLinks(games), [games]);
-  const { user, isAuthenticated, logout, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, logout, isLoading: authLoading, updateAvatar, updateUser } = useAuth();
   const navigate = useNavigate();
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
     // Try to load from user first, then localStorage
@@ -78,6 +78,8 @@ const HubLayout = () => {
       try {
         const parsed = JSON.parse(user.avatarConfig);
         setAvatarConfig(parsed);
+        // Save to localStorage for offline access and cross-tab sync
+        saveAvatarConfig(parsed, false); // false = don't trigger cross-tab sync (we just loaded it)
         return;
       } catch {
         // Fall through
@@ -88,6 +90,15 @@ const HubLayout = () => {
       setAvatarConfig(stored);
     }
   }, [user]);
+
+  // Set up cross-tab synchronization for avatar changes
+  useEffect(() => {
+    const cleanup = setupAvatarCrossTabSync((config) => {
+      console.log('[HubLayout] Avatar updated in another tab:', config);
+      setAvatarConfig(config);
+    });
+    return cleanup;
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -187,9 +198,25 @@ const HubLayout = () => {
           open={isCustomizerOpen}
           onOpenChange={setIsCustomizerOpen}
           initialConfig={avatarConfig}
-          onSave={(config) => {
+          onSave={async (config) => {
             setAvatarConfig(config);
             window.dispatchEvent(new CustomEvent("avatar-config-updated", { detail: config }));
+            
+            // Save with backend sync if authenticated
+            const encoded = encodeAvatarConfig(config);
+            await saveAvatarConfigWithSync(config, isAuthenticated && updateAvatar 
+              ? async () => {
+                  try {
+                    await updateAvatar(encoded);
+                    // Refetch user to update avatarConfig in state
+                    await updateUser();
+                  } catch (error) {
+                    console.error('[HubLayout] Failed to sync avatar to backend:', error);
+                    // Don't throw - local save succeeded
+                  }
+                }
+              : undefined
+            );
           }}
         />
       </aside>

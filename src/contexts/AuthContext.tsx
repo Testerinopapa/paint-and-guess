@@ -20,6 +20,7 @@ interface AuthContextType {
   register: (email: string, username: string, password: string, avatarConfig?: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: () => Promise<void>;
+  updateAvatar: (avatarConfig: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -146,6 +147,33 @@ async function logoutUser(): Promise<void> {
   removeToken();
 }
 
+async function updateAvatarConfig(avatarConfig: string): Promise<User> {
+  const token = getToken();
+  if (!token) {
+    throw new Error("No token");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/auth/avatar`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ avatarConfig }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to update avatar");
+  }
+
+  const data = await response.json();
+  if (!data.user) {
+    throw new Error("Invalid user data received");
+  }
+  return data.user;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setTokenState] = useState<string | null>(getToken());
   const queryClient = useQueryClient();
@@ -262,8 +290,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await logoutMutation.mutateAsync();
   };
 
+  const updateAvatarMutation = useMutation({
+    mutationFn: ({ avatarConfig }: { avatarConfig: string }) => updateAvatarConfig(avatarConfig),
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(["auth", "user"], updatedUser);
+      toast.success("Avatar updated successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update avatar");
+    },
+  });
+
   const updateUser = async () => {
     await refetchUser();
+  };
+
+  const updateAvatar = async (avatarConfig: string) => {
+    await updateAvatarMutation.mutateAsync({ avatarConfig });
   };
 
   // Only show loading on initial load, not during refetches
@@ -277,6 +320,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     updateUser,
+    updateAvatar,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

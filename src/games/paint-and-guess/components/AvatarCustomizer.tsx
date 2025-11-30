@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AvatarPreviewDrawable } from "./avatar/preview";
-import { AvatarConfig, createDefaultAvatarConfig, loadAvatarConfig, saveAvatarConfig, cloneAvatarConfig, generateAvatarId } from "@/lib/avatar/config";
+import { AvatarConfig, createDefaultAvatarConfig, loadAvatarConfig, cloneAvatarConfig, generateAvatarId } from "@/lib/avatar/config";
 import { validateAvatarConfig, sanitizeAvatarConfig } from "@/lib/avatar/validation";
 import {
   SkinToneSelector,
@@ -28,7 +28,7 @@ import { toast } from "sonner";
 interface AvatarCustomizerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (config: AvatarConfig) => void;
+  onSave: (config: AvatarConfig) => void | Promise<void>;
   initialConfig?: AvatarConfig | null;
 }
 
@@ -118,7 +118,7 @@ export function AvatarCustomizer({
     });
   }, []);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     console.debug('[AvatarCustomizer] Save button clicked', { config });
     
     // Validate before saving
@@ -137,9 +137,9 @@ export function AvatarCustomizer({
         name: config.name,
         size: JSON.stringify(config).length
       });
-      saveAvatarConfig(config);
+      // Call onSave callback - the parent component (HubLayout) will handle local save and backend sync
+      await onSave(config);
       console.log('[AvatarCustomizer] Avatar config saved successfully', { config });
-      onSave(config);
       onOpenChange(false);
       toast.success('Avatar saved successfully!');
     } catch (error) {
