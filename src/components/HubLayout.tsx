@@ -28,12 +28,19 @@ type NavigationLink = {
 export function buildNavigationLinks(games: HubGame[]): NavigationLink[] {
   const derivedLinks = games
     .filter((game) => game.isEnabled && !game.navHidden)
-    .map((game) => ({
-      label: game.navLabel ?? game.displayName ?? game.id,
-      to: game.derivedRoute ?? game.route.path,
-      category: game.navCategory ?? game.category?.[0] ?? "uncategorized",
-      priority: game.navPriority ?? 0,
-    }))
+    .map((game) => {
+      // Normalize route path: if it starts with /games/, prepend /hub
+      let routePath = game.derivedRoute ?? game.route.path;
+      if (routePath.startsWith("/games/") && !routePath.startsWith("/hub/games/")) {
+        routePath = `/hub${routePath}`;
+      }
+      return {
+        label: game.navLabel ?? game.displayName ?? game.id,
+        to: routePath,
+        category: game.navCategory ?? game.category?.[0] ?? "uncategorized",
+        priority: game.navPriority ?? 0,
+      };
+    })
     .sort((a, b) => {
       const categorySort = a.category.localeCompare(b.category);
       if (categorySort !== 0) return categorySort;

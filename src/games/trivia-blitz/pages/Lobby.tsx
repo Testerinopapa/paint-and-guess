@@ -27,7 +27,7 @@ export default function Lobby() {
   // Navigate to room when created or joined
   useEffect(() => {
     if (gameState.roomId) {
-      navigate(`/games/trivia-blitz/room/${gameState.roomId}`);
+      navigate(`/hub/games/trivia-blitz/room/${gameState.roomId}`);
     }
   }, [gameState.roomId, navigate]);
 

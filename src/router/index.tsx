@@ -6,6 +6,7 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import { AuthRedirect } from "@/components/AuthRedirect";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { GameRouteRedirect } from "@/components/GameRouteRedirect";
 import PingPongIndex from "@/games/ping-pong/pages/Index";
 import RpgIndex from "@/games/rpg/pages/Index";
 import TriviaBlitzLobby from "@/games/trivia-blitz/pages/Lobby";
@@ -22,6 +23,9 @@ const AppRoutes = () => {
       {/* Public auth routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      
+      {/* Redirect old game routes to new hub routes - preserves full path */}
+      <Route path="/games/*" element={<GameRouteRedirect />} />
       
       {/* Protected hub routes - require authentication */}
       <Route

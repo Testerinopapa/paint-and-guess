@@ -17,14 +17,14 @@ export default function Room() {
 
   useEffect(() => {
     if (!isConnected) {
-      navigate("/games/trivia-blitz");
+      navigate("/hub/games/trivia-blitz");
       return;
     }
   }, [isConnected, navigate]);
 
   const handleLeaveRoom = () => {
     leaveRoom();
-    navigate("/games/trivia-blitz");
+    navigate("/hub/games/trivia-blitz");
     toast.info("Left room");
   };
 

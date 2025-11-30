@@ -86,7 +86,7 @@ export function CanvaLobby() {
   // Navigate to room when roomId is set
   useEffect(() => {
     if (gameState.roomId) {
-      navigate(`/games/canva/room/${gameState.roomId}`);
+      navigate(`/hub/games/canva/room/${gameState.roomId}`);
     }
   }, [gameState.roomId, navigate]);
 

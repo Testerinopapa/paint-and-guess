@@ -14,7 +14,7 @@ export default function Podium() {
   const handlePlayAgain = () => {
     // Reset and go back to lobby
     leaveRoom();
-    navigate("/games/trivia-blitz");
+    navigate("/hub/games/trivia-blitz");
   };
 
   return (

@@ -11,13 +11,13 @@ export function CanvaRoom() {
 
   useEffect(() => {
     if (gameState.roomId && gameState.roomId !== roomId) {
-      navigate(`/games/canva/room/${gameState.roomId}`);
+      navigate(`/hub/games/canva/room/${gameState.roomId}`);
     }
   }, [gameState.roomId, roomId, navigate]);
 
   const handleLeave = () => {
     leaveRoom();
-    navigate("/games/canva");
+    navigate("/hub/games/canva");
   };
 
   // Show game stage if game is active, otherwise show lobby
