@@ -141,6 +141,11 @@ export function CanvaCanvas() {
   useEffect(() => {
     const canvas = fabricCanvasRef.current;
     if (!canvas || !socket) return;
+    
+    // Get current state for permission checks
+    const checkCanDraw = () => {
+      return !gameState.isGameActive || (gameState.isGameActive && gameState.currentDrawer?.id === gameState.selfId && gameState.isRoundActive);
+    };
 
     const sendDrawingEvent = (event: { type: string; pathId?: string; sequence?: number; data?: any; color?: string; width?: number; opacity?: number; hardness?: number }) => {
       socket.emit("canva:drawing-event", {
@@ -159,8 +164,8 @@ export function CanvaCanvas() {
     const handleMouseDown = (options: any) => {
       if (localIsDrawing) return;
       
-      // Check if drawing is allowed
-      if (!canDraw) {
+      // Check if drawing is allowed - use function to get current state
+      if (!checkCanDraw()) {
         return;
       }
       
@@ -461,7 +466,7 @@ export function CanvaCanvas() {
         clearInterval(flushIntervalRef.current);
       }
     };
-  }, [socket, color, brushSize]);
+  }, [socket, color, brushSize, gameState.isGameActive, gameState.isRoundActive, gameState.currentDrawer, gameState.selfId]);
 
   // Listen for drawing events from DOM (bridged from CanvaContext)
   useEffect(() => {
@@ -753,7 +758,7 @@ export function CanvaCanvas() {
           }} 
         />
         {!canDraw && gameState.isGameActive && (
-          <div className="absolute inset-0 pointer-events-none" />
+          <div className="absolute inset-0 pointer-events-auto" />
         )}
       </div>
     </div>
