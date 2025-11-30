@@ -187,6 +187,9 @@ await fs.mkdir(dataDir, { recursive: true });
 
 const triviaRoomRepository = new TriviaRoomRepository();
 
+// Track rooms that are currently ending a round to prevent race conditions
+const endingRoundRooms = new Set();
+
 process.on("unhandledRejection", (reason) => {
   console.error("[Process] UnhandledRejection:", reason);
 });
@@ -1042,119 +1045,158 @@ io.on("connection", (socket) => {
   });
 
   async function endCanvaRound(roomId) {
+    // Guard against concurrent executions
+    if (endingRoundRooms.has(roomId)) {
+      console.log(`[Canva] endCanvaRound: Already ending round for room ${roomId}, ignoring duplicate call`);
+      return;
+    }
+
     const room = canvaRoomRepository.getRoom(roomId);
     if (!room || !room.isGameActive) {
       console.log(`[Canva] endCanvaRound: Room ${roomId} not found or game not active`);
       return;
     }
 
-    // Save the previous word before ending the round
-    const previousWord = room.currentWord;
-    const previousRoundNumber = room.roundNumber;
-    console.log(`[Canva] Ending round ${previousRoundNumber} in room ${roomId}, word was: ${previousWord}`);
+    // Mark room as ending round
+    endingRoundRooms.add(roomId);
 
-    room.endRound();
+    try {
+      // Save the previous word before ending the round
+      const previousWord = room.currentWord;
+      const previousRoundNumber = room.roundNumber;
+      console.log(`[Canva] Ending round ${previousRoundNumber} in room ${roomId}, word was: ${previousWord}`);
 
-    const shouldEnd = room.shouldEndGame();
-    console.log(`[Canva] Round ${previousRoundNumber} ended, shouldEnd: ${shouldEnd}, roundNumber: ${room.roundNumber}, maxRounds: ${room.maxRounds}, activePlayers: ${room.getActivePlayerCount()}`);
-    
-    if (shouldEnd) {
-      console.log(`[Canva] Game ending in room ${roomId}`);
-      room.isGameActive = false;
-      io.to(roomId).emit("canva:game-ended", {
-        players: room.toJSON().players,
-      });
-    } else {
-      // Emit round-ended with the previous word
-      io.to(roomId).emit("canva:round-ended", {
-        word: previousWord,
-        roundNumber: previousRoundNumber,
-      });
+      // CRITICAL: Stop the timer FIRST to prevent it from firing again
+      room.endRound();
 
-      // Wait 3 seconds before starting next round (like paint & guess mode)
-      setTimeout(async () => {
-        const nextRoom = canvaRoomRepository.getRoom(roomId);
-        if (!nextRoom || !nextRoom.isGameActive) {
-          console.log(`[Canva] Room ${roomId} no longer active when starting next round`);
-          return;
-        }
+      const shouldEnd = room.shouldEndGame();
+      console.log(`[Canva] Round ${previousRoundNumber} ended, shouldEnd: ${shouldEnd}, roundNumber: ${room.roundNumber}, maxRounds: ${room.maxRounds}, activePlayers: ${room.getActivePlayerCount()}`);
+      
+      if (shouldEnd) {
+        console.log(`[Canva] Game ending in room ${roomId}`);
+        room.isGameActive = false;
+        io.to(roomId).emit("canva:game-ended", {
+          players: room.toJSON().players,
+        });
+        endingRoundRooms.delete(roomId);
+      } else {
+        // Emit round-ended with the previous word
+        io.to(roomId).emit("canva:round-ended", {
+          word: previousWord,
+          roundNumber: previousRoundNumber,
+        });
 
-        const getWord = () => getRandomWordFromPack(nextRoom.wordPack || "classic");
-        try {
-          console.log(`[Canva] Starting round ${nextRoom.roundNumber + 1} in room ${roomId}`);
-          nextRoom.nextRound(getWord);
-          console.log(`[Canva] Round ${nextRoom.roundNumber} started in room ${roomId}, drawer: ${nextRoom.currentDrawer?.name}`);
+        // Wait 3 seconds before starting next round (like paint & guess mode)
+        setTimeout(async () => {
+          // Check again if room is still active (might have been deleted/disconnected)
+          const nextRoom = canvaRoomRepository.getRoom(roomId);
+          if (!nextRoom || !nextRoom.isGameActive) {
+            console.log(`[Canva] Room ${roomId} no longer active when starting next round`);
+            endingRoundRooms.delete(roomId);
+            return;
+          }
 
-          // Verify drawer is still valid
-          if (!nextRoom.currentDrawer || !nextRoom.currentDrawer.connected || !nextRoom.currentDrawer.socketId) {
-            const activePlayers = nextRoom.getActivePlayers();
-            if (activePlayers.length < 2) {
-              console.log(`[Server] ⚠️ Not enough active players for next round in canva room ${roomId}, ending game`);
+          // Double-check we're not already ending a round (shouldn't happen, but safety check)
+          if (endingRoundRooms.has(roomId)) {
+            console.log(`[Canva] Warning: Room ${roomId} still marked as ending round, clearing flag`);
+            endingRoundRooms.delete(roomId);
+          }
+
+          const getWord = () => getRandomWordFromPack(nextRoom.wordPack || "classic");
+          try {
+            console.log(`[Canva] Starting round ${nextRoom.roundNumber + 1} in room ${roomId}`);
+            nextRoom.nextRound(getWord);
+            console.log(`[Canva] Round ${nextRoom.roundNumber} started in room ${roomId}, drawer: ${nextRoom.currentDrawer?.name}`);
+
+            // Verify drawer is still valid
+            if (!nextRoom.currentDrawer || !nextRoom.currentDrawer.connected || !nextRoom.currentDrawer.socketId) {
+              const activePlayers = nextRoom.getActivePlayers();
+              if (activePlayers.length < 2) {
+                console.log(`[Server] ⚠️ Not enough active players for next round in canva room ${roomId}, ending game`);
+                nextRoom.isGameActive = false;
+                io.to(roomId).emit("canva:game-ended", {
+                  players: nextRoom.toJSON().players,
+                });
+                endingRoundRooms.delete(roomId);
+                return;
+              }
+              
+              // Select a new drawer from active players
+              console.log(`[Server] ⚠️ Drawer invalid after nextRound in canva room ${roomId}, selecting new drawer`);
+              nextRoom.currentDrawer = activePlayers[Math.floor(Math.random() * activePlayers.length)];
+              
+              // Double-check the new drawer has socketId
+              if (!nextRoom.currentDrawer?.socketId) {
+                console.error(`[Server] ❌ Selected drawer ${nextRoom.currentDrawer?.id} has no socketId in canva room ${roomId}`);
+                // Don't recursively call endCanvaRound - just end the game
+                nextRoom.isGameActive = false;
+                io.to(roomId).emit("canva:game-ended", {
+                  players: nextRoom.toJSON().players,
+                });
+                endingRoundRooms.delete(roomId);
+                return;
+              }
+            }
+
+            const drawer = nextRoom.currentDrawer ? {
+              id: nextRoom.currentDrawer.id,
+              name: nextRoom.currentDrawer.name,
+            } : null;
+
+            if (!drawer) {
+              console.error(`[Server] ❌ Failed to serialize drawer in canva room ${roomId}`);
+              // Don't recursively call endCanvaRound - just end the game
               nextRoom.isGameActive = false;
               io.to(roomId).emit("canva:game-ended", {
                 players: nextRoom.toJSON().players,
               });
+              endingRoundRooms.delete(roomId);
               return;
             }
-            
-            // Select a new drawer from active players
-            console.log(`[Server] ⚠️ Drawer invalid after nextRound in canva room ${roomId}, selecting new drawer`);
-            nextRoom.currentDrawer = activePlayers[Math.floor(Math.random() * activePlayers.length)];
-            
-            // Double-check the new drawer has socketId
-            if (!nextRoom.currentDrawer?.socketId) {
-              console.error(`[Server] ❌ Selected drawer ${nextRoom.currentDrawer?.id} has no socketId in canva room ${roomId}`);
-              await endCanvaRound(roomId);
-              return;
-            }
-          }
 
-          const drawer = nextRoom.currentDrawer ? {
-            id: nextRoom.currentDrawer.id,
-            name: nextRoom.currentDrawer.name,
-          } : null;
-
-          if (!drawer) {
-            console.error(`[Server] ❌ Failed to serialize drawer in canva room ${roomId}`);
-            await endCanvaRound(roomId);
-            return;
-          }
-
-          // Emit round-started with the new round info
-          io.to(roomId).emit("canva:round-started", {
-            drawer,
-            roundTime: nextRoom.roundTime,
-            roundNumber: nextRoom.roundNumber,
-          });
-
-          // Clear canvas for all clients when new round starts
-          io.to(roomId).emit("canva:canvas-cleared");
-
-          // Send word to drawer
-          if (nextRoom.currentDrawer?.socketId) {
-            io.to(nextRoom.currentDrawer.socketId).emit("canva:draw-word", {
-              word: nextRoom.currentWord,
+            // Emit round-started with the new round info
+            io.to(roomId).emit("canva:round-started", {
+              drawer,
+              roundTime: nextRoom.roundTime,
+              roundNumber: nextRoom.roundNumber,
             });
-          }
 
-          // Start the timer for the new round
-          nextRoom.startRoundTimer(async (timeLeft) => {
-            io.to(roomId).emit("canva:round-timer", { timeLeft });
-            if (timeLeft === 0) {
-              await endCanvaRound(roomId);
+            // Clear canvas for all clients when new round starts
+            io.to(roomId).emit("canva:canvas-cleared");
+
+            // Send word to drawer
+            if (nextRoom.currentDrawer?.socketId) {
+              io.to(nextRoom.currentDrawer.socketId).emit("canva:draw-word", {
+                word: nextRoom.currentWord,
+              });
             }
-          });
-        } catch (error) {
-          console.error("[Server] Error starting next canva round:", error);
-          const errorRoom = canvaRoomRepository.getRoom(roomId);
-          if (errorRoom) {
-            errorRoom.isGameActive = false;
-            io.to(roomId).emit("canva:game-ended", {
-              players: errorRoom.toJSON().players,
+
+            // Start the timer for the new round
+            nextRoom.startRoundTimer(async (timeLeft) => {
+              io.to(roomId).emit("canva:round-timer", { timeLeft });
+              if (timeLeft === 0) {
+                await endCanvaRound(roomId);
+              }
             });
+
+            // Clear the flag after successfully starting the new round
+            endingRoundRooms.delete(roomId);
+          } catch (error) {
+            console.error("[Server] Error starting next canva round:", error);
+            const errorRoom = canvaRoomRepository.getRoom(roomId);
+            if (errorRoom) {
+              errorRoom.isGameActive = false;
+              io.to(roomId).emit("canva:game-ended", {
+                players: errorRoom.toJSON().players,
+              });
+            }
+            endingRoundRooms.delete(roomId);
           }
-        }
-      }, 3000); // 3 second delay between rounds
+        }, 3000); // 3 second delay between rounds
+      }
+    } catch (error) {
+      console.error(`[Canva] Error in endCanvaRound for room ${roomId}:`, error);
+      endingRoundRooms.delete(roomId);
     }
   }
 

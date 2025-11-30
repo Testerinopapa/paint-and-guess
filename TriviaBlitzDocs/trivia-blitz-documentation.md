@@ -1,3 +1,6 @@
+
+
+
 # Trivia Blitz Game Mode Documentation
 
 ## Overview
