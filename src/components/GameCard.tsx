@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Play } from "lucide-react";
 import type { HubGame } from "@/games/registry";
@@ -15,6 +15,18 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
   
   // Use background image if available, fallback to thumbnail
   const cardImage = game.assets.background || game.assets.thumbnail;
+
+  // Reset error state when image source changes
+  useEffect(() => {
+    setImageError(false);
+  }, [cardImage]);
+
+  // Debug logging (remove in production)
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log(`[GameCard] ${game.id} - Image: ${cardImage}, Error: ${imageError}`);
+    }
+  }, [game.id, cardImage, imageError]);
 
   const handlePlay = (e?: React.MouseEvent) => {
     if (e) {
@@ -41,19 +53,19 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
   return (
     <div 
       onClick={handleCardClick}
-      className="group relative overflow-hidden rounded-lg bg-game-card transition-all duration-300 hover:bg-game-card-hover hover:scale-105 hover:shadow-xl hover:shadow-primary/20 cursor-pointer"
+      className="group relative overflow-hidden rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/20 cursor-pointer"
     >
-      <div className="aspect-[3/4] relative overflow-hidden">
+      <div className="aspect-[3/4] relative overflow-hidden bg-game-card">
         {!imageError ? (
           <img 
             src={cardImage} 
             alt={game.displayName}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
             loading="lazy"
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
+          <div className="absolute inset-0 w-full h-full bg-muted flex items-center justify-center">
             <div className="text-center p-4">
               <div className="text-4xl mb-2">🎮</div>
               <p className="text-sm text-muted-foreground font-medium">{game.displayName}</p>
