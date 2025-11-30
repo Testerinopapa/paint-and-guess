@@ -1,36 +1,10 @@
-import { useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useMemo, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGameRegistry } from "@/games/registry";
 import { GameHero } from "@/components/GameHero";
-import { cn } from "@/lib/utils";
+import GameCard from "@/components/GameCard";
 
 const DEBUG = import.meta.env.DEV || import.meta.env.VITE_GAME_HUB_DEBUG === "true";
-const statusVariant: Record<string, string> = {
-  stable: "bg-emerald-500/10 text-emerald-700",
-  beta: "bg-amber-500/10 text-amber-700",
-  alpha: "bg-sky-500/10 text-sky-700",
-  deprecated: "bg-rose-500/10 text-rose-700",
-};
-
-const formatPlayers = (min: number, max: number, recommended?: number) => {
-  if (recommended) {
-    return `${min}-${max} players (best with ${recommended})`;
-  }
-  return `${min}-${max} players`;
-};
-
-const MetricPill = ({ label, value }: { label: string; value?: string | number }) => {
-  if (value === undefined || value === null) return null;
-  return (
-    <Badge variant="outline" className="text-xs font-normal">
-      {`${value} ${label}`}
-    </Badge>
-  );
-};
 
 const LoadingCards = () => {
   if (DEBUG) {
@@ -54,8 +28,48 @@ const LoadingCards = () => {
   );
 };
 
+// Helper to get "last played" time
+const getLastPlayed = (gameId: string): string | undefined => {
+  const lastPlayed = localStorage.getItem(`game-last-played-${gameId}`);
+  if (!lastPlayed) return undefined;
+  
+  const date = new Date(lastPlayed);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 60) {
+    return diffMins <= 1 ? "just now" : `${diffMins} minutes ago`;
+  } else if (diffHours < 24) {
+    return diffHours === 1 ? "1 hour ago" : `${diffHours} hours ago`;
+  } else if (diffDays < 7) {
+    return diffDays === 1 ? "Yesterday" : `${diffDays} days ago`;
+  } else if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7);
+    return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+  } else {
+    const months = Math.floor(diffDays / 30);
+    return months === 1 ? "1 month ago" : `${months} months ago`;
+  }
+};
+
 const AllGames = () => {
   const { games, isLoading, error, source } = useGameRegistry();
+  const [lastPlayedMap, setLastPlayedMap] = useState<Record<string, string>>({});
+
+  // Load last played times
+  useEffect(() => {
+    const map: Record<string, string> = {};
+    games.forEach(game => {
+      const lastPlayed = getLastPlayed(game.id);
+      if (lastPlayed) {
+        map[game.id] = lastPlayed;
+      }
+    });
+    setLastPlayedMap(map);
+  }, [games]);
 
   useEffect(() => {
     if (!DEBUG) return;
@@ -116,68 +130,24 @@ const AllGames = () => {
       {otherGames.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-xl font-semibold">All Games</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {otherGames.map((game) => {
-          if (DEBUG) {
-            console.debug("[hub] Rendering tile", {
-              id: game.id,
-              status: game.status,
-              enabled: game.isEnabled,
-              route: game.derivedRoute,
-            });
-          }
-          return (
-            <Card key={game.id} data-game-id={game.id} className="flex flex-col overflow-hidden">
-            <img src={game.assets.thumbnail} alt={`${game.displayName} thumbnail`} className="h-40 w-full object-cover" />
-            <CardHeader className="flex-1 space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge className={cn("capitalize", statusVariant[game.status] ?? "")}>{game.status}</Badge>
-                {game.badges?.map((badge) => (
-                  <Badge key={badge} variant="secondary" className="capitalize">
-                    {badge}
-                  </Badge>
-                ))}
-              </div>
-              <div className="space-y-1">
-                <CardTitle>{game.displayName}</CardTitle>
-                <CardDescription>{game.displayDescription}</CardDescription>
-              </div>
-              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <Badge variant="outline" className="text-xs font-normal">
-                  {formatPlayers(game.supportedPlayers.min, game.supportedPlayers.max, game.supportedPlayers.recommended)}
-                </Badge>
-                <Badge variant="outline" className="text-xs font-normal capitalize">
-                  {game.monetization}
-                </Badge>
-                <MetricPill
-                  label="playing now"
-                  value={
-                    game.metrics?.concurrentUsers && game.metrics.concurrentUsers > 0
-                      ? `${(game.metrics.concurrentUsers / 1000).toFixed(1)}k`
-                      : undefined
-                  }
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {otherGames.map((game) => {
+              if (DEBUG) {
+                console.debug("[hub] Rendering tile", {
+                  id: game.id,
+                  status: game.status,
+                  enabled: game.isEnabled,
+                  route: game.derivedRoute,
+                });
+              }
+              return (
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  lastPlayed={lastPlayedMap[game.id]}
                 />
-                <MetricPill
-                  label="uptime"
-                  value={game.metrics?.uptimePercentage ? `${game.metrics.uptimePercentage.toFixed(1)}%` : undefined}
-                />
-              </div>
-              {game.PreviewComponent ? <game.PreviewComponent /> : null}
-            </CardHeader>
-            <CardContent className="pb-6">
-              {game.isEnabled ? (
-                <Button asChild className="w-full">
-                  <Link to={game.derivedRoute}>Play now</Link>
-                </Button>
-              ) : (
-                <Button variant="outline" className="w-full" disabled>
-                  Unavailable for your cohort
-                </Button>
-              )}
-            </CardContent>
-            </Card>
-          );
-        })}
+              );
+            })}
           </div>
         </div>
       )}

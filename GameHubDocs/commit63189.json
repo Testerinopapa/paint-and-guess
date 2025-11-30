@@ -1,0 +1,373 @@
+From 98a27055d3a27a1c512792f5365c24cee07d780b Mon Sep 17 00:00:00 2001
+From: "gpt-engineer-app[bot]"
+ <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date: Sun, 30 Nov 2025 19:40:44 +0000
+Subject: [PATCH] Changes
+
+---
+ src/components/GameCard.tsx |  36 ++++++++++++
+ src/components/Sidebar.tsx  |  47 +++++++++++++++
+ src/components/TopBar.tsx   |  50 ++++++++++++++++
+ src/index.css               | 110 +++++++++++++-----------------------
+ src/pages/Index.tsx         |  45 +++++++++++++--
+ tailwind.config.ts          |   5 ++
+ 6 files changed, 216 insertions(+), 77 deletions(-)
+ create mode 100644 src/components/GameCard.tsx
+ create mode 100644 src/components/Sidebar.tsx
+ create mode 100644 src/components/TopBar.tsx
+
+diff --git a/src/components/GameCard.tsx b/src/components/GameCard.tsx
+new file mode 100644
+index 0000000..109a258
+--- /dev/null
++++ b/src/components/GameCard.tsx
+@@ -0,0 +1,36 @@
++import { Play } from "lucide-react";
++
++interface GameCardProps {
++  title: string;
++  image: string;
++  lastPlayed?: string;
++}
++
++const GameCard = ({ title, image, lastPlayed }: GameCardProps) => {
++  return (
++    <div className="group relative overflow-hidden rounded-lg bg-game-card transition-all duration-300 hover:bg-game-card-hover hover:scale-105 hover:shadow-xl hover:shadow-primary/20 cursor-pointer">
++      <div className="aspect-[3/4] relative overflow-hidden">
++        <img 
++          src={image} 
++          alt={title}
++          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
++        />
++        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
++          <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
++            <div>
++              <h3 className="font-bold text-lg text-foreground mb-1">{title}</h3>
++              {lastPlayed && (
++                <p className="text-xs text-muted-foreground">Last played {lastPlayed}</p>
++              )}
++            </div>
++            <button className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all shadow-lg shadow-primary/50">
++              <Play className="w-5 h-5" fill="currentColor" />
++            </button>
++          </div>
++        </div>
++      </div>
++    </div>
++  );
++};
++
++export default GameCard;
+diff --git a/src/components/Sidebar.tsx b/src/components/Sidebar.tsx
+new file mode 100644
+index 0000000..e412d90
+--- /dev/null
++++ b/src/components/Sidebar.tsx
+@@ -0,0 +1,47 @@
++import { Home, Library, Clock, Star, Settings, TrendingUp, User } from "lucide-react";
++
++const Sidebar = () => {
++  const navItems = [
++    { icon: Home, label: "Home", active: true },
++    { icon: Library, label: "Library", active: false },
++    { icon: Clock, label: "Recent", active: false },
++    { icon: Star, label: "Favorites", active: false },
++    { icon: TrendingUp, label: "Trending", active: false },
++    { icon: User, label: "Friends", active: false },
++  ];
++
++  return (
++    <aside className="w-16 bg-sidebar-bg border-r border-border flex flex-col items-center py-6 gap-6">
++      <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center font-bold text-primary-foreground text-xl">
++        G
++      </div>
++      
++      <nav className="flex flex-col gap-4">
++        {navItems.map((item) => (
++          <button
++            key={item.label}
++            className={`p-3 rounded-lg transition-all ${
++              item.active
++                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
++                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
++            }`}
++            title={item.label}
++          >
++            <item.icon className="w-5 h-5" />
++          </button>
++        ))}
++      </nav>
++
++      <div className="mt-auto">
++        <button
++          className="p-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
++          title="Settings"
++        >
++          <Settings className="w-5 h-5" />
++        </button>
++      </div>
++    </aside>
++  );
++};
++
++export default Sidebar;
+diff --git a/src/components/TopBar.tsx b/src/components/TopBar.tsx
+new file mode 100644
+index 0000000..c220cab
+--- /dev/null
++++ b/src/components/TopBar.tsx
+@@ -0,0 +1,50 @@
++import { Search, Bell, ChevronDown } from "lucide-react";
++import { Input } from "./ui/input";
++
++const TopBar = () => {
++  const sections = ["My Games", "Store", "Community"];
++
++  return (
++    <header className="h-16 bg-topbar-bg border-b border-border px-6 flex items-center justify-between">
++      <div className="flex items-center gap-8">
++        <nav className="flex items-center gap-6">
++          {sections.map((section, index) => (
++            <button
++              key={section}
++              className={`text-sm font-medium transition-colors ${
++                index === 0
++                  ? "text-primary border-b-2 border-primary pb-1"
++                  : "text-muted-foreground hover:text-foreground"
++              }`}
++            >
++              {section}
++            </button>
++          ))}
++        </nav>
++      </div>
++
++      <div className="flex items-center gap-4">
++        <div className="relative w-64">
++          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
++          <Input
++            placeholder="Search games..."
++            className="pl-9 bg-secondary border-border text-sm"
++          />
++        </div>
++
++        <button className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-all relative">
++          <Bell className="w-5 h-5" />
++          <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
++        </button>
++
++        <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all">
++          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full"></div>
++          <span className="text-sm font-medium text-foreground">Player</span>
++          <ChevronDown className="w-4 h-4 text-muted-foreground" />
++        </button>
++      </div>
++    </header>
++  );
++};
++
++export default TopBar;
+diff --git a/src/index.css b/src/index.css
+index 4844bbd..22644ab 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -8,89 +8,55 @@ All colors MUST be HSL.
+ 
+ @layer base {
+   :root {
+-    --background: 0 0% 100%;
+-    --foreground: 222.2 84% 4.9%;
++    --background: 220 15% 8%;
++    --foreground: 210 20% 95%;
+ 
+-    --card: 0 0% 100%;
+-    --card-foreground: 222.2 84% 4.9%;
++    --card: 220 15% 11%;
++    --card-foreground: 210 20% 95%;
+ 
+-    --popover: 0 0% 100%;
+-    --popover-foreground: 222.2 84% 4.9%;
++    --popover: 220 15% 11%;
++    --popover-foreground: 210 20% 95%;
+ 
+-    --primary: 222.2 47.4% 11.2%;
+-    --primary-foreground: 210 40% 98%;
++    --primary: 189 85% 55%;
++    --primary-foreground: 220 15% 8%;
+ 
+-    --secondary: 210 40% 96.1%;
+-    --secondary-foreground: 222.2 47.4% 11.2%;
++    --secondary: 220 15% 14%;
++    --secondary-foreground: 210 20% 95%;
+ 
+-    --muted: 210 40% 96.1%;
+-    --muted-foreground: 215.4 16.3% 46.9%;
++    --muted: 220 15% 14%;
++    --muted-foreground: 215 15% 60%;
+ 
+-    --accent: 210 40% 96.1%;
+-    --accent-foreground: 222.2 47.4% 11.2%;
++    --accent: 189 85% 55%;
++    --accent-foreground: 220 15% 8%;
+ 
+-    --destructive: 0 84.2% 60.2%;
+-    --destructive-foreground: 210 40% 98%;
++    --destructive: 0 72% 51%;
++    --destructive-foreground: 210 20% 95%;
+ 
+-    --border: 214.3 31.8% 91.4%;
+-    --input: 214.3 31.8% 91.4%;
+-    --ring: 222.2 84% 4.9%;
++    --border: 220 15% 18%;
++    --input: 220 15% 18%;
++    --ring: 189 85% 55%;
+ 
+     --radius: 0.5rem;
+ 
+-    --sidebar-background: 0 0% 98%;
+-
+-    --sidebar-foreground: 240 5.3% 26.1%;
+-
+-    --sidebar-primary: 240 5.9% 10%;
+-
+-    --sidebar-primary-foreground: 0 0% 98%;
+-
+-    --sidebar-accent: 240 4.8% 95.9%;
+-
+-    --sidebar-accent-foreground: 240 5.9% 10%;
+-
+-    --sidebar-border: 220 13% 91%;
+-
+-    --sidebar-ring: 217.2 91.2% 59.8%;
+-  }
+-
+-  .dark {
+-    --background: 222.2 84% 4.9%;
+-    --foreground: 210 40% 98%;
+-
+-    --card: 222.2 84% 4.9%;
+-    --card-foreground: 210 40% 98%;
+-
+-    --popover: 222.2 84% 4.9%;
+-    --popover-foreground: 210 40% 98%;
+-
+-    --primary: 210 40% 98%;
+-    --primary-foreground: 222.2 47.4% 11.2%;
+-
+-    --secondary: 217.2 32.6% 17.5%;
+-    --secondary-foreground: 210 40% 98%;
+-
+-    --muted: 217.2 32.6% 17.5%;
+-    --muted-foreground: 215 20.2% 65.1%;
+-
+-    --accent: 217.2 32.6% 17.5%;
+-    --accent-foreground: 210 40% 98%;
+-
+-    --destructive: 0 62.8% 30.6%;
+-    --destructive-foreground: 210 40% 98%;
+-
+-    --border: 217.2 32.6% 17.5%;
+-    --input: 217.2 32.6% 17.5%;
+-    --ring: 212.7 26.8% 83.9%;
+-    --sidebar-background: 240 5.9% 10%;
+-    --sidebar-foreground: 240 4.8% 95.9%;
+-    --sidebar-primary: 224.3 76.3% 48%;
+-    --sidebar-primary-foreground: 0 0% 100%;
+-    --sidebar-accent: 240 3.7% 15.9%;
+-    --sidebar-accent-foreground: 240 4.8% 95.9%;
+-    --sidebar-border: 240 3.7% 15.9%;
+-    --sidebar-ring: 217.2 91.2% 59.8%;
++    /* Gaming-specific tokens */
++    --game-card: 220 15% 13%;
++    --game-card-hover: 220 15% 16%;
++    --sidebar-bg: 220 15% 6%;
++    --topbar-bg: 220 15% 9%;
++    --glow-primary: 189 85% 55%;
++    
++    /* Gradients */
++    --gradient-primary: linear-gradient(135deg, hsl(189 85% 55% / 0.2), hsl(250 85% 60% / 0.1));
++    --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(220 15% 8% / 0.8) 100%);
++
++    --sidebar-background: 220 15% 6%;
++    --sidebar-foreground: 210 20% 85%;
++    --sidebar-primary: 189 85% 55%;
++    --sidebar-primary-foreground: 220 15% 8%;
++    --sidebar-accent: 220 15% 12%;
++    --sidebar-accent-foreground: 210 20% 95%;
++    --sidebar-border: 220 15% 12%;
++    --sidebar-ring: 189 85% 55%;
+   }
+ }
+ 
+diff --git a/src/pages/Index.tsx b/src/pages/Index.tsx
+index 7130b54..913d465 100644
+--- a/src/pages/Index.tsx
++++ b/src/pages/Index.tsx
+@@ -1,11 +1,46 @@
+-// Update this page (the content is just a fallback if you fail to update the page)
++import Sidebar from "@/components/Sidebar";
++import TopBar from "@/components/TopBar";
++import GameCard from "@/components/GameCard";
+ 
+ const Index = () => {
++  const games = [
++    { title: "Astroneer", image: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400&h=600&fit=crop", lastPlayed: "2 hours ago" },
++    { title: "Battlerite", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=600&fit=crop", lastPlayed: "Yesterday" },
++    { title: "Counter-Strike", image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400&h=600&fit=crop", lastPlayed: "3 days ago" },
++    { title: "Dead by Daylight", image: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&h=600&fit=crop", lastPlayed: "1 week ago" },
++    { title: "Overwatch", image: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=400&h=600&fit=crop", lastPlayed: "5 hours ago" },
++    { title: "Path of Exile", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=600&fit=crop", lastPlayed: "Today" },
++    { title: "Roblox", image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=600&fit=crop", lastPlayed: "2 days ago" },
++    { title: "Rocket League", image: "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=400&h=600&fit=crop", lastPlayed: "Yesterday" },
++    { title: "The Witcher 3", image: "https://images.unsplash.com/photo-1579373903781-fd5c0c30c4cd?w=400&h=600&fit=crop", lastPlayed: "1 month ago" },
++  ];
++
+   return (
+-    <div className="flex min-h-screen items-center justify-center bg-background">
+-      <div className="text-center">
+-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
+-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
++    <div className="flex h-screen bg-background text-foreground overflow-hidden">
++      <Sidebar />
++      
++      <div className="flex-1 flex flex-col overflow-hidden">
++        <TopBar />
++        
++        <main className="flex-1 overflow-y-auto">
++          <div className="p-8">
++            <div className="mb-8">
++              <h1 className="text-3xl font-bold mb-2">My Games</h1>
++              <p className="text-muted-foreground">Your gaming library</p>
++            </div>
++            
++            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
++              {games.map((game) => (
++                <GameCard
++                  key={game.title}
++                  title={game.title}
++                  image={game.image}
++                  lastPlayed={game.lastPlayed}
++                />
++              ))}
++            </div>
++          </div>
++        </main>
+       </div>
+     </div>
+   );
+diff --git a/tailwind.config.ts b/tailwind.config.ts
+index a1edb69..f41262c 100644
+--- a/tailwind.config.ts
++++ b/tailwind.config.ts
+@@ -57,6 +57,11 @@ export default {
+           border: "hsl(var(--sidebar-border))",
+           ring: "hsl(var(--sidebar-ring))",
+         },
++        "game-card": "hsl(var(--game-card))",
++        "game-card-hover": "hsl(var(--game-card-hover))",
++        "sidebar-bg": "hsl(var(--sidebar-bg))",
++        "topbar-bg": "hsl(var(--topbar-bg))",
++        "glow-primary": "hsl(var(--glow-primary))",
+       },
+       borderRadius: {
+         lg: "var(--radius)",

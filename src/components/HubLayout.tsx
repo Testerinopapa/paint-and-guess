@@ -15,7 +15,13 @@ import {
   Puzzle,
   MoreHorizontal,
   Calendar,
-  Cloud
+  Cloud,
+  Library,
+  Clock,
+  Star,
+  TrendingUp,
+  Search,
+  Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -42,6 +48,7 @@ type NavigationLink = {
   priority: number;
   icon?: React.ComponentType<{ className?: string }>;
   subItems?: NavigationLink[];
+  isLauncherNav?: boolean; // For launcher-style navigation items
 };
 
 // Icon mapping for games
@@ -86,8 +93,16 @@ export function buildNavigationLinks(games: HubGame[]): NavigationLink[] {
       return a.label.localeCompare(b.label);
     });
 
+  const launcherNavItems: NavigationLink[] = [
+    { label: "Home", to: "/hub", category: "hub", priority: Number.POSITIVE_INFINITY, icon: Home, isLauncherNav: true },
+    { label: "Library", to: "/hub/library", category: "hub", priority: Number.POSITIVE_INFINITY - 1, icon: Library, isLauncherNav: true },
+    { label: "Recent", to: "/hub/recent", category: "hub", priority: Number.POSITIVE_INFINITY - 2, icon: Clock, isLauncherNav: true },
+    { label: "Favorites", to: "/hub/favorites", category: "hub", priority: Number.POSITIVE_INFINITY - 3, icon: Star, isLauncherNav: true },
+    { label: "Trending", to: "/hub/trending", category: "hub", priority: Number.POSITIVE_INFINITY - 4, icon: TrendingUp, isLauncherNav: true },
+  ];
+
   return [
-    { label: "All Games", to: "/hub", category: "hub", priority: Number.POSITIVE_INFINITY, icon: Home },
+    ...launcherNavItems,
     ...derivedLinks,
   ];
 }
