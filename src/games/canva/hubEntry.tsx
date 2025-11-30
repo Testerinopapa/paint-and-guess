@@ -16,7 +16,8 @@ export function getCanvaPreviewEntry(): NormalizedGameEntry {
     category: ["drawing", "creative"],
     badges: ["new"],
     assets: {
-      thumbnail: "/placeholder.svg",
+      thumbnail: "/games/canva-card.png",
+      background: "/games/canva-card.png",
     },
     navigation: {
       category: "creative",

@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGameRegistry } from "@/games/registry";
 import { GameHero } from "@/components/GameHero";
+import { GameImageGallery } from "@/components/GameImageGallery";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,7 @@ const GameDetail = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
   const { games, isLoading } = useGameRegistry();
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   const game = games.find(g => g.id === gameId);
   const relatedGames = games.filter(g => 
@@ -33,6 +36,10 @@ const GameDetail = () => {
     g.isEnabled && 
     (g.category?.some(cat => game?.category?.includes(cat)) || g.status === game?.status)
   ).slice(0, 3);
+
+  const handleImageError = (gameId: string) => {
+    setImageErrors((prev) => new Set(prev).add(gameId));
+  };
 
   if (isLoading) {
     return (
@@ -84,6 +91,13 @@ const GameDetail = () => {
             <h2 className="text-2xl font-bold mb-2">About</h2>
             <p className="text-muted-foreground leading-relaxed">{game.displayDescription}</p>
           </div>
+
+          {game.assets.screenshots && game.assets.screenshots.length > 0 && (
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Screenshots</h2>
+              <GameImageGallery screenshots={game.assets.screenshots} gameName={game.displayName} />
+            </div>
+          )}
 
           {game.PreviewComponent && (
             <div>
@@ -151,23 +165,36 @@ const GameDetail = () => {
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">Related Games</h2>
           <div className="grid gap-4 md:grid-cols-3">
-            {relatedGames.map((relatedGame) => (
-              <Card key={relatedGame.id} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
-                <Link to={`/hub/games/${relatedGame.id}`} className="block">
-                  <img 
-                    src={relatedGame.assets.thumbnail} 
-                    alt={`${relatedGame.displayName} thumbnail`} 
-                    className="h-40 w-full object-cover"
-                  />
-                  <CardHeader>
-                    <CardTitle>{relatedGame.displayName}</CardTitle>
-                    <CardDescription className="line-clamp-2">
-                      {relatedGame.displayDescription}
-                    </CardDescription>
-                  </CardHeader>
-                </Link>
-              </Card>
-            ))}
+            {relatedGames.map((relatedGame) => {
+              const relatedImage = relatedGame.assets.background || relatedGame.assets.thumbnail;
+              const hasError = imageErrors.has(relatedGame.id);
+              
+              return (
+                <Card key={relatedGame.id} className="flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
+                  <Link to={`/hub/games/${relatedGame.id}`} className="block">
+                    {!hasError ? (
+                      <img 
+                        src={relatedImage} 
+                        alt={`${relatedGame.displayName} thumbnail`} 
+                        className="h-40 w-full object-cover"
+                        loading="lazy"
+                        onError={() => handleImageError(relatedGame.id)}
+                      />
+                    ) : (
+                      <div className="h-40 w-full bg-muted flex items-center justify-center">
+                        <span className="text-muted-foreground text-sm">🎮</span>
+                      </div>
+                    )}
+                    <CardHeader>
+                      <CardTitle>{relatedGame.displayName}</CardTitle>
+                      <CardDescription className="line-clamp-2">
+                        {relatedGame.displayDescription}
+                      </CardDescription>
+                    </CardHeader>
+                  </Link>
+                </Card>
+              );
+            })}
           </div>
         </div>
       )}

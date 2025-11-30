@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Play } from "lucide-react";
 import type { HubGame } from "@/games/registry";
@@ -10,6 +11,10 @@ interface GameCardProps {
 
 const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
+  
+  // Use background image if available, fallback to thumbnail
+  const cardImage = game.assets.background || game.assets.thumbnail;
 
   const handlePlay = (e?: React.MouseEvent) => {
     if (e) {
@@ -39,11 +44,22 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
       className="group relative overflow-hidden rounded-lg bg-game-card transition-all duration-300 hover:bg-game-card-hover hover:scale-105 hover:shadow-xl hover:shadow-primary/20 cursor-pointer"
     >
       <div className="aspect-[3/4] relative overflow-hidden">
-        <img 
-          src={game.assets.thumbnail} 
-          alt={game.displayName}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-        />
+        {!imageError ? (
+          <img 
+            src={cardImage} 
+            alt={game.displayName}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            loading="lazy"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="w-full h-full bg-muted flex items-center justify-center">
+            <div className="text-center p-4">
+              <div className="text-4xl mb-2">🎮</div>
+              <p className="text-sm text-muted-foreground font-medium">{game.displayName}</p>
+            </div>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
             <div>

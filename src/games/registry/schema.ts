@@ -35,6 +35,8 @@ export const registryEntrySchema = z
     badges: z.array(z.string()).default([]),
     assets: z.object({
       thumbnail: z.string(),
+      background: z.string().optional(),
+      screenshots: z.array(z.string()).optional(),
       trailerUrl: z.string().url().optional(),
       patchNotesUrl: z.string().url().optional(),
     }),

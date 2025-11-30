@@ -16,7 +16,8 @@ export function getTriviaBlitzPreviewEntry(): NormalizedGameEntry {
     category: ["trivia", "party"],
     badges: ["new"],
     assets: {
-      thumbnail: "/placeholder.svg",
+      thumbnail: "/games/trivia-blitz-card.png",
+      background: "/games/trivia-blitz-card.png",
     },
     navigation: {
       category: "trivia",

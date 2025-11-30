@@ -10,7 +10,7 @@ interface GameHeroProps {
 }
 
 export const GameHero = ({ game, onPlay, onConfigure }: GameHeroProps) => {
-  const backgroundImage = (game.assets as any)?.background || game.assets.thumbnail;
+  const backgroundImage = game.assets.background || game.assets.thumbnail;
   const websiteUrl = (game.assets as any)?.websiteUrl;
   const modListUrl = (game.assets as any)?.modListUrl;
 
