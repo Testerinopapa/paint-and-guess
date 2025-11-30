@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { PaintBucket, Settings, Sparkles, LogIn, LogOut, User } from "lucide-react";
+import { PaintBucket, Settings, Sparkles, LogIn, LogOut, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useGameRegistry } from "@/games/registry";
 import type { HubGame } from "@/games/registry";
 import { AvatarPreview } from "@/games/paint-and-guess/components/avatar/preview";
@@ -64,7 +65,17 @@ const HubLayout = () => {
     return createDefaultAvatarConfig();
   });
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    // Load sidebar state from localStorage
+    const saved = localStorage.getItem("hub-sidebar-collapsed");
+    return saved === "true";
+  });
   const hasSyncedAvatarRef = useRef<boolean>(false);
+
+  // Persist sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem("hub-sidebar-collapsed", String(isSidebarCollapsed));
+  }, [isSidebarCollapsed]);
 
   useEffect(() => {
     // Wait for auth loading to complete before processing avatar
@@ -176,48 +187,89 @@ const HubLayout = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
-      <aside className="hidden md:flex md:w-64 border-r bg-muted/30 flex-col p-6 gap-6">
-        <div className="flex items-center gap-2 text-lg font-semibold">
-          <Sparkles className="h-5 w-5" />
-          Game Hub
+      <aside
+        className={`hidden md:flex border-r bg-muted/30 flex-col gap-6 transition-all duration-300 ease-in-out relative ${
+          isSidebarCollapsed ? "w-16 p-4" : "w-64 p-6"
+        }`}
+      >
+        {/* Toggle Button */}
+        <button
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          className="absolute -right-3 top-6 z-10 h-6 w-6 rounded-full border bg-background shadow-md flex items-center justify-center hover:bg-accent transition-colors"
+          aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isSidebarCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </button>
+
+        <div className={`flex items-center gap-2 text-lg font-semibold ${isSidebarCollapsed ? "justify-center" : ""}`}>
+          <Sparkles className="h-5 w-5 shrink-0" />
+          {!isSidebarCollapsed && <span>Game Hub</span>}
         </div>
         <nav className="space-y-2">
-          {navigation.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-                }`
+          <TooltipProvider delayDuration={0}>
+            {navigation.map((item) => {
+              const navLink = (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+                    } ${isSidebarCollapsed ? "justify-center" : ""}`
+                  }
+                  end={item.to === "/hub"}
+                >
+                  {isSidebarCollapsed ? (
+                    <span className="truncate font-semibold">{item.label.charAt(0)}</span>
+                  ) : (
+                    <span>{item.label}</span>
+                  )}
+                </NavLink>
+              );
+
+              if (isSidebarCollapsed) {
+                return (
+                  <Tooltip key={item.to}>
+                    <TooltipTrigger asChild>{navLink}</TooltipTrigger>
+                    <TooltipContent side="right">{item.label}</TooltipContent>
+                  </Tooltip>
+                );
               }
-              end={item.to === "/hub"}
-            >
-              {item.label}
-            </NavLink>
-          ))}
+
+              return navLink;
+            })}
+          </TooltipProvider>
         </nav>
 
         {/* User Profile / Auth Section */}
         <div className="mt-auto space-y-2">
           {authLoading ? (
-            <div className="w-full p-3 text-center text-sm text-muted-foreground">
-              Loading...
+            <div className={`w-full p-3 text-center text-sm text-muted-foreground ${isSidebarCollapsed ? "px-0" : ""}`}>
+              {isSidebarCollapsed ? "..." : "Loading..."}
             </div>
           ) : isAuthenticated && user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="w-full justify-start gap-3 h-auto py-3 px-3 text-sm font-medium"
+                  className={`w-full h-auto py-3 px-3 text-sm font-medium ${
+                    isSidebarCollapsed ? "justify-center" : "justify-start gap-3"
+                  }`}
+                  title={isSidebarCollapsed ? `${user.username} (${user.email})` : undefined}
                 >
-                  <div className="h-8 w-8 flex items-center justify-center">
+                  <div className="h-8 w-8 flex items-center justify-center shrink-0">
                     <AvatarPreview config={avatarConfig} size={32} />
                   </div>
-                  <div className="flex flex-col items-start flex-1 text-left min-w-0">
-                    <span className="text-sm font-medium truncate w-full">{user.username}</span>
-                    <span className="text-xs text-muted-foreground truncate w-full">{user.email}</span>
-                  </div>
+                  {!isSidebarCollapsed && (
+                    <div className="flex flex-col items-start flex-1 text-left min-w-0">
+                      <span className="text-sm font-medium truncate w-full">{user.username}</span>
+                      <span className="text-xs text-muted-foreground truncate w-full">{user.email}</span>
+                    </div>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -238,14 +290,15 @@ const HubLayout = () => {
             <Button
               variant="outline"
               onClick={() => navigate("/login")}
-              className="w-full justify-start gap-2"
+              className={`w-full gap-2 ${isSidebarCollapsed ? "justify-center" : "justify-start"}`}
+              title={isSidebarCollapsed ? "Sign In" : undefined}
             >
-              <LogIn className="h-4 w-4" />
-              Sign In
+              <LogIn className="h-4 w-4 shrink-0" />
+              {!isSidebarCollapsed && <span>Sign In</span>}
             </Button>
           )}
           
-          {!isAuthenticated && (
+          {!isAuthenticated && !isSidebarCollapsed && (
             <Button
               variant="outline"
               onClick={() => setIsCustomizerOpen(true)}
@@ -259,6 +312,18 @@ const HubLayout = () => {
                 <span className="text-xs text-muted-foreground">Customize avatar</span>
               </div>
               <Settings className="ml-auto h-4 w-4 text-muted-foreground" />
+            </Button>
+          )}
+          {!isAuthenticated && isSidebarCollapsed && (
+            <Button
+              variant="outline"
+              onClick={() => setIsCustomizerOpen(true)}
+              className="w-full justify-center h-auto py-3 px-3"
+              title="Customize avatar"
+            >
+              <div className="h-8 w-8 flex items-center justify-center">
+                <AvatarPreview config={avatarConfig} size={32} />
+              </div>
             </Button>
           )}
         </div>
