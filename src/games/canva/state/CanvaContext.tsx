@@ -134,11 +134,37 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
     };
 
     const onCorrectGuess = ({ player, points, word, players }: any) => {
-      setGameState((prev) => ({
-        ...prev,
-        players,
-        currentWord: word, // Reveal word when someone guesses correctly
-      }));
+      setGameState((prev) => {
+        // Create a map of new players by ID for quick lookup
+        const newPlayersMap = new Map(players.map((p: any) => [p.id, p]));
+        
+        // Update existing players with new data, or add new players
+        const updatedPlayers = prev.players.map((existingPlayer) => {
+          const newPlayer = newPlayersMap.get(existingPlayer.id);
+          if (newPlayer) {
+            // Player exists in both - merge with server data taking precedence
+            return {
+              ...existingPlayer,
+              ...newPlayer, // Server data (includes updated scores) overrides local
+            };
+          }
+          // Player not in server list (disconnected) - keep local data
+          return existingPlayer;
+        });
+        
+        // Add any new players from server that weren't in local state
+        players.forEach((newPlayer: any) => {
+          if (!updatedPlayers.find((p) => p.id === newPlayer.id)) {
+            updatedPlayers.push(newPlayer);
+          }
+        });
+        
+        return {
+          ...prev,
+          players: updatedPlayers,
+          currentWord: word, // Reveal word when someone guesses correctly
+        };
+      });
       toast.success(`${player.name} guessed correctly! +${points} points`);
     };
 

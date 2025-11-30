@@ -78,6 +78,9 @@ backend/src/
 - Drawing event batching for performance (60fps target)
 - Path synchronization via Socket.IO
 - Drawing permission enforcement (drawer-only during rounds)
+  - Real-time permission checks using current game state
+  - Overlay blocking pointer events for non-drawers
+  - State-aware handlers that update when drawer changes
 - Canvas clearing on round start/game start
 
 **Technical Details**:
@@ -86,6 +89,9 @@ backend/src/
 - Tracks active paths, accumulated points, and path properties
 - Handles coordinate normalization to prevent offset issues
 - Listens for `canva:canvas-clear` DOM events
+- Permission checks use current game state (not stale closures)
+- Overlay with `pointer-events-auto` blocks interactions for non-drawers
+- Event handlers re-register when drawer/round state changes
 
 **Drawing Flow**:
 1. User draws → `path:start` event with initial point
@@ -141,20 +147,28 @@ backend/src/
 - `removePlayer()`: Remove player from room
 - `startGame()`: Initialize game and select first drawer
 - `nextRound()`: Advance to next round
+  - Saves previous drawer ID before resetting player states
+  - Gets active players after state reset to use updated objects
+  - Rotates drawer by finding previous drawer index and moving to next
+  - Always gets fresh player reference from updated players array
 - `makeGuess()`: Process player guess
 - `getActivePlayers()`: Get connected players
 - `allPlayersReady()`: Check if all players are ready
 - `startRoundTimer()`: Start countdown timer
+  - Prevents multiple end calls with `hasCalledEnd` flag
+  - Clears timer immediately when time expires
 - `endRound()`: End current round
 
 **Game Flow Logic**:
 1. All players ready → Host can start game
 2. Game starts → First drawer selected, word assigned, timer starts
-3. Drawer draws → Others guess
+3. Drawer draws → Others guess (drawing blocked for guessers via overlay and permission checks)
 4. Correct guess → Points awarded, round continues
 5. Time expires or word guessed → Round ends
-6. 3-second delay → Next round starts with new drawer
-7. All rounds complete → Game ends
+6. Round end → `currentDrawer` cleared, `isRoundActive` set to false
+7. 3-second delay → Next round starts with new drawer
+8. New round → `currentDrawer` updated, `isRoundActive` set to true, canvas cleared
+9. All rounds complete → Game ends
 
 ## Data Flow
 
@@ -240,6 +254,9 @@ backend/src/
 - **Room Validation**: PIN validation, room capacity checks
 - **Player Disconnection**: Graceful handling of disconnects
 - **Canvas Errors**: Fallback rendering for failed path creation
+- **Race Condition Prevention**: Guard flags prevent concurrent round endings
+- **Timer Safety**: Timer cleared immediately on round end to prevent duplicate calls
+- **Drawer Validation**: Drawer verified before each round start
 
 ## Configuration
 
@@ -353,7 +370,16 @@ backend/src/
 - Round progression includes 3-second delay between rounds
 - Canvas automatically clears at round start
 - Drawing restricted to current drawer during active rounds
+  - Permission checks use current game state (not stale closures)
+  - Overlay blocks pointer events for non-drawers
+  - Event handlers update when drawer/round state changes
 - Unified chat/guess input simplifies UI
+- Drawer rotation handles player state updates correctly
+  - Drawer ID saved before player state reset
+  - Active players retrieved after state reset
+  - Fresh player references used to avoid stale objects
+- Timer prevents multiple end calls with guard flag
+- Room state updates preserve drawer during active rounds
 
 
 

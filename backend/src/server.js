@@ -987,11 +987,13 @@ io.on("connection", (socket) => {
     if (normalizedGuess === normalizedWord) {
       const result = room.makeGuess(playerId, sanitizedGuess, true);
       if (result && result.correct) {
+        // Get updated players list after score updates
+        const updatedPlayers = room.toJSON().players;
         io.to(roomId).emit("canva:correct-guess", {
           player: { id: player.id, name: player.name },
           points: result.points,
           word: room.currentWord,
-          players: room.toJSON().players,
+          players: updatedPlayers,
         });
 
         const allGuessed = room
