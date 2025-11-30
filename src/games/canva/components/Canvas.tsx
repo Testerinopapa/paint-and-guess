@@ -25,18 +25,6 @@ export function CanvaCanvas() {
   // Allow drawing if: game not active (free draw mode) OR (game active AND is drawer AND round active)
   const canDraw = !gameState.isGameActive || (gameState.isGameActive && isDrawer && gameState.isRoundActive);
   
-  // Debug logging for drawer changes
-  useEffect(() => {
-    console.log("[CanvaCanvas] Drawing permissions updated", {
-      isGameActive: gameState.isGameActive,
-      isRoundActive: gameState.isRoundActive,
-      currentDrawer: gameState.currentDrawer,
-      selfId: gameState.selfId,
-      isDrawer,
-      canDraw,
-    });
-  }, [gameState.isGameActive, gameState.isRoundActive, gameState.currentDrawer, gameState.selfId, isDrawer, canDraw]);
-  
   // Drawing state tracking
   const isDrawingRef = useRef(false);
   const pathPointsRef = useRef<number[][]>([]);

@@ -164,15 +164,12 @@ export class CanvaRoom {
   }
 
   nextRound(getRandomWord) {
-    const activePlayers = this.getActivePlayers();
-
-    if (activePlayers.length < 2) {
-      throw new Error("Not enough active players");
-    }
-
     if (this.roundNumber >= this.maxRounds) {
       throw new Error("Maximum rounds reached");
     }
+
+    // CRITICAL: Save current drawer ID before resetting players (to avoid stale reference)
+    const previousDrawerId = this.currentDrawer?.id;
 
     // Reset player guess states
     this.players = this.players.map((player) => ({
@@ -182,42 +179,41 @@ export class CanvaRoom {
 
     this.drawerRewarded = false;
 
-    // Rotate drawer
-    const previousDrawerId = this.currentDrawer?.id;
-    const previousDrawerName = this.currentDrawer?.name;
-    
+    // Get active players AFTER resetting player states (to use updated objects)
+    const activePlayers = this.getActivePlayers();
+
+    if (activePlayers.length < 2) {
+      throw new Error("Not enough active players");
+    }
+
+    // Rotate drawer - use the saved ID to find the drawer in active players
     let newDrawerId = null;
     
-    if (!this.currentDrawer || !this.currentDrawer.connected) {
-      // First round or previous drawer disconnected - pick random active player
+    if (!previousDrawerId) {
+      // First round - pick random active player
       const randomIndex = Math.floor(Math.random() * activePlayers.length);
       newDrawerId = activePlayers[randomIndex].id;
-      console.log(`[CanvaRoom] First round or drawer disconnected - selected random drawer: ${activePlayers[randomIndex].name} (${newDrawerId})`);
     } else {
-      // Find current drawer index within active players and move to next
-      const currentIndex = activePlayers.findIndex((p) => p.id === this.currentDrawer.id);
-      console.log(`[CanvaRoom] Rotating drawer - current drawer: ${this.currentDrawer.name} (${this.currentDrawer.id}), index: ${currentIndex}, active players: [${activePlayers.map(p => `${p.name}(${p.id})`).join(', ')}]`);
+      // Find previous drawer index within active players and move to next
+      const currentIndex = activePlayers.findIndex((p) => p.id === previousDrawerId);
       
       if (currentIndex === -1) {
-        // Current drawer not found in active players (shouldn't happen, but handle gracefully)
-        console.warn(`[CanvaRoom] Current drawer ${this.currentDrawer.id} not found in active players, selecting random`);
+        // Previous drawer not found in active players - pick random
         const randomIndex = Math.floor(Math.random() * activePlayers.length);
         newDrawerId = activePlayers[randomIndex].id;
       } else {
         const nextIndex = (currentIndex + 1) % activePlayers.length;
         newDrawerId = activePlayers[nextIndex].id;
-        console.log(`[CanvaRoom] Rotated to next drawer: ${activePlayers[nextIndex].name} (${newDrawerId}) at index ${nextIndex}`);
       }
     }
 
-    // CRITICAL: Always get a fresh reference from this.players to avoid stale references
+    // Get fresh reference from updated players array
     const newDrawer = this.players.find((p) => p.id === newDrawerId && p.connected);
     if (!newDrawer) {
       throw new Error(`Failed to find drawer with id ${newDrawerId} in players array`);
     }
     
     this.currentDrawer = newDrawer;
-    console.log(`[CanvaRoom] Drawer rotation: ${previousDrawerName} (${previousDrawerId}) -> ${this.currentDrawer.name} (${this.currentDrawer.id})`);
 
     this.roundNumber++;
     this.elapsedTime = 0;
