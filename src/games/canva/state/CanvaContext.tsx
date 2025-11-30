@@ -18,6 +18,7 @@ interface CanvaContextType {
   makeGuess: (guess: string) => void;
   sendChatMessage: (message: string) => void;
   clearCanvas: () => void;
+  updateAvatar: (avatar: string) => void;
 }
 
 const CanvaContext = createContext<CanvaContextType | undefined>(undefined);
@@ -401,6 +402,14 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
     socket.emit("canva:clear-canvas");
   };
 
+  const updateAvatar = (avatar: string) => {
+    if (!socket || !isConnected) {
+      toast.error("Not connected to server");
+      return;
+    }
+    socket.emit("canva:update-avatar", { avatar });
+  };
+
   const isHost = gameState.ownerId === gameState.selfId;
   const isDrawer = gameState.currentDrawer?.id === gameState.selfId;
 
@@ -420,6 +429,7 @@ export function CanvaProvider({ children }: { children: ReactNode }) {
         makeGuess,
         sendChatMessage,
         clearCanvas,
+        updateAvatar,
       }}
     >
       {children}

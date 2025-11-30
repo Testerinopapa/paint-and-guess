@@ -143,6 +143,12 @@ export class CanvaRoom {
     player.isReady = isReady;
   }
 
+  updatePlayerAvatar(playerId, avatar) {
+    const player = this.players.find((p) => p.id === playerId && p.connected);
+    if (!player) return;
+    player.avatar = avatar;
+  }
+
   startGame(getRandomWord) {
     const activePlayers = this.getActivePlayers();
     if (activePlayers.length < 2) {

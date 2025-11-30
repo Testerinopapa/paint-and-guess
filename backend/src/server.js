@@ -907,6 +907,26 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("canva:update-avatar", async ({ avatar }) => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) {
+      console.log("[Server] canva:update-avatar: Missing roomId or playerId", { roomId, playerId });
+      return;
+    }
+
+    const room = canvaRoomRepository.getRoom(roomId);
+    if (!room) {
+      console.log("[Server] canva:update-avatar: Room not found", { roomId });
+      return;
+    }
+
+    const sanitizedAvatar = sanitizeAvatar(avatar);
+    room.updatePlayerAvatar(playerId, sanitizedAvatar);
+    
+    // Broadcast updated player list to all clients in room
+    io.to(roomId).emit("canva:room-state", room.toJSON());
+  });
+
   socket.on("canva:start-game", async () => {
     const { roomId, playerId } = socket.data;
     if (!roomId || !playerId) return;

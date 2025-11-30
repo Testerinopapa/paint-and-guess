@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,6 +9,8 @@ import { useCanva } from "../state/CanvaContext";
 import { PlayerAvatar } from "./PlayerAvatar";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { AvatarConfig, encodeAvatarConfig } from "@/lib/avatar/config";
+import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 
 interface LobbyStageProps {
   onLeaveRoom: () => void;
@@ -103,7 +105,7 @@ const MAX_PLAYERS_OPTIONS = [2, 4, 6, 8, 10, 12, 14];
 
 export function LobbyStage({ onLeaveRoom }: LobbyStageProps) {
   const navigate = useNavigate();
-  const { gameState, isHost, setReady, startGame } = useCanva();
+  const { gameState, isHost, setReady, startGame, updateAvatar } = useCanva();
   const [selectedPreset, setSelectedPreset] = useState("classic");
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [maxPlayers, setMaxPlayers] = useState(10);
@@ -120,6 +122,23 @@ export function LobbyStage({ onLeaveRoom }: LobbyStageProps) {
   const playerCount = gameState.players.length;
   const activePreset = GAME_PRESETS.find(p => p.id === selectedPreset) || GAME_PRESETS[0];
   const canStart = isHost && gameState.allPlayersReady && playerCount >= 2;
+
+  // Listen for avatar updates and update player avatar in room
+  useEffect(() => {
+    const handleAvatarUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<AvatarConfig>).detail;
+      if (detail && gameState.roomId) {
+        // Encode avatar config and send to server
+        const encodedAvatar = encodeAvatarConfig(detail);
+        updateAvatar(encodedAvatar);
+      }
+    };
+
+    window.addEventListener("avatar-config-updated", handleAvatarUpdate as EventListener);
+    return () => {
+      window.removeEventListener("avatar-config-updated", handleAvatarUpdate as EventListener);
+    };
+  }, [gameState.roomId, updateAvatar]);
 
   // Update settings when preset changes
   const handlePresetChange = (presetId: string) => {
