@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import HubLayout from "@/components/HubLayout";
 import AllGames from "@/pages/AllGames";
+import GameDetail from "@/pages/GameDetail";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
@@ -37,6 +38,7 @@ const AppRoutes = () => {
         }
       >
         <Route index element={<AllGames />} />
+        <Route path="games/:gameId" element={<GameDetail />} />
         <Route path="games">
           <Route path="ping-pong">
             <Route index element={<PingPongIndex />} />

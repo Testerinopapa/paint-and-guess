@@ -13,7 +13,9 @@ import {
   Gamepad2,
   Brain,
   Puzzle,
-  MoreHorizontal
+  MoreHorizontal,
+  Calendar,
+  Cloud
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -106,7 +108,27 @@ const HubLayout = () => {
     const saved = localStorage.getItem("hub-sidebar-collapsed");
     return saved === "true";
   });
+  const [playStats, setPlayStats] = useState({ today: 0 });
+  const [cloudStatus, setCloudStatus] = useState<"loaded" | "loading" | "syncing">("loaded");
   const hasSyncedAvatarRef = useRef<boolean>(false);
+
+  // Load play stats from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("hub-play-stats");
+    if (saved) {
+      try {
+        const stats = JSON.parse(saved);
+        setPlayStats(stats);
+      } catch (e) {
+        console.error("Failed to parse play stats", e);
+      }
+    }
+  }, []);
+
+  // Simulate cloud status (in real app, this would come from sync service)
+  useEffect(() => {
+    setCloudStatus("loaded");
+  }, []);
 
   // Persist sidebar state to localStorage
   useEffect(() => {
@@ -498,19 +520,42 @@ const HubLayout = () => {
       </aside>
 
       <div className="flex-1 flex flex-col min-h-screen">
-        <header className="border-b bg-muted/20 px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-semibold">
-            <PaintBucket className="h-5 w-5" />
-            Game Hub
+        <header className="border-b bg-background/95 backdrop-blur-sm px-4 py-3 flex items-center justify-between">
+          {/* Left: Stats and Status */}
+          <div className="flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>Played today: {playStats.today}</span>
+            </div>
+            <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+              <Cloud className="h-4 w-4" />
+              <span className="capitalize">{cloudStatus}</span>
+            </div>
+            <div className="flex items-center gap-2 font-semibold md:hidden">
+              <PaintBucket className="h-5 w-5" />
+              <span>Game Hub</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2 md:hidden">
-            {navigation.map((item) => (
-              <Button key={item.to} asChild variant="outline" size="sm">
-                <NavLink to={item.to} end={item.to === "/hub"}>
-                  {item.label}
-                </NavLink>
-              </Button>
-            ))}
+
+          {/* Right: User Profile & Mobile Nav */}
+          <div className="flex items-center gap-4">
+            {!isSidebarCollapsed && isAuthenticated && user && (
+              <div className="hidden md:flex items-center gap-2">
+                <div className="h-6 w-6 flex items-center justify-center">
+                  <AvatarPreview config={avatarConfig} size={24} />
+                </div>
+                <span className="text-sm font-medium">{user.username}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 md:hidden">
+              {navigation.map((item) => (
+                <Button key={item.to} asChild variant="outline" size="sm">
+                  <NavLink to={item.to} end={item.to === "/hub"}>
+                    {item.label}
+                  </NavLink>
+                </Button>
+              ))}
+            </div>
           </div>
         </header>
 

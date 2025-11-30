@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGameRegistry } from "@/games/registry";
+import { GameHero } from "@/components/GameHero";
 import { cn } from "@/lib/utils";
 
 const DEBUG = import.meta.env.DEV || import.meta.env.VITE_GAME_HUB_DEBUG === "true";
@@ -66,6 +67,28 @@ const AllGames = () => {
     });
   }, [games.length, isLoading, error, source]);
 
+  // Get featured game (first enabled game, or first game with "hot" badge, or first stable game)
+  const featuredGame = useMemo(() => {
+    if (games.length === 0) return null;
+    
+    // Try to find a game with "hot" badge
+    const hotGame = games.find(g => g.badges?.includes("hot") && g.isEnabled);
+    if (hotGame) return hotGame;
+    
+    // Try to find a stable game
+    const stableGame = games.find(g => g.status === "stable" && g.isEnabled);
+    if (stableGame) return stableGame;
+    
+    // Return first enabled game
+    return games.find(g => g.isEnabled) || games[0];
+  }, [games]);
+
+  // Get other games (excluding featured)
+  const otherGames = useMemo(() => {
+    if (!featuredGame) return games;
+    return games.filter(g => g.id !== featuredGame.id);
+  }, [games, featuredGame]);
+
   if (isLoading) {
     return <LoadingCards />;
   }
@@ -81,8 +104,20 @@ const AllGames = () => {
         {errorMessage ? <p className="text-sm text-red-600">Fell back to bundled registry: {errorMessage}</p> : null}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {games.map((game) => {
+      {/* Featured Game Hero */}
+      {featuredGame && (
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold">Featured</h2>
+          <GameHero game={featuredGame} />
+        </div>
+      )}
+
+      {/* Other Games Grid */}
+      {otherGames.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold">All Games</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {otherGames.map((game) => {
           if (DEBUG) {
             console.debug("[hub] Rendering tile", {
               id: game.id,
@@ -143,7 +178,9 @@ const AllGames = () => {
             </Card>
           );
         })}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
