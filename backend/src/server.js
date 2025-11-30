@@ -1105,8 +1105,9 @@ io.on("connection", (socket) => {
           const getWord = () => getRandomWordFromPack(nextRoom.wordPack || "classic");
           try {
             console.log(`[Canva] Starting round ${nextRoom.roundNumber + 1} in room ${roomId}`);
+            const previousDrawerId = nextRoom.currentDrawer?.id;
             nextRoom.nextRound(getWord);
-            console.log(`[Canva] Round ${nextRoom.roundNumber} started in room ${roomId}, drawer: ${nextRoom.currentDrawer?.name}`);
+            console.log(`[Canva] Round ${nextRoom.roundNumber} started in room ${roomId}, drawer changed from ${previousDrawerId} to ${nextRoom.currentDrawer?.id} (${nextRoom.currentDrawer?.name})`);
 
             // Verify drawer is still valid
             if (!nextRoom.currentDrawer || !nextRoom.currentDrawer.connected || !nextRoom.currentDrawer.socketId) {
