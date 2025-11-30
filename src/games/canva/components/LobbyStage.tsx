@@ -8,6 +8,7 @@ import { ArrowLeft, Play, Users, Volume2, VolumeX, Link2, Settings } from "lucid
 import { useCanva } from "../state/CanvaContext";
 import { PlayerAvatar } from "./PlayerAvatar";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface LobbyStageProps {
   onLeaveRoom: () => void;
@@ -141,19 +142,32 @@ export function LobbyStage({ onLeaveRoom }: LobbyStageProps) {
     startGame();
   };
 
-  const handleInvite = () => {
-    if (gameState.gamePin) {
-      const inviteText = `Join my Canva game! PIN: ${gameState.gamePin}`;
+  const handleInvite = async () => {
+    if (!gameState.gamePin) {
+      toast.error("No game PIN available");
+      return;
+    }
+
+    try {
+      // Copy PIN to clipboard
+      await navigator.clipboard.writeText(gameState.gamePin);
+      toast.success(`Game PIN copied: ${gameState.gamePin}`);
+    } catch (error) {
+      // Fallback: try Web Share API
       if (navigator.share) {
-        navigator.share({
-          title: "Join Canva Game",
-          text: inviteText,
-        }).catch(() => {
-          // Fallback to clipboard
-          navigator.clipboard.writeText(inviteText);
-        });
+        try {
+          await navigator.share({
+            title: "Join my Canva game!",
+            text: `Game PIN: ${gameState.gamePin}`,
+          });
+          toast.success("Game PIN shared!");
+        } catch (shareError) {
+          // If share is cancelled or fails, show PIN in toast
+          toast.info(`Game PIN: ${gameState.gamePin}`);
+        }
       } else {
-        navigator.clipboard.writeText(inviteText);
+        // Last resort: show PIN in toast
+        toast.info(`Game PIN: ${gameState.gamePin}`);
       }
     }
   };
