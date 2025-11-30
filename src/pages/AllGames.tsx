@@ -11,18 +11,13 @@ const LoadingCards = () => {
     console.debug("[hub] Rendering loading skeletons for AllGames");
   }
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 3 }).map((_, index) => (
-        <Card key={index} className="flex flex-col overflow-hidden">
-          <Skeleton className="h-40 w-full" />
-          <CardHeader className="space-y-2">
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-full" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-10 w-full" />
-          </CardContent>
-        </Card>
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      {Array.from({ length: 10 }).map((_, index) => (
+        <div key={index} className="rounded-lg bg-game-card overflow-hidden">
+          <div className="aspect-[3/4]">
+            <Skeleton className="h-full w-full" />
+          </div>
+        </div>
       ))}
     </div>
   );
