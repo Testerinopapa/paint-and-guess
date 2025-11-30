@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { PaintBucket, Settings, Sparkles, LogIn, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -64,6 +64,7 @@ const HubLayout = () => {
     return createDefaultAvatarConfig();
   });
   const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
+  const hasSyncedAvatarRef = useRef<boolean>(false);
 
   useEffect(() => {
     // Wait for auth loading to complete before processing avatar
@@ -102,20 +103,11 @@ const HubLayout = () => {
       }
     }
     
-    // User is logged in but has no database avatar - check localStorage and sync to DB if found
+    // User is logged in but has no database avatar - check localStorage
     if (user?.id) {
       const stored = safeLoadAvatarConfig(user.id);
       if (stored) {
         setAvatarConfig(stored);
-        // Sync localStorage avatar to database if database doesn't have one
-        if (isAuthenticated && updateAvatar && !user.avatarConfig) {
-          const encoded = encodeAvatarConfig(stored);
-          updateAvatar(encoded).then(() => {
-            updateUser(); // Refetch user to update state
-          }).catch((error) => {
-            console.error('[HubLayout] Failed to sync localStorage avatar to database:', error);
-          });
-        }
       } else {
         // User has no saved avatar, use default (not anonymous avatar)
         const defaultConfig = createDefaultAvatarConfig();
@@ -125,7 +117,45 @@ const HubLayout = () => {
       }
       return;
     }
-  }, [user, isAuthenticated, authLoading, updateAvatar, updateUser]);
+  }, [user, isAuthenticated, authLoading]);
+
+  // Separate effect for syncing localStorage avatar to database (prevents React error #185)
+  useEffect(() => {
+    if (authLoading || !isAuthenticated || !user?.id || !updateAvatar || !updateUser) {
+      return;
+    }
+
+    // Only sync if database doesn't have avatar but localStorage does
+    if (!user.avatarConfig && hasSyncedAvatarRef.current === false) {
+      const stored = safeLoadAvatarConfig(user.id);
+      if (stored) {
+        hasSyncedAvatarRef.current = true;
+        const encoded = encodeAvatarConfig(stored);
+        // Use a timeout to ensure this runs after render completes
+        const timeoutId = setTimeout(() => {
+          updateAvatar(encoded)
+            .then(() => {
+              // Small delay before refetching to avoid rapid state updates
+              setTimeout(() => {
+                updateUser();
+              }, 100);
+            })
+            .catch((error) => {
+              console.error('[HubLayout] Failed to sync localStorage avatar to database:', error);
+              hasSyncedAvatarRef.current = false; // Reset on error to allow retry
+            });
+        }, 100);
+        
+        return () => clearTimeout(timeoutId);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.avatarConfig, isAuthenticated, authLoading]);
+
+  // Reset sync flag when user changes
+  useEffect(() => {
+    hasSyncedAvatarRef.current = false;
+  }, [user?.id]);
 
   // Set up cross-tab synchronization for avatar changes (user-specific)
   useEffect(() => {
