@@ -104,6 +104,13 @@ const AllGames = () => {
               key={game.id}
               game={game}
               lastPlayed={lastPlayedMap[game.id]}
+              onPlay={(gameId) => {
+                // Update last played map immediately for UI feedback
+                setLastPlayedMap(prev => ({
+                  ...prev,
+                  [gameId]: "just now"
+                }));
+              }}
             />
           );
         })}

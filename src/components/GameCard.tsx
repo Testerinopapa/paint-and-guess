@@ -5,19 +5,39 @@ import type { HubGame } from "@/games/registry";
 interface GameCardProps {
   game: HubGame;
   lastPlayed?: string;
+  onPlay?: (gameId: string) => void;
 }
 
-const GameCard = ({ game, lastPlayed }: GameCardProps) => {
+const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
   const navigate = useNavigate();
 
-  const handlePlay = () => {
+  const handlePlay = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     if (game.isEnabled) {
+      // Track game play
+      if (onPlay) {
+        onPlay(game.id);
+      }
+      // Store last played time
+      localStorage.setItem(`game-last-played-${game.id}`, new Date().toISOString());
+      // Navigate to game
       navigate(game.derivedRoute);
     }
   };
 
+  const handleCardClick = () => {
+    if (game.isEnabled) {
+      handlePlay();
+    }
+  };
+
   return (
-    <div className="group relative overflow-hidden rounded-lg bg-game-card transition-all duration-300 hover:bg-game-card-hover hover:scale-105 hover:shadow-xl hover:shadow-primary/20 cursor-pointer">
+    <div 
+      onClick={handleCardClick}
+      className="group relative overflow-hidden rounded-lg bg-game-card transition-all duration-300 hover:bg-game-card-hover hover:scale-105 hover:shadow-xl hover:shadow-primary/20 cursor-pointer"
+    >
       <div className="aspect-[3/4] relative overflow-hidden">
         <img 
           src={game.assets.thumbnail} 

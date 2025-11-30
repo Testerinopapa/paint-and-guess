@@ -67,16 +67,31 @@ function getPreviewComponent(entry: NormalizedGameEntry) {
   return undefined;
 }
 
+function normalizeRoutePath(path: string): string {
+  // If path starts with /games/, prepend /hub
+  if (path.startsWith("/games/") && !path.startsWith("/hub/games/")) {
+    return `/hub${path}`;
+  }
+  // If path doesn't start with /hub/games/, construct it from the path
+  if (!path.startsWith("/hub/games/")) {
+    // Extract slug from path (e.g., "/games/trivia-blitz" -> "trivia-blitz")
+    const slug = path.replace(/^\/games\//, "").replace(/^\//, "");
+    return `/hub/games/${slug}`;
+  }
+  return path;
+}
+
 function attachPlugin(entry: NormalizedGameEntry): HubGame {
   debugLog("Attaching plugin metadata", { id: entry.id, status: entry.status, flagCount: entry.featureFlags.length });
   const displayName = localizeCopy(entry.name);
   const displayDescription = localizeCopy(entry.description);
   const navCategory = entry.navigation?.category ?? entry.category?.[0] ?? "uncategorized";
+  const normalizedRoute = normalizeRoutePath(entry.route.path);
   return {
     ...entry,
     displayName,
     displayDescription,
-    derivedRoute: entry.route.path,
+    derivedRoute: normalizedRoute,
     isEnabled:
       entry.featureFlags.every((flag) => isFeatureEnabled(flag)) &&
       matchesTargeting(entry.visibleIf ?? []),
