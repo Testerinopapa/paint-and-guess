@@ -10,6 +10,16 @@ import type { ChatMessage } from "../state/types";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MobileGameStage } from "./MobileGameStage";
 
+// Separate component for desktop layout to avoid hook order issues
+function DesktopGameStage({ onLeaveRoom }: GameStageProps) {
+  const { gameState, isDrawer, makeGuess, sendChatMessage, socket } = useCanva();
+  const [guessInput, setGuessInput] = useState("");
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [guessHistory, setGuessHistory] = useState<GuessEntry[]>([]);
+  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
+  const guessHistoryEndRef = useRef<HTMLDivElement>(null);
+
 interface GameStageProps {
   onLeaveRoom: () => void;
 }
@@ -21,8 +31,8 @@ interface GuessEntry {
   timestamp: number;
 }
 
-export function GameStage({ onLeaveRoom }: GameStageProps) {
-  const isMobile = useIsMobile();
+// Separate component for desktop layout to avoid hook order issues
+function DesktopGameStage({ onLeaveRoom }: GameStageProps) {
   const { gameState, isDrawer, makeGuess, sendChatMessage, socket } = useCanva();
   const [guessInput, setGuessInput] = useState("");
   const [chatInput, setChatInput] = useState("");
@@ -30,11 +40,6 @@ export function GameStage({ onLeaveRoom }: GameStageProps) {
   const [guessHistory, setGuessHistory] = useState<GuessEntry[]>([]);
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const guessHistoryEndRef = useRef<HTMLDivElement>(null);
-
-  // Use mobile layout on mobile devices
-  if (isMobile) {
-    return <MobileGameStage onLeaveRoom={onLeaveRoom} />;
-  }
 
   // Determine if input should be used for guessing or chatting
   const isGuessingMode = !isDrawer && gameState.isGameActive && gameState.isRoundActive && !gameState.currentWord;
@@ -316,4 +321,16 @@ export function GameStage({ onLeaveRoom }: GameStageProps) {
       </div>
     </div>
   );
+}
+
+export function GameStage({ onLeaveRoom }: GameStageProps) {
+  const isMobile = useIsMobile();
+  
+  // Use mobile layout on mobile devices
+  if (isMobile) {
+    return <MobileGameStage onLeaveRoom={onLeaveRoom} />;
+  }
+
+  // Desktop layout
+  return <DesktopGameStage onLeaveRoom={onLeaveRoom} />;
 }

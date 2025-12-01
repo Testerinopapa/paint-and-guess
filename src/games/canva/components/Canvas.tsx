@@ -178,20 +178,25 @@ export function CanvaCanvas({
 
     // Recalculate offset on window resize and container size changes
     const recalcOffset = () => {
-      if (!canvas) return;
-      const rect = canvasElement.getBoundingClientRect();
-      console.log("[CanvaCanvas] Recalculating offset. Element position:", {
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-        height: rect.height,
-      });
-      canvas.calcOffset();
-      const fabricOffset = (canvas as any)._offset;
-      console.log("[CanvaCanvas] Fabric offset:", {
-        left: fabricOffset?.left,
-        top: fabricOffset?.top,
-      });
+      if (!canvas || !canvasElement || !canvasElement.parentElement) return;
+      try {
+        const rect = canvasElement.getBoundingClientRect();
+        console.log("[CanvaCanvas] Recalculating offset. Element position:", {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height,
+        });
+        canvas.calcOffset();
+        const fabricOffset = (canvas as any)._offset;
+        console.log("[CanvaCanvas] Fabric offset:", {
+          left: fabricOffset?.left,
+          top: fabricOffset?.top,
+        });
+      } catch (error) {
+        // Canvas might be disposed, ignore
+        console.warn("[CanvaCanvas] Error recalculating offset:", error);
+      }
     };
 
     const handleResize = () => {
@@ -201,10 +206,12 @@ export function CanvaCanvas({
 
     // Use ResizeObserver to detect container size changes
     let resizeObserver: ResizeObserver | null = null;
+    let timeoutId: number | null = null;
     if (containerRef.current) {
       resizeObserver = new ResizeObserver(() => {
         // Small delay to ensure layout has settled
-        setTimeout(recalcOffset, 0);
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(recalcOffset, 0);
       });
       resizeObserver.observe(containerRef.current);
     }
@@ -217,7 +224,14 @@ export function CanvaCanvas({
       if (resizeObserver) {
         resizeObserver.disconnect();
       }
-      canvas.dispose();
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      try {
+        canvas.dispose();
+      } catch (error) {
+        console.warn("[CanvaCanvas] Error disposing canvas:", error);
+      }
     };
   }, []);
 
