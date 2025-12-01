@@ -65,6 +65,8 @@ function createInitialState(): TriviaRoomState {
       second: null,
       third: null,
     },
+    quizId: null,
+    quizName: null,
     hasAnswered: false,
     lastAnswerResult: null,
   };
@@ -119,6 +121,8 @@ export function TriviaProvider({ children }: { children: ReactNode }) {
         phase: state.phase || "lobby",
         currentQuestionIndex: state.currentQuestionIndex || 0,
         totalQuestions: state.totalQuestions || 0,
+        quizId: state.quizId || null,
+        quizName: state.quizName || null,
       }));
     });
 

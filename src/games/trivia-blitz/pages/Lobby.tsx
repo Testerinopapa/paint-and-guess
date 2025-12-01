@@ -46,7 +46,48 @@ export default function Lobby() {
       icon: "🧠",
       questionCount: 5,
     },
-    // Future quizzes can be added here
+    {
+      id: "science",
+      name: "Science",
+      description: "Biology, chemistry, physics, and astronomy",
+      icon: "🔬",
+      questionCount: 7,
+    },
+    {
+      id: "history",
+      name: "History",
+      description: "World history, events, and historical figures",
+      icon: "📜",
+      questionCount: 6,
+    },
+    {
+      id: "pop-culture",
+      name: "Pop Culture",
+      description: "Movies, music, TV shows, and entertainment",
+      icon: "🎬",
+      questionCount: 6,
+    },
+    {
+      id: "sports",
+      name: "Sports",
+      description: "Athletics, teams, and sporting events",
+      icon: "⚽",
+      questionCount: 6,
+    },
+    {
+      id: "geography",
+      name: "Geography",
+      description: "Countries, capitals, and world geography",
+      icon: "🌍",
+      questionCount: 7,
+    },
+    {
+      id: "technology",
+      name: "Technology",
+      description: "Computers, programming, and tech history",
+      icon: "💻",
+      questionCount: 6,
+    },
   ]);
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
     // Try to load from user first, then localStorage

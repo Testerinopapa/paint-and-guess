@@ -11,7 +11,7 @@ import { getWordPacks, getRandomWordFromPack } from "./words.js";
 import { initializeRedis, getRedisSubscriber, getRedisPublisher, isRedisEnabled, shutdownRedis } from "./redisClient.js";
 import { getRegistryResponse, loadGameRegistry } from "./gameRegistry.js";
 import { TriviaRoomRepository } from "./triviaRoomRepository.js";
-import { getSampleQuestions } from "./triviaQuestions.js";
+import { getSampleQuestions, getQuestionsByQuizId, QUIZZES } from "./triviaQuestions.js";
 import { canvaRoomRepository } from "./canvaRoomRepository.js";
 import authRoutes from "./auth/routes.js";
 
@@ -345,9 +345,10 @@ io.on("connection", (socket) => {
   // Trivia Blitz socket handlers
   socket.on("trivia:create-room", async ({ roomName, playerName, avatar, quizId }) => {
     const roomId = generateRoomId();
-    // For now, quizId is accepted but not used - all rooms use sample questions
-    // Future: Load questions based on quizId
-    const questions = getSampleQuestions();
+    // Load questions based on quizId, fallback to general if not provided or invalid
+    const questions = quizId ? getQuestionsByQuizId(quizId) : getSampleQuestions();
+    const quiz = quizId ? QUIZZES[quizId] : null;
+    const quizName = quiz ? quiz.name : null;
     
     const room = triviaRoomRepository.createRoom({
       id: roomId,
@@ -356,6 +357,8 @@ io.on("connection", (socket) => {
       maxPlayers: 12,
       questions,
       ownerId: null,
+      quizId: quizId || null,
+      quizName: quizName,
     });
 
     const player = {
