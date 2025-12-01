@@ -19,6 +19,9 @@ import { CanvaLobby, CanvaRoom, CanvaApp } from "@/games/canva";
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Redirect /index.html to root (handles direct access to index.html) */}
+      <Route path="/index.html" element={<Navigate to="/" replace />} />
+      
       {/* Root redirects based on auth status */}
       <Route path="/" element={<AuthRedirect />} />
       
