@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGameRegistry } from "@/games/registry";
 import GameCard from "@/components/GameCard";
+import MobileGamePath from "@/components/MobileGamePath";
 
 const DEBUG = import.meta.env.DEV || import.meta.env.VITE_GAME_HUB_DEBUG === "true";
 
@@ -52,6 +53,18 @@ const getLastPlayed = (gameId: string): string | undefined => {
 const AllGames = () => {
   const { games, isLoading, error, source } = useGameRegistry();
   const [lastPlayedMap, setLastPlayedMap] = useState<Record<string, string>>({});
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Load last played times
   useEffect(() => {
@@ -89,32 +102,47 @@ const AllGames = () => {
         <p className="text-muted-foreground text-sm md:text-base">Your gaming library</p>
       </div>
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-        {games.map((game) => {
-          if (DEBUG) {
-            console.debug("[hub] Rendering tile", {
-              id: game.id,
-              status: game.status,
-              enabled: game.isEnabled,
-              route: game.derivedRoute,
-            });
-          }
-          return (
-            <GameCard
-              key={game.id}
-              game={game}
-              lastPlayed={lastPlayedMap[game.id]}
-              onPlay={(gameId) => {
-                // Update last played map immediately for UI feedback
-                setLastPlayedMap(prev => ({
-                  ...prev,
-                  [gameId]: "just now"
-                }));
-              }}
-            />
-          );
-        })}
-      </div>
+      {/* Mobile Path View */}
+      {isMobile ? (
+        <MobileGamePath
+          games={games}
+          lastPlayedMap={lastPlayedMap}
+          onPlay={(gameId) => {
+            setLastPlayedMap(prev => ({
+              ...prev,
+              [gameId]: "just now"
+            }));
+          }}
+        />
+      ) : (
+        /* Desktop Grid View */
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+          {games.map((game) => {
+            if (DEBUG) {
+              console.debug("[hub] Rendering tile", {
+                id: game.id,
+                status: game.status,
+                enabled: game.isEnabled,
+                route: game.derivedRoute,
+              });
+            }
+            return (
+              <GameCard
+                key={game.id}
+                game={game}
+                lastPlayed={lastPlayedMap[game.id]}
+                onPlay={(gameId) => {
+                  // Update last played map immediately for UI feedback
+                  setLastPlayedMap(prev => ({
+                    ...prev,
+                    [gameId]: "just now"
+                  }));
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
