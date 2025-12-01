@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Play } from "lucide-react";
 import type { HubGame } from "@/games/registry";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { cn } from "@/lib/utils";
 
 interface GameCardProps {
   game: HubGame;
@@ -11,7 +13,9 @@ interface GameCardProps {
 
 const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [imageError, setImageError] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
   
   // Use background image if available, fallback to thumbnail
   // Use BASE_URL to ensure correct path resolution in all deployment environments
@@ -58,14 +62,29 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
   return (
     <div 
       onClick={handleCardClick}
-      className="group relative overflow-hidden rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/20 cursor-pointer"
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
+      onMouseLeave={() => setIsPressed(false)}
+      className={cn(
+        "group relative overflow-hidden rounded-lg transition-all duration-300 cursor-pointer",
+        isMobile 
+          ? isPressed 
+            ? "scale-[0.98] shadow-lg" 
+            : "active:scale-[0.98]"
+          : "hover:scale-105 hover:shadow-xl hover:shadow-primary/20"
+      )}
     >
       <div className="aspect-[3/4] relative overflow-hidden bg-game-card">
         {!imageError ? (
           <img 
             src={cardImage} 
             alt={game.displayName}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            className={cn(
+              "absolute inset-0 w-full h-full object-cover transition-transform duration-300",
+              isMobile ? "" : "group-hover:scale-110"
+            )}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               console.error(`[GameCard] Failed to load image for ${game.id}:`, {
@@ -89,10 +108,14 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
             </div>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
-            <div>
-              <h3 className="font-bold text-lg text-foreground mb-1">{game.displayName}</h3>
+        {/* Overlay - Always visible on mobile, hover-only on desktop */}
+        <div className={cn(
+          "absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent transition-opacity duration-300",
+          isMobile ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        )}>
+          <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 flex items-end justify-between">
+            <div className="flex-1 min-w-0 pr-2">
+              <h3 className="font-bold text-base md:text-lg text-foreground mb-1 truncate">{game.displayName}</h3>
               {lastPlayed && (
                 <p className="text-xs text-muted-foreground">Last played {lastPlayed}</p>
               )}
@@ -100,12 +123,16 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
             {game.isEnabled ? (
               <button 
                 onClick={handlePlay}
-                className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all shadow-lg shadow-primary/50"
+                className={cn(
+                  "flex-shrink-0 bg-primary text-primary-foreground rounded-full transition-all shadow-lg shadow-primary/50",
+                  isMobile ? "p-3 h-11 w-11 flex items-center justify-center active:scale-90" : "p-3 hover:bg-primary/90"
+                )}
+                aria-label={`Play ${game.displayName}`}
               >
-                <Play className="w-5 h-5" fill="currentColor" />
+                <Play className="w-5 h-5 md:w-5 md:h-5" fill="currentColor" />
               </button>
             ) : (
-              <div className="p-3 bg-muted text-muted-foreground rounded-full opacity-50">
+              <div className="flex-shrink-0 p-3 bg-muted text-muted-foreground rounded-full opacity-50 h-11 w-11 flex items-center justify-center">
                 <Play className="w-5 h-5" />
               </div>
             )}

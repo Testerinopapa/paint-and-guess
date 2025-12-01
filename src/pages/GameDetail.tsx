@@ -9,6 +9,7 @@ import { GameImageGallery } from "@/components/GameImageGallery";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const statusVariant: Record<string, string> = {
   stable: "bg-emerald-500/10 text-emerald-700",
@@ -27,6 +28,7 @@ const formatPlayers = (min: number, max: number, recommended?: number) => {
 const GameDetail = () => {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { games, isLoading } = useGameRegistry();
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
@@ -43,9 +45,9 @@ const GameDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <Skeleton className="h-10 w-32" />
-        <Skeleton className="h-[600px] w-full" />
+        <Skeleton className="h-[400px] md:h-[600px] w-full" />
       </div>
     );
   }
@@ -71,12 +73,12 @@ const GameDetail = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Back Button */}
-      <Button variant="ghost" asChild>
+      <Button variant="ghost" asChild className="h-10">
         <Link to="/hub">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to All Games
+          <span className="text-sm md:text-base">Back to All Games</span>
         </Link>
       </Button>
 
@@ -84,24 +86,24 @@ const GameDetail = () => {
       <GameHero game={game} />
 
       {/* Game Details */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 md:grid-cols-3">
         {/* Main Info */}
-        <div className="md:col-span-2 space-y-4">
+        <div className="md:col-span-2 space-y-4 md:space-y-6">
           <div>
-            <h2 className="text-2xl font-bold mb-2">About</h2>
-            <p className="text-muted-foreground leading-relaxed">{game.displayDescription}</p>
+            <h2 className="text-xl md:text-2xl font-bold mb-2">About</h2>
+            <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{game.displayDescription}</p>
           </div>
 
           {game.assets.screenshots && game.assets.screenshots.length > 0 && (
             <div>
-              <h2 className="text-2xl font-bold mb-4">Screenshots</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Screenshots</h2>
               <GameImageGallery screenshots={game.assets.screenshots} gameName={game.displayName} />
             </div>
           )}
 
           {game.PreviewComponent && (
             <div>
-              <h2 className="text-2xl font-bold mb-4">Preview</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-3 md:mb-4">Preview</h2>
               <game.PreviewComponent />
             </div>
           )}
@@ -110,22 +112,22 @@ const GameDetail = () => {
         {/* Sidebar Info */}
         <div className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Game Info</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg md:text-xl">Game Info</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge className={cn("capitalize", statusVariant[game.status] ?? "")}>
+                <Badge className={cn("capitalize text-xs md:text-sm", statusVariant[game.status] ?? "")}>
                   {game.status}
                 </Badge>
                 {game.badges?.map((badge) => (
-                  <Badge key={badge} variant="secondary" className="capitalize">
+                  <Badge key={badge} variant="secondary" className="capitalize text-xs md:text-sm">
                     {badge}
                   </Badge>
                 ))}
               </div>
               
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-xs md:text-sm">
                 <div>
                   <span className="font-medium">Players: </span>
                   <span className="text-muted-foreground">
@@ -162,9 +164,9 @@ const GameDetail = () => {
 
       {/* Related Games */}
       {relatedGames.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Related Games</h2>
-          <div className="grid gap-4 md:grid-cols-3">
+        <div className="space-y-3 md:space-y-4">
+          <h2 className="text-xl md:text-2xl font-bold">Related Games</h2>
+          <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             {relatedGames.map((relatedGame) => {
               const relatedImage = relatedGame.assets.background || relatedGame.assets.thumbnail;
               const hasError = imageErrors.has(relatedGame.id);
@@ -176,18 +178,18 @@ const GameDetail = () => {
                       <img 
                         src={relatedImage} 
                         alt={`${relatedGame.displayName} thumbnail`} 
-                        className="h-40 w-full object-cover"
+                        className="h-32 sm:h-40 w-full object-cover"
                         loading="lazy"
                         onError={() => handleImageError(relatedGame.id)}
                       />
                     ) : (
-                      <div className="h-40 w-full bg-muted flex items-center justify-center">
+                      <div className="h-32 sm:h-40 w-full bg-muted flex items-center justify-center">
                         <span className="text-muted-foreground text-sm">🎮</span>
                       </div>
                     )}
-                    <CardHeader>
-                      <CardTitle>{relatedGame.displayName}</CardTitle>
-                      <CardDescription className="line-clamp-2">
+                    <CardHeader className="p-3 md:p-6">
+                      <CardTitle className="text-base md:text-lg">{relatedGame.displayName}</CardTitle>
+                      <CardDescription className="line-clamp-2 text-xs md:text-sm">
                         {relatedGame.displayDescription}
                       </CardDescription>
                     </CardHeader>
