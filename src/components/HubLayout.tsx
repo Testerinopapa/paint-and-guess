@@ -5,6 +5,8 @@ import TopBar from "@/components/TopBar";
 import {
   Sheet,
   SheetContent,
+  SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 
 const HubLayout = () => {
@@ -18,6 +20,10 @@ const HubLayout = () => {
       
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetContent side="left" className="p-0 w-16 bg-sidebar-bg border-r border-border">
+          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          <SheetDescription className="sr-only">
+            Main navigation menu with links to games, library, and other sections
+          </SheetDescription>
           <Sidebar />
         </SheetContent>
       </Sheet>
