@@ -1,4 +1,4 @@
-import { Search, Bell, ChevronDown } from "lucide-react";
+import { Search, Bell, ChevronDown, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { AvatarPreview } from "@/games/paint-and-guess/components/avatar/preview";
@@ -16,7 +16,7 @@ import {
 import { Settings, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const TopBar = () => {
+const TopBar = ({ onMenuClick }: { onMenuClick: () => void }) => {
   const sections = ["My Games", "Store", "Community"];
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
@@ -42,9 +42,16 @@ const TopBar = () => {
   };
 
   return (
-    <header className="h-16 bg-topbar-bg border-b border-border px-6 flex items-center justify-between">
-      <div className="flex items-center gap-8">
-        <nav className="flex items-center gap-6">
+    <header className="h-16 bg-topbar-bg border-b border-border px-4 md:px-6 flex items-center justify-between gap-4">
+      <div className="flex items-center gap-4">
+        <button 
+          onClick={onMenuClick}
+          className="md:hidden p-2 rounded-lg text-foreground hover:bg-secondary transition-all"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        
+        <nav className="hidden md:flex items-center gap-6">
           {sections.map((section, index) => (
             <button
               key={section}
@@ -60,8 +67,8 @@ const TopBar = () => {
         </nav>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative w-64">
+      <div className="flex items-center gap-2 md:gap-4">
+        <div className="relative w-32 sm:w-48 md:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search games..."
@@ -77,7 +84,7 @@ const TopBar = () => {
         {isAuthenticated && user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all">
+              <button className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all">
                 <div className="w-8 h-8 rounded-full overflow-hidden">
                   <AvatarPreview config={avatarConfig} size={32} />
                 </div>
@@ -100,10 +107,39 @@ const TopBar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all">
+          <button className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all">
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full"></div>
             <span className="text-sm font-medium text-foreground">Player</span>
             <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          </button>
+        )}
+        
+        {isAuthenticated && user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="sm:hidden p-2">
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <AvatarPreview config={avatarConfig} size={32} />
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <button className="sm:hidden p-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full"></div>
           </button>
         )}
       </div>

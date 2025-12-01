@@ -1,0 +1,123 @@
+From dda8ece87ddae6cdcd89bd4f9a3d538236269bbc Mon Sep 17 00:00:00 2001
+From: "gpt-engineer-app[bot]"
+ <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date: Mon, 1 Dec 2025 02:21:48 +0000
+Subject: [PATCH] Changes
+
+---
+ src/components/TopBar.tsx | 27 +++++++++++++++++++--------
+ src/pages/Index.tsx       | 28 +++++++++++++++++++++-------
+ 2 files changed, 40 insertions(+), 15 deletions(-)
+
+diff --git a/src/components/TopBar.tsx b/src/components/TopBar.tsx
+index c220cab..40211e5 100644
+--- a/src/components/TopBar.tsx
++++ b/src/components/TopBar.tsx
+@@ -1,13 +1,20 @@
+-import { Search, Bell, ChevronDown } from "lucide-react";
++import { Search, Bell, ChevronDown, Menu } from "lucide-react";
+ import { Input } from "./ui/input";
+ 
+-const TopBar = () => {
++const TopBar = ({ onMenuClick }: { onMenuClick: () => void }) => {
+   const sections = ["My Games", "Store", "Community"];
+ 
+   return (
+-    <header className="h-16 bg-topbar-bg border-b border-border px-6 flex items-center justify-between">
+-      <div className="flex items-center gap-8">
+-        <nav className="flex items-center gap-6">
++    <header className="h-16 bg-topbar-bg border-b border-border px-4 md:px-6 flex items-center justify-between gap-4">
++      <div className="flex items-center gap-4">
++        <button 
++          onClick={onMenuClick}
++          className="md:hidden p-2 rounded-lg text-foreground hover:bg-secondary transition-all"
++        >
++          <Menu className="w-5 h-5" />
++        </button>
++        
++        <nav className="hidden md:flex items-center gap-6">
+           {sections.map((section, index) => (
+             <button
+               key={section}
+@@ -23,8 +30,8 @@ const TopBar = () => {
+         </nav>
+       </div>
+ 
+-      <div className="flex items-center gap-4">
+-        <div className="relative w-64">
++      <div className="flex items-center gap-2 md:gap-4">
++        <div className="relative w-32 sm:w-48 md:w-64">
+           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+           <Input
+             placeholder="Search games..."
+@@ -37,11 +44,15 @@ const TopBar = () => {
+           <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
+         </button>
+ 
+-        <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all">
++        <button className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all">
+           <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full"></div>
+           <span className="text-sm font-medium text-foreground">Player</span>
+           <ChevronDown className="w-4 h-4 text-muted-foreground" />
+         </button>
++        
++        <button className="sm:hidden p-2">
++          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full"></div>
++        </button>
+       </div>
+     </header>
+   );
+diff --git a/src/pages/Index.tsx b/src/pages/Index.tsx
+index 913d465..eb0ea65 100644
+--- a/src/pages/Index.tsx
++++ b/src/pages/Index.tsx
+@@ -1,8 +1,14 @@
++import { useState } from "react";
+ import Sidebar from "@/components/Sidebar";
+ import TopBar from "@/components/TopBar";
+ import GameCard from "@/components/GameCard";
++import {
++  Sheet,
++  SheetContent,
++} from "@/components/ui/sheet";
+ 
+ const Index = () => {
++  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+   const games = [
+     { title: "Astroneer", image: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400&h=600&fit=crop", lastPlayed: "2 hours ago" },
+     { title: "Battlerite", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=600&fit=crop", lastPlayed: "Yesterday" },
+@@ -17,19 +23,27 @@ const Index = () => {
+ 
+   return (
+     <div className="flex h-screen bg-background text-foreground overflow-hidden">
+-      <Sidebar />
++      <div className="hidden md:block">
++        <Sidebar />
++      </div>
++      
++      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
++        <SheetContent side="left" className="p-0 w-16 bg-sidebar-bg border-r border-border">
++          <Sidebar />
++        </SheetContent>
++      </Sheet>
+       
+       <div className="flex-1 flex flex-col overflow-hidden">
+-        <TopBar />
++        <TopBar onMenuClick={() => setMobileMenuOpen(true)} />
+         
+         <main className="flex-1 overflow-y-auto">
+-          <div className="p-8">
+-            <div className="mb-8">
+-              <h1 className="text-3xl font-bold mb-2">My Games</h1>
+-              <p className="text-muted-foreground">Your gaming library</p>
++          <div className="p-4 md:p-8">
++            <div className="mb-6 md:mb-8">
++              <h1 className="text-2xl md:text-3xl font-bold mb-2">My Games</h1>
++              <p className="text-muted-foreground text-sm md:text-base">Your gaming library</p>
+             </div>
+             
+-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
++            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+               {games.map((game) => (
+                 <GameCard
+                   key={game.title}

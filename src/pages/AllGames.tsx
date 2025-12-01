@@ -10,7 +10,7 @@ const LoadingCards = () => {
     console.debug("[hub] Rendering loading skeletons for AllGames");
   }
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
       {Array.from({ length: 10 }).map((_, index) => (
         <div key={index} className="rounded-lg bg-game-card overflow-hidden">
           <div className="aspect-[3/4]">
@@ -84,12 +84,12 @@ const AllGames = () => {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">My Games</h1>
-        <p className="text-muted-foreground">Your gaming library</p>
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">My Games</h1>
+        <p className="text-muted-foreground text-sm md:text-base">Your gaming library</p>
       </div>
       
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
         {games.map((game) => {
           if (DEBUG) {
             console.debug("[hub] Rendering tile", {
