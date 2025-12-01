@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGameRegistry } from "@/games/registry";
 import GameCard from "@/components/GameCard";
@@ -13,11 +14,21 @@ const LoadingCards = () => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
       {Array.from({ length: 10 }).map((_, index) => (
-        <div key={index} className="rounded-lg bg-game-card overflow-hidden">
+        <motion.div
+          key={index}
+          className="rounded-lg bg-game-card overflow-hidden"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{
+            duration: 0.3,
+            delay: index * 0.05,
+            ease: "easeOut"
+          }}
+        >
           <div className="aspect-[3/4]">
-            <Skeleton className="h-full w-full" />
+            <Skeleton className="h-full w-full animate-pulse" />
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
   );
@@ -95,53 +106,139 @@ const AllGames = () => {
 
   const errorMessage = error instanceof Error ? error.message : error ? "Unable to load CMS registry" : null;
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 20,
+      scale: 0.95
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.4,
+        ease: [0.22, 1, 0.36, 1] // Custom easing for smooth animation
+      }
+    }
+  };
+
+  const headerVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: -20 
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: [0.22, 1, 0.36, 1]
+      }
+    }
+  };
+
   return (
     <div>
-      <div className="mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">My Games</h1>
-        <p className="text-muted-foreground text-sm md:text-base">Your gaming library</p>
-      </div>
+      <motion.div 
+        className="mb-6 md:mb-8"
+        variants={headerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.h1 
+          className="text-2xl md:text-3xl font-bold mb-2"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          My Games
+        </motion.h1>
+        <motion.p 
+          className="text-muted-foreground text-sm md:text-base"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          Your gaming library
+        </motion.p>
+      </motion.div>
       
       {/* Mobile Path View */}
       {isMobile ? (
-        <MobileGamePath
-          games={games}
-          lastPlayedMap={lastPlayedMap}
-          onPlay={(gameId) => {
-            setLastPlayedMap(prev => ({
-              ...prev,
-              [gameId]: "just now"
-            }));
-          }}
-        />
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+        >
+          <MobileGamePath
+            games={games}
+            lastPlayedMap={lastPlayedMap}
+            onPlay={(gameId) => {
+              setLastPlayedMap(prev => ({
+                ...prev,
+                [gameId]: "just now"
+              }));
+            }}
+          />
+        </motion.div>
       ) : (
         /* Desktop Grid View */
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-          {games.map((game) => {
-            if (DEBUG) {
-              console.debug("[hub] Rendering tile", {
-                id: game.id,
-                status: game.status,
-                enabled: game.isEnabled,
-                route: game.derivedRoute,
-              });
-            }
-            return (
-              <GameCard
-                key={game.id}
-                game={game}
-                lastPlayed={lastPlayedMap[game.id]}
-                onPlay={(gameId) => {
-                  // Update last played map immediately for UI feedback
-                  setLastPlayedMap(prev => ({
-                    ...prev,
-                    [gameId]: "just now"
-                  }));
-                }}
-              />
-            );
-          })}
-        </div>
+        <motion.div 
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <AnimatePresence mode="popLayout">
+            {games.map((game, index) => {
+              if (DEBUG) {
+                console.debug("[hub] Rendering tile", {
+                  id: game.id,
+                  status: game.status,
+                  enabled: game.isEnabled,
+                  route: game.derivedRoute,
+                });
+              }
+              return (
+                <motion.div
+                  key={game.id}
+                  variants={itemVariants}
+                  layout
+                  whileHover={{ 
+                    scale: 1.02,
+                    transition: { duration: 0.2 }
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <GameCard
+                    game={game}
+                    lastPlayed={lastPlayedMap[game.id]}
+                    onPlay={(gameId) => {
+                      // Update last played map immediately for UI feedback
+                      setLastPlayedMap(prev => ({
+                        ...prev,
+                        [gameId]: "just now"
+                      }));
+                    }}
+                  />
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </motion.div>
       )}
     </div>
   );

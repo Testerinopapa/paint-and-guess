@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Play, Check, Lock } from "lucide-react";
 import type { HubGame } from "@/games/registry";
@@ -37,29 +38,86 @@ const MobileGamePath = ({ games, lastPlayedMap, onPlay }: MobileGamePathProps) =
     setImageErrors(prev => new Set(prev).add(gameId));
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const unitVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        ease: [0.22, 1, 0.36, 1]
+      }
+    }
+  };
+
+  const gameItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.3,
+        ease: [0.22, 1, 0.36, 1]
+      }
+    }
+  };
+
   return (
-    <div className="space-y-8">
+    <motion.div 
+      className="space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {Object.entries(groupedGames).map(([category, categoryGames], categoryIndex) => {
         const firstUnplayedIndex = categoryGames.findIndex(game => !lastPlayedMap[game.id] && game.isEnabled);
         
         return (
-          <div key={category} className="space-y-4">
+          <motion.div 
+            key={category} 
+            className="space-y-4"
+            variants={unitVariants}
+          >
             {/* Unit Header */}
-            <div className="flex items-center justify-between">
+            <motion.div 
+              className="flex items-center justify-between"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: categoryIndex * 0.1 }}
+            >
               <div>
                 <h2 className="text-xl font-bold">Unit {categoryIndex + 1}</h2>
                 <p className="text-sm text-muted-foreground capitalize">{category} games</p>
               </div>
-            </div>
+            </motion.div>
 
             {/* Path Container */}
             <div className="relative pl-8">
               {/* Vertical Path Line */}
-              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
+              <motion.div 
+                className="absolute left-4 top-0 bottom-0 w-0.5 bg-border"
+                initial={{ scaleY: 0 }}
+                animate={{ scaleY: 1 }}
+                transition={{ duration: 0.5, delay: categoryIndex * 0.1 + 0.2, ease: "easeOut" }}
+                style={{ transformOrigin: "top" }}
+              />
               
               {/* Game Nodes */}
               <div className="space-y-6">
-                {categoryGames.map((game, gameIndex) => {
+                <AnimatePresence>
+                  {categoryGames.map((game, gameIndex) => {
                   const hasPlayed = lastPlayedMap[game.id];
                   const isCurrent = gameIndex === firstUnplayedIndex && game.isEnabled;
                   const isLocked = !game.isEnabled;
@@ -70,20 +128,58 @@ const MobileGamePath = ({ games, lastPlayedMap, onPlay }: MobileGamePathProps) =
                   const hasError = imageErrors.has(game.id);
 
                   return (
-                    <div key={game.id} className="relative flex items-center gap-4">
+                    <motion.div 
+                      key={game.id} 
+                      className="relative flex items-center gap-4"
+                      variants={gameItemVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="hidden"
+                      whileTap={{ scale: 0.98 }}
+                    >
                       {/* Path Node */}
-                      <div className="relative z-10 flex-shrink-0">
+                      <motion.div 
+                        className="relative z-10 flex-shrink-0"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ 
+                          duration: 0.3, 
+                          delay: categoryIndex * 0.1 + gameIndex * 0.05 + 0.3,
+                          type: "spring",
+                          stiffness: 200,
+                          damping: 15
+                        }}
+                      >
                         {hasPlayed ? (
-                          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                          <motion.div 
+                            className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg"
+                            whileHover={{ scale: 1.1 }}
+                            transition={{ duration: 0.2 }}
+                          >
                             <Check className="w-6 h-6 text-primary-foreground" />
-                          </div>
+                          </motion.div>
                         ) : isCurrent ? (
-                          <button
+                          <motion.button
                             onClick={() => handlePlay(game)}
-                            className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+                            className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg"
+                            whileHover={{ scale: 1.15 }}
+                            whileTap={{ scale: 0.95 }}
+                            animate={{ 
+                              scale: [1, 1.05, 1],
+                            }}
+                            transition={{ 
+                              hover: { duration: 0.2 },
+                              tap: { duration: 0.1 },
+                              animate: { 
+                                duration: 2,
+                                repeat: Infinity,
+                                repeatType: "reverse",
+                                ease: "easeInOut"
+                              }
+                            }}
                           >
                             <Play className="w-6 h-6 text-primary-foreground fill-current" />
-                          </button>
+                          </motion.button>
                         ) : isLocked ? (
                           <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
                             <Lock className="w-6 h-6 text-muted-foreground" />
@@ -93,14 +189,25 @@ const MobileGamePath = ({ games, lastPlayedMap, onPlay }: MobileGamePathProps) =
                             <div className="w-6 h-6 rounded-full bg-muted" />
                           </div>
                         )}
-                      </div>
+                      </motion.div>
 
                       {/* Game Card */}
-                      <div
+                      <motion.div
                         onClick={() => !isLocked && handlePlay(game)}
                         className={`flex-1 flex items-center gap-3 p-3 rounded-lg bg-card border border-border ${
                           isCurrent ? 'ring-2 ring-primary' : ''
-                        } ${!isLocked ? 'cursor-pointer hover:bg-secondary transition-colors' : 'opacity-60'}`}
+                        } ${!isLocked ? 'cursor-pointer' : 'opacity-60'}`}
+                        whileHover={!isLocked ? { 
+                          backgroundColor: "hsl(var(--secondary))",
+                          x: 4,
+                          transition: { duration: 0.2 }
+                        } : {}}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ 
+                          duration: 0.3,
+                          delay: categoryIndex * 0.1 + gameIndex * 0.05 + 0.3
+                        }}
                       >
                         {/* Game Image/Icon */}
                         <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-game-card">
@@ -141,16 +248,17 @@ const MobileGamePath = ({ games, lastPlayedMap, onPlay }: MobileGamePathProps) =
                             </span>
                           </div>
                         )}
-                      </div>
-                    </div>
+                      </motion.div>
+                    </motion.div>
                   );
                 })}
+                </AnimatePresence>
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 };
 
