@@ -14,10 +14,12 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
   const [imageError, setImageError] = useState(false);
   
   // Use background image if available, fallback to thumbnail
-  // Ensure path starts with / for absolute path from root
-  const cardImage = (game.assets.background || game.assets.thumbnail)?.startsWith('/') 
-    ? (game.assets.background || game.assets.thumbnail)
-    : `/${game.assets.background || game.assets.thumbnail}`;
+  // Use BASE_URL to ensure correct path resolution in all deployment environments
+  const imagePath = game.assets.background || game.assets.thumbnail || '';
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  // Remove leading slash from path since BASE_URL already provides the root
+  const normalizedPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
+  const cardImage = `${baseUrl}${normalizedPath}`;
 
   // Reset error state when image source changes
   useEffect(() => {
