@@ -1,36 +1,75 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, UserPlus, Users } from "lucide-react";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { AvatarPreview } from "@/games/paint-and-guess/components/avatar/preview";
+import { AvatarConfig, createDefaultAvatarConfig, generateAvatarId } from "@/lib/avatar/config";
 
 interface Friend {
   id: string;
   name: string;
   level: number;
   status: "online" | "offline" | "in-game";
-  avatar: string;
+  avatarConfig: AvatarConfig;
   currentGame?: string;
 }
+
+/**
+ * Generate a deterministic avatar config from a friend's name
+ * Uses the name as a seed to create consistent avatars
+ */
+const generateFriendAvatarConfig = (name: string): AvatarConfig => {
+  const config = createDefaultAvatarConfig();
+  
+  // Use name as seed for deterministic generation
+  // This ensures the same name always produces the same avatar
+  const seed = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  
+  // Generate deterministic values based on name hash
+  const hash = seed.split('').reduce((acc, char) => {
+    return ((acc << 5) - acc) + char.charCodeAt(0);
+  }, 0);
+  
+  // Set name
+  config.name = name;
+  
+  // Generate deterministic skin tone (use hash to pick from presets)
+  const skinTones = ['#FFDBAC', '#F1C27D', '#E0AC69', '#C68642', '#8D5524', '#654321'];
+  config.skinTone = skinTones[Math.abs(hash) % skinTones.length];
+  
+  // Generate deterministic hair color
+  const hairColors = ['#000000', '#3B3024', '#654321', '#8B4513', '#A0522D', '#D2691E', '#FFD700', '#FF69B4'];
+  config.hair.color = hairColors[Math.abs(hash * 2) % hairColors.length];
+  
+  // Generate deterministic clothing color
+  const clothingColors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4'];
+  config.clothes.color = clothingColors[Math.abs(hash * 3) % clothingColors.length];
+  
+  // Generate ID from config
+  config.id = generateAvatarId(config);
+  
+  return config;
+};
 
 const Friends = () => {
   const isMobile = useIsMobile();
   
-  const featuredFriends: Friend[] = [
-    { id: "1", name: "YETI", level: 4, status: "online", avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop" },
-    { id: "2", name: "HOLLYWOOD", level: 7, status: "in-game", avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=150&h=150&fit=crop", currentGame: "Counter-Strike" },
-    { id: "3", name: "FORTUNE", level: 7, status: "online", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop" },
-  ];
+  // Generate avatar configs for friends
+  const featuredFriends: Friend[] = useMemo(() => [
+    { id: "1", name: "YETI", level: 4, status: "online", avatarConfig: generateFriendAvatarConfig("YETI") },
+    { id: "2", name: "HOLLYWOOD", level: 7, status: "in-game", avatarConfig: generateFriendAvatarConfig("HOLLYWOOD"), currentGame: "Counter-Strike" },
+    { id: "3", name: "FORTUNE", level: 7, status: "online", avatarConfig: generateFriendAvatarConfig("FORTUNE") },
+  ], []);
 
-  const allFriends: Friend[] = [
+  const allFriends: Friend[] = useMemo(() => [
     ...featuredFriends,
-    { id: "4", name: "STRIKER", level: 12, status: "in-game", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=150&h=150&fit=crop", currentGame: "Overwatch" },
-    { id: "5", name: "PHOENIX", level: 8, status: "online", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop" },
-    { id: "6", name: "SHADOW", level: 15, status: "offline", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop" },
-    { id: "7", name: "BLAZE", level: 6, status: "online", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop" },
-    { id: "8", name: "NOVA", level: 10, status: "in-game", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop", currentGame: "Rocket League" },
-  ];
+    { id: "4", name: "STRIKER", level: 12, status: "in-game", avatarConfig: generateFriendAvatarConfig("STRIKER"), currentGame: "Overwatch" },
+    { id: "5", name: "PHOENIX", level: 8, status: "online", avatarConfig: generateFriendAvatarConfig("PHOENIX") },
+    { id: "6", name: "SHADOW", level: 15, status: "offline", avatarConfig: generateFriendAvatarConfig("SHADOW") },
+    { id: "7", name: "BLAZE", level: 6, status: "online", avatarConfig: generateFriendAvatarConfig("BLAZE") },
+    { id: "8", name: "NOVA", level: 10, status: "in-game", avatarConfig: generateFriendAvatarConfig("NOVA"), currentGame: "Rocket League" },
+  ], [featuredFriends]);
 
   const getStatusColor = (status: Friend["status"]) => {
     switch (status) {
@@ -142,8 +181,13 @@ const Friends = () => {
                 whileHover={{ scale: index === 1 ? 1.15 : 1.05 }}
               >
                 <div className="relative mb-3 md:mb-4">
-                  <div className="w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 rounded-full border-4 border-primary/50 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20 shadow-2xl shadow-primary/30">
-                    <img src={friend.avatar} alt={friend.name} className="w-full h-full object-cover" />
+                  <div className="w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 rounded-full border-4 border-primary/50 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20 shadow-2xl shadow-primary/30 flex items-center justify-center">
+                    <AvatarPreview 
+                      config={friend.avatarConfig} 
+                      size={isMobile ? 64 : 128}
+                      className="w-full h-full"
+                      renderer="dicebear"
+                    />
                   </div>
                   <motion.div 
                     className={`absolute -bottom-1 -right-1 w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 rounded-full border-2 border-background ${getStatusColor(friend.status)}`}
@@ -236,11 +280,15 @@ const Friends = () => {
               whileTap={{ scale: 0.98 }}
             >
               <div className="flex items-center gap-3 md:gap-4">
-                <div className="relative">
-                  <Avatar className="w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 border-2 border-primary/30">
-                    <AvatarImage src={friend.avatar} alt={friend.name} />
-                    <AvatarFallback>{friend.name.slice(0, 2)}</AvatarFallback>
-                  </Avatar>
+                <div className="relative flex-shrink-0">
+                  <div className="w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 rounded-full border-2 border-primary/30 overflow-hidden bg-card flex items-center justify-center">
+                    <AvatarPreview 
+                      config={friend.avatarConfig} 
+                      size={isMobile ? 40 : 64}
+                      className="w-full h-full"
+                      renderer="dicebear"
+                    />
+                  </div>
                   <motion.div 
                     className={`absolute -bottom-1 -right-1 w-3 h-3 md:w-4 md:h-4 rounded-full border-2 border-card ${getStatusColor(friend.status)}`}
                     animate={{ 
