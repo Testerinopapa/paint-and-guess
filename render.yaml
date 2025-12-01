@@ -10,7 +10,7 @@ services:
       - key: NODE_VERSION
         value: 20
       - key: ALLOWED_ORIGINS
-        value: https://paint-and-guess-frontend.onrender.com
+        value: https://paint-and-guess-frontend.onrender.com,http://localhost:8080,http://localhost:3000
 
   - type: web
     name: paint-and-guess-frontend

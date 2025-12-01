@@ -1,96 +1,142 @@
-From dda8ece87ddae6cdcd89bd4f9a3d538236269bbc Mon Sep 17 00:00:00 2001
+From 38347727aa1af112bf02d9e83f8d1123457600e6 Mon Sep 17 00:00:00 2001
 From: "gpt-engineer-app[bot]"
  <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
-Date: Mon, 1 Dec 2025 02:21:48 +0000
+Date: Mon, 1 Dec 2025 05:14:47 +0000
 Subject: [PATCH] Changes
 
 ---
- src/components/TopBar.tsx | 27 +++++++++++++++++++--------
- src/pages/Index.tsx       | 28 +++++++++++++++++++++-------
- 2 files changed, 40 insertions(+), 15 deletions(-)
+ src/App.tsx                |   2 +
+ src/components/Sidebar.tsx |  25 +++--
+ src/pages/Friends.tsx      | 184 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 198 insertions(+), 13 deletions(-)
+ create mode 100644 src/pages/Friends.tsx
 
-diff --git a/src/components/TopBar.tsx b/src/components/TopBar.tsx
-index c220cab..40211e5 100644
---- a/src/components/TopBar.tsx
-+++ b/src/components/TopBar.tsx
-@@ -1,13 +1,20 @@
--import { Search, Bell, ChevronDown } from "lucide-react";
-+import { Search, Bell, ChevronDown, Menu } from "lucide-react";
- import { Input } from "./ui/input";
+diff --git a/src/App.tsx b/src/App.tsx
+index 18daf2e..2d0459d 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
+ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+ import { BrowserRouter, Routes, Route } from "react-router-dom";
+ import Index from "./pages/Index";
++import Friends from "./pages/Friends";
+ import NotFound from "./pages/NotFound";
  
--const TopBar = () => {
-+const TopBar = ({ onMenuClick }: { onMenuClick: () => void }) => {
-   const sections = ["My Games", "Store", "Community"];
+ const queryClient = new QueryClient();
+@@ -16,6 +17,7 @@ const App = () => (
+       <BrowserRouter>
+         <Routes>
+           <Route path="/" element={<Index />} />
++          <Route path="/friends" element={<Friends />} />
+           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+           <Route path="*" element={<NotFound />} />
+         </Routes>
+diff --git a/src/components/Sidebar.tsx b/src/components/Sidebar.tsx
+index e412d90..761ddb7 100644
+--- a/src/components/Sidebar.tsx
++++ b/src/components/Sidebar.tsx
+@@ -1,13 +1,14 @@
+ import { Home, Library, Clock, Star, Settings, TrendingUp, User } from "lucide-react";
++import { NavLink } from "./NavLink";
+ 
+ const Sidebar = () => {
+   const navItems = [
+-    { icon: Home, label: "Home", active: true },
+-    { icon: Library, label: "Library", active: false },
+-    { icon: Clock, label: "Recent", active: false },
+-    { icon: Star, label: "Favorites", active: false },
+-    { icon: TrendingUp, label: "Trending", active: false },
+-    { icon: User, label: "Friends", active: false },
++    { icon: Home, label: "Home", path: "/" },
++    { icon: Library, label: "Library", path: "/library" },
++    { icon: Clock, label: "Recent", path: "/recent" },
++    { icon: Star, label: "Favorites", path: "/favorites" },
++    { icon: TrendingUp, label: "Trending", path: "/trending" },
++    { icon: User, label: "Friends", path: "/friends" },
+   ];
  
    return (
--    <header className="h-16 bg-topbar-bg border-b border-border px-6 flex items-center justify-between">
--      <div className="flex items-center gap-8">
--        <nav className="flex items-center gap-6">
-+    <header className="h-16 bg-topbar-bg border-b border-border px-4 md:px-6 flex items-center justify-between gap-4">
-+      <div className="flex items-center gap-4">
-+        <button 
-+          onClick={onMenuClick}
-+          className="md:hidden p-2 rounded-lg text-foreground hover:bg-secondary transition-all"
-+        >
-+          <Menu className="w-5 h-5" />
-+        </button>
-+        
-+        <nav className="hidden md:flex items-center gap-6">
-           {sections.map((section, index) => (
-             <button
-               key={section}
-@@ -23,8 +30,8 @@ const TopBar = () => {
-         </nav>
-       </div>
+@@ -18,17 +19,15 @@ const Sidebar = () => {
+       
+       <nav className="flex flex-col gap-4">
+         {navItems.map((item) => (
+-          <button
++          <NavLink
+             key={item.label}
+-            className={`p-3 rounded-lg transition-all ${
+-              item.active
+-                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+-                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+-            }`}
++            to={item.path}
++            className="p-3 rounded-lg transition-all text-muted-foreground hover:text-foreground hover:bg-secondary"
++            activeClassName="!bg-primary !text-primary-foreground shadow-lg shadow-primary/30"
+             title={item.label}
+           >
+             <item.icon className="w-5 h-5" />
+-          </button>
++          </NavLink>
+         ))}
+       </nav>
  
--      <div className="flex items-center gap-4">
--        <div className="relative w-64">
-+      <div className="flex items-center gap-2 md:gap-4">
-+        <div className="relative w-32 sm:w-48 md:w-64">
-           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-           <Input
-             placeholder="Search games..."
-@@ -37,11 +44,15 @@ const TopBar = () => {
-           <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
-         </button>
- 
--        <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all">
-+        <button className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all">
-           <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full"></div>
-           <span className="text-sm font-medium text-foreground">Player</span>
-           <ChevronDown className="w-4 h-4 text-muted-foreground" />
-         </button>
-+        
-+        <button className="sm:hidden p-2">
-+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full"></div>
-+        </button>
-       </div>
-     </header>
-   );
-diff --git a/src/pages/Index.tsx b/src/pages/Index.tsx
-index 913d465..eb0ea65 100644
---- a/src/pages/Index.tsx
-+++ b/src/pages/Index.tsx
-@@ -1,8 +1,14 @@
+diff --git a/src/pages/Friends.tsx b/src/pages/Friends.tsx
+new file mode 100644
+index 0000000..7c5f3e7
+--- /dev/null
++++ b/src/pages/Friends.tsx
+@@ -0,0 +1,184 @@
 +import { useState } from "react";
- import Sidebar from "@/components/Sidebar";
- import TopBar from "@/components/TopBar";
- import GameCard from "@/components/GameCard";
-+import {
-+  Sheet,
-+  SheetContent,
-+} from "@/components/ui/sheet";
- 
- const Index = () => {
++import Sidebar from "@/components/Sidebar";
++import TopBar from "@/components/TopBar";
++import { Sheet, SheetContent } from "@/components/ui/sheet";
++import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
++import { Button } from "@/components/ui/button";
++import { MessageSquare, UserPlus, Users } from "lucide-react";
++
++interface Friend {
++  id: string;
++  name: string;
++  level: number;
++  status: "online" | "offline" | "in-game";
++  avatar: string;
++  currentGame?: string;
++}
++
++const Friends = () => {
 +  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-   const games = [
-     { title: "Astroneer", image: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400&h=600&fit=crop", lastPlayed: "2 hours ago" },
-     { title: "Battlerite", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=600&fit=crop", lastPlayed: "Yesterday" },
-@@ -17,19 +23,27 @@ const Index = () => {
- 
-   return (
-     <div className="flex h-screen bg-background text-foreground overflow-hidden">
--      <Sidebar />
++  
++  const featuredFriends: Friend[] = [
++    { id: "1", name: "YETI", level: 4, status: "online", avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop" },
++    { id: "2", name: "HOLLYWOOD", level: 7, status: "in-game", avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=150&h=150&fit=crop", currentGame: "Counter-Strike" },
++    { id: "3", name: "FORTUNE", level: 7, status: "online", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop" },
++  ];
++
++  const allFriends: Friend[] = [
++    ...featuredFriends,
++    { id: "4", name: "STRIKER", level: 12, status: "in-game", avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=150&h=150&fit=crop", currentGame: "Overwatch" },
++    { id: "5", name: "PHOENIX", level: 8, status: "online", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop" },
++    { id: "6", name: "SHADOW", level: 15, status: "offline", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop" },
++    { id: "7", name: "BLAZE", level: 6, status: "online", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop" },
++    { id: "8", name: "NOVA", level: 10, status: "in-game", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop", currentGame: "Rocket League" },
++  ];
++
++  const getStatusColor = (status: Friend["status"]) => {
++    switch (status) {
++      case "online": return "bg-green-500";
++      case "in-game": return "bg-primary";
++      case "offline": return "bg-muted-foreground";
++    }
++  };
++
++  const getStatusText = (friend: Friend) => {
++    if (friend.status === "in-game" && friend.currentGame) {
++      return `Playing ${friend.currentGame}`;
++    }
++    return friend.status.charAt(0).toUpperCase() + friend.status.slice(1);
++  };
++
++  return (
++    <div className="flex h-screen bg-background text-foreground overflow-hidden">
 +      <div className="hidden md:block">
 +        <Sidebar />
 +      </div>
@@ -100,24 +146,126 @@ index 913d465..eb0ea65 100644
 +          <Sidebar />
 +        </SheetContent>
 +      </Sheet>
-       
-       <div className="flex-1 flex flex-col overflow-hidden">
--        <TopBar />
++      
++      <div className="flex-1 flex flex-col overflow-hidden">
 +        <TopBar onMenuClick={() => setMobileMenuOpen(true)} />
-         
-         <main className="flex-1 overflow-y-auto">
--          <div className="p-8">
--            <div className="mb-8">
--              <h1 className="text-3xl font-bold mb-2">My Games</h1>
--              <p className="text-muted-foreground">Your gaming library</p>
++        
++        <main className="flex-1 overflow-y-auto">
 +          <div className="p-4 md:p-8">
++            {/* Header */}
 +            <div className="mb-6 md:mb-8">
-+              <h1 className="text-2xl md:text-3xl font-bold mb-2">My Games</h1>
-+              <p className="text-muted-foreground text-sm md:text-base">Your gaming library</p>
-             </div>
-             
--            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-               {games.map((game) => (
-                 <GameCard
-                   key={game.title}
++              <h1 className="text-2xl md:text-4xl font-bold mb-2 uppercase tracking-wider">Friends Squad</h1>
++              <p className="text-muted-foreground text-sm md:text-base">Assemble your gaming crew</p>
++            </div>
++
++            {/* Featured Friends Display */}
++            <div className="mb-8 relative">
++              <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-accent/10 to-transparent rounded-xl blur-2xl"></div>
++              <div className="relative bg-gradient-to-br from-secondary via-background to-secondary/50 rounded-xl border border-border/50 p-6 md:p-12">
++                <div className="absolute top-4 left-4 md:top-6 md:left-6">
++                  <h2 className="text-lg md:text-2xl font-bold text-muted-foreground uppercase tracking-widest italic">Operation: Squad Up</h2>
++                </div>
++                
++                <div className="flex justify-center items-end gap-4 md:gap-8 mt-12 md:mt-16 mb-8">
++                  {featuredFriends.map((friend, index) => (
++                    <div 
++                      key={friend.id} 
++                      className={`flex flex-col items-center ${index === 1 ? 'scale-110 md:scale-125' : ''}`}
++                    >
++                      <div className="relative mb-4">
++                        <div className="w-20 h-20 md:w-32 md:h-32 rounded-full border-4 border-primary/50 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20 shadow-2xl shadow-primary/30">
++                          <img src={friend.avatar} alt={friend.name} className="w-full h-full object-cover" />
++                        </div>
++                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-background ${getStatusColor(friend.status)}`}></div>
++                      </div>
++                      <div className="bg-gradient-to-r from-primary/80 to-accent/80 px-4 py-2 rounded-lg backdrop-blur-sm">
++                        <p className="font-bold text-white text-xs md:text-sm uppercase tracking-wider">{friend.name}</p>
++                        <p className="text-xs text-white/80">LV. {friend.level}</p>
++                      </div>
++                    </div>
++                  ))}
++                </div>
++
++                {/* Action Buttons */}
++                <div className="flex flex-col gap-3">
++                  <Button 
++                    size="lg"
++                    className="w-full h-12 md:h-14 text-base md:text-lg font-bold uppercase tracking-wider bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-amber-500/30"
++                  >
++                    <Users className="w-5 h-5 mr-2" />
++                    Form Squad
++                  </Button>
++                  <Button 
++                    size="lg"
++                    variant="outline"
++                    className="w-full h-12 md:h-14 text-base md:text-lg font-bold uppercase tracking-wider border-2 border-primary/50 bg-primary/10 hover:bg-primary/20 text-foreground"
++                  >
++                    Invite to Party
++                  </Button>
++                  <Button 
++                    size="lg"
++                    variant="outline"
++                    className="w-full h-12 md:h-14 text-base md:text-lg font-bold uppercase tracking-wider border-2 border-accent/50 bg-accent/10 hover:bg-accent/20 text-foreground"
++                  >
++                    <MessageSquare className="w-5 h-5 mr-2" />
++                    Group Chat
++                  </Button>
++                </div>
++              </div>
++            </div>
++
++            {/* All Friends List */}
++            <div>
++              <div className="flex items-center justify-between mb-4">
++                <h2 className="text-xl md:text-2xl font-bold">All Friends</h2>
++                <Button variant="outline" size="sm">
++                  <UserPlus className="w-4 h-4 mr-2" />
++                  Add Friend
++                </Button>
++              </div>
++
++              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
++                {allFriends.map((friend) => (
++                  <div 
++                    key={friend.id}
++                    className="group relative bg-card border border-border rounded-lg p-4 hover:border-primary/50 hover:bg-card/80 transition-all cursor-pointer"
++                  >
++                    <div className="flex items-center gap-4">
++                      <div className="relative">
++                        <Avatar className="w-12 h-12 md:w-16 md:h-16 border-2 border-primary/30">
++                          <AvatarImage src={friend.avatar} alt={friend.name} />
++                          <AvatarFallback>{friend.name.slice(0, 2)}</AvatarFallback>
++                        </Avatar>
++                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${getStatusColor(friend.status)}`}></div>
++                      </div>
++                      
++                      <div className="flex-1 min-w-0">
++                        <h3 className="font-bold text-sm md:text-base uppercase tracking-wide truncate">{friend.name}</h3>
++                        <p className="text-xs text-muted-foreground">Level {friend.level}</p>
++                        <p className={`text-xs mt-1 ${friend.status === 'in-game' ? 'text-primary' : 'text-muted-foreground'}`}>
++                          {getStatusText(friend)}
++                        </p>
++                      </div>
++                    </div>
++
++                    <div className="mt-3 flex gap-2">
++                      <Button size="sm" variant="outline" className="flex-1 text-xs">
++                        <MessageSquare className="w-3 h-3 mr-1" />
++                        Chat
++                      </Button>
++                      <Button size="sm" variant="outline" className="flex-1 text-xs">
++                        Invite
++                      </Button>
++                    </div>
++                  </div>
++                ))}
++              </div>
++            </div>
++          </div>
++        </main>
++      </div>
++    </div>
++  );
++};
++
++export default Friends;
