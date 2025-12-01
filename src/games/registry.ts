@@ -3,11 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { matchesTargeting, isFeatureEnabled } from "@/lib/featureFlags";
 import { fallbackRegistry } from "./registry/fallback";
 import { NormalizedGameEntry, RegistryResponse, registryResponseSchema } from "./registry/schema";
-import { getPaintPreviewComponent } from "@/games/paint-and-guess/hubEntry";
-import { getPingPongPreviewComponent } from "@/games/ping-pong/hubEntry";
-import { getRpgPreviewComponent } from "@/games/rpg/hubEntry";
-import { getTriviaBlitzPreviewComponent } from "@/games/trivia-blitz/hubEntry";
-import { getCanvaPreviewComponent } from "@/games/canva/hubEntry";
+import { getPaintPreviewComponent, getPaintPreviewEntry } from "@/games/paint-and-guess/hubEntry";
+import { getPingPongPreviewComponent, getPingPongPreviewEntry } from "@/games/ping-pong/hubEntry";
+import { getRpgPreviewComponent, getRpgPreviewEntry } from "@/games/rpg/hubEntry";
+import { getTriviaBlitzPreviewComponent, getTriviaBlitzPreviewEntry } from "@/games/trivia-blitz/hubEntry";
+import { getCanvaPreviewComponent, getCanvaPreviewEntry } from "@/games/canva/hubEntry";
 import { apiPath } from "@/config/api";
 
 const registryEndpoint = import.meta.env.VITE_GAME_REGISTRY_URL ?? apiPath("/api/games");
@@ -81,14 +81,37 @@ function normalizeRoutePath(path: string): string {
   return path;
 }
 
+// Map of game IDs to their local hubEntry functions for asset overrides
+const localHubEntries: Record<string, () => NormalizedGameEntry> = {
+  "trivia-blitz": getTriviaBlitzPreviewEntry,
+  "canva": getCanvaPreviewEntry,
+  "paint-and-guess": getPaintPreviewEntry,
+  "ping-pong": getPingPongPreviewEntry,
+  "chronicles-of-the-abyss": getRpgPreviewEntry, // RPG game ID
+};
+
 function attachPlugin(entry: NormalizedGameEntry): HubGame {
   debugLog("Attaching plugin metadata", { id: entry.id, status: entry.status, flagCount: entry.featureFlags.length });
+  
+  // Get local hubEntry if it exists to override assets
+  const localEntry = localHubEntries[entry.id]?.();
+  
+  // Merge assets: prefer local assets if they exist and provide better images
+  // (either have background image, or thumbnail is not placeholder)
+  const assets = localEntry?.assets && (
+    localEntry.assets.background || 
+    localEntry.assets.thumbnail !== "/placeholder.svg"
+  )
+    ? localEntry.assets
+    : entry.assets;
+  
   const displayName = localizeCopy(entry.name);
   const displayDescription = localizeCopy(entry.description);
   const navCategory = entry.navigation?.category ?? entry.category?.[0] ?? "uncategorized";
   const normalizedRoute = normalizeRoutePath(entry.route.path);
   return {
     ...entry,
+    assets, // Use merged/overridden assets
     displayName,
     displayDescription,
     derivedRoute: normalizedRoute,
