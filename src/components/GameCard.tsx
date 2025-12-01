@@ -64,7 +64,6 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
             src={cardImage} 
             alt={game.displayName}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-            loading="lazy"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               console.error(`[GameCard] Failed to load image for ${game.id}:`, {
