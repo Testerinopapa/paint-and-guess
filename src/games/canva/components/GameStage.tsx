@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { PlayerAvatar } from "./PlayerAvatar";
 import type { ChatMessage } from "../state/types";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { MobileGameStage } from "./MobileGameStage";
 
 interface GameStageProps {
   onLeaveRoom: () => void;
@@ -20,6 +22,7 @@ interface GuessEntry {
 }
 
 export function GameStage({ onLeaveRoom }: GameStageProps) {
+  const isMobile = useIsMobile();
   const { gameState, isDrawer, makeGuess, sendChatMessage, socket } = useCanva();
   const [guessInput, setGuessInput] = useState("");
   const [chatInput, setChatInput] = useState("");
@@ -27,6 +30,11 @@ export function GameStage({ onLeaveRoom }: GameStageProps) {
   const [guessHistory, setGuessHistory] = useState<GuessEntry[]>([]);
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const guessHistoryEndRef = useRef<HTMLDivElement>(null);
+
+  // Use mobile layout on mobile devices
+  if (isMobile) {
+    return <MobileGameStage onLeaveRoom={onLeaveRoom} />;
+  }
 
   // Determine if input should be used for guessing or chatting
   const isGuessingMode = !isDrawer && gameState.isGameActive && gameState.isRoundActive && !gameState.currentWord;

@@ -14,13 +14,45 @@ const FLUSH_INTERVAL_MS = 8;
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 
-export function CanvaCanvas() {
+interface CanvaCanvasProps {
+  color?: string;
+  brushSize?: number;
+  onColorChange?: (color: string) => void;
+  onBrushSizeChange?: (size: number) => void;
+}
+
+export function CanvaCanvas({ 
+  color: externalColor, 
+  brushSize: externalBrushSize,
+  onColorChange,
+  onBrushSizeChange,
+}: CanvaCanvasProps = {} as CanvaCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<FabricCanvas | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { socket, gameState, isDrawer } = useCanva();
-  const [color, setColor] = useState("#000000");
-  const [brushSize, setBrushSize] = useState(5);
+  const [internalColor, setInternalColor] = useState("#000000");
+  const [internalBrushSize, setInternalBrushSize] = useState(5);
+  
+  // Use external props if provided, otherwise use internal state
+  const color = externalColor ?? internalColor;
+  const brushSize = externalBrushSize ?? internalBrushSize;
+  
+  const setColor = (newColor: string) => {
+    if (onColorChange) {
+      onColorChange(newColor);
+    } else {
+      setInternalColor(newColor);
+    }
+  };
+  
+  const setBrushSize = (newSize: number) => {
+    if (onBrushSizeChange) {
+      onBrushSizeChange(newSize);
+    } else {
+      setInternalBrushSize(newSize);
+    }
+  };
   
   // Determine if drawing should be enabled
   // Allow drawing if: game not active (free draw mode) OR (game active AND is drawer AND round active)
