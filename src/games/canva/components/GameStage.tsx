@@ -10,16 +10,6 @@ import type { ChatMessage } from "../state/types";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { MobileGameStage } from "./MobileGameStage";
 
-// Separate component for desktop layout to avoid hook order issues
-function DesktopGameStage({ onLeaveRoom }: GameStageProps) {
-  const { gameState, isDrawer, makeGuess, sendChatMessage, socket } = useCanva();
-  const [guessInput, setGuessInput] = useState("");
-  const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [guessHistory, setGuessHistory] = useState<GuessEntry[]>([]);
-  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
-  const guessHistoryEndRef = useRef<HTMLDivElement>(null);
-
 interface GameStageProps {
   onLeaveRoom: () => void;
 }
