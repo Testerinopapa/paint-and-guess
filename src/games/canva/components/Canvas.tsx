@@ -459,15 +459,6 @@ export function CanvaCanvas({
           originY: 'top',
         };
         
-          pathId: localPathId,
-          totalPoints: localPathPoints.length,
-          firstPoint: localPathPoints[0],
-          lastPoint: localPathPoints[localPathPoints.length - 1],
-          pathDataFirstCommands: fabricPath.slice(0, 3),
-          pathDataLeft: pathData.left,
-          pathDataTop: pathData.top,
-        });
-        
         sendDrawingEvent({
           type: "path-complete",
           pathId: localPathId,
