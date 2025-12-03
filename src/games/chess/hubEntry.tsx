@@ -16,7 +16,8 @@ export function getChessPreviewEntry(): NormalizedGameEntry {
     category: ["strategy", "board"],
     badges: ["new"],
     assets: {
-      thumbnail: "/placeholder.svg",
+      thumbnail: "/games/chess-card.png",
+      background: "/games/chess-card.png",
     },
     navigation: {
       category: "strategy",
