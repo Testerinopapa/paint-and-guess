@@ -16,6 +16,7 @@ import TriviaBlitzLobby from "@/games/trivia-blitz/pages/Lobby";
 import TriviaBlitzRoom from "@/games/trivia-blitz/pages/Room";
 import { TriviaBlitzApp } from "@/games/trivia-blitz/pages/TriviaBlitzApp";
 import { CanvaLobby, CanvaRoom, CanvaApp } from "@/games/canva";
+import ChessIndex from "@/games/chess/pages/Index";
 
 const AppRoutes = () => {
   return (
@@ -60,6 +61,9 @@ const AppRoutes = () => {
           <Route path="canva" element={<CanvaApp />}>
             <Route index element={<CanvaLobby />} />
             <Route path="room/:roomId" element={<CanvaRoom />} />
+          </Route>
+          <Route path="chess">
+            <Route index element={<ChessIndex />} />
           </Route>
         </Route>
       </Route>

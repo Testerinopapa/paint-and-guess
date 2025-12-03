@@ -204,6 +204,29 @@ const fallbackRegistry = registrySchema.parse({
         priority: 85,
       },
     },
+    {
+      id: "chess",
+      version: "1.0.0",
+      name: { default: "Chess" },
+      description: { default: "Play chess with friends or analyze your games with Stockfish. Import PGN files or play live matches with real-time analysis." },
+      status: "stable",
+      supportedPlayers: { min: 1, max: 2, recommended: 2 },
+      monetization: "free",
+      category: ["strategy", "board"],
+      badges: ["new"],
+      assets: { thumbnail: "/placeholder.svg" },
+      featureFlags: [],
+      visibleIf: ["public"],
+      route: { slug: "chess" },
+      plugin: {
+        previewComponent: "chessPreview",
+        moduleId: "@/games/chess",
+      },
+      navigation: {
+        category: "strategy",
+        priority: 95,
+      },
+    },
   ],
 });
 
