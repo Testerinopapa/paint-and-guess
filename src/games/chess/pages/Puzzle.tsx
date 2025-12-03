@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { PuzzleProvider, usePuzzle } from "../state/PuzzleContext";
-import { ChessBoard } from "../components/ChessBoard";
+import { PuzzleBoard } from "../components/PuzzleBoard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -104,9 +104,11 @@ function PuzzleContent() {
                   </div>
 
                   <div className="flex justify-center">
-                    <ChessBoard 
+                    <PuzzleBoard 
+                      fen={currentFen}
                       orientation={puzzleState.currentPuzzle.fen.includes(" w ") ? "white" : "black"}
                       onMove={handleMove}
+                      disabled={puzzleState.isSolved}
                     />
                   </div>
 

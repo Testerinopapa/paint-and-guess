@@ -49,21 +49,26 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         const response = await fetch(apiPath(`/api/puzzles/random?${params.toString()}`));
         if (response.ok) {
           const data = await response.json();
-          if (data) {
+          if (data && data.id) {
             // Convert API puzzle format to our Puzzle type
+            const solutionPv = JSON.parse(data.solutionPv || "[]");
             puzzle = {
               id: data.id,
               fen: data.fen,
-              solution: JSON.parse(data.solutionPv || "[]"),
-              moves: JSON.parse(data.solutionPv || "[]").length,
+              solution: solutionPv,
+              moves: solutionPv.length,
               difficulty: difficulty || "medium",
               motifs: JSON.parse(data.motifs || "[]"),
               rating: data.rating || undefined,
             };
           }
+        } else if (response.status !== 404) {
+          // 404 is expected if no puzzles, but other errors should be logged
+          console.warn("API puzzle fetch returned status:", response.status);
         }
       } catch (error) {
-        console.warn("API puzzle fetch failed, using sample puzzles", error);
+        // Silently fall back to sample puzzles
+        console.debug("API puzzle fetch failed, using sample puzzles", error);
       }
 
       // Fallback to sample puzzles
@@ -120,13 +125,35 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const recordAttempt = useCallback(async (puzzleId: string, solved: boolean, mistakesCount: number) => {
+    try {
+      const response = await fetch(apiPath("/api/puzzles/attempt"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          puzzleId,
+          timeMs: 0,
+          mistakes: mistakesCount,
+          solved,
+        }),
+      });
+      if (!response.ok) {
+        console.debug("Failed to record attempt:", response.status);
+      }
+    } catch (error) {
+      console.debug("Error recording attempt:", error);
+    }
+  }, []);
+
   const makeMove = useCallback((from: string, to: string): boolean => {
     if (!game || !puzzleState.currentPuzzle || puzzleState.isSolved || puzzleState.isFailed) {
       return false;
     }
 
     try {
-      const move = game.move({ from, to });
+      // Create a copy of the game to test the move
+      const testGame = new Chess(game.fen());
+      const move = testGame.move({ from, to });
       if (!move) {
         return false;
       }
@@ -134,9 +161,13 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       const userMoveUci = `${from}${to}${move.promotion || ""}`;
       const expectedMove = solutionMoves[puzzleState.currentMoveIndex];
 
+      if (!expectedMove) {
+        return false;
+      }
+
       // Normalize moves (ignore promotion suffix for comparison)
       const normalizedUser = userMoveUci.slice(0, 4);
-      const normalizedExpected = expectedMove?.slice(0, 4) || "";
+      const normalizedExpected = expectedMove.slice(0, 4);
 
       if (normalizedUser === normalizedExpected) {
         // Correct move!
@@ -144,30 +175,36 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         const newMoveIndex = puzzleState.currentMoveIndex + 1;
         const isComplete = newMoveIndex >= solutionMoves.length;
 
-        setUserMoves(newUserMoves);
+        // Apply the move to the actual game
+        const updatedGame = new Chess(game.fen());
+        updatedGame.move({ from, to, promotion: move.promotion });
         
         // Auto-play opponent reply if not complete
-        if (!isComplete && game) {
+        if (!isComplete) {
           const opponentMoveUci = solutionMoves[newMoveIndex];
-          if (opponentMoveUci) {
+          if (opponentMoveUci && opponentMoveUci.length >= 4) {
             const oppFrom = opponentMoveUci.slice(0, 2);
             const oppTo = opponentMoveUci.slice(2, 4);
-            const oppPromotion = opponentMoveUci.slice(4, 5);
+            const oppPromotion = opponentMoveUci.length > 4 ? opponentMoveUci.slice(4, 5) : undefined;
             
             try {
-              const oppMove = game.move({
+              const oppMove = updatedGame.move({
                 from: oppFrom,
                 to: oppTo,
                 promotion: oppPromotion as "q" | "r" | "b" | "n" | undefined,
               });
-              if (oppMove) {
-                setGame(new Chess(game.fen()));
+              if (!oppMove) {
+                console.warn("Failed to auto-play opponent move:", opponentMoveUci);
               }
             } catch (e) {
-              console.error("Error auto-playing opponent move:", e);
+              console.warn("Error auto-playing opponent move:", e, opponentMoveUci);
             }
           }
         }
+
+        // Update game state
+        setGame(updatedGame);
+        setUserMoves(newUserMoves);
 
         setPuzzleState((prev) => ({
           ...prev,
@@ -185,7 +222,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
 
         // Record attempt if solved
         if (isComplete) {
-          recordAttempt(puzzleState.currentPuzzle!.id, true, mistakes);
+          recordAttempt(puzzleState.currentPuzzle.id, true, mistakes);
         }
 
         return true;
@@ -205,15 +242,13 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
             : null,
         }));
 
-        // Undo the move
-        game.undo();
         return false;
       }
     } catch (error) {
       console.error("Error making move:", error);
       return false;
     }
-  }, [game, puzzleState, solutionMoves, userMoves, mistakes]);
+  }, [game, puzzleState, solutionMoves, userMoves, mistakes, recordAttempt]);
 
   const getHint = useCallback((): string | null => {
     if (!puzzleState.currentPuzzle || puzzleState.isSolved) {
@@ -281,22 +316,6 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     await loadPuzzle(difficulty, motif);
   }, [puzzleState.currentPuzzle, loadPuzzle]);
 
-  const recordAttempt = async (puzzleId: string, solved: boolean, mistakesCount: number) => {
-    try {
-      await fetch(apiPath("/api/puzzles/attempt"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          puzzleId,
-          timeMs: 0, // Could track time if needed
-          mistakes: mistakesCount,
-          solved,
-        }),
-      });
-    } catch (error) {
-      console.error("Error recording attempt:", error);
-    }
-  };
 
   return (
     <PuzzleContext.Provider
