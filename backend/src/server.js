@@ -14,6 +14,7 @@ import { TriviaRoomRepository } from "./triviaRoomRepository.js";
 import { getSampleQuestions, getQuestionsByQuizId, QUIZZES } from "./triviaQuestions.js";
 import { canvaRoomRepository } from "./canvaRoomRepository.js";
 import authRoutes from "./auth/routes.js";
+import puzzleRoutes from "./puzzleRoutes.js";
 
 const LOG_LEVELS = {
   error: 0,
@@ -139,6 +140,9 @@ app.use(express.json());
 
 // Authentication routes
 app.use("/api/auth", authRoutes);
+
+// Puzzle routes
+app.use("/api/puzzles", puzzleRoutes);
 
 app.get("/api/games", async (req, res) => {
   try {

@@ -41,3 +41,8 @@ backend/prisma/data/
 rooms.db
 *.db
 *.db-journal
+
+# Large puzzle database files
+*.zst
+lichess_db_puzzle.csv*
+Zone.Identifier

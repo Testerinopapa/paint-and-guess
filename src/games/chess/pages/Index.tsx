@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import PlayPage from "./Play";
 import AnalyzePage from "./Analyze";
+import PuzzlePage from "./Puzzle";
 
 export default function ChessIndex() {
   const [gameMode, setGameMode] = useState<"play" | "analyze" | "puzzles">("play");
@@ -36,22 +37,7 @@ export default function ChessIndex() {
             </TabsContent>
             
             <TabsContent value="puzzles" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Chess Puzzles</CardTitle>
-                  <CardDescription>Solve tactical puzzles to improve your chess skills</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex gap-4">
-                    <Button size="lg">Random Puzzle</Button>
-                    <Button size="lg" variant="outline">Filter by Difficulty</Button>
-                    <Button size="lg" variant="outline">Filter by Motif</Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Puzzle mode coming soon. This will include difficulty levels and motif filtering (tactics, endgames, etc.).
-                  </p>
-                </CardContent>
-              </Card>
+              <PuzzlePage />
             </TabsContent>
           </Tabs>
         </CardContent>
