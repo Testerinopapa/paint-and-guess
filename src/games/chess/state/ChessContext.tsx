@@ -212,4 +212,3 @@ export function useChess() {
   }
   return context;
 }
-
