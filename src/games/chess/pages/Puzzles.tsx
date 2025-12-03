@@ -92,12 +92,12 @@ function PuzzlesContent() {
 
             <div className="space-y-2">
               <Label htmlFor="motif">Motif (Optional)</Label>
-              <Select value={motif} onValueChange={setMotif}>
+              <Select value={motif || "all"} onValueChange={(v) => setMotif(v === "all" ? "" : v)}>
                 <SelectTrigger id="motif">
                   <SelectValue placeholder="All motifs" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All motifs</SelectItem>
+                  <SelectItem value="all">All motifs</SelectItem>
                   {MOTIFS.map((m) => (
                     <SelectItem key={m} value={m}>
                       {m}
