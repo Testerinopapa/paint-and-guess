@@ -127,9 +127,6 @@ async function fetchRegistryFromCms(): Promise<RegistryResponse> {
 function getFreshRegistry(): Promise<RegistryResponse> {
   const now = Date.now();
   if (cachedRegistry && now - cacheTimestamp < CACHE_TTL_MS) {
-      age: `${now - cacheTimestamp}ms`,
-      entryCount: cachedRegistry.entries.length,
-    });
     return Promise.resolve(cachedRegistry);
   }
 
