@@ -210,13 +210,6 @@ const fallbackRegistry = registrySchema.parse({
 let cachedRegistry = null;
 let cachedAt = 0;
 const CACHE_TTL_MS = 60_000;
-const DEBUG = process.env.LOG_LEVEL === "debug" || process.env.NODE_ENV === "development";
-
-function debugLog(message, ...args) {
-  if (DEBUG) {
-    console.debug(`[GameRegistry] ${message}`, ...args);
-  }
-}
 
 async function loadGitRegistry() {
   try {
@@ -232,7 +225,6 @@ async function loadGitRegistry() {
 async function getRegistryInternal(forceRefresh = false) {
   const now = Date.now();
   if (!forceRefresh && cachedRegistry && now - cachedAt < CACHE_TTL_MS) {
-    debugLog("Serving registry from cache", { source: cachedRegistry.source, age: `${now - cachedAt}ms` });
     return cachedRegistry;
   }
 
@@ -243,10 +235,6 @@ async function getRegistryInternal(forceRefresh = false) {
   const registry = await loadGitRegistry();
   cachedRegistry = registry;
   cachedAt = now;
-  debugLog("Registry cached", {
-    entryCount: registry.entries.length,
-    entryIds: registry.entries.map((entry) => entry.id),
-  });
   return registry;
 }
 

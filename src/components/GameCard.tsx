@@ -33,7 +33,6 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
   // Debug logging (remove in production)
   useEffect(() => {
     if (import.meta.env.DEV) {
-      console.log(`[GameCard] ${game.id} - Image: ${cardImage}, Error: ${imageError}`);
     }
   }, [game.id, cardImage, imageError]);
 
@@ -94,11 +93,7 @@ const GameCard = ({ game, lastPlayed, onPlay }: GameCardProps) => {
               });
               setImageError(true);
             }}
-            onLoad={() => {
-              if (import.meta.env.DEV) {
-                console.log(`[GameCard] Successfully loaded image for ${game.id}:`, cardImage);
-              }
-            }}
+            onLoad={() => {}}
           />
         ) : (
           <div className="absolute inset-0 w-full h-full bg-muted flex items-center justify-center">

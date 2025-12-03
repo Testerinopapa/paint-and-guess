@@ -118,7 +118,6 @@ export function CanvaCanvas({
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    console.log("[CanvaCanvas] Initializing canvas...");
 
     const canvasElement = canvasRef.current;
     
@@ -141,35 +140,7 @@ export function CanvaCanvas({
     // CRITICAL: Calculate canvas offset - without this, getPointer() returns wrong coordinates
     // This accounts for the canvas element's position on the page (offsetTop/offsetLeft)
     
-    // Debug: Get canvas element position before calcOffset
-    const rectBefore = canvasElement.getBoundingClientRect();
-    console.log("[CanvaCanvas] Before calcOffset() - DOM element position:", {
-      left: rectBefore.left,
-      top: rectBefore.top,
-      width: rectBefore.width,
-      height: rectBefore.height,
-      offsetLeft: canvasElement.offsetLeft,
-      offsetTop: canvasElement.offsetTop,
-    });
-    
     canvas.calcOffset();
-    
-    // Debug: Get Fabric's calculated offset values
-    const fabricOffset = (canvas as any)._offset;
-    console.log("[CanvaCanvas] After calcOffset() - Fabric offset:", {
-      left: fabricOffset?.left,
-      top: fabricOffset?.top,
-    });
-    
-    // Debug: Verify canvas dimensions
-    console.log("[CanvaCanvas] Canvas dimensions:", {
-      fabricWidth: canvas.getWidth(),
-      fabricHeight: canvas.getHeight(),
-      elementWidth: canvasElement.width,
-      elementHeight: canvasElement.height,
-      styleWidth: canvasElement.style.width,
-      styleHeight: canvasElement.style.height,
-    });
     
     // Disable any viewport transforms that might affect coordinates
     canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
@@ -180,22 +151,9 @@ export function CanvaCanvas({
     const recalcOffset = () => {
       if (!canvas || !canvasElement || !canvasElement.parentElement) return;
       try {
-        const rect = canvasElement.getBoundingClientRect();
-        console.log("[CanvaCanvas] Recalculating offset. Element position:", {
-          left: rect.left,
-          top: rect.top,
-          width: rect.width,
-          height: rect.height,
-        });
         canvas.calcOffset();
-        const fabricOffset = (canvas as any)._offset;
-        console.log("[CanvaCanvas] Fabric offset:", {
-          left: fabricOffset?.left,
-          top: fabricOffset?.top,
-        });
       } catch (error) {
         // Canvas might be disposed, ignore
-        console.warn("[CanvaCanvas] Error recalculating offset:", error);
       }
     };
 
@@ -216,10 +174,8 @@ export function CanvaCanvas({
       resizeObserver.observe(containerRef.current);
     }
 
-    console.log("[CanvaCanvas] Canvas initialized successfully");
 
     return () => {
-      console.log("[CanvaCanvas] Disposing canvas");
       window.removeEventListener('resize', handleResize);
       if (resizeObserver) {
         resizeObserver.disconnect();
@@ -230,7 +186,6 @@ export function CanvaCanvas({
       try {
         canvas.dispose();
       } catch (error) {
-        console.warn("[CanvaCanvas] Error disposing canvas:", error);
       }
     };
   }, []);
@@ -287,24 +242,6 @@ export function CanvaCanvas({
       };
       
       const pointer = canvas.getPointer(options.e);
-      
-      console.log("[CanvaCanvas] MouseDown - Coordinate calculation:", {
-        rawClientX: clientX,
-        rawClientY: clientY,
-        elementRect: {
-          left: rect.left,
-          top: rect.top,
-          width: rect.width,
-          height: rect.height,
-        },
-        manualCalculation: manualCalc,
-        fabricGetPointer: { x: pointer.x, y: pointer.y },
-        difference: {
-          x: pointer.x - manualCalc.x,
-          y: pointer.y - manualCalc.y,
-        },
-        fabricOffset: (canvas as any)._offset,
-      });
       
       // Clamp coordinates to canvas bounds to ensure consistency across clients
       const x = Math.max(0, Math.min(pointer.x, CANVAS_WIDTH));
@@ -395,7 +332,6 @@ export function CanvaCanvas({
           const clientX = rawEvent.clientX || rawEvent.touches?.[0]?.clientX;
           const clientY = rawEvent.clientY || rawEvent.touches?.[0]?.clientY;
           const rect = canvas.getElement().getBoundingClientRect();
-          console.log("[CanvaCanvas] MouseMove point", localPathPoints.length + 1, ":", {
             fabricGetPointer: { x: pointer.x, y: pointer.y },
             manualCalc: {
               x: clientX - rect.left,
@@ -460,7 +396,6 @@ export function CanvaCanvas({
           lastSendTimeRef.current = now;
         }
       } catch (error) {
-        console.debug("[CanvaCanvas] Error in mouse move:", error);
       }
     };
 
@@ -533,7 +468,6 @@ export function CanvaCanvas({
           originY: 'top',
         };
         
-        console.log("[CanvaCanvas] Sending path-complete:", {
           pathId: localPathId,
           totalPoints: localPathPoints.length,
           firstPoint: localPathPoints[0],
@@ -639,14 +573,6 @@ export function CanvaCanvas({
               fabricPath.push(['L', allPathPoints[i][0], allPathPoints[i][1]]);
             }
 
-            // Debug: Log received path coordinates
-            console.log("[CanvaCanvas] Creating remote path from path-update:", {
-              pathId: event.pathId,
-              firstPoint: allPathPoints[0],
-              lastPoint: allPathPoints[allPathPoints.length - 1],
-              totalPoints: allPathPoints.length,
-              fabricPathCommands: fabricPath.slice(0, 3), // First 3 commands
-            });
 
             const shadowBlur = currentProps.hardness < 1 ? (1 - currentProps.hardness) * currentProps.strokeWidth * 2 : 0;
 
@@ -717,7 +643,6 @@ export function CanvaCanvas({
         // Use path-complete data to create final path
         // CRITICAL: Don't use enlivenObjects() - it recalculates bounding box incorrectly
         // Instead, create Path directly from path data, same as path-update
-        console.log("[CanvaCanvas] path-complete received:", {
           pathId: event.pathId,
           dataKeys: Object.keys(event.data || {}),
           dataLeft: (event.data as any)?.left,
@@ -739,7 +664,6 @@ export function CanvaCanvas({
           const firstMove = fabricPath.find((cmd: any) => cmd[0] === 'M');
           const firstLine = fabricPath.find((cmd: any) => cmd[0] === 'L');
           
-          console.log("[CanvaCanvas] Creating final path from path-complete:", {
             pathId: event.pathId,
             firstMoveCommand: firstMove,
             firstLineCommand: firstLine,
@@ -760,18 +684,6 @@ export function CanvaCanvas({
             objectCaching: false,
           });
 
-          // Debug: Check what Fabric calculated
-          const bbox = finalPath.getBoundingRect();
-          console.log("[CanvaCanvas] Path after creation (Fabric auto-calculated):", {
-            pathId: event.pathId,
-            pathLeft: (finalPath as any).left,
-            pathTop: (finalPath as any).top,
-            bboxLeft: bbox.left,
-            bboxTop: bbox.top,
-            firstMoveCommand: firstMove,
-            expectedLeft: firstMove ? firstMove[1] : 'N/A',
-            expectedTop: firstMove ? firstMove[2] : 'N/A',
-          });
 
           canvas.add(finalPath);
           canvas.renderAll();
@@ -792,7 +704,6 @@ export function CanvaCanvas({
       const canvas = fabricCanvasRef.current;
       if (!canvas) return;
       
-      console.log("[CanvaCanvas] Clearing canvas");
       
       // Remove all objects from canvas
       canvas.clear();
@@ -813,7 +724,6 @@ export function CanvaCanvas({
       lastSendTimeRef.current = 0;
       lastPointTimeRef.current = 0;
       
-      console.log("[CanvaCanvas] Canvas cleared");
     };
 
     window.addEventListener("canva:canvas-clear", handleCanvasClear);

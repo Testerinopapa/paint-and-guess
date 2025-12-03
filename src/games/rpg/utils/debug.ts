@@ -1,377 +1,88 @@
-// Centralized debug utilities for RPG game integration
-
-const DEBUG_RPG = import.meta.env.DEV || import.meta.env.VITE_DEBUG_RPG === "true";
-const DEBUG_CONTENT = import.meta.env.DEV || import.meta.env.VITE_DEBUG_CONTENT === "true";
-const DEBUG_INVENTORY = import.meta.env.DEV || import.meta.env.VITE_DEBUG_INVENTORY === "true";
-const DEBUG_ANIMATIONS = import.meta.env.DEV || import.meta.env.VITE_DEBUG_ANIMATIONS === "true";
-
-export const DEBUG_CONFIG = {
-  rpg: DEBUG_RPG,
-  content: DEBUG_CONTENT,
-  inventory: DEBUG_INVENTORY,
-  animations: DEBUG_ANIMATIONS,
-};
+// Debug utilities - stubbed out (all debug functionality removed)
 
 type DebugLevel = "info" | "warn" | "error" | "action" | "success";
 
-interface DebugLog {
-  timestamp: number;
-  level: DebugLevel;
-  category: string;
-  message: string;
-  data?: unknown;
-}
-
+// No-op debug logger
 class DebugLogger {
-  private logs: DebugLog[] = [];
-  private maxLogs = 1000;
-  private categories: Set<string> = new Set();
-
-  log(level: DebugLevel, category: string, message: string, data?: unknown) {
-    const log: DebugLog = {
-      timestamp: Date.now(),
-      level,
-      category,
-      message,
-      data,
-    };
-
-    this.logs.push(log);
-    this.categories.add(category);
-
-    // Keep only recent logs
-    if (this.logs.length > this.maxLogs) {
-      this.logs.shift();
-    }
-
-    // Output to console based on level
-    const prefix = `[RPG:${category}]`;
-    const timestamp = new Date(log.timestamp).toISOString();
-
-    switch (level) {
-      case "info":
-        if (DEBUG_RPG) {
-          console.log(`%c${prefix}%c [${timestamp}] ${message}`, "color: #3b82f6; font-weight: bold", "color: #999", data || "");
-        }
-        break;
-      case "warn":
-        console.warn(`%c${prefix}%c [${timestamp}] ${message}`, "color: #f59e0b; font-weight: bold", "color: #999", data || "");
-        break;
-      case "error":
-        console.error(`%c${prefix}%c [${timestamp}] ${message}`, "color: #ef4444; font-weight: bold", "color: #999", data || "");
-        break;
-      case "action":
-        if (DEBUG_RPG) {
-          console.groupCollapsed(`%c${prefix}%c [${timestamp}] ${message}`, "color: #10b981; font-weight: bold", "color: #999");
-          if (data) console.log(data);
-          console.groupEnd();
-        }
-        break;
-      case "success":
-        if (DEBUG_RPG) {
-          console.log(`%c${prefix}%c [${timestamp}] ${message}`, "color: #10b981; font-weight: bold", "color: #999", data || "");
-        }
-        break;
-    }
+  log(_level: DebugLevel, _category: string, _message: string, _data?: unknown) {
+    // No-op
   }
-
-  getLogs(category?: string, level?: DebugLevel, limit?: number): DebugLog[] {
-    let filtered = this.logs;
-
-    if (category) {
-      filtered = filtered.filter((log) => log.category === category);
-    }
-
-    if (level) {
-      filtered = filtered.filter((log) => log.level === level);
-    }
-
-    if (limit) {
-      filtered = filtered.slice(-limit);
-    }
-
-    return filtered;
+  getLogs(_category?: string, _level?: DebugLevel, _limit?: number) {
+    return [];
   }
-
   getStats() {
-    const byCategory = new Map<string, number>();
-    const byLevel = new Map<DebugLevel, number>();
-
-    this.logs.forEach((log) => {
-      byCategory.set(log.category, (byCategory.get(log.category) || 0) + 1);
-      byLevel.set(log.level, (byLevel.get(log.level) || 0) + 1);
-    });
-
-    return {
-      total: this.logs.length,
-      byCategory: Object.fromEntries(byCategory),
-      byLevel: Object.fromEntries(byLevel),
-      categories: Array.from(this.categories),
-      recent: this.logs.slice(-10),
-    };
+    return { total: 0, byCategory: {}, byLevel: {}, categories: [], recent: [] };
   }
-
   clear() {
-    this.logs = [];
-    this.categories.clear();
+    // No-op
   }
-
   export() {
-    return {
-      config: DEBUG_CONFIG,
-      stats: this.getStats(),
-      logs: this.logs,
-      exportedAt: new Date().toISOString(),
-    };
+    return { config: {}, stats: this.getStats(), logs: [], exportedAt: new Date().toISOString() };
   }
 }
 
 export const debugLogger = new DebugLogger();
 
-// Category-specific loggers
+// No-op category-specific loggers
 export const contentDebug = {
-  log: (level: DebugLevel, message: string, data?: unknown) => {
-    if (DEBUG_CONTENT || DEBUG_RPG) {
-      debugLogger.log(level, "Content", message, data);
-    }
+  log: (_level: DebugLevel, _message: string, _data?: unknown) => {
+    // No-op
   },
-  generate: (type: string, result: unknown) => {
-    contentDebug.log("action", `Generated ${type}`, result);
+  generate: (_type: string, _result: unknown) => {
+    // No-op
   },
-  error: (message: string, error: unknown) => {
-    contentDebug.log("error", message, error);
+  error: (_message: string, _error: unknown) => {
+    // No-op
   },
 };
 
 export const inventoryDebug = {
-  log: (level: DebugLevel, message: string, data?: unknown) => {
-    if (DEBUG_INVENTORY || DEBUG_RPG) {
-      debugLogger.log(level, "Inventory", message, data);
-    }
+  log: (_level: DebugLevel, _message: string, _data?: unknown) => {
+    // No-op
   },
-  add: (item: unknown) => {
-    inventoryDebug.log("action", "Item added", item);
+  add: (_item: unknown) => {
+    // No-op
   },
-  remove: (item: unknown) => {
-    inventoryDebug.log("action", "Item removed", item);
+  remove: (_item: unknown) => {
+    // No-op
   },
-  update: (message: string, data?: unknown) => {
-    inventoryDebug.log("info", message, data);
+  update: (_message: string, _data?: unknown) => {
+    // No-op
   },
 };
 
 export const animationDebug = {
-  log: (level: DebugLevel, message: string, data?: unknown) => {
-    if (DEBUG_ANIMATIONS || DEBUG_RPG) {
-      debugLogger.log(level, "Animation", message, data);
-    }
+  log: (_level: DebugLevel, _message: string, _data?: unknown) => {
+    // No-op
   },
-  start: (component: string, animation: string) => {
-    animationDebug.log("action", `${component}: ${animation} started`);
+  start: (_component: string, _animation: string) => {
+    // No-op
   },
-  complete: (component: string, animation: string, duration?: number) => {
-    animationDebug.log("success", `${component}: ${animation} completed`, { duration });
+  complete: (_component: string, _animation: string, _duration?: number) => {
+    // No-op
   },
-  error: (component: string, animation: string, error: unknown) => {
-    animationDebug.log("error", `${component}: ${animation} failed`, error);
+  error: (_component: string, _animation: string, _error: unknown) => {
+    // No-op
   },
 };
 
-// Performance tracking
+// Performance tracking (stub - keeps API but no tracking)
 class PerformanceTracker {
   private metrics: Map<string, number[]> = new Map();
 
-  start(label: string): () => void {
-    const startTime = performance.now();
+  start(_label: string): () => void {
     return () => {
-      const duration = performance.now() - startTime;
-      const times = this.metrics.get(label) || [];
-      times.push(duration);
-      this.metrics.set(label, times);
-
-      if (DEBUG_RPG) {
-        debugLogger.log("info", "Performance", `${label}: ${duration.toFixed(2)}ms`);
-      }
+      // No-op
     };
   }
 
-  getStats(label?: string) {
-    if (label) {
-      const times = this.metrics.get(label) || [];
-      if (times.length === 0) return null;
-
-      return {
-        label,
-        count: times.length,
-        avg: times.reduce((a, b) => a + b, 0) / times.length,
-        min: Math.min(...times),
-        max: Math.max(...times),
-        total: times.reduce((a, b) => a + b, 0),
-      };
-    }
-
-    const stats: Record<string, any> = {};
-    this.metrics.forEach((times, label) => {
-      stats[label] = {
-        count: times.length,
-        avg: times.reduce((a, b) => a + b, 0) / times.length,
-        min: Math.min(...times),
-        max: Math.max(...times),
-        total: times.reduce((a, b) => a + b, 0),
-      };
-    });
-
-    return stats;
+  getStats(_label?: string) {
+    return null;
   }
 
-  clear(label?: string) {
-    if (label) {
-      this.metrics.delete(label);
-    } else {
-      this.metrics.clear();
-    }
+  clear(_label?: string) {
+    // No-op
   }
 }
 
 export const performanceTracker = new PerformanceTracker();
-
-// Expose debug utilities to window in development
-if (typeof window !== "undefined" && DEBUG_RPG) {
-  (window as any).__RPG_DEBUG_INTEGRATION__ = {
-    // Logger utilities
-    logs: {
-      getAll: (category?: string, level?: DebugLevel, limit?: number) =>
-        debugLogger.getLogs(category, level, limit),
-      getStats: () => debugLogger.getStats(),
-      clear: () => debugLogger.clear(),
-      export: () => debugLogger.export(),
-    },
-
-    // Content generation debug
-    content: {
-      generateNPC: async () => {
-        const { generateNPC } = await import("./contentGenerator");
-        const npc = generateNPC();
-        contentDebug.generate("NPC", npc);
-        return npc;
-      },
-      generateItem: async () => {
-        const { generateItem } = await import("./contentGenerator");
-        const item = generateItem();
-        contentDebug.generate("Item", item);
-        return item;
-      },
-      generateMonster: async (level?: number) => {
-        const { generateMonster } = await import("./contentGenerator");
-        const monster = generateMonster(level);
-        contentDebug.generate("Monster", monster);
-        return monster;
-      },
-      generateLocation: async () => {
-        const { generateLocation } = await import("./contentGenerator");
-        const location = generateLocation();
-        contentDebug.generate("Location", location);
-        return location;
-      },
-      generateLootTable: async (difficulty?: "low" | "medium" | "high") => {
-        const { generateLootTable } = await import("./contentGenerator");
-        const loot = generateLootTable(difficulty);
-        contentDebug.generate("Loot Table", loot);
-        return loot;
-      },
-    },
-
-    // Inventory debug
-    inventory: {
-      getItems: async () => {
-        const { useRpgStore } = await import("../state/useRpgStore.tsx");
-        return useRpgStore.getState().inventory;
-      },
-      addItem: async (item?: any) => {
-        const { useRpgStore } = await import("../state/useRpgStore.tsx");
-        const { generateItem } = await import("./contentGenerator");
-        const newItem = item || generateItem();
-        useRpgStore.getState().addItem(newItem);
-        inventoryDebug.add(newItem);
-        return newItem;
-      },
-      removeItem: async (item: any) => {
-        const { useRpgStore } = await import("../state/useRpgStore.tsx");
-        useRpgStore.getState().removeItem(item);
-        inventoryDebug.remove(item);
-      },
-      clear: async () => {
-        const { useRpgStore } = await import("../state/useRpgStore.tsx");
-        const state = useRpgStore.getState();
-        state.inventory.forEach((item) => state.removeItem(item));
-        inventoryDebug.log("action", "Inventory cleared");
-      },
-    },
-
-    // Performance tracking
-    performance: {
-      getStats: (label?: string) => performanceTracker.getStats(label),
-      clear: (label?: string) => performanceTracker.clear(label),
-    },
-
-    // Config
-    config: DEBUG_CONFIG,
-
-    // Help
-    help: () => {
-      console.log(
-        `%c[RPG Integration Debug Utilities]%c
-
-Available commands:
-
-%cLogger:%
-  __RPG_DEBUG_INTEGRATION__.logs.getAll(category?, level?, limit?)
-  __RPG_DEBUG_INTEGRATION__.logs.getStats()
-  __RPG_DEBUG_INTEGRATION__.logs.clear()
-  __RPG_DEBUG_INTEGRATION__.logs.export()
-
-%cContent Generation:%
-  __RPG_DEBUG_INTEGRATION__.content.generateNPC()
-  __RPG_DEBUG_INTEGRATION__.content.generateItem()
-  __RPG_DEBUG_INTEGRATION__.content.generateMonster(level?)
-  __RPG_DEBUG_INTEGRATION__.content.generateLocation()
-  __RPG_DEBUG_INTEGRATION__.content.generateLootTable(difficulty?)
-
-%cInventory:%
-  __RPG_DEBUG_INTEGRATION__.inventory.getItems()
-  __RPG_DEBUG_INTEGRATION__.inventory.addItem(item?)
-  __RPG_DEBUG_INTEGRATION__.inventory.removeItem(item)
-  __RPG_DEBUG_INTEGRATION__.inventory.clear()
-
-%cPerformance:%
-  __RPG_DEBUG_INTEGRATION__.performance.getStats(label?)
-  __RPG_DEBUG_INTEGRATION__.performance.clear(label?)
-
-%cConfig:%
-  __RPG_DEBUG_INTEGRATION__.config
-
-%cExamples:%
-  __RPG_DEBUG_INTEGRATION__.content.generateItem()
-  __RPG_DEBUG_INTEGRATION__.inventory.addItem()
-  __RPG_DEBUG_INTEGRATION__.logs.getStats()
-  __RPG_DEBUG_INTEGRATION__.logs.export()
-`,
-        "color: #10b981; font-weight: bold; font-size: 16px;",
-        "color: #999; font-size: 12px;",
-        "color: #3b82f6; font-weight: bold;",
-        "color: #f59e0b; font-weight: bold;",
-        "color: #8b5cf6; font-weight: bold;",
-        "color: #ef4444; font-weight: bold;",
-        "color: #6366f1; font-weight: bold;",
-        "color: #10b981; font-weight: bold;"
-      );
-    },
-  };
-
-  console.log(
-    "%c[RPG Integration Debug]%c Debug utilities loaded. Type __RPG_DEBUG_INTEGRATION__.help() for available commands.",
-    "color: #10b981; font-weight: bold;",
-    "color: #999;"
-  );
-}
-

@@ -5,12 +5,7 @@ import { useGameRegistry } from "@/games/registry";
 import GameCard from "@/components/GameCard";
 import MobileGamePath from "@/components/MobileGamePath";
 
-const DEBUG = import.meta.env.DEV || import.meta.env.VITE_GAME_HUB_DEBUG === "true";
-
 const LoadingCards = () => {
-  if (DEBUG) {
-    console.debug("[hub] Rendering loading skeletons for AllGames");
-  }
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
       {Array.from({ length: 10 }).map((_, index) => (
@@ -89,15 +84,6 @@ const AllGames = () => {
     setLastPlayedMap(map);
   }, [games]);
 
-  useEffect(() => {
-    if (!DEBUG) return;
-    console.debug("[hub] AllGames state updated", {
-      loading: isLoading,
-      error: error instanceof Error ? error.message : error ?? null,
-      source,
-      gameCount: games.length,
-    });
-  }, [games.length, isLoading, error, source]);
 
 
   if (isLoading) {
@@ -204,14 +190,6 @@ const AllGames = () => {
         >
           <AnimatePresence mode="popLayout">
             {games.map((game, index) => {
-              if (DEBUG) {
-                console.debug("[hub] Rendering tile", {
-                  id: game.id,
-                  status: game.status,
-                  enabled: game.isEnabled,
-                  route: game.derivedRoute,
-                });
-              }
               return (
                 <motion.div
                   key={game.id}

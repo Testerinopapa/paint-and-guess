@@ -74,7 +74,6 @@ router.post("/register", async (req, res) => {
     // Generate token
     const token = generateToken(user.id, user.email);
 
-    logger.info("[Auth] User registered", { userId: user.id, email: user.email, username: user.username });
 
     res.status(201).json({
       message: "User registered successfully",
@@ -129,7 +128,6 @@ router.post("/login", async (req, res) => {
     // Generate token
     const token = generateToken(user.id, user.email);
 
-    logger.info("[Auth] User logged in", { userId: user.id, email: user.email });
 
     res.json({
       message: "Login successful",
@@ -197,7 +195,6 @@ router.get("/me", authenticate, async (req, res) => {
  * Logout (client-side token removal, but we can log it)
  */
 router.post("/logout", authenticate, async (req, res) => {
-  logger.info("[Auth] User logged out", { userId: req.user.userId });
   res.json({ message: "Logged out successfully" });
 });
 
@@ -228,7 +225,6 @@ router.put("/avatar", authenticate, async (req, res) => {
       },
     });
 
-    logger.info("[Auth] User avatar updated", { userId: user.id });
 
     res.json({
       message: "Avatar updated successfully",

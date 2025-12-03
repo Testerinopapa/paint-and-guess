@@ -17,20 +17,17 @@ export function useCanvaSocket() {
     });
 
     newSocket.on("connect", () => {
-      console.log("[CanvaSocket] Connected to server");
       setIsConnected(true);
       toast.success("Connected to server");
       newSocket.emit("heartbeat");
     });
 
     newSocket.on("disconnect", () => {
-      console.log("[CanvaSocket] Disconnected from server");
       setIsConnected(false);
       toast.error("Disconnected from server");
     });
 
     newSocket.on("heartbeat-ack", () => {
-      console.debug("[CanvaSocket] ❤️ heartbeat-ack");
     });
 
     newSocket.on("error", (error: { message: string }) => {

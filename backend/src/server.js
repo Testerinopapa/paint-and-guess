@@ -25,33 +25,17 @@ const LOG_LEVELS = {
 const configuredLogLevel = (process.env.LOG_LEVEL ?? "info").toLowerCase();
 const ACTIVE_LOG_LEVEL = LOG_LEVELS[configuredLogLevel] ?? LOG_LEVELS.info;
 
-function logAtLevel(level, message, metadata) {
-  if ((LOG_LEVELS[level] ?? LOG_LEVELS.info) > ACTIVE_LOG_LEVEL) {
-    return;
-  }
-  const prefix = `[${level.toUpperCase()}]`;
-  const payload = metadata ? [message, metadata] : [message];
-  switch (level) {
-    case "error":
-      console.error(prefix, ...payload);
-      break;
-    case "warn":
-      console.warn(prefix, ...payload);
-      break;
-    case "debug":
-      console.debug(prefix, ...payload);
-      break;
-    default:
-      console.log(prefix, ...payload);
-      break;
-  }
-}
-
 const logger = {
-  error: (message, metadata) => logAtLevel("error", message, metadata),
-  warn: (message, metadata) => logAtLevel("warn", message, metadata),
-  info: (message, metadata) => logAtLevel("info", message, metadata),
-  debug: (message, metadata) => logAtLevel("debug", message, metadata),
+  error: (message, metadata) => {
+    const prefix = `[ERROR]`;
+    const payload = metadata ? [message, metadata] : [message];
+    console.error(prefix, ...payload);
+  },
+  warn: (message, metadata) => {
+    const prefix = `[WARN]`;
+    const payload = metadata ? [message, metadata] : [message];
+    console.warn(prefix, ...payload);
+  },
 };
 
 function parseEnvNumber(name, defaultValue) {
@@ -73,12 +57,6 @@ const ROOM_SWEEP_INTERVAL_MS = parseEnvNumber("ROOM_SWEEP_INTERVAL_MS", 30_000);
 const CLIENT_HEARTBEAT_EVENT = "heartbeat";
 const HEARTBEAT_ACK_EVENT = "heartbeat-ack";
 
-logger.info("[Config] Loaded runtime configuration", {
-  logLevel: configuredLogLevel,
-  playerStaleHeartbeatMs: PLAYER_STALE_HEARTBEAT_MS,
-  playerDisconnectGracePeriodMs: PLAYER_DISCONNECT_GRACE_PERIOD_MS,
-  roomSweepIntervalMs: ROOM_SWEEP_INTERVAL_MS,
-});
 
 const app = express();
 const httpServer = createServer(app);
@@ -102,7 +80,6 @@ try {
     const subClient = getRedisSubscriber();
     if (pubClient && subClient) {
       redisAdapter = createAdapter(pubClient, subClient);
-      logger.info("[Server] Redis adapter initialized for horizontal scaling");
     }
   }
 } catch (error) {
@@ -167,7 +144,6 @@ app.get("/api/games", async (req, res) => {
   try {
     const forceRefresh = req.query.refresh === "true";
     const registry = await loadGameRegistry({ forceRefresh });
-    logger.info("[registry] Serving registry", {
       source: registry.source,
       entryCount: registry.entries.length,
       entryIds: registry.entries.map((e) => e.id),
@@ -236,7 +212,6 @@ app.get("/api/games/registry", async (req, res) => {
   const forceRefresh = req.query.refresh === "true";
   const clientIp = req.ip || req.socket.remoteAddress;
   
-  logger.debug("[HTTP] Game registry request", {
     forceRefresh,
     clientIp,
     query: req.query,
@@ -246,7 +221,6 @@ app.get("/api/games/registry", async (req, res) => {
     const registry = await loadGameRegistry({ forceRefresh });
     const duration = Date.now() - requestStart;
     
-    logger.info("[HTTP] Game registry served", {
       source: registry.source,
       entryCount: registry.entries?.length ?? 0,
       duration: `${duration}ms`,
@@ -287,13 +261,11 @@ app.get("/api/health", async (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  console.log(`Client connected: ${socket.id}`);
 
 
   socket.on("disconnect", async () => {
     const { roomId, playerId, isTrivia, isCanva } = socket.data;
     if (!roomId || !playerId) {
-      console.log(`[Server] 🔌 Client disconnected: ${socket.id} (not in a room)`);
       return;
     }
 
@@ -432,7 +404,6 @@ io.on("connection", (socket) => {
   function transitionToAnswerReveal(roomId) {
     const room = triviaRoomRepository.getRoom(roomId);
     if (!room || room.phase !== "question") {
-      console.log(`[Trivia] ⚠️ transitionToAnswerReveal: Room ${roomId} not in question phase (current: ${room?.phase})`);
       return;
     }
 
@@ -442,11 +413,8 @@ io.on("connection", (socket) => {
     // Get fresh question reference
     const currentQuestion = room.getCurrentQuestion();
     if (!currentQuestion) {
-      console.log(`[Trivia] ❌ transitionToAnswerReveal: No question found at index ${room.currentQuestionIndex}`);
       return;
     }
-
-    console.log(`[Trivia] ⏰ Transitioning to answer-reveal for question ${room.currentQuestionIndex + 1}`);
 
     room.phase = "answer-reveal";
     io.to(roomId).emit("trivia:phase-changed", {
@@ -458,8 +426,6 @@ io.on("connection", (socket) => {
       correctOptionId: currentQuestion.correctOptionId,
       answerStats: room.answerStats,
     });
-
-    console.log(`[Trivia] ✅ Answer reveal for question ${room.currentQuestionIndex + 1}, stats:`, room.answerStats);
 
     setTimeout(() => {
       const scoringRoom = triviaRoomRepository.getRoom(roomId);
@@ -474,8 +440,6 @@ io.on("connection", (socket) => {
       io.to(roomId).emit("trivia:scoring", {
         players: scoringRoom.toJSON().players,
       });
-
-      console.log(`[Trivia] 💰 Scoring phase for question ${scoringRoom.currentQuestionIndex + 1}`);
 
       setTimeout(() => {
         const leaderboardRoom = triviaRoomRepository.getRoom(roomId);
@@ -492,19 +456,15 @@ io.on("connection", (socket) => {
           leaderboard,
         });
 
-        console.log(`[Trivia] 🏆 Leaderboard phase for question ${leaderboardRoom.currentQuestionIndex + 1}`);
-
         setTimeout(() => {
           const nextRoom = triviaRoomRepository.getRoom(roomId);
           if (!nextRoom) return;
 
           const hasMore = nextRoom.nextQuestion();
-          console.log(`[Trivia] 🔄 nextQuestion() called: hasMore=${hasMore}, newPhase=${nextRoom.phase}, newIndex=${nextRoom.currentQuestionIndex}`);
 
           if (!hasMore) {
             // Game ended - show podium
             const podium = nextRoom.getPodium();
-            console.log(`[Trivia] 🎉 Game ended! Showing podium`);
             io.to(roomId).emit("trivia:phase-changed", {
               phase: nextRoom.phase,
             });
@@ -515,10 +475,8 @@ io.on("connection", (socket) => {
           } else {
             // Next question - automatically start it
             if (!nextRoom.isGameActive) {
-              console.log(`[Trivia] ⚠️ Game no longer active, skipping next question`);
               return;
             }
-            console.log(`[Trivia] ➡️ Starting next question (${nextRoom.currentQuestionIndex + 1}/${nextRoom.questions.length})`);
             io.to(roomId).emit("trivia:phase-changed", {
               phase: nextRoom.phase,
               questionIndex: nextRoom.currentQuestionIndex,
@@ -535,27 +493,21 @@ io.on("connection", (socket) => {
   function startQuestion(roomId) {
     const room = triviaRoomRepository.getRoom(roomId);
     if (!room) {
-      console.log(`[Trivia] ❌ startQuestion: Room ${roomId} not found`);
       return;
     }
 
     if (!room.isGameActive) {
-      console.log(`[Trivia] ⚠️ startQuestion: Game not active in room ${roomId}`);
       return;
     }
 
     if (room.phase !== "question-intro") {
-      console.log(`[Trivia] ⚠️ startQuestion: Room ${roomId} not in question-intro phase (current: ${room.phase})`);
       return;
     }
-
-    console.log(`[Trivia] 🎯 Starting question ${room.currentQuestionIndex + 1}/${room.questions.length} in room ${roomId}`);
 
     // Transition from question-intro to question phase
     setTimeout(() => {
       const currentRoom = triviaRoomRepository.getRoom(roomId);
       if (!currentRoom) {
-        console.log(`[Trivia] ❌ startQuestion timeout: Room ${roomId} not found`);
         return;
       }
 
@@ -564,11 +516,8 @@ io.on("connection", (socket) => {
       const question = currentRoom.getCurrentQuestion();
 
       if (!question) {
-        console.log(`[Trivia] ❌ startQuestion: No question found at index ${currentRoom.currentQuestionIndex}`);
         return;
       }
-
-      console.log(`[Trivia] 📝 Emitting question ${currentRoom.currentQuestionIndex + 1}: "${question.text}"`);
 
       io.to(roomId).emit("trivia:phase-changed", {
         phase: currentRoom.phase,
@@ -588,11 +537,9 @@ io.on("connection", (socket) => {
       currentRoom.questionTimer = setTimeout(() => {
         const timerRoom = triviaRoomRepository.getRoom(roomId);
         if (!timerRoom || timerRoom.phase !== "question") {
-          console.log(`[Trivia] ⚠️ Question timer expired but room phase is ${timerRoom?.phase}, skipping`);
           return;
         }
 
-        console.log(`[Trivia] ⏰ Question ${timerRoom.currentQuestionIndex + 1} time limit reached`);
         transitionToAnswerReveal(roomId);
       }, question.timeLimit * 1000);
     }, 2000);
@@ -601,32 +548,26 @@ io.on("connection", (socket) => {
   socket.on("trivia:start-game", async () => {
     const { roomId, playerId } = socket.data;
     if (!roomId || !playerId) {
-      console.log(`[Trivia] ❌ start-game: Missing roomId or playerId`);
       return;
     }
 
     const room = triviaRoomRepository.getRoom(roomId);
     if (!room) {
-      console.log(`[Trivia] ❌ start-game: Room ${roomId} not found`);
       return;
     }
 
     if (room.isGameActive) {
-      console.log(`[Trivia] ⚠️ start-game: Room ${roomId} already active`);
       return;
     }
 
     if (room.ownerId !== playerId) {
-      console.log(`[Trivia] ❌ start-game: Player ${playerId} is not owner (${room.ownerId})`);
       socket.emit("error", { message: "Only the host can start the game" });
       return;
     }
 
     try {
       room.startGame();
-      console.log(`[Trivia] 🎮 Game started in room ${roomId}, phase: ${room.phase}, questionIndex: ${room.currentQuestionIndex}`);
     } catch (error) {
-      console.log(`[Trivia] ❌ start-game error:`, error.message);
       socket.emit("error", { message: error.message });
       return;
     }
@@ -643,18 +584,15 @@ io.on("connection", (socket) => {
   socket.on("trivia:submit-answer", async ({ optionId }) => {
     const { roomId, playerId } = socket.data;
     if (!roomId || !playerId) {
-      console.log(`[Trivia] ❌ submit-answer: Missing roomId or playerId`);
       return;
     }
 
     const room = triviaRoomRepository.getRoom(roomId);
     if (!room) {
-      console.log(`[Trivia] ❌ submit-answer: Room ${roomId} not found`);
       return;
     }
 
     if (room.phase !== "question") {
-      console.log(`[Trivia] ⚠️ submit-answer: Room ${roomId} not in question phase (current: ${room.phase})`);
       return;
     }
 
@@ -662,13 +600,9 @@ io.on("connection", (socket) => {
     const result = room.submitAnswer(playerId, optionId, timeElapsed);
 
     if (result.error) {
-      console.log(`[Trivia] ❌ submit-answer error: ${result.error}`);
       socket.emit("error", { message: result.error });
       return;
     }
-
-    const player = room.getPlayerById(playerId);
-    console.log(`[Trivia] ✅ Player ${player?.name} (${playerId}) answered: ${result.isCorrect ? "CORRECT" : "WRONG"}, +${result.points} points, new score: ${result.newScore}`);
 
     socket.emit("trivia:answer-result", {
       isCorrect: result.isCorrect,
@@ -679,7 +613,6 @@ io.on("connection", (socket) => {
 
     // Check if all non-host players have answered - if so, end question early
     if (room.allPlayersAnswered()) {
-      console.log(`[Trivia] 🎯 All non-host players answered question ${room.currentQuestionIndex + 1}, ending question early`);
       io.to(roomId).emit("trivia:all-answered");
       // Transition to answer-reveal phase immediately
       transitionToAnswerReveal(roomId);
@@ -728,7 +661,6 @@ io.on("connection", (socket) => {
       maxRounds,
     });
     const roomId = room.id; // Use the room's actual ID
-    console.log("[Server] canva:create-room: Room created", { roomId, gamePin: room.gamePin });
 
     const player = {
       id: uuidv4(),
@@ -746,16 +678,6 @@ io.on("connection", (socket) => {
     socket.data.playerId = player.id;
     socket.data.isCanva = true;
 
-    // Verify socket is in room
-    const socketRooms = Array.from(socket.rooms);
-    console.log("[Server] canva:create-room: Socket joined room", {
-      roomId,
-      socketId: socket.id,
-      playerId: player.id,
-      socketRooms,
-      isInRoom: socketRooms.includes(roomId),
-    });
-
     socket.emit("session", { playerId: player.id });
 
     socket.emit("canva:room-created", {
@@ -768,23 +690,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on("canva:join-room", async ({ gamePin, playerName, avatar }) => {
-    console.log("[Server] canva:join-room: Attempting to join", { gamePin, playerName });
-    
-    // List all rooms and their PINs for debugging
-    const allRooms = canvaRoomRepository.getRooms();
-    console.log("[Server] canva:join-room: Available rooms", {
-      totalRooms: allRooms.length,
-      rooms: allRooms.map(r => ({ id: r.id, pin: r.gamePin, players: r.players.length })),
-    });
-    
     const room = canvaRoomRepository.getRoomByPin(gamePin);
     if (!room) {
-      console.error("[Server] canva:join-room: Room not found for PIN", gamePin);
       socket.emit("error", { message: "Invalid game PIN" });
       return;
     }
-    
-    console.log("[Server] canva:join-room: Found room", { roomId: room.id, pin: room.gamePin });
 
     if (room.getActivePlayerCount() >= room.maxPlayers) {
       socket.emit("error", { message: "Room is full" });
@@ -805,16 +715,6 @@ io.on("connection", (socket) => {
     socket.data.playerId = player.id;
     socket.data.isCanva = true;
 
-    // Verify socket is in room
-    const socketRooms = Array.from(socket.rooms);
-    console.log("[Server] canva:join-room: Socket joined room", {
-      roomId: room.id,
-      socketId: socket.id,
-      playerId: player.id,
-      socketRooms,
-      isInRoom: socketRooms.includes(room.id),
-    });
-
     socket.emit("session", { playerId: player.id });
     socket.emit("canva:joined", {
       roomId: room.id,
@@ -832,25 +732,17 @@ io.on("connection", (socket) => {
       },
       players: room.toJSON().players,
     });
-
-    // TEST: Send a test event to verify connection works
-    setTimeout(() => {
-      console.log("[Server] TEST: Sending test event to room", room.id);
-      io.to(room.id).emit("canva:test-event", { message: "TEST - Can you hear me?", timestamp: Date.now() });
-    }, 1000);
   });
 
   socket.on("canva:drawing-event", (event) => {
     const { roomId, playerId } = socket.data;
     
     if (!roomId || !playerId) {
-      console.log("[Server] canva:drawing-event: Missing roomId or playerId", { roomId, playerId });
       return;
     }
     
     const room = canvaRoomRepository.getRoom(roomId);
     if (!room) {
-      console.log("[Server] canva:drawing-event: Room not found", roomId);
       return;
     }
 
@@ -861,33 +753,11 @@ io.on("connection", (socket) => {
 
     // Ensure socket is in room
     if (!socket.rooms.has(roomId)) {
-      console.log("[Server] canva:drawing-event: Socket not in room, joining", { roomId, socketId: socket.id });
       socket.join(roomId);
     }
 
-    // Get all sockets in room to verify
-    io.in(roomId).fetchSockets().then((sockets) => {
-      const otherSockets = sockets.filter(s => s.id !== socket.id);
-      console.log("[Server] canva:drawing-event: Room sockets", {
-        roomId,
-        totalSockets: sockets.length,
-        otherSockets: otherSockets.length,
-        senderSocketId: socket.id,
-        otherSocketIds: otherSockets.map(s => s.id),
-      });
-
-      // Broadcast to all OTHER sockets in room (excludes sender)
-      if (otherSockets.length > 0) {
-        socket.broadcast.to(roomId).emit("canva:drawing-event", event);
-        console.log("[Server] canva:drawing-event: Broadcast sent to", otherSockets.length, "sockets");
-      } else {
-        console.warn("[Server] canva:drawing-event: No other sockets in room to receive!");
-      }
-    }).catch((err) => {
-      console.error("[Server] canva:drawing-event: Error fetching sockets", err);
-      // Fallback: try broadcast anyway
-      socket.broadcast.to(roomId).emit("canva:drawing-event", event);
-    });
+    // Broadcast to all OTHER sockets in room (excludes sender)
+    socket.broadcast.to(roomId).emit("canva:drawing-event", event);
   });
 
   // Canva game flow handlers
@@ -913,13 +783,11 @@ io.on("connection", (socket) => {
   socket.on("canva:update-avatar", async ({ avatar }) => {
     const { roomId, playerId } = socket.data;
     if (!roomId || !playerId) {
-      console.log("[Server] canva:update-avatar: Missing roomId or playerId", { roomId, playerId });
       return;
     }
 
     const room = canvaRoomRepository.getRoom(roomId);
     if (!room) {
-      console.log("[Server] canva:update-avatar: Room not found", { roomId });
       return;
     }
 
@@ -1072,13 +940,11 @@ io.on("connection", (socket) => {
   async function endCanvaRound(roomId) {
     // Guard against concurrent executions
     if (endingRoundRooms.has(roomId)) {
-      console.log(`[Canva] endCanvaRound: Already ending round for room ${roomId}, ignoring duplicate call`);
       return;
     }
 
     const room = canvaRoomRepository.getRoom(roomId);
     if (!room || !room.isGameActive) {
-      console.log(`[Canva] endCanvaRound: Room ${roomId} not found or game not active`);
       return;
     }
 
@@ -1089,16 +955,13 @@ io.on("connection", (socket) => {
       // Save the previous word before ending the round
       const previousWord = room.currentWord;
       const previousRoundNumber = room.roundNumber;
-      console.log(`[Canva] Ending round ${previousRoundNumber} in room ${roomId}, word was: ${previousWord}`);
 
       // CRITICAL: Stop the timer FIRST to prevent it from firing again
       room.endRound();
 
       const shouldEnd = room.shouldEndGame();
-      console.log(`[Canva] Round ${previousRoundNumber} ended, shouldEnd: ${shouldEnd}, roundNumber: ${room.roundNumber}, maxRounds: ${room.maxRounds}, activePlayers: ${room.getActivePlayerCount()}`);
       
       if (shouldEnd) {
-        console.log(`[Canva] Game ending in room ${roomId}`);
         room.isGameActive = false;
         io.to(roomId).emit("canva:game-ended", {
           players: room.toJSON().players,
@@ -1116,29 +979,24 @@ io.on("connection", (socket) => {
           // Check again if room is still active (might have been deleted/disconnected)
           const nextRoom = canvaRoomRepository.getRoom(roomId);
           if (!nextRoom || !nextRoom.isGameActive) {
-            console.log(`[Canva] Room ${roomId} no longer active when starting next round`);
             endingRoundRooms.delete(roomId);
             return;
           }
 
           // Double-check we're not already ending a round (shouldn't happen, but safety check)
           if (endingRoundRooms.has(roomId)) {
-            console.log(`[Canva] Warning: Room ${roomId} still marked as ending round, clearing flag`);
             endingRoundRooms.delete(roomId);
           }
 
           const getWord = () => getRandomWordFromPack(nextRoom.wordPack || "classic");
           try {
-            console.log(`[Canva] Starting round ${nextRoom.roundNumber + 1} in room ${roomId}`);
             const previousDrawerId = nextRoom.currentDrawer?.id;
             nextRoom.nextRound(getWord);
-            console.log(`[Canva] Round ${nextRoom.roundNumber} started in room ${roomId}, drawer changed from ${previousDrawerId} to ${nextRoom.currentDrawer?.id} (${nextRoom.currentDrawer?.name})`);
 
             // Verify drawer is still valid
             if (!nextRoom.currentDrawer || !nextRoom.currentDrawer.connected || !nextRoom.currentDrawer.socketId) {
               const activePlayers = nextRoom.getActivePlayers();
               if (activePlayers.length < 2) {
-                console.log(`[Server] ⚠️ Not enough active players for next round in canva room ${roomId}, ending game`);
                 nextRoom.isGameActive = false;
                 io.to(roomId).emit("canva:game-ended", {
                   players: nextRoom.toJSON().players,
@@ -1148,7 +1006,6 @@ io.on("connection", (socket) => {
               }
               
               // Select a new drawer from active players
-              console.log(`[Server] ⚠️ Drawer invalid after nextRound in canva room ${roomId}, selecting new drawer`);
               nextRoom.currentDrawer = activePlayers[Math.floor(Math.random() * activePlayers.length)];
               
               // Double-check the new drawer has socketId
@@ -1180,7 +1037,6 @@ io.on("connection", (socket) => {
               name: nextRoom.currentDrawer.name,
             };
 
-            console.log(`[Server] Emitting canva:round-started for room ${roomId}`, {
               drawer,
               roundNumber: nextRoom.roundNumber,
               roundTime: nextRoom.roundTime,
@@ -1235,7 +1091,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", async () => {
     const { roomId, playerId, isTrivia, isCanva } = socket.data;
     if (!roomId || !playerId) {
-      console.log(`[Server] 🔌 Client disconnected: ${socket.id} (not in a room)`);
       return;
     }
 
@@ -1278,11 +1133,4 @@ process.on("SIGTERM", cleanup);
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 Socket.io ready for connections`);
-  if (isRedisEnabled()) {
-    console.log(`🔴 Redis adapter: ENABLED (horizontal scaling active)`);
-  } else {
-    console.log(`⚪ Redis adapter: DISABLED (single-instance mode)`);
-  }
 });

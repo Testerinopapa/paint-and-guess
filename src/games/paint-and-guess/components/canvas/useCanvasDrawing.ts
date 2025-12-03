@@ -94,21 +94,7 @@ export function useCanvasDrawing({
     const FAST_DRAW_MIN_BATCH = 1; // During fast drawing, send every point (or every 2)
     const FLUSH_INTERVAL_MS = 8; // Flush pending points every 8ms during active drawing
     
-    // Debug: Track sent events (check dynamically)
-    const isDebugEnabled = () => {
-      return process.env.NODE_ENV === 'development' && 
-        (typeof window !== 'undefined' && (window as any).__DEBUG_CANVAS_SYNC__ !== false);
-    };
-    
     let drawerEventSequence = 0;
-    const drawerPathDebug: {
-      pathId: string;
-      startTime: number;
-      updateCount: number;
-      lastUpdatePointCount: number;
-      completeTime?: number;
-      completePointCount?: number;
-    }[] = [];
 
     // Handle path completion (finalize)
     const handlePathCreated = (e: { path: FabricObject }) => {
@@ -141,34 +127,6 @@ export function useCanvasDrawing({
       
       const pathData = path.toJSON();
       
-      // Debug: Extract point count and log
-      let completePointCount = 0;
-      if (isDebugEnabled() && currentPathId) {
-        try {
-          if (pathData.path && Array.isArray(pathData.path)) {
-            completePointCount = pathData.path.filter((cmd: any) => 
-              Array.isArray(cmd) && cmd[0] !== 'M'
-            ).length + 1;
-          }
-          
-          const debugEntry = drawerPathDebug.find(d => d.pathId === currentPathId);
-          if (debugEntry) {
-            debugEntry.completeTime = Date.now();
-            debugEntry.completePointCount = completePointCount;
-            
-            const timeDiff = debugEntry.completeTime - debugEntry.startTime;
-            console.log(`[CanvasDrawing Debug] SENT path-complete for ${currentPathId}:`, {
-              totalUpdates: debugEntry.updateCount,
-              lastUpdatePoints: debugEntry.lastUpdatePointCount,
-              completePoints: completePointCount,
-              timeToComplete: `${timeDiff}ms`,
-              totalPathPoints: pathPoints.length,
-            });
-          }
-        } catch (e) {
-          console.warn('[CanvasDrawing Debug] Error extracting point count:', e);
-        }
-      }
       
       // Send final path
       sendDrawingEvent({
@@ -255,28 +213,6 @@ export function useCanvasDrawing({
             hardness: activeTool === "erase" ? 1 : brushHardness,
           };
 
-          // Debug: Track sent updates
-          if (isDebugEnabled() && currentPathId) {
-            let debugEntry = drawerPathDebug.find(d => d.pathId === currentPathId);
-            if (!debugEntry) {
-              debugEntry = {
-                pathId: currentPathId,
-                startTime: Date.now(),
-                updateCount: 0,
-                lastUpdatePointCount: 0,
-              };
-              drawerPathDebug.push(debugEntry);
-            }
-            debugEntry.updateCount++;
-            debugEntry.lastUpdatePointCount = pathPoints.length;
-            
-            console.log(`[CanvasDrawing Debug] SENT path-update #${++drawerEventSequence} for ${currentPathId}:`, {
-              totalPoints: pathPoints.length,
-              newPoints: newPoints.length,
-              startIndex: lastSentPointIndex,
-              sequence: drawerEventSequence,
-            });
-          }
 
           // Send batched update
           sendDrawingEvent({
@@ -291,7 +227,6 @@ export function useCanvasDrawing({
           lastSentPath = pathData;
         }
       } catch (error) {
-        console.debug("[CanvasDrawing] Error getting path update:", error);
       }
     };
 
