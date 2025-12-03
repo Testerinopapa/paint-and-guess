@@ -27,13 +27,15 @@ model Room {
 model Puzzle {
   id          String   @id @default(cuid())
   createdAt   DateTime @default(now())
-  fen         String   // Starting position (FEN notation)
-  sideToMove  String   // Solver side ("white" | "black")
-  solutionPv  String   // JSON array of UCI moves: ["e2e4", "e7e5", ...]
-  motifs      String   // JSON array of themes: ["mate", "fork", ...]
-  source      String   // Origin: "lichess-puzzle:12345" or "manual"
-  rating      Int?     // Difficulty rating (0-10000)
-  
+  fen         String
+  sideToMove  String   // "white" | "black"
+  solutionPv  String   // JSON array of UCI moves
+  motifs      String   // JSON array of puzzle themes
+  source      String
+  rating      Int?
+
+  attempts    PuzzleAttempt[]
+
   @@index([createdAt])
 }
 
@@ -41,13 +43,13 @@ model PuzzleAttempt {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   puzzleId  String
-  timeMs    Int      // Time taken (milliseconds)
-  mistakes  Int      // Incorrect attempts
-  solved    Boolean  // Success flag
-  rating    Int?     // Optional user rating
-  
+  timeMs    Int
+  mistakes  Int
+  solved    Boolean
+  rating    Int?
+
   puzzle    Puzzle   @relation(fields: [puzzleId], references: [id], onDelete: Cascade)
-  
+
   @@index([puzzleId, createdAt])
 }
 

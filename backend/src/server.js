@@ -14,7 +14,7 @@ import { TriviaRoomRepository } from "./triviaRoomRepository.js";
 import { getSampleQuestions, getQuestionsByQuizId, QUIZZES } from "./triviaQuestions.js";
 import { canvaRoomRepository } from "./canvaRoomRepository.js";
 import authRoutes from "./auth/routes.js";
-import puzzleRoutes from "./puzzleRoutes.js";
+import { getRandomPuzzle, getPuzzles, createPuzzleAttempt } from "./puzzleRoutes.js";
 
 const LOG_LEVELS = {
   error: 0,
@@ -141,9 +141,6 @@ app.use(express.json());
 // Authentication routes
 app.use("/api/auth", authRoutes);
 
-// Puzzle routes
-app.use("/api/puzzles", puzzleRoutes);
-
 app.get("/api/games", async (req, res) => {
   try {
     const forceRefresh = req.query.refresh === "true";
@@ -154,6 +151,11 @@ app.get("/api/games", async (req, res) => {
     res.status(500).json({ status: "error", message: "Unable to load game registry" });
   }
 });
+
+// Puzzle API endpoints
+app.get("/api/puzzles/random", getRandomPuzzle);
+app.get("/api/puzzles", getPuzzles);
+app.post("/api/puzzles/attempt", createPuzzleAttempt);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

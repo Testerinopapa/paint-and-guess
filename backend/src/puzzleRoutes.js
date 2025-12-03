@@ -1,7 +1,5 @@
-import express from "express";
 import { prisma } from "./prismaClient.js";
-
-const router = express.Router();
+import { parseFen } from "chessops";
 
 const RATING_PRESETS = {
   easy: { min: 0, max: 1400 },
@@ -9,31 +7,72 @@ const RATING_PRESETS = {
   hard: { min: 2000, max: 10000 },
 };
 
+// Helper to check if puzzle is a mate puzzle
+function isMatePuzzle(motifs) {
+  if (typeof motifs === "string") {
+    try {
+      const parsed = JSON.parse(motifs);
+      return Array.isArray(parsed) && parsed.some((m) => m.includes("mate") && !m.includes("mateIn"));
+    } catch {
+      return false;
+    }
+  }
+  return Array.isArray(motifs) && motifs.some((m) => m.includes("mate") && !m.includes("mateIn"));
+}
+
+// Helper to calculate last mover from FEN and PV
+function calculateLastMover(fen, pv) {
+  try {
+    const position = parseFen(fen);
+    if (!position) return null;
+    
+    const startTurn = position.turn;
+    const pvArray = typeof pv === "string" ? JSON.parse(pv) : pv;
+    
+    if (!Array.isArray(pvArray) || pvArray.length === 0) return null;
+    
+    // If PV length is odd, last mover = starting turn
+    // If PV length is even, last mover = opposite
+    const lastMover = pvArray.length % 2 === 1 ? startTurn : (startTurn === "white" ? "black" : "white");
+    return lastMover;
+  } catch (error) {
+    console.error("Error calculating last mover:", error);
+    return null;
+  }
+}
+
 // GET /api/puzzles/random
-router.get("/random", async (req, res) => {
+export async function getRandomPuzzle(req, res) {
   try {
     const { difficulty, minRating, maxRating, motif } = req.query;
 
     // Build rating range
-    let ratingMin = minRating ? parseInt(minRating) : undefined;
-    let ratingMax = maxRating ? parseInt(maxRating) : undefined;
+    let ratingMin = 0;
+    let ratingMax = 10000;
 
     if (difficulty && RATING_PRESETS[difficulty]) {
       const preset = RATING_PRESETS[difficulty];
-      ratingMin = ratingMin ?? preset.min;
-      ratingMax = ratingMax ?? preset.max;
+      ratingMin = preset.min;
+      ratingMax = preset.max;
+    } else {
+      if (minRating) ratingMin = parseInt(minRating, 10);
+      if (maxRating) ratingMax = parseInt(maxRating, 10);
     }
 
     // Build where clause
-    const where = {};
-    if (ratingMin !== undefined || ratingMax !== undefined) {
-      where.rating = {};
-      if (ratingMin !== undefined) where.rating.gte = ratingMin;
-      if (ratingMax !== undefined) where.rating.lte = ratingMax;
-    }
+    const where = {
+      rating: {
+        gte: ratingMin,
+        lte: ratingMax,
+      },
+    };
 
+    // Add motif filter if provided
     if (motif) {
-      where.motifs = { contains: motif };
+      // SQLite-compatible JSON search (substring match)
+      where.motifs = {
+        contains: motif,
+      };
     }
 
     // Count matching puzzles
@@ -43,10 +82,11 @@ router.get("/random", async (req, res) => {
       return res.json(null);
     }
 
-    // Random sampling
+    // Random sampling: min(25, max(5, sqrt(total)))
     const baseAttempts = Math.min(25, Math.max(5, Math.floor(Math.sqrt(total))));
     const attempts = motif ? Math.min(50, baseAttempts * 2) : baseAttempts;
 
+    // Try to find a valid puzzle
     for (let i = 0; i < attempts; i++) {
       const skip = Math.floor(Math.random() * total);
       const puzzles = await prisma.puzzle.findMany({
@@ -58,32 +98,61 @@ router.get("/random", async (req, res) => {
       if (puzzles.length === 0) continue;
 
       const puzzle = puzzles[0];
-      
-      // Basic validation - check if solution PV is valid
+
+      // Parse solution PV
+      let solutionPv;
       try {
-        const pv = JSON.parse(puzzle.solutionPv || "[]");
-        if (pv.length === 0) continue;
-      } catch (e) {
+        solutionPv = typeof puzzle.solutionPv === "string" 
+          ? JSON.parse(puzzle.solutionPv) 
+          : puzzle.solutionPv;
+      } catch (error) {
+        console.error("Error parsing solution PV:", error);
         continue;
       }
 
-      return res.json(puzzle);
+      if (!Array.isArray(solutionPv) || solutionPv.length === 0) {
+        continue;
+      }
+
+      // Quality validation
+      const isMate = isMatePuzzle(puzzle.motifs);
+      
+      if (isMate) {
+        // For mate puzzles, verify solver matches last mover
+        const lastMover = calculateLastMover(puzzle.fen, solutionPv);
+        if (lastMover && puzzle.sideToMove !== lastMover) {
+          continue; // Skip this puzzle
+        }
+      }
+      // For non-mate puzzles, we skip engine validation for now
+      // (can be added later with Stockfish integration)
+
+      // Return valid puzzle
+      return res.json({
+        id: puzzle.id,
+        createdAt: puzzle.createdAt.toISOString(),
+        fen: puzzle.fen,
+        sideToMove: puzzle.sideToMove,
+        solutionPv: solutionPv,
+        motifs: typeof puzzle.motifs === "string" ? JSON.parse(puzzle.motifs) : puzzle.motifs,
+        source: puzzle.source,
+        rating: puzzle.rating,
+      });
     }
 
-    // If no puzzle passed validation, return any puzzle
-    const fallback = await prisma.puzzle.findFirst({ where });
-    return res.json(fallback);
+    // If no valid puzzle found, return null
+    res.json(null);
   } catch (error) {
-    console.error("[puzzles] Error fetching random puzzle:", error);
-    res.status(500).json({ error: "Failed to fetch puzzle" });
+    console.error("Error getting random puzzle:", error);
+    res.status(500).json({ status: "error", message: "Failed to get puzzle" });
   }
-});
+}
 
 // GET /api/puzzles
-router.get("/", async (req, res) => {
+export async function getPuzzles(req, res) {
   try {
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit || "20")));
-    const { motif } = req.query;
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit || "20", 10)));
+    const motif = req.query.motif;
 
     const where = {};
     if (motif) {
@@ -96,38 +165,55 @@ router.get("/", async (req, res) => {
       orderBy: { createdAt: "desc" },
     });
 
-    res.json(puzzles);
+    res.json(
+      puzzles.map((p) => ({
+        id: p.id,
+        createdAt: p.createdAt.toISOString(),
+        fen: p.fen,
+        sideToMove: p.sideToMove,
+        solutionPv: typeof p.solutionPv === "string" ? JSON.parse(p.solutionPv) : p.solutionPv,
+        motifs: typeof p.motifs === "string" ? JSON.parse(p.motifs) : p.motifs,
+        source: p.source,
+        rating: p.rating,
+      }))
+    );
   } catch (error) {
-    console.error("[puzzles] Error fetching puzzles:", error);
-    res.status(500).json({ error: "Failed to fetch puzzles" });
+    console.error("Error getting puzzles:", error);
+    res.status(500).json({ status: "error", message: "Failed to get puzzles" });
   }
-});
+}
 
 // POST /api/puzzles/attempt
-router.post("/attempt", async (req, res) => {
+export async function createPuzzleAttempt(req, res) {
   try {
     const { puzzleId, timeMs, mistakes, solved, rating } = req.body;
 
-    if (!puzzleId) {
-      return res.status(400).json({ error: "puzzleId is required" });
+    if (!puzzleId || timeMs === undefined || mistakes === undefined || solved === undefined) {
+      return res.status(400).json({ status: "error", message: "Missing required fields" });
     }
 
     const attempt = await prisma.puzzleAttempt.create({
       data: {
         puzzleId,
-        timeMs: timeMs || 0,
-        mistakes: mistakes || 0,
-        solved: solved || false,
-        rating: rating || null,
+        timeMs: parseInt(timeMs, 10),
+        mistakes: parseInt(mistakes, 10),
+        solved: Boolean(solved),
+        rating: rating ? parseInt(rating, 10) : null,
       },
     });
 
-    res.json(attempt);
+    res.json({
+      id: attempt.id,
+      createdAt: attempt.createdAt.toISOString(),
+      puzzleId: attempt.puzzleId,
+      timeMs: attempt.timeMs,
+      mistakes: attempt.mistakes,
+      solved: attempt.solved,
+      rating: attempt.rating,
+    });
   } catch (error) {
-    console.error("[puzzles] Error creating attempt:", error);
-    res.status(500).json({ error: "Failed to create attempt" });
+    console.error("Error creating puzzle attempt:", error);
+    res.status(500).json({ status: "error", message: "Failed to create attempt" });
   }
-});
-
-export default router;
+}
 

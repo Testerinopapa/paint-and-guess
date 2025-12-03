@@ -1,334 +1,286 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
 import { Chess } from "chess.js";
-import type { Puzzle, PuzzleState, PuzzleDifficulty, PuzzleMotif } from "./puzzleTypes";
-import { SAMPLE_PUZZLES, getRandomPuzzle } from "../data/samplePuzzles";
+import type { Puzzle, PuzzleState, PuzzleFilters, PuzzleDifficulty } from "./puzzleTypes";
 import { apiPath } from "@/config/api";
 
 interface PuzzleContextType {
   puzzleState: PuzzleState;
-  loadPuzzle: (difficulty?: PuzzleDifficulty, motif?: PuzzleMotif) => Promise<void>;
+  loading: boolean;
+  error: string | null;
+  loadRandomPuzzle: (filters?: PuzzleFilters) => Promise<void>;
   makeMove: (from: string, to: string) => boolean;
-  getHint: () => string | null;
   resetPuzzle: () => void;
-  nextPuzzle: () => Promise<void>;
-  currentFen: string;
-  solutionMoves: string[];
-  currentMoveIndex: number;
+  showHint: () => void;
+  toggleSolution: () => void;
+  recordAttempt: (solved: boolean) => Promise<void>;
 }
 
 const PuzzleContext = createContext<PuzzleContextType | undefined>(undefined);
 
-function createInitialPuzzleState(): PuzzleState {
+const RATING_PRESETS: Record<PuzzleDifficulty, { min: number; max: number }> = {
+  easy: { min: 0, max: 1400 },
+  medium: { min: 1400, max: 2000 },
+  hard: { min: 2000, max: 10000 },
+  custom: { min: 0, max: 10000 },
+};
+
+function createInitialState(): PuzzleState {
   return {
-    currentPuzzle: null,
-    attempt: null,
-    currentMoveIndex: 0,
-    hintLevel: 0,
-    isSolved: false,
-    isFailed: false,
+    puzzle: null,
+    currentFen: "",
+    moveIndex: 0,
+    solutionPv: [],
+    solved: false,
+    mistakes: 0,
+    startTime: 0,
+    hintsUsed: 0,
+    showSolution: false,
   };
 }
 
 export function PuzzleProvider({ children }: { children: ReactNode }) {
-  const [puzzleState, setPuzzleState] = useState<PuzzleState>(createInitialPuzzleState());
+  const [puzzleState, setPuzzleState] = useState<PuzzleState>(createInitialState());
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [game, setGame] = useState<Chess | null>(null);
-  const [solutionMoves, setSolutionMoves] = useState<string[]>([]);
-  const [userMoves, setUserMoves] = useState<string[]>([]);
-  const [mistakes, setMistakes] = useState(0);
 
-  const loadPuzzle = useCallback(async (difficulty?: PuzzleDifficulty, motif?: PuzzleMotif) => {
+  const loadRandomPuzzle = useCallback(async (filters?: PuzzleFilters) => {
+    setLoading(true);
+    setError(null);
+
     try {
-      // Try to fetch from API first, fallback to sample puzzles
-      let puzzle: Puzzle | null = null;
+      const params = new URLSearchParams();
       
-      try {
-        const params = new URLSearchParams();
-        if (difficulty) params.append("difficulty", difficulty);
-        if (motif) params.append("motif", motif);
-        
-        const response = await fetch(apiPath(`/api/puzzles/random?${params.toString()}`));
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.id) {
-            // Convert API puzzle format to our Puzzle type
-            const solutionPv = JSON.parse(data.solutionPv || "[]");
-            puzzle = {
-              id: data.id,
-              fen: data.fen,
-              solution: solutionPv,
-              moves: solutionPv.length,
-              difficulty: difficulty || "medium",
-              motifs: JSON.parse(data.motifs || "[]"),
-              rating: data.rating || undefined,
-            };
-          }
-        } else if (response.status !== 404) {
-          // 404 is expected if no puzzles, but other errors should be logged
-          console.warn("API puzzle fetch returned status:", response.status);
+      if (filters?.difficulty && filters.difficulty !== "custom") {
+        const preset = RATING_PRESETS[filters.difficulty];
+        params.append("minRating", preset.min.toString());
+        params.append("maxRating", preset.max.toString());
+      } else {
+        if (filters?.minRating !== undefined) {
+          params.append("minRating", filters.minRating.toString());
         }
-      } catch (error) {
-        // Silently fall back to sample puzzles
-        console.debug("API puzzle fetch failed, using sample puzzles", error);
+        if (filters?.maxRating !== undefined) {
+          params.append("maxRating", filters.maxRating.toString());
+        }
       }
 
-      // Fallback to sample puzzles
-      if (!puzzle) {
-        puzzle = getRandomPuzzle(SAMPLE_PUZZLES, difficulty, motif);
+      if (filters?.motif) {
+        params.append("motif", filters.motif);
       }
 
+      const response = await fetch(`${apiPath("/api/puzzles/random")}?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to load puzzle");
+      }
+
+      const puzzle: Puzzle | null = await response.json();
+
       if (!puzzle) {
-        console.error("No puzzle found");
+        setError("No puzzle found matching your criteria");
+        setLoading(false);
         return;
       }
+
+      // Parse solution PV
+      const solutionPv = typeof puzzle.solutionPv === "string" 
+        ? JSON.parse(puzzle.solutionPv) 
+        : puzzle.solutionPv;
 
       // Initialize game from puzzle FEN
       const newGame = new Chess(puzzle.fen);
       
-      // Convert solution to UCI format for validation
-      const uciSolution = puzzle.solution.map((san) => {
-        // Try to parse SAN and convert to UCI
-        try {
-          const tempGame = new Chess(puzzle.fen);
-          const move = tempGame.move(san);
-          if (move) {
-            return `${move.from}${move.to}${move.promotion || ""}`;
+      // Determine if we need to auto-advance (for mate puzzles)
+      let initialFen = puzzle.fen;
+      let initialMoveIndex = 0;
+      
+      // For mate puzzles, ensure player is on the side that delivers mate
+      const isMatePuzzle = puzzle.motifs.some(m => m.includes("mate"));
+      if (isMatePuzzle && puzzle.sideToMove !== (newGame.turn() === "w" ? "white" : "black")) {
+        // Auto-advance one move if needed
+        if (solutionPv.length > 0) {
+          const firstMove = solutionPv[0];
+          try {
+            newGame.move({ from: firstMove.slice(0, 2), to: firstMove.slice(2, 4) });
+            initialFen = newGame.fen();
+            initialMoveIndex = 1;
+          } catch (e) {
+            console.error("Error auto-advancing puzzle:", e);
           }
-        } catch (e) {
-          // If SAN parsing fails, assume it's already UCI or try to convert
-          return san;
         }
-        return san;
-      });
+      }
 
       setGame(newGame);
-      setSolutionMoves(uciSolution);
-      setUserMoves([]);
-      setMistakes(0);
-      
       setPuzzleState({
-        currentPuzzle: puzzle,
-        attempt: {
-          puzzleId: puzzle.id,
-          moves: [],
-          isCorrect: false,
-          attempts: 0,
-          solved: false,
-          hintUsed: false,
-        },
-        currentMoveIndex: 0,
-        hintLevel: 0,
-        isSolved: false,
-        isFailed: false,
+        puzzle,
+        currentFen: initialFen,
+        moveIndex: initialMoveIndex,
+        solutionPv,
+        solved: false,
+        mistakes: 0,
+        startTime: Date.now(),
+        hintsUsed: 0,
+        showSolution: false,
       });
-    } catch (error) {
-      console.error("Error loading puzzle:", error);
-    }
-  }, []);
-
-  const recordAttempt = useCallback(async (puzzleId: string, solved: boolean, mistakesCount: number) => {
-    try {
-      const response = await fetch(apiPath("/api/puzzles/attempt"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          puzzleId,
-          timeMs: 0,
-          mistakes: mistakesCount,
-          solved,
-        }),
-      });
-      if (!response.ok) {
-        console.debug("Failed to record attempt:", response.status);
-      }
-    } catch (error) {
-      console.debug("Error recording attempt:", error);
+    } catch (err) {
+      console.error("Error loading puzzle:", err);
+      setError(err instanceof Error ? err.message : "Failed to load puzzle");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   const makeMove = useCallback((from: string, to: string): boolean => {
-    if (!game || !puzzleState.currentPuzzle || puzzleState.isSolved || puzzleState.isFailed) {
+    if (!game || !puzzleState.puzzle || puzzleState.solved) {
       return false;
     }
 
-    try {
-      // Create a copy of the game to test the move
-      const testGame = new Chess(game.fen());
-      const move = testGame.move({ from, to });
-      if (!move) {
-        return false;
-      }
+    const expectedMove = puzzleState.solutionPv[puzzleState.moveIndex];
+    if (!expectedMove) {
+      return false;
+    }
 
-      const userMoveUci = `${from}${to}${move.promotion || ""}`;
-      const expectedMove = solutionMoves[puzzleState.currentMoveIndex];
+    // Normalize move (ignore promotion)
+    const userMove = `${from}${to}`;
+    const expectedMoveNormalized = expectedMove.slice(0, 4);
 
-      if (!expectedMove) {
-        return false;
-      }
-
-      // Normalize moves (ignore promotion suffix for comparison)
-      const normalizedUser = userMoveUci.slice(0, 4);
-      const normalizedExpected = expectedMove.slice(0, 4);
-
-      if (normalizedUser === normalizedExpected) {
-        // Correct move!
-        const newUserMoves = [...userMoves, userMoveUci];
-        const newMoveIndex = puzzleState.currentMoveIndex + 1;
-        const isComplete = newMoveIndex >= solutionMoves.length;
-
-        // Apply the move to the actual game
-        const updatedGame = new Chess(game.fen());
-        updatedGame.move({ from, to, promotion: move.promotion });
+    if (userMove === expectedMoveNormalized) {
+      // Correct move
+      try {
+        // Apply player's move
+        game.move({ from, to });
         
-        // Auto-play opponent reply if not complete
-        if (!isComplete) {
-          const opponentMoveUci = solutionMoves[newMoveIndex];
-          if (opponentMoveUci && opponentMoveUci.length >= 4) {
-            const oppFrom = opponentMoveUci.slice(0, 2);
-            const oppTo = opponentMoveUci.slice(2, 4);
-            const oppPromotion = opponentMoveUci.length > 4 ? opponentMoveUci.slice(4, 5) : undefined;
-            
-            try {
-              const oppMove = updatedGame.move({
-                from: oppFrom,
-                to: oppTo,
-                promotion: oppPromotion as "q" | "r" | "b" | "n" | undefined,
-              });
-              if (!oppMove) {
-                console.warn("Failed to auto-play opponent move:", opponentMoveUci);
-              }
-            } catch (e) {
-              console.warn("Error auto-playing opponent move:", e, opponentMoveUci);
-            }
-          }
+        // Auto-play opponent reply if exists
+        const nextMoveIndex = puzzleState.moveIndex + 1;
+        if (nextMoveIndex < puzzleState.solutionPv.length) {
+          const opponentMove = puzzleState.solutionPv[nextMoveIndex];
+          const oppFrom = opponentMove.slice(0, 2);
+          const oppTo = opponentMove.slice(2, 4);
+          game.move({ from: oppFrom, to: oppTo });
         }
 
-        // Update game state
-        setGame(updatedGame);
-        setUserMoves(newUserMoves);
+        const isComplete = nextMoveIndex + 1 >= puzzleState.solutionPv.length;
 
         setPuzzleState((prev) => ({
           ...prev,
-          currentMoveIndex: newMoveIndex,
-          isSolved: isComplete,
-          attempt: prev.attempt
-            ? {
-                ...prev.attempt,
-                moves: newUserMoves,
-                isCorrect: true,
-                solved: isComplete,
-              }
-            : null,
+          currentFen: game.fen(),
+          moveIndex: isComplete ? prev.moveIndex : nextMoveIndex + 1,
+          solved: isComplete,
         }));
 
-        // Record attempt if solved
-        if (isComplete) {
-          recordAttempt(puzzleState.currentPuzzle.id, true, mistakes);
-        }
-
+        setGame(new Chess(game.fen()));
         return true;
-      } else {
-        // Incorrect move
-        const newMistakes = mistakes + 1;
-        setMistakes(newMistakes);
-        
-        setPuzzleState((prev) => ({
-          ...prev,
-          attempt: prev.attempt
-            ? {
-                ...prev.attempt,
-                attempts: newMistakes,
-                isCorrect: false,
-              }
-            : null,
-        }));
-
+      } catch (error) {
+        console.error("Error applying move:", error);
         return false;
       }
-    } catch (error) {
-      console.error("Error making move:", error);
-      return false;
-    }
-  }, [game, puzzleState, solutionMoves, userMoves, mistakes, recordAttempt]);
-
-  const getHint = useCallback((): string | null => {
-    if (!puzzleState.currentPuzzle || puzzleState.isSolved) {
-      return null;
-    }
-
-    const currentHintLevel = puzzleState.hintLevel;
-    const expectedMove = solutionMoves[puzzleState.currentMoveIndex];
-    
-    if (!expectedMove) return null;
-
-    const from = expectedMove.slice(0, 2);
-    const to = expectedMove.slice(2, 4);
-
-    if (currentHintLevel === 0) {
-      // Level 1: Show piece to move
-      if (game) {
-        const piece = game.get(from as any);
-        if (piece) {
-          const pieceName = piece.type === "p" ? "pawn" : piece.type;
-          setPuzzleState((prev) => ({ ...prev, hintLevel: 1 }));
-          return `Try moving the ${piece.color === "w" ? "white" : "black"} ${pieceName}`;
-        }
-      }
-    } else if (currentHintLevel === 1) {
-      // Level 2: Show target square
-      setPuzzleState((prev) => ({ ...prev, hintLevel: 2 }));
-      return `Try moving to square ${to}`;
-    } else if (currentHintLevel === 2) {
-      // Level 3: Show the move
-      setPuzzleState((prev) => ({ ...prev, hintLevel: 3, attempt: prev.attempt ? { ...prev.attempt, hintUsed: true } : null }));
-      return `The correct move is ${from}${to}`;
-    }
-
-    return null;
-  }, [puzzleState, solutionMoves, game]);
-
-  const resetPuzzle = useCallback(() => {
-    if (puzzleState.currentPuzzle) {
-      const newGame = new Chess(puzzleState.currentPuzzle.fen);
-      setGame(newGame);
-      setUserMoves([]);
-      setMistakes(0);
+    } else {
+      // Incorrect move
       setPuzzleState((prev) => ({
         ...prev,
-        currentMoveIndex: 0,
-        hintLevel: 0,
-        isSolved: false,
-        isFailed: false,
-        attempt: prev.attempt
-          ? {
-              ...prev.attempt,
-              moves: [],
-              attempts: 0,
-              solved: false,
-            }
-          : null,
+        mistakes: prev.mistakes + 1,
       }));
+      return false;
     }
-  }, [puzzleState.currentPuzzle]);
+  }, [game, puzzleState]);
 
-  const nextPuzzle = useCallback(async () => {
-    const difficulty = puzzleState.currentPuzzle?.difficulty;
-    const motif = puzzleState.currentPuzzle?.motifs[0];
-    await loadPuzzle(difficulty, motif);
-  }, [puzzleState.currentPuzzle, loadPuzzle]);
+  const resetPuzzle = useCallback(() => {
+    if (!puzzleState.puzzle) return;
 
+    const newGame = new Chess(puzzleState.puzzle.fen);
+    
+    // Handle auto-advance for mate puzzles
+    let initialFen = puzzleState.puzzle.fen;
+    let initialMoveIndex = 0;
+    
+    if (puzzleState.puzzle.motifs.some(m => m.includes("mate"))) {
+      const solutionPv = typeof puzzleState.puzzle.solutionPv === "string"
+        ? JSON.parse(puzzleState.puzzle.solutionPv)
+        : puzzleState.puzzle.solutionPv;
+      
+      if (solutionPv.length > 0 && puzzleState.puzzle.sideToMove !== (newGame.turn() === "w" ? "white" : "black")) {
+        const firstMove = solutionPv[0];
+        try {
+          newGame.move({ from: firstMove.slice(0, 2), to: firstMove.slice(2, 4) });
+          initialFen = newGame.fen();
+          initialMoveIndex = 1;
+        } catch (e) {
+          console.error("Error resetting puzzle:", e);
+        }
+      }
+    }
+
+    setGame(newGame);
+    setPuzzleState((prev) => ({
+      ...prev,
+      currentFen: initialFen,
+      moveIndex: initialMoveIndex,
+      solved: false,
+      mistakes: 0,
+      startTime: Date.now(),
+      hintsUsed: 0,
+      showSolution: false,
+    }));
+  }, [puzzleState.puzzle]);
+
+  const showHint = useCallback(() => {
+    if (!puzzleState.puzzle || puzzleState.solved || puzzleState.showSolution) {
+      return;
+    }
+
+    setPuzzleState((prev) => ({
+      ...prev,
+      hintsUsed: prev.hintsUsed + 1,
+    }));
+  }, [puzzleState]);
+
+  const toggleSolution = useCallback(() => {
+    setPuzzleState((prev) => ({
+      ...prev,
+      showSolution: !prev.showSolution,
+    }));
+  }, []);
+
+  const recordAttempt = useCallback(async (solved: boolean) => {
+    if (!puzzleState.puzzle) return;
+
+    try {
+      const timeMs = Date.now() - puzzleState.startTime;
+      
+      await fetch(apiPath("/api/puzzles/attempt"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          puzzleId: puzzleState.puzzle.id,
+          timeMs,
+          mistakes: puzzleState.mistakes,
+          solved,
+        }),
+      });
+    } catch (error) {
+      console.error("Error recording attempt:", error);
+    }
+  }, [puzzleState]);
+
+  // Auto-record on solve
+  useEffect(() => {
+    if (puzzleState.solved) {
+      recordAttempt(true);
+    }
+  }, [puzzleState.solved, recordAttempt]);
 
   return (
     <PuzzleContext.Provider
       value={{
         puzzleState,
-        loadPuzzle,
+        loading,
+        error,
+        loadRandomPuzzle,
         makeMove,
-        getHint,
         resetPuzzle,
-        nextPuzzle,
-        currentFen: game?.fen() || "",
-        solutionMoves,
-        currentMoveIndex: puzzleState.currentMoveIndex,
+        showHint,
+        toggleSolution,
+        recordAttempt,
       }}
     >
       {children}

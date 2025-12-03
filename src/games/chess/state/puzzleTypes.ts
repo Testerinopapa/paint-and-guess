@@ -1,44 +1,42 @@
-export type PuzzleDifficulty = "easy" | "medium" | "hard" | "expert";
-
-export type PuzzleMotif = 
-  | "tactics" 
-  | "endgame" 
-  | "checkmate" 
-  | "fork" 
-  | "pin" 
-  | "skewer" 
-  | "discovery" 
-  | "deflection"
-  | "sacrifice"
-  | "backrank"
-  | "promotion";
-
 export interface Puzzle {
   id: string;
+  createdAt: string;
   fen: string;
-  solution: string[]; // Array of moves in SAN notation (e.g., ["Qh5", "Nf6"])
-  moves: number; // Number of moves in solution
-  difficulty: PuzzleDifficulty;
-  motifs: PuzzleMotif[];
-  rating?: number; // Puzzle rating (e.g., 1200-2000)
-  description?: string; // Optional description of the puzzle
+  sideToMove: "white" | "black";
+  solutionPv: string[]; // UCI moves
+  motifs: string[];
+  source: string;
+  rating: number | null;
 }
 
 export interface PuzzleAttempt {
+  id: string;
+  createdAt: string;
   puzzleId: string;
-  moves: string[]; // User's attempted moves
-  isCorrect: boolean;
-  attempts: number;
+  timeMs: number;
+  mistakes: number;
   solved: boolean;
-  hintUsed: boolean;
+  rating: number | null;
+}
+
+export type PuzzleDifficulty = "easy" | "medium" | "hard" | "custom";
+
+export interface PuzzleFilters {
+  difficulty?: PuzzleDifficulty;
+  minRating?: number;
+  maxRating?: number;
+  motif?: string;
 }
 
 export interface PuzzleState {
-  currentPuzzle: Puzzle | null;
-  attempt: PuzzleAttempt | null;
-  currentMoveIndex: number; // Which move in the solution we're on
-  hintLevel: number; // 0 = no hint, 1 = show piece, 2 = show square, 3 = show move
-  isSolved: boolean;
-  isFailed: boolean;
+  puzzle: Puzzle | null;
+  currentFen: string;
+  moveIndex: number;
+  solutionPv: string[];
+  solved: boolean;
+  mistakes: number;
+  startTime: number;
+  hintsUsed: number;
+  showSolution: boolean;
 }
 
