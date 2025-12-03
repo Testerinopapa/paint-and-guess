@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { PuzzleProvider, usePuzzle } from "../state/PuzzleContext";
 import { PuzzleBoard } from "../components/PuzzleBoard";
+import { MobileChessLayout } from "../components/MobileChessLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { Chess } from "chess.js";
 import type { PuzzleDifficulty, PuzzleMotif } from "../state/puzzleTypes";
 
 const DIFFICULTIES: PuzzleDifficulty[] = ["easy", "medium", "hard", "expert"];
@@ -72,6 +75,106 @@ function PuzzleContent() {
   const progress = solutionMoves.length > 0 
     ? Math.round((currentMoveIndex / solutionMoves.length) * 100)
     : 0;
+
+  const isMobile = useIsMobile();
+
+  // Create a chess instance for material calculation
+  const [gameForMaterial, setGameForMaterial] = useState<Chess | null>(null);
+  useEffect(() => {
+    if (currentFen) {
+      try {
+        const chess = new Chess(currentFen);
+        setGameForMaterial(chess);
+      } catch {
+        setGameForMaterial(null);
+      }
+    }
+  }, [currentFen]);
+
+  if (isMobile) {
+    return (
+      <PuzzleProvider>
+        <MobileChessLayout
+          board={
+            <div className="space-y-4">
+              {puzzleState.currentPuzzle && (
+                <>
+                  <div className="px-4">
+                    <div className="flex items-center gap-2 flex-wrap justify-center">
+                      <Badge variant="outline" className="text-xs">
+                        {puzzleState.currentPuzzle.difficulty}
+                      </Badge>
+                      {puzzleState.currentPuzzle.rating && (
+                        <Badge variant="secondary" className="text-xs">
+                          Rating: {puzzleState.currentPuzzle.rating}
+                        </Badge>
+                      )}
+                      {puzzleState.currentPuzzle.motifs.slice(0, 2).map((motif) => (
+                        <Badge key={motif} variant="outline" className="text-xs">
+                          {motif}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <PuzzleBoard 
+                    fen={currentFen}
+                    orientation={puzzleState.currentPuzzle.fen.includes(" w ") ? "white" : "black"}
+                    onMove={handleMove}
+                    disabled={puzzleState.isSolved}
+                  />
+
+                  {puzzleState.isSolved && (
+                    <div className="px-4">
+                      <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                        <p className="text-green-800 dark:text-green-200 font-semibold text-sm text-center">
+                          ✅ Puzzle Solved! Great job!
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {hintText && (
+                    <div className="px-4">
+                      <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                        <p className="text-blue-800 dark:text-blue-200 text-sm">
+                          💡 Hint: {hintText}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="px-4 space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span>Progress</span>
+                      <span>{currentMoveIndex} / {solutionMoves.length} moves</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+              {!puzzleState.currentPuzzle && (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground text-sm">Loading puzzle...</p>
+                </div>
+              )}
+            </div>
+          }
+          showMaterial={false}
+          showMoveNotation={false}
+          onHint={handleGetHint}
+          onUndo={resetPuzzle}
+          puzzleMode={true}
+          game={gameForMaterial}
+        />
+      </PuzzleProvider>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 md:p-8 max-w-7xl">

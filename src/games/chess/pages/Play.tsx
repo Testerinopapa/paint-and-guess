@@ -1,11 +1,37 @@
 import { ChessProvider } from "../state/ChessContext";
 import { ChessBoard } from "../components/ChessBoard";
 import { GameInfo } from "../components/GameInfo";
+import { MobileChessLayoutWrapper } from "../components/MobileChessLayoutWrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { toast } from "sonner";
 
 export default function PlayPage() {
   const [orientation, setOrientation] = useState<"white" | "black">("white");
+  const isMobile = useIsMobile();
+
+  const handleResign = () => {
+    toast.info("Resignation feature coming soon");
+  };
+
+  const handleOptions = () => {
+    toast.info("Options menu coming soon");
+  };
+
+  if (isMobile) {
+    return (
+      <ChessProvider>
+        <MobileChessLayoutWrapper
+          board={<ChessBoard orientation={orientation} />}
+          showMaterial={true}
+          showMoveNotation={true}
+          onResign={handleResign}
+          onOptions={handleOptions}
+        />
+      </ChessProvider>
+    );
+  }
 
   return (
     <ChessProvider>
