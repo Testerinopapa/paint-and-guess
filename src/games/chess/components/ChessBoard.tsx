@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useChess } from "../state/ChessContext";
 import { Square } from "chess.js";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
-const SQUARE_SIZE = 60;
-const BOARD_SIZE = SQUARE_SIZE * 8;
+const DESKTOP_SQUARE_SIZE = 60;
+const MOBILE_SQUARE_SIZE = 40;
 
 const PIECE_SYMBOLS: Record<string, string> = {
   "K": "♔", "Q": "♕", "R": "♖", "B": "♗", "N": "♘", "P": "♙",
@@ -17,9 +18,33 @@ interface ChessBoardProps {
 
 export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
   const { game, gameState, makeMove, getLegalMoves } = useChess();
+  const isMobile = useIsMobile();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [squareSize, setSquareSize] = useState(isMobile ? MOBILE_SQUARE_SIZE : DESKTOP_SQUARE_SIZE);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);
   const [draggedSquare, setDraggedSquare] = useState<string | null>(null);
+
+  // Calculate responsive square size
+  useEffect(() => {
+    const updateSquareSize = () => {
+      if (!containerRef.current) return;
+      
+      const containerWidth = containerRef.current.offsetWidth;
+      const maxSquareSize = Math.floor((containerWidth - 32) / 8); // Account for padding
+      const calculatedSize = isMobile 
+        ? Math.min(MOBILE_SQUARE_SIZE, maxSquareSize)
+        : Math.min(DESKTOP_SQUARE_SIZE, maxSquareSize);
+      
+      setSquareSize(Math.max(30, calculatedSize)); // Minimum 30px
+    };
+
+    updateSquareSize();
+    window.addEventListener('resize', updateSquareSize);
+    return () => window.removeEventListener('resize', updateSquareSize);
+  }, [isMobile]);
+
+  const boardSize = squareSize * 8;
 
   const getSquareColor = (row: number, col: number): string => {
     const isLight = (row + col) % 2 === 0;
@@ -91,9 +116,25 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
           }
           setDraggedSquare(null);
         }}
+        onTouchStart={(e) => {
+          e.preventDefault();
+          if (square) {
+            setDraggedSquare(squareName);
+          }
+        }}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          if (draggedSquare && draggedSquare !== squareName) {
+            const success = makeMove(draggedSquare, squareName);
+            if (success) {
+              onMove?.(draggedSquare, squareName);
+            }
+          }
+          setDraggedSquare(null);
+        }}
         style={{
-          width: SQUARE_SIZE,
-          height: SQUARE_SIZE,
+          width: squareSize,
+          height: squareSize,
           backgroundColor: isSelected 
             ? "#baca44" 
             : isLegalMove 
@@ -104,9 +145,10 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
           justifyContent: "center",
           cursor: square || isLegalMove ? "pointer" : "default",
           position: "relative",
-          fontSize: "48px",
+          fontSize: `${squareSize * 0.8}px`,
           userSelect: "none",
           transition: "background-color 0.2s",
+          touchAction: "none", // Prevent scrolling on touch
         }}
       >
         {square && (
@@ -120,8 +162,8 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
         {isLegalMove && !square && (
           <div
             style={{
-              width: 20,
-              height: 20,
+              width: Math.max(12, squareSize * 0.33),
+              height: Math.max(12, squareSize * 0.33),
               borderRadius: "50%",
               backgroundColor: "#000",
               opacity: 0.3,
@@ -143,18 +185,21 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
   }
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(8, 1fr)",
-        gridTemplateRows: "repeat(8, 1fr)",
-        width: BOARD_SIZE,
-        height: BOARD_SIZE,
-        border: "2px solid #333",
-        boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-      }}
-    >
-      {squares}
+    <div ref={containerRef} className="w-full flex justify-center p-4">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(8, 1fr)",
+          gridTemplateRows: "repeat(8, 1fr)",
+          width: boardSize,
+          height: boardSize,
+          border: "2px solid #333",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+          maxWidth: "100%",
+        }}
+      >
+        {squares}
+      </div>
     </div>
   );
 }

@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Chess, Square } from "chess.js";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
-const SQUARE_SIZE = 60;
-const BOARD_SIZE = SQUARE_SIZE * 8;
+const DESKTOP_SQUARE_SIZE = 60;
+const MOBILE_SQUARE_SIZE = 40;
 
 const PIECE_SYMBOLS: Record<string, string> = {
   "K": "♔", "Q": "♕", "R": "♖", "B": "♗", "N": "♘", "P": "♙",
@@ -17,10 +18,34 @@ interface PuzzleBoardProps {
 }
 
 export function PuzzleBoard({ fen, orientation = "white", onMove, disabled = false }: PuzzleBoardProps) {
+  const isMobile = useIsMobile();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [squareSize, setSquareSize] = useState(isMobile ? MOBILE_SQUARE_SIZE : DESKTOP_SQUARE_SIZE);
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);
   const [draggedSquare, setDraggedSquare] = useState<string | null>(null);
+
+  // Calculate responsive square size
+  useEffect(() => {
+    const updateSquareSize = () => {
+      if (!containerRef.current) return;
+      
+      const containerWidth = containerRef.current.offsetWidth;
+      const maxSquareSize = Math.floor((containerWidth - 32) / 8); // Account for padding
+      const calculatedSize = isMobile 
+        ? Math.min(MOBILE_SQUARE_SIZE, maxSquareSize)
+        : Math.min(DESKTOP_SQUARE_SIZE, maxSquareSize);
+      
+      setSquareSize(Math.max(30, calculatedSize)); // Minimum 30px
+    };
+
+    updateSquareSize();
+    window.addEventListener('resize', updateSquareSize);
+    return () => window.removeEventListener('resize', updateSquareSize);
+  }, [isMobile]);
+
+  const boardSize = squareSize * 8;
 
   // Update game when FEN changes
   useEffect(() => {
@@ -107,9 +132,24 @@ export function PuzzleBoard({ fen, orientation = "white", onMove, disabled = fal
           }
           setDraggedSquare(null);
         }}
+        onTouchStart={(e) => {
+          if (!disabled && square) {
+            e.preventDefault();
+            setDraggedSquare(squareName);
+          }
+        }}
+        onTouchEnd={(e) => {
+          if (!disabled) {
+            e.preventDefault();
+            if (draggedSquare && draggedSquare !== squareName && onMove) {
+              onMove(draggedSquare, squareName);
+            }
+            setDraggedSquare(null);
+          }
+        }}
         style={{
-          width: SQUARE_SIZE,
-          height: SQUARE_SIZE,
+          width: squareSize,
+          height: squareSize,
           backgroundColor: isSelected 
             ? "#baca44" 
             : isLegalMove 
@@ -120,10 +160,11 @@ export function PuzzleBoard({ fen, orientation = "white", onMove, disabled = fal
           justifyContent: "center",
           cursor: (square || isLegalMove) && !disabled ? "pointer" : "default",
           position: "relative",
-          fontSize: "48px",
+          fontSize: `${squareSize * 0.8}px`,
           userSelect: "none",
           transition: "background-color 0.2s",
           opacity: disabled ? 0.6 : 1,
+          touchAction: "none", // Prevent scrolling on touch
         }}
       >
         {square && (
@@ -137,8 +178,8 @@ export function PuzzleBoard({ fen, orientation = "white", onMove, disabled = fal
         {isLegalMove && !square && (
           <div
             style={{
-              width: 20,
-              height: 20,
+              width: Math.max(12, squareSize * 0.33),
+              height: Math.max(12, squareSize * 0.33),
               borderRadius: "50%",
               backgroundColor: "#000",
               opacity: 0.3,
@@ -161,25 +202,28 @@ export function PuzzleBoard({ fen, orientation = "white", onMove, disabled = fal
 
   if (!game) {
     return (
-      <div className="flex items-center justify-center" style={{ width: BOARD_SIZE, height: BOARD_SIZE }}>
+      <div ref={containerRef} className="w-full flex items-center justify-center p-4" style={{ minHeight: boardSize }}>
         <p className="text-muted-foreground">Loading board...</p>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(8, 1fr)",
-        gridTemplateRows: "repeat(8, 1fr)",
-        width: BOARD_SIZE,
-        height: BOARD_SIZE,
-        border: "2px solid #333",
-        boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-      }}
-    >
-      {squares}
+    <div ref={containerRef} className="w-full flex justify-center p-4">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(8, 1fr)",
+          gridTemplateRows: "repeat(8, 1fr)",
+          width: boardSize,
+          height: boardSize,
+          border: "2px solid #333",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+          maxWidth: "100%",
+        }}
+      >
+        {squares}
+      </div>
     </div>
   );
 }

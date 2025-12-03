@@ -74,9 +74,9 @@ function PuzzleContent() {
     : 0;
 
   return (
-    <div className="container mx-auto p-8 max-w-7xl">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
+    <div className="container mx-auto p-4 md:p-8 max-w-7xl">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="lg:col-span-2 space-y-4 order-2 lg:order-1">
           <Card>
             <CardHeader>
               <CardTitle>Chess Puzzle</CardTitle>
@@ -152,10 +152,10 @@ function PuzzleContent() {
           </Card>
         </div>
 
-        <div className="lg:col-span-1 space-y-4">
+        <div className="lg:col-span-1 space-y-4 order-1 lg:order-2">
           <Card>
             <CardHeader>
-              <CardTitle>Puzzle Controls</CardTitle>
+              <CardTitle className="text-lg md:text-xl">Puzzle Controls</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -203,16 +203,16 @@ function PuzzleContent() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Button onClick={handleLoadPuzzle} size="lg">
+                <Button onClick={handleLoadPuzzle} size="lg" className="h-10 md:h-auto">
                   Load Puzzle
                 </Button>
-                <Button onClick={nextPuzzle} variant="outline">
+                <Button onClick={nextPuzzle} variant="outline" className="h-10 md:h-auto">
                   Next Puzzle
                 </Button>
-                <Button onClick={resetPuzzle} variant="outline" disabled={!puzzleState.currentPuzzle}>
+                <Button onClick={resetPuzzle} variant="outline" disabled={!puzzleState.currentPuzzle} className="h-10 md:h-auto">
                   Reset Puzzle
                 </Button>
-                <Button onClick={handleGetHint} variant="outline" disabled={puzzleState.isSolved}>
+                <Button onClick={handleGetHint} variant="outline" disabled={puzzleState.isSolved} className="h-10 md:h-auto">
                   Get Hint
                 </Button>
               </div>

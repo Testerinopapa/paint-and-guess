@@ -37,15 +37,15 @@ export function GameInfo() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Game Status</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Game Status</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 md:space-y-4">
           <div className="flex items-center gap-2">
-            <Badge variant={getStatusColor()}>{getStatusMessage()}</Badge>
+            <Badge variant={getStatusColor()} className="text-xs md:text-sm">{getStatusMessage()}</Badge>
           </div>
           
-          <div className="flex gap-2">
-            <Button onClick={resetGame} variant="outline" size="sm">
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={resetGame} variant="outline" size="sm" className="h-9 md:h-8 text-xs md:text-sm flex-1 sm:flex-none">
               New Game
             </Button>
             <Button 
@@ -53,6 +53,7 @@ export function GameInfo() {
               variant="outline" 
               size="sm"
               disabled={gameState.moves.length === 0}
+              className="h-9 md:h-8 text-xs md:text-sm flex-1 sm:flex-none"
             >
               Undo Move
             </Button>
@@ -63,6 +64,7 @@ export function GameInfo() {
               }}
               variant="outline" 
               size="sm"
+              className="h-9 md:h-8 text-xs md:text-sm flex-1 sm:flex-none"
             >
               Copy PGN
             </Button>
@@ -72,10 +74,10 @@ export function GameInfo() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Move History</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Move History</CardTitle>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[200px]">
+          <ScrollArea className="h-[150px] md:h-[200px]">
             {gameState.moves.length === 0 ? (
               <p className="text-sm text-muted-foreground">No moves yet</p>
             ) : (
