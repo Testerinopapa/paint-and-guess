@@ -328,16 +328,7 @@ export function CanvaCanvas({
         
         // Debug: Log first few points to verify coordinate consistency
         if (localPathPoints.length < 3) {
-          const rawEvent = options.e;
-          const clientX = rawEvent.clientX || rawEvent.touches?.[0]?.clientX;
-          const clientY = rawEvent.clientY || rawEvent.touches?.[0]?.clientY;
-          const rect = canvas.getElement().getBoundingClientRect();
-            fabricGetPointer: { x: pointer.x, y: pointer.y },
-            manualCalc: {
-              x: clientX - rect.left,
-              y: clientY - rect.top,
-            },
-          });
+          // Debug logging removed
         }
         
         // Clamp coordinates to canvas bounds to ensure consistency
@@ -643,12 +634,6 @@ export function CanvaCanvas({
         // Use path-complete data to create final path
         // CRITICAL: Don't use enlivenObjects() - it recalculates bounding box incorrectly
         // Instead, create Path directly from path data, same as path-update
-          pathId: event.pathId,
-          dataKeys: Object.keys(event.data || {}),
-          dataLeft: (event.data as any)?.left,
-          dataTop: (event.data as any)?.top,
-          dataPath: (event.data as any)?.path?.slice(0, 3), // First 3 path commands
-        });
         
         try {
           const pathData = event.data as any;
@@ -663,14 +648,6 @@ export function CanvaCanvas({
           // Extract first coordinate to verify what we're receiving
           const firstMove = fabricPath.find((cmd: any) => cmd[0] === 'M');
           const firstLine = fabricPath.find((cmd: any) => cmd[0] === 'L');
-          
-            pathId: event.pathId,
-            firstMoveCommand: firstMove,
-            firstLineCommand: firstLine,
-            totalCommands: fabricPath.length,
-            pathDataLeft: pathData.left,
-            pathDataTop: pathData.top,
-          });
 
           // Create Path exactly like path-update does - let Fabric calculate left/top automatically
           // The path coordinates are absolute, so Fabric will set left/top to the minimum coordinates

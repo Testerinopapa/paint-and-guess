@@ -144,11 +144,6 @@ app.get("/api/games", async (req, res) => {
   try {
     const forceRefresh = req.query.refresh === "true";
     const registry = await loadGameRegistry({ forceRefresh });
-      source: registry.source,
-      entryCount: registry.entries.length,
-      entryIds: registry.entries.map((e) => e.id),
-      forceRefresh,
-    });
     res.json(registry);
   } catch (error) {
     logger.error("[registry] Failed to serve registry", error);
@@ -211,22 +206,10 @@ app.get("/api/games/registry", async (req, res) => {
   const requestStart = Date.now();
   const forceRefresh = req.query.refresh === "true";
   const clientIp = req.ip || req.socket.remoteAddress;
-  
-    forceRefresh,
-    clientIp,
-    query: req.query,
-  });
 
   try {
     const registry = await loadGameRegistry({ forceRefresh });
     const duration = Date.now() - requestStart;
-    
-      source: registry.source,
-      entryCount: registry.entries?.length ?? 0,
-      duration: `${duration}ms`,
-      forceRefresh,
-    });
-    
     res.json(registry);
   } catch (error) {
     const duration = Date.now() - requestStart;
@@ -1036,11 +1019,6 @@ io.on("connection", (socket) => {
               id: nextRoom.currentDrawer.id,
               name: nextRoom.currentDrawer.name,
             };
-
-              drawer,
-              roundNumber: nextRoom.roundNumber,
-              roundTime: nextRoom.roundTime,
-            });
 
             // Emit round-started with the new round info
             io.to(roomId).emit("canva:round-started", {
