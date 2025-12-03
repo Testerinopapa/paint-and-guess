@@ -84,8 +84,7 @@ export function ChessProvider({ children }: { children: ReactNode }) {
 
   const makeMove = useCallback((from: string, to: string, promotion?: string): boolean => {
     try {
-      const newGame = new Chess(game.fen());
-      const move = newGame.move({
+      const move = game.move({
         from,
         to,
         promotion: promotion as "q" | "r" | "b" | "n" | undefined,
@@ -95,7 +94,7 @@ export function ChessProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      updateState(newGame);
+      updateState(game);
       return true;
     } catch (error) {
       console.error("Error making move:", error);
@@ -141,9 +140,11 @@ export function ChessProvider({ children }: { children: ReactNode }) {
 
   const undoMove = useCallback((): boolean => {
     try {
-      const newGame = new Chess(game.fen());
-      newGame.undo();
-      updateState(newGame);
+      if (game.history().length === 0) {
+        return false;
+      }
+      game.undo();
+      updateState(game);
       return true;
     } catch (error) {
       console.error("Error undoing move:", error);

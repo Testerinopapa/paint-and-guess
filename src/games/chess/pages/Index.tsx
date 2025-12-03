@@ -2,9 +2,13 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useNavigate } from "react-router-dom";
+import PlayPage from "./Play";
+import AnalyzePage from "./Analyze";
 
 export default function ChessIndex() {
   const [gameMode, setGameMode] = useState<"play" | "analyze" | "puzzles">("play");
+  const navigate = useNavigate();
 
   return (
     <div className="container mx-auto p-8 max-w-6xl">
@@ -24,41 +28,11 @@ export default function ChessIndex() {
             </TabsList>
             
             <TabsContent value="play" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Play Chess</CardTitle>
-                  <CardDescription>Start a new game or join an existing room</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex gap-4">
-                    <Button size="lg">New Game (Local)</Button>
-                    <Button size="lg" variant="outline">Create Room</Button>
-                    <Button size="lg" variant="outline">Join Room</Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Chess game implementation coming soon. This will support local play, multiplayer rooms, and AI opponents.
-                  </p>
-                </CardContent>
-              </Card>
+              <PlayPage />
             </TabsContent>
             
             <TabsContent value="analyze" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Analyze Games</CardTitle>
-                  <CardDescription>Import PGN files or analyze live games with Stockfish</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex gap-4">
-                    <Button size="lg">Import PGN</Button>
-                    <Button size="lg" variant="outline">Analyze Current Game</Button>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Game analysis features coming soon. This will integrate with Stockfish engine for move analysis, 
-                    blunder detection, and CAPS1-style grading.
-                  </p>
-                </CardContent>
-              </Card>
+              <AnalyzePage />
             </TabsContent>
             
             <TabsContent value="puzzles" className="mt-6">

@@ -71,10 +71,7 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
     const isSelected = selectedSquare === squareName;
     const isLegalMove = legalMoves.includes(squareName);
     const isDragged = draggedSquare === squareName;
-    
-    const displayRow = orientation === "white" ? row : 7 - row;
-    const displayCol = orientation === "white" ? col : 7 - col;
-    const bgColor = getSquareColor(displayRow, displayCol);
+    const bgColor = getSquareColor(row, col);
 
     return (
       <div
@@ -117,7 +114,7 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
             opacity: isDragged ? 0.5 : 1,
             pointerEvents: "none",
           }}>
-            {PIECE_SYMBOLS[square.type] || ""}
+            {PIECE_SYMBOLS[square.color === "w" ? square.type.toUpperCase() : square.type] || ""}
           </span>
         )}
         {isLegalMove && !square && (
@@ -135,6 +132,16 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
     );
   };
 
+  // Create squares in the correct order based on orientation
+  const squares = [];
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const displayRow = orientation === "white" ? row : 7 - row;
+      const displayCol = orientation === "white" ? col : 7 - col;
+      squares.push(renderSquare(displayRow, displayCol));
+    }
+  }
+
   return (
     <div
       style={{
@@ -147,13 +154,7 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
         boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
       }}
     >
-      {Array.from({ length: 8 }, (_, row) =>
-        Array.from({ length: 8 }, (_, col) => {
-          const displayRow = orientation === "white" ? row : 7 - row;
-          const displayCol = orientation === "white" ? col : 7 - col;
-          return renderSquare(displayRow, displayCol);
-        })
-      )}
+      {squares}
     </div>
   );
 }
