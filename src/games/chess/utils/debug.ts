@@ -161,5 +161,23 @@ if (typeof window !== "undefined") {
       console.log("Use toggleChessDebug(true) to enable");
     }
   }
+
+  // Expose SVG debugging toggle
+  (window as any).toggleChessSvgDebug = (enabled?: boolean) => {
+    const currentState = !!(window as any).__CHESS_DEBUG__;
+    const newState = enabled !== undefined ? enabled : !currentState;
+    (window as any).__CHESS_DEBUG__ = newState;
+    console.log(`%cChess SVG debugging ${newState ? "ENABLED" : "DISABLED"}`, 
+      `color: ${newState ? "green" : "red"}; font-weight: bold;`);
+    console.log("This will show red dashed borders around SVG viewBoxes and log rendering details");
+    if (newState) {
+      console.log("Refresh the page to see the debug overlays");
+    }
+  };
+  
+  // Log SVG debug availability
+  if (enabled) {
+    console.log("Use toggleChessSvgDebug(true) to enable SVG rendering debugging");
+  }
 }
 
