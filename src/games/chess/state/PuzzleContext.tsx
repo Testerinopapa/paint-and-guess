@@ -2,6 +2,7 @@ import { createContext, useContext, useState, ReactNode, useCallback, useEffect 
 import { Chess } from "chess.js";
 import type { Puzzle, PuzzleState, PuzzleFilters, PuzzleDifficulty } from "./puzzleTypes";
 import { apiPath } from "@/config/api";
+import { debugPuzzle, debugMove, debugState, debugPuzzleState } from "../utils/debug";
 
 interface PuzzleContextType {
   puzzleState: PuzzleState;
@@ -45,6 +46,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   const [game, setGame] = useState<Chess | null>(null);
 
   const loadRandomPuzzle = useCallback(async (filters?: PuzzleFilters) => {
+    debugPuzzle.load(filters);
     setLoading(true);
     setError(null);
 
@@ -77,10 +79,13 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       const puzzle: Puzzle | null = await response.json();
 
       if (!puzzle) {
+        debugPuzzle.error("No puzzle found", "loadRandomPuzzle");
         setError("No puzzle found matching your criteria");
         setLoading(false);
         return;
       }
+
+      debugPuzzle.loaded(puzzle);
 
       // Parse solution PV
       const solutionPv = typeof puzzle.solutionPv === "string" 
@@ -101,17 +106,20 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         if (solutionPv.length > 0) {
           const firstMove = solutionPv[0];
           try {
-            newGame.move({ from: firstMove.slice(0, 2), to: firstMove.slice(2, 4) });
+            const from = firstMove.slice(0, 2);
+            const to = firstMove.slice(2, 4);
+            newGame.move({ from, to });
             initialFen = newGame.fen();
             initialMoveIndex = 1;
+            debugPuzzle.autoAdvance(from, to, initialFen, initialMoveIndex);
           } catch (e) {
+            debugPuzzle.error(e, "auto-advance");
             console.error("Error auto-advancing puzzle:", e);
           }
         }
       }
 
-      setGame(newGame);
-      setPuzzleState({
+      const newState = {
         puzzle,
         currentFen: initialFen,
         moveIndex: initialMoveIndex,
@@ -121,8 +129,14 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         startTime: Date.now(),
         hintsUsed: 0,
         showSolution: false,
-      });
+      };
+
+      setGame(newGame);
+      setPuzzleState(newState);
+      debugPuzzleState(newState);
+      debugState.fen(puzzle.fen, initialFen, "puzzle load");
     } catch (err) {
+      debugPuzzle.error(err, "loadRandomPuzzle");
       console.error("Error loading puzzle:", err);
       setError(err instanceof Error ? err.message : "Failed to load puzzle");
     } finally {
@@ -132,11 +146,13 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
 
   const makeMove = useCallback((from: string, to: string): boolean => {
     if (!game || !puzzleState.puzzle || puzzleState.solved) {
+      debugMove.error("Invalid move attempt", `game: ${!!game}, puzzle: ${!!puzzleState.puzzle}, solved: ${puzzleState.solved}`);
       return false;
     }
 
     const expectedMove = puzzleState.solutionPv[puzzleState.moveIndex];
     if (!expectedMove) {
+      debugMove.error("No expected move", `moveIndex: ${puzzleState.moveIndex}, solutionLength: ${puzzleState.solutionPv.length}`);
       return false;
     }
 
@@ -144,11 +160,17 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     const userMove = `${from}${to}`;
     const expectedMoveNormalized = expectedMove.slice(0, 4);
 
+    debugMove.attempt(from, to, expectedMoveNormalized);
+
     if (userMove === expectedMoveNormalized) {
       // Correct move
       try {
+        const oldFen = game.fen();
+        const oldMoveIndex = puzzleState.moveIndex;
+        
         // Apply player's move
         game.move({ from, to });
+        debugMove.correct(from, to, game.fen(), puzzleState.moveIndex);
         
         // Auto-play opponent reply if exists
         const nextMoveIndex = puzzleState.moveIndex + 1;
@@ -157,35 +179,55 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
           const oppFrom = opponentMove.slice(0, 2);
           const oppTo = opponentMove.slice(2, 4);
           game.move({ from: oppFrom, to: oppTo });
+          debugMove.autoReply(oppFrom, oppTo, game.fen());
         }
 
         const isComplete = nextMoveIndex + 1 >= puzzleState.solutionPv.length;
+        const newMoveIndex = isComplete ? puzzleState.moveIndex : nextMoveIndex + 1;
 
-        setPuzzleState((prev) => ({
-          ...prev,
-          currentFen: game.fen(),
-          moveIndex: isComplete ? prev.moveIndex : nextMoveIndex + 1,
-          solved: isComplete,
-        }));
+        setPuzzleState((prev) => {
+          const newState = {
+            ...prev,
+            currentFen: game.fen(),
+            moveIndex: newMoveIndex,
+            solved: isComplete,
+          };
+          debugState.update(prev, newState, "correct move");
+          debugState.fen(oldFen, game.fen(), "player move + auto-reply");
+          debugState.moveIndex(oldMoveIndex, newMoveIndex, "correct move");
+          if (isComplete) {
+            debugState.solved(true);
+          }
+          return newState;
+        });
 
         setGame(new Chess(game.fen()));
         return true;
       } catch (error) {
+        debugMove.error(error, "applying move");
         console.error("Error applying move:", error);
         return false;
       }
     } else {
       // Incorrect move
+      const newMistakes = puzzleState.mistakes + 1;
+      debugMove.incorrect(from, to, expectedMoveNormalized, newMistakes);
       setPuzzleState((prev) => ({
         ...prev,
-        mistakes: prev.mistakes + 1,
+        mistakes: newMistakes,
       }));
       return false;
     }
   }, [game, puzzleState]);
 
   const resetPuzzle = useCallback(() => {
-    if (!puzzleState.puzzle) return;
+    if (!puzzleState.puzzle) {
+      debugPuzzle.error("No puzzle to reset", "resetPuzzle");
+      return;
+    }
+
+    debugPuzzle.reset();
+    const oldState = { ...puzzleState };
 
     const newGame = new Chess(puzzleState.puzzle.fen);
     
@@ -201,18 +243,21 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       if (solutionPv.length > 0 && puzzleState.puzzle.sideToMove !== (newGame.turn() === "w" ? "white" : "black")) {
         const firstMove = solutionPv[0];
         try {
-          newGame.move({ from: firstMove.slice(0, 2), to: firstMove.slice(2, 4) });
+          const from = firstMove.slice(0, 2);
+          const to = firstMove.slice(2, 4);
+          newGame.move({ from, to });
           initialFen = newGame.fen();
           initialMoveIndex = 1;
+          debugPuzzle.autoAdvance(from, to, initialFen, initialMoveIndex);
         } catch (e) {
+          debugPuzzle.error(e, "reset auto-advance");
           console.error("Error resetting puzzle:", e);
         }
       }
     }
 
-    setGame(newGame);
-    setPuzzleState((prev) => ({
-      ...prev,
+    const newState = {
+      ...puzzleState,
       currentFen: initialFen,
       moveIndex: initialMoveIndex,
       solved: false,
@@ -220,8 +265,15 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       startTime: Date.now(),
       hintsUsed: 0,
       showSolution: false,
-    }));
-  }, [puzzleState.puzzle]);
+    };
+
+    setGame(newGame);
+    setPuzzleState(newState);
+    debugState.update(oldState, newState, "reset");
+    debugState.fen(oldState.currentFen, initialFen, "reset");
+    debugState.moveIndex(oldState.moveIndex, initialMoveIndex, "reset");
+    debugState.solved(false);
+  }, [puzzleState]);
 
   const showHint = useCallback(() => {
     if (!puzzleState.puzzle || puzzleState.solved || puzzleState.showSolution) {

@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { usePuzzle } from "../state/PuzzleContext";
 import { ChessBoard } from "./ChessBoard";
+import { debugBoard, debugPuzzleState, isDebugEnabled } from "../utils/debug";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +26,9 @@ export function PuzzleBoard() {
   }, [puzzleState.solutionPv, puzzleState.moveIndex]);
 
   const handleMove = useCallback((from: string, to: string) => {
+    if (isDebugEnabled()) {
+      console.log("[PUZZLE BOARD] Move received from ChessBoard", { from, to });
+    }
     const success = makeMove(from, to);
     setLastMoveResult(success ? "correct" : "incorrect");
     
@@ -49,6 +53,20 @@ export function PuzzleBoard() {
     if (!puzzleState.solutionPv.length) return 0;
     return Math.round((puzzleState.moveIndex / puzzleState.solutionPv.length) * 100);
   }, [puzzleState.moveIndex, puzzleState.solutionPv.length]);
+
+  // Debug: Log state changes
+  useEffect(() => {
+    if (isDebugEnabled() && puzzleState.puzzle) {
+      debugPuzzleState(puzzleState);
+    }
+  }, [puzzleState.currentFen, puzzleState.moveIndex, puzzleState.solved]);
+
+  // Debug: Log FEN changes
+  useEffect(() => {
+    if (isDebugEnabled() && puzzleState.currentFen) {
+      debugBoard.fenUpdate(undefined, puzzleState.currentFen);
+    }
+  }, [puzzleState.currentFen]);
 
   if (loading) {
     return (
@@ -154,6 +172,14 @@ export function PuzzleBoard() {
                 onMove={handleMove}
                 disabled={puzzleState.solved || puzzleState.showSolution}
               />
+              {isDebugEnabled() && (
+                <div className="absolute top-0 left-0 bg-black/70 text-white text-xs p-2 rounded font-mono">
+                  <div>FEN: {puzzleState.currentFen}</div>
+                  <div>Move: {puzzleState.moveIndex + 1}/{puzzleState.solutionPv.length}</div>
+                  <div>Solved: {puzzleState.solved ? "Yes" : "No"}</div>
+                  <div>Mistakes: {puzzleState.mistakes}</div>
+                </div>
+              )}
               {/* Hint Overlay */}
               {hintSquares.length > 0 && (
                 <div className="absolute inset-0 pointer-events-none">

@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { useChess } from "../state/ChessContext";
 import { Chess, Square } from "chess.js";
+import { debugBoard, isDebugEnabled } from "../utils/debug";
 
 const SQUARE_SIZE = 60;
 const BOARD_SIZE = SQUARE_SIZE * 8;
@@ -25,8 +26,12 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
   const game = useMemo(() => {
     if (fen) {
       try {
-        return new Chess(fen);
+        const gameInstance = new Chess(fen);
+        debugBoard.gameInstance(fen, true);
+        return gameInstance;
       } catch (error) {
+        debugBoard.error(error, "FEN parsing");
+        debugBoard.gameInstance(fen, false);
         console.error("Invalid FEN:", fen, error);
         return new Chess(); // Fallback to starting position
       }
@@ -59,11 +64,22 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
   // Reset selection when fen changes (for puzzle mode)
   useEffect(() => {
     if (fen) {
+      const prevFen = game?.fen();
+      if (prevFen && prevFen !== fen) {
+        debugBoard.fenUpdate(prevFen, fen);
+      }
       setSelectedSquare(null);
       setLegalMoves([]);
       setDraggedSquare(null);
     }
-  }, [fen]);
+  }, [fen, game]);
+
+  // Debug: Log board render
+  useEffect(() => {
+    if (isDebugEnabled()) {
+      debugBoard.render(game?.fen() || "no game", orientation);
+    }
+  }, [game, orientation]);
 
   const getSquareColor = (row: number, col: number): string => {
     const isLight = (row + col) % 2 === 0;
@@ -107,6 +123,9 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
       setSelectedSquare(square);
       const moves = getLegalMoves(square);
       setLegalMoves(moves);
+      if (isDebugEnabled()) {
+        debugBoard.selection(square, moves);
+      }
     } else {
       // Clear selection
       setSelectedSquare(null);
