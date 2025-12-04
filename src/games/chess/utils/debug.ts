@@ -27,6 +27,10 @@ export const isDebugEnabled = (): boolean => {
   const explicitDebug = import.meta.env.VITE_DEBUG_CHESS === "true";
   
   // Enable by default in dev, or if explicitly set
+  // If explicitly disabled via localStorage "false", respect that
+  const explicitlyDisabled = localStorage.getItem(DEBUG_KEY) === "false";
+  if (explicitlyDisabled) return false;
+  
   return isDev || explicitDebug;
 };
 
@@ -150,8 +154,12 @@ if (typeof window !== "undefined") {
     // Test log to verify it's working
     console.log("[CHESS DEBUG] Test log - if you see this, debugging is working!");
   } else {
-    console.log("%c[CHESS DEBUG] Debugging is DISABLED", "color: orange; font-weight: bold;");
-    console.log("Use toggleChessDebug(true) to enable");
+    // Only show disabled message if we're in dev mode (to avoid spam in production)
+    const isDev = import.meta.env.MODE === "development" || import.meta.env.DEV;
+    if (isDev) {
+      console.log("%c[CHESS DEBUG] Debugging is DISABLED", "color: orange; font-weight: bold;");
+      console.log("Use toggleChessDebug(true) to enable");
+    }
   }
 }
 

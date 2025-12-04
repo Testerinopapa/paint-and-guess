@@ -2,14 +2,10 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import { useChess } from "../state/ChessContext";
 import { Chess, Square } from "chess.js";
 import { debugBoard, isDebugEnabled } from "../utils/debug";
+import { ChessPiece } from "../utils/chessPieces";
 
 const SQUARE_SIZE = 60;
 const BOARD_SIZE = SQUARE_SIZE * 8;
-
-const PIECE_SYMBOLS: Record<string, string> = {
-  "K": "♔", "Q": "♕", "R": "♖", "B": "♗", "N": "♘", "P": "♙",
-  "k": "♚", "q": "♛", "r": "♜", "b": "♝", "n": "♞", "p": "♟",
-};
 
 interface ChessBoardProps {
   fen?: string; // FEN string to display (if provided, overrides ChessContext)
@@ -179,12 +175,20 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
         }}
       >
         {square && (
-          <span style={{ 
+          <div style={{ 
             opacity: isDragged ? 0.5 : 1,
             pointerEvents: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%",
           }}>
-            {PIECE_SYMBOLS[square.color === "w" ? square.type.toUpperCase() : square.type] || ""}
-          </span>
+            <ChessPiece 
+              piece={square} 
+              size={SQUARE_SIZE}
+            />
+          </div>
         )}
         {isLegalMove && !square && (
           <div
