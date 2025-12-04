@@ -10,7 +10,7 @@ interface PieceProps {
 
 // White King
 export const WhiteKing = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22.5 11.63V6M20 8h5" strokeLinejoin="miter"/>
       <path d="M22.5 25s4.5-7.5 3-10.5c0 0-1-2.5-3-2.5s-3 2.5-3 2.5c-1.5 3 3 10.5 3 10.5" fill="#fff" strokeLinecap="butt" strokeLinejoin="miter"/>
@@ -24,7 +24,7 @@ export const WhiteKing = ({ size = 60, className }: PieceProps) => (
 
 // White Queen
 export const WhiteQueen = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <g fill="#fff" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM24.5 7.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM41 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM16 8.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM33 9a2 2 0 1 1-4 0 2 2 0 1 1 4 0z"/>
       <path d="M9 26c8.5-1.5 21-1.5 27 0l2.5-12.5L31 25l-.3-14.1-5.2 13.6-3-14.5-3 14.5-5.2-13.6L14 25 6.5 13.5 9 26z" strokeLinecap="butt"/>
@@ -41,7 +41,7 @@ export const WhiteQueen = ({ size = 60, className }: PieceProps) => (
 
 // White Rook
 export const WhiteRook = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <g fill="#fff" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 39h27v-3H9v3zM12 36v-4h21v4H12zM11 14V9h4v2h5V9h5v2h5V9h4v5" strokeLinecap="butt"/>
       <path d="M34 14l-3 3H14l-3-3"/>
@@ -54,7 +54,7 @@ export const WhiteRook = ({ size = 60, className }: PieceProps) => (
 
 // White Bishop
 export const WhiteBishop = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <g fill="#fff" strokeLinecap="butt">
         <path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.35.49-2.32.47-3-.5 1.35-1.46 3-2 3-2z"/>
@@ -67,7 +67,7 @@ export const WhiteBishop = ({ size = 60, className }: PieceProps) => (
 
 // White Knight
 export const WhiteKnight = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#fff"/>
       <path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.04-.74 1.73-2.9 2-3 .5-2 4-3.5 6-3.5 2.5 0 4.5 1.5 5 3.5z" fill="#fff" strokeLinecap="butt"/>
@@ -80,14 +80,14 @@ export const WhiteKnight = ({ size = 60, className }: PieceProps) => (
 
 // White Pawn
 export const WhitePawn = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23.13c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" fill="#fff" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
 
 // Black King
 export const BlackKing = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22.5 11.63V6" strokeLinejoin="miter"/>
       <path d="M22.5 25s4.5-7.5 3-10.5c0 0-1-2.5-3-2.5s-3 2.5-3 2.5c-1.5 3 3 10.5 3 10.5" fill="#000" strokeLinecap="butt" strokeLinejoin="miter"/>
@@ -101,7 +101,7 @@ export const BlackKing = ({ size = 60, className }: PieceProps) => (
 
 // Black Queen
 export const BlackQueen = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <g fill="#000" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM24.5 7.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM41 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM16 8.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM33 9a2 2 0 1 1-4 0 2 2 0 1 1 4 0z"/>
       <path d="M9 26c8.5-1.5 21-1.5 27 0l2.5-12.5L31 25l-.3-14.1-5.2 13.6-3-14.5-3 14.5-5.2-13.6L14 25 6.5 13.5 9 26z" strokeLinecap="butt"/>
@@ -118,7 +118,7 @@ export const BlackQueen = ({ size = 60, className }: PieceProps) => (
 
 // Black Rook
 export const BlackRook = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <g fill="#000" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 39h27v-3H9v3zM12.5 32l1.5-2.5h17l1.5 2.5h-20zM12 36v-4h21v4H12z" strokeLinecap="butt"/>
       <path d="M14 29.5v-13h17v13H14z" strokeLinecap="butt" strokeLinejoin="miter"/>
@@ -130,7 +130,7 @@ export const BlackRook = ({ size = 60, className }: PieceProps) => (
 
 // Black Bishop
 export const BlackBishop = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <g fill="#000" strokeLinecap="butt">
         <path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.35.49-2.32.47-3-.5 1.35-1.46 3-2 3-2z"/>
@@ -143,7 +143,7 @@ export const BlackBishop = ({ size = 60, className }: PieceProps) => (
 
 // Black Knight
 export const BlackKnight = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#000"/>
       <path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.04-.74 1.73-2.9 2-3 .5-2 4-3.5 6-3.5 2.5 0 4.5 1.5 5 3.5z" fill="#000" strokeLinecap="butt"/>
@@ -156,7 +156,7 @@ export const BlackKnight = ({ size = 60, className }: PieceProps) => (
 
 // Black Pawn
 export const BlackPawn = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block" }}>
     <path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23.13c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" fill="#000" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
@@ -173,7 +173,10 @@ export const ChessPiece = ({
 }) => {
   if (!piece) return null;
 
-  const pieceKey = `${piece.color}${piece.type}`;
+  // chess.js returns lowercase types, normalize to uppercase for matching
+  const type = piece.type.toUpperCase();
+  const color = piece.color; // 'w' or 'b'
+  const pieceKey = `${color}${type}`;
   const props = { size, className };
 
   switch (pieceKey) {
@@ -189,7 +192,9 @@ export const ChessPiece = ({
     case "bB": return <BlackBishop {...props} />;
     case "bN": return <BlackKnight {...props} />;
     case "bP": return <BlackPawn {...props} />;
-    default: return null;
+    default: 
+      console.warn("[ChessPiece] Unknown piece:", pieceKey, piece);
+      return null;
   }
 };
 

@@ -169,7 +169,6 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
           justifyContent: "center",
           cursor: disabled ? "not-allowed" : (square || isLegalMove ? "pointer" : "default"),
           position: "relative",
-          fontSize: "48px",
           userSelect: "none",
           transition: "background-color 0.2s",
         }}
@@ -181,9 +180,13 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: "100%",
-            height: "100%",
+            width: SQUARE_SIZE,
+            height: SQUARE_SIZE,
+            position: "absolute",
+            top: 0,
+            left: 0,
           }}>
+            {isDebugEnabled() && console.log("[BOARD] Rendering piece:", squareName, square)}
             <ChessPiece 
               piece={square} 
               size={SQUARE_SIZE}
