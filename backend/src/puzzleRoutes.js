@@ -1,5 +1,5 @@
 import { prisma } from "./prismaClient.js";
-import { parseFen } from "chessops";
+import { parseFen } from "chessops/fen";
 
 const RATING_PRESETS = {
   easy: { min: 0, max: 1400 },
