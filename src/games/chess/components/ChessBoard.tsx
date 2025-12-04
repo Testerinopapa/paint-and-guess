@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useChess } from "../state/ChessContext";
-import { Square } from "chess.js";
+import { Chess, Square } from "chess.js";
 
 const SQUARE_SIZE = 60;
 const BOARD_SIZE = SQUARE_SIZE * 8;
@@ -11,15 +11,59 @@ const PIECE_SYMBOLS: Record<string, string> = {
 };
 
 interface ChessBoardProps {
+  fen?: string; // FEN string to display (if provided, overrides ChessContext)
   orientation?: "white" | "black";
   onMove?: (from: string, to: string) => void;
+  disabled?: boolean; // If true, moves are disabled (for puzzle mode when not player's turn)
 }
 
-export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
-  const { game, gameState, makeMove, getLegalMoves } = useChess();
+export function ChessBoard({ fen, orientation = "white", onMove, disabled = false }: ChessBoardProps) {
+  // Use ChessContext if fen is not provided (backward compatibility)
+  const chessContext = useChess();
+  
+  // Create game instance from fen if provided, otherwise use ChessContext
+  const game = useMemo(() => {
+    if (fen) {
+      try {
+        return new Chess(fen);
+      } catch (error) {
+        console.error("Invalid FEN:", fen, error);
+        return new Chess(); // Fallback to starting position
+      }
+    }
+    return chessContext.game;
+  }, [fen, chessContext.game]);
+
+  // Get move functions - if fen is provided, we handle moves via onMove callback only
+  const makeMove = fen ? 
+    (from: string, to: string) => {
+      // For puzzle mode, moves are handled by parent via onMove callback
+      if (onMove) {
+        return onMove(from, to);
+      }
+      return false;
+    } : 
+    chessContext.makeMove;
+
+  const getLegalMoves = useCallback((square?: string): string[] => {
+    if (!game) return [];
+    
+    const moves = game.moves({ square: square as Square, verbose: true });
+    return moves.map(move => move.to);
+  }, [game]);
+
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [legalMoves, setLegalMoves] = useState<string[]>([]);
   const [draggedSquare, setDraggedSquare] = useState<string | null>(null);
+
+  // Reset selection when fen changes (for puzzle mode)
+  useEffect(() => {
+    if (fen) {
+      setSelectedSquare(null);
+      setLegalMoves([]);
+      setDraggedSquare(null);
+    }
+  }, [fen]);
 
   const getSquareColor = (row: number, col: number): string => {
     const isLight = (row + col) % 2 === 0;
@@ -33,6 +77,8 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
   };
 
   const handleSquareClick = useCallback((square: string) => {
+    if (disabled) return; // Don't allow moves if disabled
+    
     if (selectedSquare === square) {
       // Deselect if clicking the same square
       setSelectedSquare(null);
@@ -49,7 +95,10 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
       // Make the move
       const success = makeMove(selectedSquare, square);
       if (success) {
-        onMove?.(selectedSquare, square);
+        // onMove is called inside makeMove for fen mode, but we still call it for ChessContext mode
+        if (!fen && onMove) {
+          onMove(selectedSquare, square);
+        }
         setSelectedSquare(null);
         setLegalMoves([]);
       }
@@ -63,7 +112,7 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
       setSelectedSquare(null);
       setLegalMoves([]);
     }
-  }, [selectedSquare, legalMoves, game, makeMove, getLegalMoves, onMove]);
+  }, [selectedSquare, legalMoves, game, makeMove, getLegalMoves, onMove, fen, disabled]);
 
   const renderSquare = (row: number, col: number) => {
     const squareName = getSquareName(row, col);
@@ -83,10 +132,11 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
           }
         }}
         onMouseUp={() => {
-          if (draggedSquare && draggedSquare !== squareName) {
+          if (!disabled && draggedSquare && draggedSquare !== squareName) {
             const success = makeMove(draggedSquare, squareName);
-            if (success) {
-              onMove?.(draggedSquare, squareName);
+            if (success && !fen && onMove) {
+              // onMove is already called in makeMove for fen mode
+              onMove(draggedSquare, squareName);
             }
           }
           setDraggedSquare(null);
@@ -102,7 +152,7 @@ export function ChessBoard({ orientation = "white", onMove }: ChessBoardProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          cursor: square || isLegalMove ? "pointer" : "default",
+          cursor: disabled ? "not-allowed" : (square || isLegalMove ? "pointer" : "default"),
           position: "relative",
           fontSize: "48px",
           userSelect: "none",

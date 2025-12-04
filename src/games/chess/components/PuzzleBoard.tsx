@@ -149,8 +149,10 @@ export function PuzzleBoard() {
           <div className="flex justify-center">
             <div className="relative">
               <ChessBoard 
+                fen={puzzleState.currentFen}
                 orientation={puzzleState.puzzle.sideToMove === "white" ? "white" : "black"}
                 onMove={handleMove}
+                disabled={puzzleState.solved || puzzleState.showSolution}
               />
               {/* Hint Overlay */}
               {hintSquares.length > 0 && (
