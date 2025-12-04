@@ -45,6 +45,8 @@ function calculateLastMover(fen, pv) {
 export async function getRandomPuzzle(req, res) {
   try {
     const { difficulty, minRating, maxRating, motif } = req.query;
+    
+    console.log("[Puzzle API] Random puzzle request:", { difficulty, minRating, maxRating, motif });
 
     // Build rating range
     let ratingMin = 0;
@@ -128,7 +130,7 @@ export async function getRandomPuzzle(req, res) {
       // (can be added later with Stockfish integration)
 
       // Return valid puzzle
-      return res.json({
+      const puzzleData = {
         id: puzzle.id,
         createdAt: puzzle.createdAt.toISOString(),
         fen: puzzle.fen,
@@ -137,14 +139,17 @@ export async function getRandomPuzzle(req, res) {
         motifs: typeof puzzle.motifs === "string" ? JSON.parse(puzzle.motifs) : puzzle.motifs,
         source: puzzle.source,
         rating: puzzle.rating,
-      });
+      };
+      console.log("[Puzzle API] Returning puzzle:", puzzle.id);
+      return res.json(puzzleData);
     }
 
     // If no valid puzzle found, return null
+    console.log("[Puzzle API] No valid puzzle found after", attempts, "attempts");
     res.json(null);
   } catch (error) {
-    console.error("Error getting random puzzle:", error);
-    res.status(500).json({ status: "error", message: "Failed to get puzzle" });
+    console.error("[Puzzle API] Error getting random puzzle:", error);
+    res.status(500).json({ status: "error", message: "Failed to get puzzle", error: error.message });
   }
 }
 
