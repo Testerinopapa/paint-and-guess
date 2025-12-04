@@ -54,9 +54,7 @@ export const WhiteRook = ({ size = 60, className }: PieceProps) => (
 
 // White Bishop
 export const WhiteBishop = ({ size = 60, className }: PieceProps) => {
-  if (typeof window !== "undefined" && (window as any).__CHESS_DEBUG__) {
-    console.log("[WhiteBishop] Rendering", { size, className, viewBox: "0 0 45 45" });
-  }
+  console.log("[WhiteBishop] Rendering", { size, className, viewBox: "0 0 45 45", actualSize: size });
   return (
   <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -66,18 +64,14 @@ export const WhiteBishop = ({ size = 60, className }: PieceProps) => {
       </g>
       <path d="M17.5 11h10M15 14.5h15" stroke="#000" strokeLinejoin="miter" strokeWidth="1.5"/>
     </g>
-    {typeof window !== "undefined" && (window as any).__CHESS_DEBUG__ && (
-      <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.5"/>
-    )}
+    <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.3"/>
   </svg>
   );
 };
 
 // White Knight
 export const WhiteKnight = ({ size = 60, className }: PieceProps) => {
-  if (typeof window !== "undefined" && (window as any).__CHESS_DEBUG__) {
-    console.log("[WhiteKnight] Rendering", { size, className, viewBox: "0 0 45 45" });
-  }
+  console.log("[WhiteKnight] Rendering", { size, className, viewBox: "0 0 45 45", actualSize: size });
   return (
   <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -86,9 +80,7 @@ export const WhiteKnight = ({ size = 60, className }: PieceProps) => {
       <path d="M9.5 25.5a.5.5 0 1 1-1 0 .5.5 0 1 1 1 0z" fill="#000" stroke="#000" strokeWidth="0.5"/>
       <path d="M14.933 15.75a.5 1.5 30 1 1-.866-.5.5 1.5 30 1 1 .866.5z" fill="#000" stroke="#000" strokeWidth="1.5"/>
     </g>
-    {typeof window !== "undefined" && (window as any).__CHESS_DEBUG__ && (
-      <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.5"/>
-    )}
+    <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.3"/>
   </svg>
   );
 };
@@ -145,11 +137,9 @@ export const BlackRook = ({ size = 60, className }: PieceProps) => (
 
 // Black Bishop
 export const BlackBishop = ({ size = 60, className }: PieceProps) => {
-  if (typeof window !== "undefined" && (window as any).__CHESS_DEBUG__) {
-    console.log("[BlackBishop] Rendering", { size, className, viewBox: "0 0 45 45" });
-  }
+  console.log("[BlackBishop] Rendering", { size, className, viewBox: "0 0 45 45", actualSize: size });
   return (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
+  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))", overflow: "visible" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <g fill="#000" stroke="#000" strokeLinecap="butt" strokeWidth="1.5">
         <path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.35.49-2.32.47-3-.5 1.35-1.46 3-2 3-2z"/>
@@ -157,18 +147,14 @@ export const BlackBishop = ({ size = 60, className }: PieceProps) => {
       </g>
       <path d="M17.5 11h10M15 14.5h15" stroke="#fff" strokeLinejoin="miter" strokeWidth="1.5"/>
     </g>
-    {typeof window !== "undefined" && (window as any).__CHESS_DEBUG__ && (
-      <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.5"/>
-    )}
+    <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.3"/>
   </svg>
   );
 };
 
 // Black Knight
 export const BlackKnight = ({ size = 60, className }: PieceProps) => {
-  if (typeof window !== "undefined" && (window as any).__CHESS_DEBUG__) {
-    console.log("[BlackKnight] Rendering", { size, className, viewBox: "0 0 45 45" });
-  }
+  console.log("[BlackKnight] Rendering", { size, className, viewBox: "0 0 45 45", actualSize: size });
   return (
   <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -177,9 +163,7 @@ export const BlackKnight = ({ size = 60, className }: PieceProps) => {
       <path d="M9.5 25.5a.5.5 0 1 1-1 0 .5.5 0 1 1 1 0z" fill="#fff" stroke="#fff" strokeWidth="0.5"/>
       <path d="M14.933 15.75a.5 1.5 30 1 1-.866-.5.5 1.5 30 1 1 .866.5z" fill="#fff" stroke="#fff" strokeWidth="1.5"/>
     </g>
-    {typeof window !== "undefined" && (window as any).__CHESS_DEBUG__ && (
-      <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.5"/>
-    )}
+    <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.3"/>
   </svg>
   );
 };
@@ -209,9 +193,7 @@ export const ChessPiece = ({
   const pieceKey = `${color}${type}`;
   const props = { size, className };
 
-  if (typeof window !== "undefined" && (window as any).__CHESS_DEBUG__) {
-    console.log("[ChessPiece] Rendering piece", { piece, type, color, pieceKey, size, className });
-  }
+  console.log("[ChessPiece] Rendering piece", { piece, type, color, pieceKey, size, className });
 
   switch (pieceKey) {
     case "wK": return <WhiteKing {...props} />;

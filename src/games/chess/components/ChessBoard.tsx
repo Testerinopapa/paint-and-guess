@@ -192,18 +192,17 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
               pieceColor: square.color,
               containerSize: SQUARE_SIZE
             })}
-            {typeof window !== "undefined" && (window as any).__CHESS_DEBUG__ && (
-              <div style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: SQUARE_SIZE,
-                height: SQUARE_SIZE,
-                border: "1px solid blue",
-                pointerEvents: "none",
-                zIndex: 1000,
-              }} />
-            )}
+            <div style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: SQUARE_SIZE,
+              height: SQUARE_SIZE,
+              border: "1px solid blue",
+              pointerEvents: "none",
+              zIndex: 1000,
+              opacity: 0.3,
+            }} />
             <ChessPiece 
               piece={square} 
               size={SQUARE_SIZE}
