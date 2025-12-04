@@ -2,7 +2,7 @@ import { createContext, useContext, useState, ReactNode, useCallback, useEffect 
 import { Chess } from "chess.js";
 import type { Puzzle, PuzzleState, PuzzleFilters, PuzzleDifficulty } from "./puzzleTypes";
 import { apiPath } from "@/config/api";
-import { debugPuzzle, debugMove, debugState, debugPuzzleState } from "../utils/debug";
+import { debugPuzzle, debugMove, debugState, debugPuzzleState, isDebugEnabled } from "../utils/debug";
 
 interface PuzzleContextType {
   puzzleState: PuzzleState;
@@ -46,6 +46,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   const [game, setGame] = useState<Chess | null>(null);
 
   const loadRandomPuzzle = useCallback(async (filters?: PuzzleFilters) => {
+    console.log("[PUZZLE DEBUG] loadRandomPuzzle called", { filters, debugEnabled: isDebugEnabled() });
     debugPuzzle.load(filters);
     setLoading(true);
     setError(null);
@@ -145,6 +146,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const makeMove = useCallback((from: string, to: string): boolean => {
+    console.log("[PUZZLE DEBUG] makeMove called", { from, to, hasGame: !!game, hasPuzzle: !!puzzleState.puzzle, solved: puzzleState.solved });
     if (!game || !puzzleState.puzzle || puzzleState.solved) {
       debugMove.error("Invalid move attempt", `game: ${!!game}, puzzle: ${!!puzzleState.puzzle}, solved: ${puzzleState.solved}`);
       return false;

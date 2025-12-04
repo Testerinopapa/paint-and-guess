@@ -15,14 +15,19 @@ const DEBUG_PREFIX = {
 export const isDebugEnabled = (): boolean => {
   if (typeof window === "undefined") return false;
   
-  // Check localStorage first
+  // Check localStorage first (user override)
   const stored = localStorage.getItem(DEBUG_KEY);
   if (stored !== null) {
     return stored === "true";
   }
   
-  // Check environment variable
-  return import.meta.env.DEV || import.meta.env.VITE_DEBUG_CHESS === "true";
+  // Default to enabled in development mode
+  // Check both DEV mode and explicit env var
+  const isDev = import.meta.env.MODE === "development" || import.meta.env.DEV;
+  const explicitDebug = import.meta.env.VITE_DEBUG_CHESS === "true";
+  
+  // Enable by default in dev, or if explicitly set
+  return isDev || explicitDebug;
 };
 
 // Toggle debugging
@@ -132,13 +137,21 @@ if (typeof window !== "undefined") {
   (window as any).toggleChessDebug = (enabled?: boolean) => {
     const newState = enabled !== undefined ? enabled : !isDebugEnabled();
     toggleDebug(newState);
-    console.log(`Chess debugging ${newState ? "ENABLED" : "DISABLED"}`);
+    console.log(`%cChess debugging ${newState ? "ENABLED" : "DISABLED"}`, 
+      `color: ${newState ? "green" : "red"}; font-weight: bold;`);
     console.log("Usage: toggleChessDebug(true/false) or toggleChessDebug() to toggle");
   };
   
-  // Log current state on load
-  if (isDebugEnabled()) {
-    console.log("Chess debugging is ENABLED. Use toggleChessDebug() to disable.");
+  // Log current state on load and test
+  const enabled = isDebugEnabled();
+  if (enabled) {
+    console.log("%c[CHESS DEBUG] Debugging is ENABLED", "color: green; font-weight: bold;");
+    console.log("Use toggleChessDebug(false) to disable, or toggleChessDebug() to toggle");
+    // Test log to verify it's working
+    console.log("[CHESS DEBUG] Test log - if you see this, debugging is working!");
+  } else {
+    console.log("%c[CHESS DEBUG] Debugging is DISABLED", "color: orange; font-weight: bold;");
+    console.log("Use toggleChessDebug(true) to enable");
   }
 }
 
