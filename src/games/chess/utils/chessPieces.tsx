@@ -56,11 +56,11 @@ export const WhiteRook = ({ size = 60, className }: PieceProps) => (
 export const WhiteBishop = ({ size = 60, className }: PieceProps) => (
   <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <g fill="#fff" strokeLinecap="butt">
+      <g fill="#fff" stroke="#000" strokeLinecap="butt">
         <path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.35.49-2.32.47-3-.5 1.35-1.46 3-2 3-2z"/>
         <path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-10.5-11 1-10.5 8.5-5 10.5-2.5 0-2.5 1.5-2.5 4 0 0-.5.5 0 2zM11.5 14.5c.5 2.5 1.5 3 3.5 3.5 2 1.5 2.5 1.5 2.5 1.5s.5 0 2.5-1.5c2-.5 3-1 3.5-3.5 0 0 .5-1.5-1-2.5-1.5-1-3.5-1-3.5-1s-2 0-3.5 1c-1.5 1-1 2.5-1 2.5z"/>
       </g>
-      <path d="M17.5 11h10M15 14.5h15" strokeLinejoin="miter"/>
+      <path d="M17.5 11h10M15 14.5h15" stroke="#000" strokeLinejoin="miter" strokeWidth="1.5"/>
     </g>
   </svg>
 );
@@ -69,11 +69,10 @@ export const WhiteBishop = ({ size = 60, className }: PieceProps) => (
 export const WhiteKnight = ({ size = 60, className }: PieceProps) => (
   <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#fff"/>
-      <path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.04-.74 1.73-2.9 2-3 .5-2 4-3.5 6-3.5 2.5 0 4.5 1.5 5 3.5z" fill="#fff" strokeLinecap="butt"/>
+      <path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#fff" stroke="#000"/>
+      <path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.04-.74 1.73-2.9 2-3 .5-2 4-3.5 6-3.5 2.5 0 4.5 1.5 5 3.5z" fill="#fff" stroke="#000" strokeLinecap="butt"/>
       <path d="M9.5 25.5a.5.5 0 1 1-1 0 .5.5 0 1 1 1 0z" fill="#000" stroke="#000"/>
       <path d="M14.933 15.75a.5 1.5 30 1 1-.866-.5.5 1.5 30 1 1 .866.5z" fill="#000" stroke="#000" strokeWidth="1.49997"/>
-      <path d="M24.55 10.4l-.45 1.45.5.15c3.15 1 5.65 2.49 7.9 6.75S35.75 29.06 35.25 39l-.05.5h2.25l.05-.5c.5-10.06-.88-16.85-3.25-21.34-2.37-4.49-5.79-6.64-9.19-7.16l-.51-.1z" fill="#fff" stroke="none"/>
     </g>
   </svg>
 );
@@ -132,11 +131,11 @@ export const BlackRook = ({ size = 60, className }: PieceProps) => (
 export const BlackBishop = ({ size = 60, className }: PieceProps) => (
   <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <g fill="#000" strokeLinecap="butt">
+      <g fill="#000" stroke="#000" strokeLinecap="butt">
         <path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.35.49-2.32.47-3-.5 1.35-1.46 3-2 3-2z"/>
         <path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-10.5-11 1-10.5 8.5-5 10.5-2.5 0-2.5 1.5-2.5 4 0 0-.5.5 0 2zM11.5 14.5c.5 2.5 1.5 3 3.5 3.5 2 1.5 2.5 1.5 2.5 1.5s.5 0 2.5-1.5c2-.5 3-1 3.5-3.5 0 0 .5-1.5-1-2.5-1.5-1-3.5-1-3.5-1s-2 0-3.5 1c-1.5 1-1 2.5-1 2.5z"/>
       </g>
-      <path d="M17.5 11h10M15 14.5h15" strokeLinejoin="miter" stroke="#fff" strokeWidth="1.2"/>
+      <path d="M17.5 11h10M15 14.5h15" stroke="#fff" strokeLinejoin="miter" strokeWidth="1.2"/>
     </g>
   </svg>
 );
@@ -145,11 +144,10 @@ export const BlackBishop = ({ size = 60, className }: PieceProps) => (
 export const BlackKnight = ({ size = 60, className }: PieceProps) => (
   <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#000"/>
-      <path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.04-.74 1.73-2.9 2-3 .5-2 4-3.5 6-3.5 2.5 0 4.5 1.5 5 3.5z" fill="#000" strokeLinecap="butt"/>
+      <path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#000" stroke="#000"/>
+      <path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.04-.74 1.73-2.9 2-3 .5-2 4-3.5 6-3.5 2.5 0 4.5 1.5 5 3.5z" fill="#000" stroke="#000" strokeLinecap="butt"/>
       <path d="M9.5 25.5a.5.5 0 1 1-1 0 .5.5 0 1 1 1 0z" fill="#fff" stroke="#fff" strokeWidth="0.3"/>
       <path d="M14.933 15.75a.5 1.5 30 1 1-.866-.5.5 1.5 30 1 1 .866.5z" fill="#fff" stroke="#fff" strokeWidth="1.2"/>
-      <path d="M24.55 10.4l-.45 1.45.5.15c3.15 1 5.65 2.49 7.9 6.75S35.75 29.06 35.25 39l-.05.5h2.25l.05-.5c.5-10.06-.88-16.85-3.25-21.34-2.37-4.49-5.79-6.64-9.19-7.16l-.51-.1z" fill="#000" stroke="none"/>
     </g>
   </svg>
 );
