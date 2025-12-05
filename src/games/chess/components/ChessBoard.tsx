@@ -185,24 +185,8 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
             position: "absolute",
             top: 0,
             left: 0,
+            boxSizing: "border-box",
           }}>
-            {isDebugEnabled() && console.log("[BOARD] Rendering piece:", squareName, square, {
-              squareSize: SQUARE_SIZE,
-              pieceType: square.type,
-              pieceColor: square.color,
-              containerSize: SQUARE_SIZE
-            })}
-            <div style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: SQUARE_SIZE,
-              height: SQUARE_SIZE,
-              border: "1px solid blue",
-              pointerEvents: "none",
-              zIndex: 1000,
-              opacity: 0.3,
-            }} />
             <ChessPiece 
               piece={square} 
               size={SQUARE_SIZE}

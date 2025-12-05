@@ -2,15 +2,23 @@
  * Chess piece SVG components
  * Generates crisp, scalable SVG pieces for the chessboard
  */
+import { memo } from "react";
 
 interface PieceProps {
   size?: number;
   className?: string;
 }
 
+// Memoized piece components to prevent excessive re-renders
+const createPieceComponent = (PieceSvg: (props: PieceProps) => JSX.Element, displayName: string) => {
+  const Memoized = memo(PieceSvg);
+  Memoized.displayName = displayName;
+  return Memoized;
+};
+
 // White King
-export const WhiteKing = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
+export const WhiteKing = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22.5 11.63V6M20 8h5" strokeLinejoin="miter"/>
       <path d="M22.5 25s4.5-7.5 3-10.5c0 0-1-2.5-3-2.5s-3 2.5-3 2.5c-1.5 3 3 10.5 3 10.5" fill="#fff" strokeLinecap="butt" strokeLinejoin="miter"/>
@@ -20,11 +28,11 @@ export const WhiteKing = ({ size = 60, className }: PieceProps) => (
       <path d="M11.5 30c5.5-3 14.5-3 20 0M12 33.5c6-3 15-3 21 0" fill="none" stroke="#000"/>
     </g>
   </svg>
-);
+), "WhiteKing");
 
 // White Queen
-export const WhiteQueen = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
+export const WhiteQueen = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
     <g fill="#fff" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM24.5 7.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM41 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM16 8.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM33 9a2 2 0 1 1-4 0 2 2 0 1 1 4 0z"/>
       <path d="M9 26c8.5-1.5 21-1.5 27 0l2.5-12.5L31 25l-.3-14.1-5.2 13.6-3-14.5-3 14.5-5.2-13.6L14 25 6.5 13.5 9 26z" strokeLinecap="butt"/>
@@ -37,11 +45,11 @@ export const WhiteQueen = ({ size = 60, className }: PieceProps) => (
       <circle cx="39" cy="12" r="2" fill="none"/>
     </g>
   </svg>
-);
+), "WhiteQueen");
 
 // White Rook
-export const WhiteRook = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
+export const WhiteRook = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
     <g fill="#fff" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 39h27v-3H9v3zM12 36v-4h21v4H12zM11 14V9h4v2h5V9h5v2h5V9h4v5" strokeLinecap="butt"/>
       <path d="M34 14l-3 3H14l-3-3"/>
@@ -50,13 +58,11 @@ export const WhiteRook = ({ size = 60, className }: PieceProps) => (
       <path d="M11 14l1.5 3h20l1.5-3" fill="none" stroke="#000"/>
     </g>
   </svg>
-);
+), "WhiteRook");
 
 // White Bishop
-export const WhiteBishop = ({ size = 60, className }: PieceProps) => {
-  console.log("[WhiteBishop] Rendering", { size, className, viewBox: "0 0 45 45", actualSize: size });
-  return (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
+export const WhiteBishop = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <g fill="#fff" stroke="#000" strokeLinecap="butt" strokeWidth="1.5">
         <path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.35.49-2.32.47-3-.5 1.35-1.46 3-2 3-2z"/>
@@ -64,16 +70,12 @@ export const WhiteBishop = ({ size = 60, className }: PieceProps) => {
       </g>
       <path d="M17.5 11h10M15 14.5h15" stroke="#000" strokeLinejoin="miter" strokeWidth="1.5"/>
     </g>
-    <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.3"/>
   </svg>
-  );
-};
+), "WhiteBishop");
 
 // White Knight
-export const WhiteKnight = ({ size = 60, className }: PieceProps) => {
-  console.log("[WhiteKnight] Rendering", { size, className, viewBox: "0 0 45 45", actualSize: size });
-  return (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
+export const WhiteKnight = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#fff" stroke="#000" strokeWidth="1.5"/>
       <path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.04-.74 1.73-2.9 2-3 .5-2 4-3.5 6-3.5 2.5 0 4.5 1.5 5 3.5z" fill="#fff" stroke="#000" strokeLinecap="butt" strokeWidth="1.5"/>
@@ -81,21 +83,19 @@ export const WhiteKnight = ({ size = 60, className }: PieceProps) => {
       <path d="M14.933 15.75a.5 1.5 30 1 1-.866-.5.5 1.5 30 1 1 .866.5z" fill="#000" stroke="#000" strokeWidth="1.5"/>
       <path d="M24.55 10.4l-.45 1.45.5.15c3.15 1 5.65 2.49 7.9 6.75S35.75 29.06 35.25 39l-.05.5h2.25l.05-.5c.5-10.06-.88-16.85-3.25-21.34-2.37-4.49-5.79-6.64-9.19-7.16l-.51-.1z" fill="#fff" stroke="none"/>
     </g>
-    <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.3"/>
   </svg>
-  );
-};
+), "WhiteKnight");
 
 // White Pawn
-export const WhitePawn = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
+export const WhitePawn = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.2))" }}>
     <path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23.13c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" fill="#fff" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
-);
+), "WhitePawn");
 
 // Black King
-export const BlackKing = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
+export const BlackKing = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22.5 11.63V6" strokeLinejoin="miter"/>
       <path d="M22.5 25s4.5-7.5 3-10.5c0 0-1-2.5-3-2.5s-3 2.5-3 2.5c-1.5 3 3 10.5 3 10.5" fill="#000" strokeLinecap="butt" strokeLinejoin="miter"/>
@@ -105,11 +105,11 @@ export const BlackKing = ({ size = 60, className }: PieceProps) => (
       <path d="M11.5 30c5.5-3 14.5-3 20 0M12 33.5c6-3 15-3 21 0" stroke="#fff" strokeWidth="1"/>
     </g>
   </svg>
-);
+), "BlackKing");
 
 // Black Queen
-export const BlackQueen = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
+export const BlackQueen = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
     <g fill="#000" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM24.5 7.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM41 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM16 8.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM33 9a2 2 0 1 1-4 0 2 2 0 1 1 4 0z"/>
       <path d="M9 26c8.5-1.5 21-1.5 27 0l2.5-12.5L31 25l-.3-14.1-5.2 13.6-3-14.5-3 14.5-5.2-13.6L14 25 6.5 13.5 9 26z" strokeLinecap="butt"/>
@@ -122,11 +122,11 @@ export const BlackQueen = ({ size = 60, className }: PieceProps) => (
       <circle cx="39" cy="12" r="2" fill="none" stroke="#fff" strokeWidth="0.8"/>
     </g>
   </svg>
-);
+), "BlackQueen");
 
 // Black Rook
-export const BlackRook = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
+export const BlackRook = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
     <g fill="#000" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 39h27v-3H9v3zM12.5 32l1.5-2.5h17l1.5 2.5h-20zM12 36v-4h21v4H12z" strokeLinecap="butt"/>
       <path d="M14 29.5v-13h17v13H14z" strokeLinecap="butt" strokeLinejoin="miter"/>
@@ -134,13 +134,11 @@ export const BlackRook = ({ size = 60, className }: PieceProps) => (
       <path d="M12 35.5h21M13 31.5h19M14 29.5h17M14 16.5h17M11 14h23" fill="none" stroke="#fff" strokeWidth="1.2" strokeLinejoin="miter"/>
     </g>
   </svg>
-);
+), "BlackRook");
 
 // Black Bishop
-export const BlackBishop = ({ size = 60, className }: PieceProps) => {
-  console.log("[BlackBishop] Rendering", { size, className, viewBox: "0 0 45 45", actualSize: size });
-  return (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))", overflow: "visible" }}>
+export const BlackBishop = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <g fill="#000" stroke="#000" strokeLinecap="butt" strokeWidth="1.5">
         <path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.35.49-2.32.47-3-.5 1.35-1.46 3-2 3-2z"/>
@@ -148,16 +146,12 @@ export const BlackBishop = ({ size = 60, className }: PieceProps) => {
       </g>
       <path d="M17.5 11h10M15 14.5h15" stroke="#fff" strokeLinejoin="miter" strokeWidth="1.5"/>
     </g>
-    <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.3"/>
   </svg>
-  );
-};
+), "BlackBishop");
 
 // Black Knight
-export const BlackKnight = ({ size = 60, className }: PieceProps) => {
-  console.log("[BlackKnight] Rendering", { size, className, viewBox: "0 0 45 45", actualSize: size });
-  return (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
+export const BlackKnight = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#000" stroke="#000" strokeWidth="1.5"/>
       <path d="M24 18c.38 2.91-5.55 7.37-8 9-3 2-2.82 4.34-5 4-1.04-.74 1.73-2.9 2-3 .5-2 4-3.5 6-3.5 2.5 0 4.5 1.5 5 3.5z" fill="#000" stroke="#000" strokeLinecap="butt" strokeWidth="1.5"/>
@@ -165,20 +159,18 @@ export const BlackKnight = ({ size = 60, className }: PieceProps) => {
       <path d="M14.933 15.75a.5 1.5 30 1 1-.866-.5.5 1.5 30 1 1 .866.5z" fill="#fff" stroke="#fff" strokeWidth="1.5"/>
       <path d="M24.55 10.4l-.45 1.45.5.15c3.15 1 5.65 2.49 7.9 6.75S35.75 29.06 35.25 39l-.05.5h2.25l.05-.5c.5-10.06-.88-16.85-3.25-21.34-2.37-4.49-5.79-6.64-9.19-7.16l-.51-.1z" fill="#000" stroke="none"/>
     </g>
-    <rect x="0" y="0" width="45" height="45" fill="none" stroke="red" strokeWidth="0.5" strokeDasharray="2,2" opacity="0.3"/>
   </svg>
-  );
-};
+), "BlackKnight");
 
 // Black Pawn
-export const BlackPawn = ({ size = 60, className }: PieceProps) => (
-  <svg width={size} height={size} viewBox="0 0 45 45" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
+export const BlackPawn = createPieceComponent(({ size = 60, className }: PieceProps) => (
+  <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
     <path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23.13c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" fill="#000" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
-);
+), "BlackPawn");
 
-// Piece component mapper
-export const ChessPiece = ({ 
+// Piece component mapper - memoized to prevent re-renders
+export const ChessPiece = memo(({ 
   piece, 
   size = 60, 
   className 
@@ -194,8 +186,6 @@ export const ChessPiece = ({
   const color = piece.color; // 'w' or 'b'
   const pieceKey = `${color}${type}`;
   const props = { size, className };
-
-  console.log("[ChessPiece] Rendering piece", { piece, type, color, pieceKey, size, className });
 
   switch (pieceKey) {
     case "wK": return <WhiteKing {...props} />;
@@ -214,5 +204,13 @@ export const ChessPiece = ({
       console.warn("[ChessPiece] Unknown piece:", pieceKey, piece);
       return null;
   }
-};
-
+}, (prevProps, nextProps) => {
+  // Custom comparison to prevent unnecessary re-renders
+  return (
+    prevProps.piece?.type === nextProps.piece?.type &&
+    prevProps.piece?.color === nextProps.piece?.color &&
+    prevProps.size === nextProps.size &&
+    prevProps.className === nextProps.className
+  );
+});
+ChessPiece.displayName = "ChessPiece";
