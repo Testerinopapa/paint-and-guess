@@ -22,7 +22,7 @@ function PlayContent() {
           enabled: false,
           color: "black",
           elo: 1400,
-          depth: 12,
+          depth: 6,  // Intermediate level default depth
         });
       }
     } else {

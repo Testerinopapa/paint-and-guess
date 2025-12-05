@@ -10,12 +10,12 @@ import { Bot, Play } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const DIFFICULTY_PRESETS = [
-  { label: "Beginner", elo: 1000, description: "Makes frequent mistakes" },
-  { label: "Intermediate", elo: 1400, description: "Club player level" },
-  { label: "Advanced", elo: 1800, description: "Strong club player" },
-  { label: "Expert", elo: 2200, description: "Master level" },
-  { label: "Master", elo: 2600, description: "Grandmaster level" },
-  { label: "Maximum", elo: undefined, description: "Full Stockfish strength" },
+  { label: "Beginner", elo: 1000, depth: 4, description: "Makes frequent mistakes, fast responses" },
+  { label: "Intermediate", elo: 1400, depth: 6, description: "Club player level, quick moves" },
+  { label: "Advanced", elo: 1800, depth: 8, description: "Strong club player" },
+  { label: "Expert", elo: 2200, depth: 10, description: "Master level" },
+  { label: "Master", elo: 2600, depth: 12, description: "Grandmaster level" },
+  { label: "Maximum", elo: undefined, depth: 14, description: "Full Stockfish strength" },
 ] as const;
 
 export function AIConfig() {
@@ -32,7 +32,7 @@ export function AIConfig() {
         enabled: aiConfig.enabled,
         color: aiConfig.color,
         elo: presetData.elo,
-        depth: aiConfig.depth || 12,
+        depth: presetData.depth,
       });
     }
   };
@@ -42,12 +42,15 @@ export function AIConfig() {
     const elo = selectedPreset === "custom" 
       ? customElo 
       : presetData?.elo;
+    const depth = selectedPreset === "custom"
+      ? aiConfig.depth || 8  // Default depth for custom
+      : presetData?.depth || 8;
     
     setAIConfig({
       enabled: true,
       color: aiConfig.color,
       elo: elo,
-      depth: aiConfig.depth || 12,
+      depth: depth,
     });
     resetGame();
   };
@@ -86,7 +89,7 @@ export function AIConfig() {
                       <div>
                         <div className="font-medium">{preset.label}</div>
                         <div className="text-xs text-muted-foreground">
-                          {preset.elo ? `Elo ~${preset.elo}` : "No limit"}
+                          {preset.elo ? `Elo ~${preset.elo}` : "No limit"} • Depth {preset.depth}
                         </div>
                       </div>
                     </SelectItem>
@@ -170,8 +173,11 @@ export function AIConfig() {
                   {aiConfig.elo ? `Elo ${aiConfig.elo}` : "Maximum"}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mb-4">
+              <p className="text-xs text-muted-foreground mb-2">
                 Playing as {aiConfig.color === "white" ? "White" : "Black"}
+              </p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Search depth: {aiConfig.depth || 8}
               </p>
               <Button onClick={handleStopGame} variant="outline" size="sm" className="w-full">
                 Stop AI Game

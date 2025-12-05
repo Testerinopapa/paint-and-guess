@@ -85,7 +85,7 @@ export function ChessProvider({ children }: { children: ReactNode }) {
   const [aiConfig, setAIConfigState] = useState<AIConfig>({
     enabled: false,
     color: "black",
-    depth: 12,
+    depth: 8,  // Default to a more reasonable depth (Intermediate level)
   });
   const [isAIThinking, setIsAIThinking] = useState(false);
 
@@ -291,7 +291,7 @@ export function ChessProvider({ children }: { children: ReactNode }) {
       const fen = game.fen();
       const requestBody = {
         fen,
-        depth: aiConfig.depth || 12,
+        depth: aiConfig.depth || 8,
         elo: aiConfig.elo,
         limitStrength: aiConfig.elo !== undefined,
       };
