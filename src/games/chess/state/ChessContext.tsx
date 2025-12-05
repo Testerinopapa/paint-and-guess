@@ -279,8 +279,13 @@ export function ChessProvider({ children }: { children: ReactNode }) {
     }
 
     console.log("[AI DEBUG] Setting isAIThinking = true");
-    console.log("[AI DEBUG] Setting isAIThinking = true");
     setIsAIThinking(true);
+    
+    // Safety timeout: if thinking state persists for too long, reset it
+    const safetyTimeout = setTimeout(() => {
+      console.error("[AI DEBUG] SAFETY TIMEOUT: isAIThinking has been true for 60 seconds, forcing reset");
+      setIsAIThinking(false);
+    }, 60000); // 60 second safety timeout
     
     try {
       const fen = game.fen();
@@ -293,11 +298,40 @@ export function ChessProvider({ children }: { children: ReactNode }) {
       
       console.log("[AI DEBUG] Calling /api/analyze", requestBody);
       
-      const response = await fetch(apiPath("/api/analyze"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        console.error("[AI DEBUG] API call timeout after 30 seconds");
+        controller.abort();
+      }, 30000); // 30 second timeout
+      
+      let response: Response;
+      try {
+        response = await fetch(apiPath("/api/analyze"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        console.log("[AI DEBUG] Response received", {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+        });
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          console.error("[AI DEBUG] API call was aborted (timeout)");
+          throw new Error("API call timed out after 30 seconds");
+        }
+        console.error("[AI DEBUG] Fetch error", {
+          error: fetchError,
+          errorName: fetchError instanceof Error ? fetchError.name : 'Unknown',
+          errorMessage: fetchError instanceof Error ? fetchError.message : String(fetchError),
+        });
+        throw fetchError;
+      }
 
       console.log("[AI DEBUG] Response status:", response.status, response.statusText);
 
@@ -396,9 +430,15 @@ export function ChessProvider({ children }: { children: ReactNode }) {
         });
       }
     } finally {
+      clearTimeout(safetyTimeout);
       console.log("[AI DEBUG] Finally block: Setting isAIThinking = false");
       setIsAIThinking(false);
       console.log("[AI DEBUG] isAIThinking should now be false");
+      
+      // Double-check: verify state was actually updated
+      setTimeout(() => {
+        console.log("[AI DEBUG] Post-finally check: isAIThinking state after 100ms");
+      }, 100);
     }
   }, [game, aiConfig, gameState.turn, gameState.moves.length, isAIThinking, makeMove, parseUCIMove]);
 
