@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from "react";
 import { Chess } from "chess.js";
 import type { GameState, GameMode, ChessMove, GameStatus, AIConfig } from "./types";
 import { apiPath } from "@/config/api";
+import { composePolicies } from "../policies";
 
 interface ChessContextType {
   game: Chess;
@@ -222,13 +223,31 @@ export function ChessProvider({ children }: { children: ReactNode }) {
 
   const makeAIMove = useCallback(async () => {
     // Check conditions before proceeding
-    if (!aiConfig.enabled || isAIThinking) {
+    if (isAIThinking) {
       return;
     }
     
-    // Check if it's AI's turn
-    if (game.isGameOver() || game.turn() !== (aiConfig.color === "white" ? "w" : "b")) {
+    // Check if game is over
+    if (game.isGameOver()) {
       return;
+    }
+    
+    // Use policy pattern to determine if engine should move
+    const { opponent } = composePolicies({ aiConfig });
+    const playerColor = aiConfig.color === "white" ? "black" : "white";
+    
+    if (!opponent.shouldEngineMove({
+      turn: gameState.turn,
+      playerColor,
+      movesCount: gameState.moves.length,
+    })) {
+      return; // Policy says engine shouldn't move
+    }
+    
+    // Double-check it's actually AI's turn using game state
+    const expectedColor = aiConfig.color === "white" ? "w" : "b";
+    if (game.turn() !== expectedColor) {
+      return; // Not AI's turn according to game state
     }
 
     setIsAIThinking(true);
@@ -297,7 +316,7 @@ export function ChessProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsAIThinking(false);
     }
-  }, [game, aiConfig, isAIThinking, makeMove, parseUCIMove]);
+  }, [game, aiConfig, gameState.turn, gameState.moves.length, isAIThinking, makeMove, parseUCIMove]);
 
   const setAIConfig = useCallback((config: AIConfig) => {
     setAIConfigState(config);
@@ -308,21 +327,32 @@ export function ChessProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Auto-trigger AI move when it's AI's turn
-  useEffect(() => {
-    if (!aiConfig.enabled || isAIThinking || isGameOver()) {
-      return;
-    }
+  // Determine if AI should move now (using policy pattern from commits)
+  const shouldAIMoveNow = useMemo(() => {
+    if (isAIThinking) return false;
+    if (isGameOver()) return false;
     
-    const isAITurnNow = gameState.turn === aiConfig.color;
-    if (isAITurnNow) {
-      // Small delay to allow UI to update
-      const timer = setTimeout(() => {
-        makeAIMove();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [gameState.turn, gameState.status, aiConfig.enabled, aiConfig.color, isAIThinking, isGameOver, makeAIMove]);
+    // Use policy pattern to determine if engine should move
+    const { opponent } = composePolicies({ aiConfig });
+    const playerColor = aiConfig.color === "white" ? "black" : "white";
+    
+    return opponent.shouldEngineMove({
+      turn: gameState.turn,
+      playerColor,
+      movesCount: gameState.moves.length,
+    });
+  }, [aiConfig, gameState.turn, gameState.moves.length, gameState.status, isAIThinking]);
+
+  // Auto-trigger AI move when conditions are met (pattern from commit 2)
+  useEffect(() => {
+    if (!shouldAIMoveNow) return;
+    
+    // Small delay to allow UI to update
+    const timer = setTimeout(() => {
+      makeAIMove();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [shouldAIMoveNow, makeAIMove]);
 
   return (
     <ChessContext.Provider
