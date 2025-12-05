@@ -15,6 +15,8 @@ import { getSampleQuestions, getQuestionsByQuizId, QUIZZES } from "./triviaQuest
 import { canvaRoomRepository } from "./canvaRoomRepository.js";
 import authRoutes from "./auth/routes.js";
 import { getRandomPuzzle, getPuzzles, createPuzzleAttempt } from "./puzzleRoutes.js";
+import { analyzePosition, engineHealth } from "./api/analyze.js";
+import { generateReport, getReportDetails, getReportById } from "./api/report.js";
 
 const LOG_LEVELS = {
   error: 0,
@@ -156,6 +158,15 @@ app.get("/api/games", async (req, res) => {
 app.get("/api/puzzles/random", getRandomPuzzle);
 app.get("/api/puzzles", getPuzzles);
 app.post("/api/puzzles/attempt", createPuzzleAttempt);
+
+// Chess analysis endpoints
+app.post("/api/analyze", analyzePosition);
+app.get("/api/health/engine", engineHealth);
+
+// Chess report endpoints
+app.post("/api/report/generate", generateReport);
+app.get("/api/report/latest/details", getReportDetails);
+app.get("/api/report/:id", getReportById);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
