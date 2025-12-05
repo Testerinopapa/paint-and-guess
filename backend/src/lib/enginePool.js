@@ -105,6 +105,9 @@ class EnginePoolImpl {
     this.lastStdoutLines = [];
     this.activeDedupe = new Map();
     this.backoffMs = 0;
+    this.optionsInitialized = false;
+    this.currentJob = null; // Track active job for timeout handling
+    this.jobTimeout = null; // Timeout timer for current job
   }
 
   getStatus() {
@@ -131,6 +134,7 @@ class EnginePoolImpl {
 
     this.engine = spawn(bin);
     this.ready = false;
+    this.optionsInitialized = false;
     logger.info({ reqId, bin, pid: this.engine.pid }, "spawned");
 
     const onData = (chunk) => {
@@ -143,6 +147,7 @@ class EnginePoolImpl {
         }
         if (line === "uciok") {
           this.ready = true;
+          this.initializeOptions(reqId);
           logger.info({ reqId }, "ready");
         }
       }
@@ -169,7 +174,30 @@ class EnginePoolImpl {
     }
   }
 
+  initializeOptions(reqId) {
+    if (this.optionsInitialized) return;
+    
+    try {
+      // Set base options once at initialization - these don't need to change
+      // Use conservative settings for API stability
+      this.engine.stdin.write(`setoption name Threads value 1\n`);
+      this.engine.stdin.write(`setoption name Hash value 64\n`); // Increased from 16 to 64 for better performance
+      // Don't set LimitStrength here - it changes per request based on elo
+      this.optionsInitialized = true;
+      logger.info({ reqId }, "options_initialized");
+    } catch (e) {
+      logger.error({ reqId, err: String(e) }, "options_init_failed");
+    }
+  }
+
   reset() {
+    // Clear any active timeout
+    if (this.jobTimeout) {
+      clearTimeout(this.jobTimeout);
+      this.jobTimeout = null;
+    }
+    this.currentJob = null;
+    
     if (this.engine) {
       try {
         this.engine.kill();
@@ -178,6 +206,7 @@ class EnginePoolImpl {
     }
     this.ready = false;
     this.busy = false;
+    this.optionsInitialized = false;
     while (this.queue.length) {
       const q = this.queue.shift();
       q.reject(new Error("Engine unavailable"));
@@ -235,14 +264,86 @@ class EnginePoolImpl {
     this.runJob(job);
   }
 
+  // Calculate movetime from depth - approximate conversion
+  // Depth-based estimates: depth 4 ~1s, depth 6 ~2s, depth 8 ~5s, depth 12 ~15s
+  // We add a safety margin and cap at 25s for API timeout (30s client timeout)
+  calculateMovetime(depth) {
+    const depthTimeMap = {
+      1: 500, 2: 800, 3: 1000, 4: 1500,
+      5: 2000, 6: 3000, 7: 5000, 8: 8000,
+      9: 12000, 10: 15000, 11: 18000, 12: 20000,
+      13: 22000, 14: 24000, 15: 25000, 16: 25000,
+      17: 25000, 18: 25000, 19: 25000, 20: 25000,
+    };
+    return depthTimeMap[Math.min(depth, 20)] || 25000;
+  }
+
   runJob(job) {
     const { params, resolve, reject, reqId } = job;
     logger.debug({ reqId, params }, "job_start");
 
+    // Clear any existing timeout
+    if (this.jobTimeout) {
+      clearTimeout(this.jobTimeout);
+      this.jobTimeout = null;
+    }
+
+    this.currentJob = job;
     let bestmove = null;
     let bestInfo = null;
+    let finished = false;
     const infoLines = [];
     const multiMap = new Map();
+    const jobStartTime = Date.now();
+
+    // Calculate movetime from depth for predictable timing
+    const movetimeMs = this.calculateMovetime(params.depth);
+    const serverTimeoutMs = 25000; // 25 seconds - leave 5s buffer for client timeout
+
+    const finish = (timedOut = false) => {
+      if (finished) return;
+      finished = true;
+
+      // Clear timeout
+      if (this.jobTimeout) {
+        clearTimeout(this.jobTimeout);
+        this.jobTimeout = null;
+      }
+
+      try {
+        this.engine.stdout.off("data", onData);
+      } catch {}
+      
+      const jobDuration = Date.now() - jobStartTime;
+      this.currentJob = null;
+      this.busy = false;
+
+      const infosArr =
+        multiMap.size > 0
+          ? Array.from([...multiMap.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v))
+          : undefined;
+      
+      const result = {
+        bestmove: bestmove || (bestInfo?.pv?.[0] || null), // Use PV[0] if no bestmove yet
+        info: bestInfo,
+        infos: infosArr,
+        raw: infoLines.slice(-50),
+        reqId,
+        timedOut,
+        duration: jobDuration,
+      };
+
+      if (timedOut) {
+        logger.warn({ reqId, duration: jobDuration, bestmove: result.bestmove }, "job_timeout");
+        // Still resolve with best move found so far, don't reject
+        resolve(result);
+      } else {
+        logger.info({ reqId, bestmove, duration: jobDuration }, "job_done");
+        resolve(result);
+      }
+      
+      setImmediate(() => this.pump());
+    };
 
     const onData = (chunk) => {
       const text = chunk.toString("utf8");
@@ -261,57 +362,75 @@ class EnginePoolImpl {
           }
         }
         if (line.startsWith("bestmove ")) {
-          bestmove = line.split(" ")[1];
-          finish();
+          const parts = line.split(" ");
+          bestmove = parts[1];
+          if (bestmove === "(none)" || !bestmove) {
+            // Handle edge case where Stockfish returns no move
+            bestmove = null;
+          }
+          finish(false);
+          return;
         }
       }
     };
 
-    const finish = () => {
-      try {
-        this.engine.stdout.off("data", onData);
-      } catch {}
-      const infosArr =
-        multiMap.size > 0
-          ? Array.from([...multiMap.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v))
-          : undefined;
-      const result = {
-        bestmove,
-        info: bestInfo,
-        infos: infosArr,
-        raw: infoLines.slice(-50),
-        reqId,
-      };
-      logger.info({ reqId, bestmove }, "job_done");
-      this.busy = false;
-      resolve(result);
-      setImmediate(() => this.pump());
-    };
-
     this.engine.stdout.on("data", onData);
 
+    // Set up server-side timeout
+    this.jobTimeout = setTimeout(() => {
+      if (!finished) {
+        logger.warn({ reqId, duration: serverTimeoutMs }, "job_timeout_triggered");
+        try {
+          // Send stop command to Stockfish
+          this.engine.stdin.write("stop\n");
+        } catch (e) {
+          logger.error({ reqId, err: String(e) }, "stop_command_failed");
+        }
+        // Give it 1 second to respond to stop, then finish
+        setTimeout(() => {
+          finish(true);
+        }, 1000);
+      }
+    }, serverTimeoutMs);
+
     try {
-      // Hardening: conservative defaults
-      this.engine.stdin.write(`setoption name Threads value 1\n`);
-      this.engine.stdin.write(`setoption name Hash value 16\n`);
+      // Only set options that can change per request
+      // Base options (Threads, Hash) are set once at initialization
       if (params.limitStrength) {
         this.engine.stdin.write(`setoption name UCI_LimitStrength value true\n`);
         if (params.elo) {
           this.engine.stdin.write(`setoption name UCI_Elo value ${params.elo}\n`);
         }
+      } else {
+        // Disable strength limiting if not needed
+        this.engine.stdin.write(`setoption name UCI_LimitStrength value false\n`);
       }
+      
       const desiredMulti = Math.max(1, Math.min(10, params.multiPv ?? 1));
       this.engine.stdin.write(`setoption name MultiPV value ${desiredMulti}\n`);
+      
       this.engine.stdin.write(`position fen ${params.fen}\n`);
-      const goCmd =
-        params.searchMoves && params.searchMoves.length > 0
-          ? `go depth ${params.depth} searchmoves ${params.searchMoves.join(" ")}`
-          : `go depth ${params.depth}`;
+      
+      // Use time-based search for predictable timing
+      // movetime is in milliseconds
+      let goCmd;
+      if (params.searchMoves && params.searchMoves.length > 0) {
+        goCmd = `go movetime ${movetimeMs} searchmoves ${params.searchMoves.join(" ")}`;
+      } else {
+        goCmd = `go movetime ${movetimeMs}`;
+      }
+      
       this.engine.stdin.write(`${goCmd}\n`);
+      logger.debug({ reqId, movetime: movetimeMs, depth: params.depth }, "search_started");
     } catch (e) {
       try {
         this.engine.stdout.off("data", onData);
       } catch {}
+      if (this.jobTimeout) {
+        clearTimeout(this.jobTimeout);
+        this.jobTimeout = null;
+      }
+      this.currentJob = null;
       this.busy = false;
       reject(new Error("Engine write failed"));
       setImmediate(() => this.pump());
