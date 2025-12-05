@@ -222,13 +222,25 @@ export function ChessProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const makeAIMove = useCallback(async () => {
+    console.log("[AI DEBUG] makeAIMove called", {
+      isAIThinking,
+      gameOver: game.isGameOver(),
+      aiConfigEnabled: aiConfig.enabled,
+      aiConfigColor: aiConfig.color,
+      gameStateTurn: gameState.turn,
+      gameTurn: game.turn(),
+      movesCount: gameState.moves.length,
+    });
+    
     // Check conditions before proceeding
     if (isAIThinking) {
+      console.log("[AI DEBUG] Already thinking, returning early");
       return;
     }
     
     // Check if game is over
     if (game.isGameOver()) {
+      console.log("[AI DEBUG] Game is over, returning early");
       return;
     }
     
@@ -236,46 +248,89 @@ export function ChessProvider({ children }: { children: ReactNode }) {
     const { opponent } = composePolicies({ aiConfig });
     const playerColor = aiConfig.color === "white" ? "black" : "white";
     
-    if (!opponent.shouldEngineMove({
+    const shouldMove = opponent.shouldEngineMove({
       turn: gameState.turn,
       playerColor,
       movesCount: gameState.moves.length,
-    })) {
+    });
+    
+    console.log("[AI DEBUG] Policy evaluation", {
+      shouldMove,
+      turn: gameState.turn,
+      playerColor,
+      movesCount: gameState.moves.length,
+    });
+    
+    if (!shouldMove) {
+      console.log("[AI DEBUG] Policy says engine shouldn't move, returning");
       return; // Policy says engine shouldn't move
     }
     
     // Double-check it's actually AI's turn using game state
     const expectedColor = aiConfig.color === "white" ? "w" : "b";
-    if (game.turn() !== expectedColor) {
+    const actualTurn = game.turn();
+    if (actualTurn !== expectedColor) {
+      console.log("[AI DEBUG] Turn mismatch", {
+        expectedColor,
+        actualTurn,
+        returning: true,
+      });
       return; // Not AI's turn according to game state
     }
 
+    console.log("[AI DEBUG] Setting isAIThinking = true");
+    console.log("[AI DEBUG] Setting isAIThinking = true");
     setIsAIThinking(true);
     
     try {
+      const fen = game.fen();
+      const requestBody = {
+        fen,
+        depth: aiConfig.depth || 12,
+        elo: aiConfig.elo,
+        limitStrength: aiConfig.elo !== undefined,
+      };
+      
+      console.log("[AI DEBUG] Calling /api/analyze", requestBody);
+      
       const response = await fetch(apiPath("/api/analyze"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fen: game.fen(),
-          depth: aiConfig.depth || 12,
-          elo: aiConfig.elo,
-          limitStrength: aiConfig.elo !== undefined,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log("[AI DEBUG] Response status:", response.status, response.statusText);
+
       if (!response.ok) {
+        const errorText = await response.text().catch(() => "Unknown error");
+        console.error("[AI DEBUG] Analysis failed", {
+          status: response.status,
+          statusText: response.statusText,
+          errorText,
+        });
         throw new Error(`Analysis failed: ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log("[AI DEBUG] Response data received", {
+        hasBestmove: !!data.bestmove,
+        bestmove: data.bestmove,
+        cp: data.cp,
+      });
       
       if (!data.bestmove) {
+        console.error("[AI DEBUG] No bestmove in response", data);
         throw new Error("No best move returned from engine");
       }
 
       const moveData = parseUCIMove(data.bestmove);
+      console.log("[AI DEBUG] Parsed UCI move", {
+        uci: data.bestmove,
+        parsed: moveData,
+      });
+      
       if (!moveData) {
+        console.error("[AI DEBUG] Failed to parse UCI move", data.bestmove);
         throw new Error(`Invalid UCI move format: ${data.bestmove}`);
       }
 
@@ -286,35 +341,64 @@ export function ChessProvider({ children }: { children: ReactNode }) {
                (!moveData.promotion || m.promotion === moveData.promotion)
       );
 
+      console.log("[AI DEBUG] Move validation", {
+        isValidMove,
+        from: moveData.from,
+        to: moveData.to,
+        promotion: moveData.promotion,
+        legalMovesCount: legalMoves.length,
+      });
+
       if (!isValidMove) {
         // Fallback: use first legal move if AI move is invalid
-        console.warn("AI returned invalid move, using fallback");
+        console.warn("[AI DEBUG] AI returned invalid move, using fallback");
         if (legalMoves.length > 0) {
           const fallbackMove = legalMoves[0];
+          console.log("[AI DEBUG] Applying fallback move", fallbackMove);
           makeMove(fallbackMove.from, fallbackMove.to, fallbackMove.promotion);
         }
+        console.log("[AI DEBUG] Setting isAIThinking = false (fallback path)");
+        setIsAIThinking(false);
         return;
       }
 
       // Apply the AI move
+      console.log("[AI DEBUG] Applying AI move", moveData);
       const success = makeMove(moveData.from, moveData.to, moveData.promotion);
+      console.log("[AI DEBUG] Move applied", { success });
+      
       if (!success) {
-        console.error("Failed to apply AI move");
+        console.error("[AI DEBUG] Failed to apply AI move");
       }
     } catch (error) {
-      console.error("AI move failed:", error);
+      console.error("[AI DEBUG] AI move failed with error", {
+        error,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
+      });
+      
       // Fallback: use random legal move if AI fails
       try {
         const legalMoves = game.moves({ verbose: true });
+        console.log("[AI DEBUG] Attempting fallback move", {
+          legalMovesCount: legalMoves.length,
+        });
+        
         if (legalMoves.length > 0) {
           const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+          console.log("[AI DEBUG] Applying random fallback move", randomMove);
           makeMove(randomMove.from, randomMove.to, randomMove.promotion);
         }
       } catch (fallbackError) {
-        console.error("Fallback move also failed:", fallbackError);
+        console.error("[AI DEBUG] Fallback move also failed", {
+          error: fallbackError,
+          errorMessage: fallbackError instanceof Error ? fallbackError.message : String(fallbackError),
+        });
       }
     } finally {
+      console.log("[AI DEBUG] Finally block: Setting isAIThinking = false");
       setIsAIThinking(false);
+      console.log("[AI DEBUG] isAIThinking should now be false");
     }
   }, [game, aiConfig, gameState.turn, gameState.moves.length, isAIThinking, makeMove, parseUCIMove]);
 
@@ -345,14 +429,28 @@ export function ChessProvider({ children }: { children: ReactNode }) {
 
   // Auto-trigger AI move when conditions are met (pattern from commit 2)
   useEffect(() => {
-    if (!shouldAIMoveNow) return;
+    console.log("[AI DEBUG] useEffect triggered", {
+      shouldAIMoveNow,
+      isAIThinking,
+      aiConfigEnabled: aiConfig.enabled,
+    });
     
+    if (!shouldAIMoveNow) {
+      console.log("[AI DEBUG] shouldAIMoveNow is false, not triggering makeAIMove");
+      return;
+    }
+    
+    console.log("[AI DEBUG] Scheduling makeAIMove in 100ms");
     // Small delay to allow UI to update
     const timer = setTimeout(() => {
+      console.log("[AI DEBUG] Timer fired, calling makeAIMove");
       makeAIMove();
     }, 100);
-    return () => clearTimeout(timer);
-  }, [shouldAIMoveNow, makeAIMove]);
+    return () => {
+      console.log("[AI DEBUG] Cleaning up timer");
+      clearTimeout(timer);
+    };
+  }, [shouldAIMoveNow, makeAIMove, isAIThinking, aiConfig.enabled]);
 
   return (
     <ChessContext.Provider
