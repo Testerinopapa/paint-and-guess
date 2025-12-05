@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
 import { Chess } from "chess.js";
-import type { GameState, GameMode, ChessMove, GameStatus } from "./types";
+import type { GameState, GameMode, ChessMove, GameStatus, AIConfig } from "./types";
+import { apiPath } from "@/config/api";
 
 interface ChessContextType {
   game: Chess;
@@ -15,6 +16,12 @@ interface ChessContextType {
   isGameOver: () => boolean;
   setGameMode: (mode: GameMode) => void;
   setPlayers: (white?: string, black?: string) => void;
+  // AI functionality
+  aiConfig: AIConfig;
+  setAIConfig: (config: AIConfig) => void;
+  isAITurn: () => boolean;
+  isAIThinking: boolean;
+  makeAIMove: () => Promise<void>;
 }
 
 const ChessContext = createContext<ChessContextType | undefined>(undefined);
@@ -34,11 +41,12 @@ function createInitialGameState(): GameState {
   };
 }
 
-function updateGameState(game: Chess): GameState {
+function updateGameState(game: Chess, lastMove?: { from: string; to: string }): GameState {
+  const history = game.history({ verbose: true });
   return {
     fen: game.fen(),
     pgn: game.pgn(),
-    moves: game.history({ verbose: true }).map((move) => ({
+    moves: history.map((move) => ({
       from: move.from,
       to: move.to,
       promotion: move.promotion,
@@ -52,6 +60,7 @@ function updateGameState(game: Chess): GameState {
     inStalemate: game.isStalemate(),
     inDraw: game.isDraw(),
     gameMode: "local", // Will be set by setGameMode
+    lastMove: lastMove,
   };
 }
 
@@ -72,9 +81,15 @@ export function ChessProvider({ children }: { children: ReactNode }) {
   const [gameMode, setGameModeState] = useState<GameMode>("local");
   const [whitePlayer, setWhitePlayer] = useState<string | undefined>();
   const [blackPlayer, setBlackPlayer] = useState<string | undefined>();
+  const [aiConfig, setAIConfigState] = useState<AIConfig>({
+    enabled: false,
+    color: "black",
+    depth: 12,
+  });
+  const [isAIThinking, setIsAIThinking] = useState(false);
 
-  const updateState = useCallback((newGame: Chess) => {
-    const newState = updateGameState(newGame);
+  const updateState = useCallback((newGame: Chess, lastMove?: { from: string; to: string }) => {
+    const newState = updateGameState(newGame, lastMove);
     newState.gameMode = gameMode;
     newState.whitePlayer = whitePlayer;
     newState.blackPlayer = blackPlayer;
@@ -94,7 +109,7 @@ export function ChessProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      updateState(game);
+      updateState(game, { from, to });
       return true;
     } catch (error) {
       console.error("Error making move:", error);
@@ -109,6 +124,7 @@ export function ChessProvider({ children }: { children: ReactNode }) {
     initialState.gameMode = gameMode;
     initialState.whitePlayer = whitePlayer;
     initialState.blackPlayer = blackPlayer;
+    initialState.lastMove = undefined;
     setGame(newGame);
     setGameState(initialState);
   }, [gameMode, whitePlayer, blackPlayer]);
@@ -183,6 +199,131 @@ export function ChessProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  // AI functionality
+  const isAITurn = useCallback((): boolean => {
+    if (!aiConfig.enabled) return false;
+    if (isGameOver()) return false;
+    return gameState.turn === aiConfig.color;
+  }, [aiConfig, gameState.turn, isGameOver]);
+
+  const parseUCIMove = useCallback((uci: string): { from: string; to: string; promotion?: string } | null => {
+    if (!uci || uci.length < 4) return null;
+    const from = uci.slice(0, 2);
+    const to = uci.slice(2, 4);
+    const promotion = uci.length > 4 ? uci[4] : undefined;
+    
+    // Validate squares
+    if (!/^[a-h][1-8]$/.test(from) || !/^[a-h][1-8]$/.test(to)) {
+      return null;
+    }
+    
+    return { from, to, promotion: promotion as "q" | "r" | "b" | "n" | undefined };
+  }, []);
+
+  const makeAIMove = useCallback(async () => {
+    // Check conditions before proceeding
+    if (!aiConfig.enabled || isAIThinking) {
+      return;
+    }
+    
+    // Check if it's AI's turn
+    if (game.isGameOver() || game.turn() !== (aiConfig.color === "white" ? "w" : "b")) {
+      return;
+    }
+
+    setIsAIThinking(true);
+    
+    try {
+      const response = await fetch(apiPath("/api/analyze"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fen: game.fen(),
+          depth: aiConfig.depth || 12,
+          elo: aiConfig.elo,
+          limitStrength: aiConfig.elo !== undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Analysis failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.bestmove) {
+        throw new Error("No best move returned from engine");
+      }
+
+      const moveData = parseUCIMove(data.bestmove);
+      if (!moveData) {
+        throw new Error(`Invalid UCI move format: ${data.bestmove}`);
+      }
+
+      // Validate move is legal before applying
+      const legalMoves = game.moves({ verbose: true });
+      const isValidMove = legalMoves.some(
+        (m) => m.from === moveData.from && m.to === moveData.to && 
+               (!moveData.promotion || m.promotion === moveData.promotion)
+      );
+
+      if (!isValidMove) {
+        // Fallback: use first legal move if AI move is invalid
+        console.warn("AI returned invalid move, using fallback");
+        if (legalMoves.length > 0) {
+          const fallbackMove = legalMoves[0];
+          makeMove(fallbackMove.from, fallbackMove.to, fallbackMove.promotion);
+        }
+        return;
+      }
+
+      // Apply the AI move
+      const success = makeMove(moveData.from, moveData.to, moveData.promotion);
+      if (!success) {
+        console.error("Failed to apply AI move");
+      }
+    } catch (error) {
+      console.error("AI move failed:", error);
+      // Fallback: use random legal move if AI fails
+      try {
+        const legalMoves = game.moves({ verbose: true });
+        if (legalMoves.length > 0) {
+          const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+          makeMove(randomMove.from, randomMove.to, randomMove.promotion);
+        }
+      } catch (fallbackError) {
+        console.error("Fallback move also failed:", fallbackError);
+      }
+    } finally {
+      setIsAIThinking(false);
+    }
+  }, [game, aiConfig, isAIThinking, makeMove, parseUCIMove]);
+
+  const setAIConfig = useCallback((config: AIConfig) => {
+    setAIConfigState(config);
+    // If enabling AI mode, update game mode
+    if (config.enabled) {
+      setGameModeState("ai");
+      setGameState((prev) => ({ ...prev, gameMode: "ai" }));
+    }
+  }, []);
+
+  // Auto-trigger AI move when it's AI's turn
+  useEffect(() => {
+    if (!aiConfig.enabled || isAIThinking || isGameOver()) {
+      return;
+    }
+    
+    const isAITurnNow = gameState.turn === aiConfig.color;
+    if (isAITurnNow) {
+      // Small delay to allow UI to update
+      const timer = setTimeout(() => {
+        makeAIMove();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.turn, gameState.status, aiConfig.enabled, aiConfig.color, isAIThinking, isGameOver, makeAIMove]);
+
   return (
     <ChessContext.Provider
       value={{
@@ -198,6 +339,12 @@ export function ChessProvider({ children }: { children: ReactNode }) {
         isGameOver,
         setGameMode,
         setPlayers,
+        // AI functionality
+        aiConfig,
+        setAIConfig,
+        isAITurn,
+        isAIThinking,
+        makeAIMove,
       }}
     >
       {children}

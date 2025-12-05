@@ -18,6 +18,12 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
   // Use ChessContext if fen is not provided (backward compatibility)
   const chessContext = useChess();
   
+  // Check if AI is thinking or if it's AI's turn (disable player moves)
+  const isAIDisabled = chessContext.aiConfig && chessContext.aiConfig.enabled && 
+    (chessContext.isAIThinking || chessContext.isAITurn());
+  
+  const effectiveDisabled = disabled || isAIDisabled;
+  
   // Create game instance from fen if provided, otherwise use ChessContext
   const game = useMemo(() => {
     if (fen) {
@@ -89,7 +95,7 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
   };
 
   const handleSquareClick = useCallback((square: string) => {
-    if (disabled) return; // Don't allow moves if disabled
+    if (effectiveDisabled) return; // Don't allow moves if disabled or AI's turn
     
     if (selectedSquare === square) {
       // Deselect if clicking the same square
@@ -127,7 +133,7 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
       setSelectedSquare(null);
       setLegalMoves([]);
     }
-  }, [selectedSquare, legalMoves, game, makeMove, getLegalMoves, onMove, fen, disabled]);
+  }, [selectedSquare, legalMoves, game, makeMove, getLegalMoves, onMove, fen, effectiveDisabled]);
 
   const renderSquare = (row: number, col: number) => {
     const squareName = getSquareName(row, col);
@@ -136,6 +142,12 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
     const isLegalMove = legalMoves.includes(squareName);
     const isDragged = draggedSquare === squareName;
     const bgColor = getSquareColor(row, col);
+    
+    // Highlight last move
+    const lastMove = chessContext?.gameState?.lastMove;
+    const isLastMoveFrom = lastMove?.from === squareName;
+    const isLastMoveTo = lastMove?.to === squareName;
+    const isLastMove = isLastMoveFrom || isLastMoveTo;
 
     return (
       <div
@@ -147,7 +159,7 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
           }
         }}
         onMouseUp={() => {
-          if (!disabled && draggedSquare && draggedSquare !== squareName) {
+          if (!effectiveDisabled && draggedSquare && draggedSquare !== squareName) {
             const success = makeMove(draggedSquare, squareName);
             if (success && !fen && onMove) {
               // onMove is already called in makeMove for fen mode
@@ -163,14 +175,17 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
             ? "#baca44" 
             : isLegalMove 
             ? "#f6f669" 
+            : isLastMove
+            ? "#cdd26a"
             : bgColor,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          cursor: disabled ? "not-allowed" : (square || isLegalMove ? "pointer" : "default"),
+          cursor: effectiveDisabled ? "not-allowed" : (square || isLegalMove ? "pointer" : "default"),
           position: "relative",
           userSelect: "none",
           transition: "background-color 0.2s",
+          boxShadow: isLastMove ? "inset 0 0 0 2px rgba(139, 195, 74, 0.5)" : "none",
         }}
       >
         {square && (

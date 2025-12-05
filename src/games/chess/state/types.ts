@@ -2,6 +2,13 @@ export type GameStatus = "playing" | "checkmate" | "stalemate" | "draw" | "resig
 
 export type GameMode = "local" | "online" | "ai";
 
+export interface AIConfig {
+  enabled: boolean;
+  color: "white" | "black";
+  elo?: number;        // 1350-2850, or undefined for max strength
+  depth?: number;      // Analysis depth (default 12)
+}
+
 export interface ChessMove {
   from: string;
   to: string;
@@ -23,5 +30,6 @@ export interface GameState {
   gameMode: GameMode;
   whitePlayer?: string;
   blackPlayer?: string;
+  lastMove?: { from: string; to: string }; // For highlighting last move
 }
 
