@@ -53,4 +53,19 @@ model PuzzleAttempt {
   @@index([puzzleId, createdAt])
 }
 
+model Report {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  pgn       String
+  depth     Int
+  elo       Int?
+  fens      String   // JSON array of FEN strings
+  sans      String   // JSON array of SAN moves
+  evals     String   // JSON array of evaluation scores (centipawns)
+  tags      String   // JSON array of move tags
+  accuracy  Float
+
+  @@index([createdAt])
+}
+
 
