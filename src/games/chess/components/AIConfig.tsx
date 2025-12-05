@@ -132,15 +132,17 @@ export function AIConfig() {
             <div className="space-y-2">
               <Label>Play as</Label>
               <RadioGroup
-                value={aiConfig.color}
-                onValueChange={(value) =>
+                value={aiConfig.color === "white" ? "black" : "white"}
+                onValueChange={(value) => {
+                  // value is the player's color choice, so AI gets the opposite
+                  const aiColor = value === "white" ? "black" : "white";
                   setAIConfig({
                     enabled: false,
-                    color: value as "white" | "black",
+                    color: aiColor,
                     elo: aiConfig.elo,
                     depth: aiConfig.depth,
-                  })
-                }
+                  });
+                }}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="white" id="white" />
@@ -174,7 +176,7 @@ export function AIConfig() {
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mb-2">
-                Playing as {aiConfig.color === "white" ? "White" : "Black"}
+                Playing as {aiConfig.color === "white" ? "Black" : "White"}
               </p>
               <p className="text-xs text-muted-foreground mb-4">
                 Search depth: {aiConfig.depth || 8}
