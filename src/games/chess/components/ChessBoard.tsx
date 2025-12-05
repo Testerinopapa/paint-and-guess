@@ -18,11 +18,15 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
   // Use ChessContext if fen is not provided (backward compatibility)
   const chessContext = useChess();
   
+  // Check if AI mode is selected but game hasn't started yet (waiting for "Start Game vs AI")
+  const isAIModePending = chessContext.gameState?.gameMode === "ai" && 
+    (!chessContext.aiConfig?.enabled);
+  
   // Check if AI is thinking or if it's AI's turn (disable player moves)
   const isAIDisabled = chessContext.aiConfig && chessContext.aiConfig.enabled && 
     (chessContext.isAIThinking || chessContext.isAITurn());
   
-  const effectiveDisabled = disabled || isAIDisabled;
+  const effectiveDisabled = disabled || isAIDisabled || isAIModePending;
   
   // Create game instance from fen if provided, otherwise use ChessContext
   const game = useMemo(() => {
@@ -97,6 +101,12 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
   const handleSquareClick = useCallback((square: string) => {
     if (effectiveDisabled) return; // Don't allow moves if disabled or AI's turn
     
+    // In AI mode, don't allow moves until "Start Game vs AI" is clicked
+    if (chessContext.gameState?.gameMode === "ai" && !chessContext.aiConfig?.enabled) {
+      console.log("[AI DEBUG] Board disabled: AI mode selected but game not started");
+      return; // AI mode selected but "Start Game vs AI" not clicked yet
+    }
+    
     if (selectedSquare === square) {
       // Deselect if clicking the same square
       setSelectedSquare(null);
@@ -159,6 +169,12 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
           }
         }}
         onMouseUp={() => {
+          // Prevent drag-drop in AI mode until game is started
+          if (chessContext.gameState?.gameMode === "ai" && !chessContext.aiConfig?.enabled) {
+            setDraggedSquare(null);
+            return;
+          }
+          
           if (!effectiveDisabled && draggedSquare && draggedSquare !== squareName) {
             const success = makeMove(draggedSquare, squareName);
             if (success && !fen && onMove) {
