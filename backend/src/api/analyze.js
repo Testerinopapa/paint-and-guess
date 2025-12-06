@@ -67,11 +67,48 @@ export async function analyzePosition(req, res) {
 export async function engineHealth(req, res) {
   try {
     const status = EnginePool.getStatus();
-    return res.json({
+    const response = {
       ready: status.ready,
       busy: status.busy,
       pid: status.pid,
-    });
+    };
+    
+    // Add diagnostic info if engine is not ready
+    if (!status.ready && !status.pid) {
+      // Try to detect if binary exists
+      const fs = await import("fs");
+      const path = await import("path");
+      const { fileURLToPath } = await import("url");
+      const { dirname, join } = path;
+      
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+      const projectRoot = join(__dirname, "../../..");
+      const stockfishDir = join(projectRoot, "stockfish");
+      
+      const binaryCandidates = [
+        join(stockfishDir, "stockfish-windows-x86-64-avx2.exe"),
+        join(stockfishDir, "stockfish.exe"),
+        join(stockfishDir, "stockfish"),
+      ];
+      
+      const foundBinary = binaryCandidates.find(candidate => {
+        try {
+          return fs.existsSync(candidate);
+        } catch {
+          return false;
+        }
+      });
+      
+      response.diagnostic = {
+        binaryFound: !!foundBinary,
+        binaryPath: foundBinary || null,
+        stockfishDir: stockfishDir,
+        lastStdout: status.lastStdout?.slice(-5) || [],
+      };
+    }
+    
+    return res.json(response);
   } catch (error) {
     return res.status(500).json({
       error: "Engine health check failed",
