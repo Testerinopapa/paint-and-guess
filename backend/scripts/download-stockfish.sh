@@ -13,38 +13,47 @@ OUTPUT_PATH="$STOCKFISH_DIR/stockfish"
 # Default to avx2 which works on most modern Linux servers
 ARCH="${1:-x86-64-avx2}"
 
-# Stockfish version (update this when new versions are released)
-# Note: Release tag format on GitHub might be "16.1" or "sf_16.1"
-VERSION="16.1"
-RELEASE_TAG="16.1"  # Try this first, might need to be "sf_16.1" or other format
+# Fetch latest release info from GitHub API
+echo "[Stockfish Downloader] Fetching latest release info from GitHub..."
+RELEASE_INFO=$(curl -s "https://api.github.com/repos/official-stockfish/Stockfish/releases/latest")
 
-# Binary name mapping
-declare -A BINARY_NAMES=(
-  ["x86-64-vnni512"]="stockfish_${VERSION}_linux_x86-64-vnni512"
-  ["x86-64-vnni256"]="stockfish_${VERSION}_linux_x86-64-vnni256"
-  ["x86-64-avx512"]="stockfish_${VERSION}_linux_x86-64-avx512"
-  ["x86-64-bmi2"]="stockfish_${VERSION}_linux_x86-64-bmi2"
-  ["x86-64-avx2"]="stockfish_${VERSION}_linux_x86-64-avx2"
-  ["x86-64-sse41-popcnt"]="stockfish_${VERSION}_linux_x86-64-sse41-popcnt"
-  ["x86-64"]="stockfish_${VERSION}_linux_x86-64"
-)
-
-BINARY_NAME="${BINARY_NAMES[$ARCH]}"
-
-if [ -z "$BINARY_NAME" ]; then
-  echo "[Stockfish Downloader] Unsupported architecture: $ARCH"
-  echo "[Stockfish Downloader] Supported: ${!BINARY_NAMES[@]}"
-  exit 1
+if [ $? -ne 0 ] || [ -z "$RELEASE_INFO" ]; then
+  echo "[Stockfish Downloader] WARNING: Failed to fetch release info, using fallback method"
+  RELEASE_TAG="sf_17.1"
+  VERSION="17.1"
+  BINARY_NAME="stockfish_${VERSION}_linux_x86-64-avx2"
+  DOWNLOAD_URLS=(
+    "https://github.com/official-stockfish/Stockfish/releases/download/${RELEASE_TAG}/${BINARY_NAME}"
+  )
+else
+  # Extract tag name and find matching asset
+  RELEASE_TAG=$(echo "$RELEASE_INFO" | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4)
+  echo "[Stockfish Downloader] Latest release tag: $RELEASE_TAG"
+  
+  # Find asset matching the architecture
+  # Use jq if available, otherwise use grep/sed
+  if command -v jq >/dev/null 2>&1; then
+    DOWNLOAD_URL=$(echo "$RELEASE_INFO" | jq -r ".assets[] | select(.name | contains(\"linux\") and contains(\"${ARCH}\") and (contains(\".tar\") | not)) | .browser_download_url" | head -1)
+  else
+    # Fallback: try to extract asset URL manually
+    ASSET_NAME=$(echo "$RELEASE_INFO" | grep -o "\"name\": \"[^\"]*linux[^\"]*${ARCH}[^\"]*\"" | head -1 | cut -d'"' -f4)
+    if [ -n "$ASSET_NAME" ] && [ "$ASSET_NAME" != "null" ]; then
+      DOWNLOAD_URL="https://github.com/official-stockfish/Stockfish/releases/download/${RELEASE_TAG}/${ASSET_NAME}"
+    fi
+  fi
+  
+  if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" = "null" ]; then
+    echo "[Stockfish Downloader] WARNING: Could not find matching asset, using fallback URL construction"
+    VERSION=$(echo "$RELEASE_TAG" | sed 's/^sf_//' | sed 's/^v//')
+    BINARY_NAME="stockfish_${VERSION}_linux_x86-64-avx2"
+    DOWNLOAD_URLS=(
+      "https://github.com/official-stockfish/Stockfish/releases/download/${RELEASE_TAG}/${BINARY_NAME}"
+    )
+  else
+    echo "[Stockfish Downloader] Found matching asset: $DOWNLOAD_URL"
+    DOWNLOAD_URLS=("$DOWNLOAD_URL")
+  fi
 fi
-
-# GitHub releases URL - need to check actual release tag format
-# Stockfish uses format like "16.1" but release tag might be different
-# Try different release tag formats
-DOWNLOAD_URLS=(
-  "https://github.com/official-stockfish/Stockfish/releases/download/${RELEASE_TAG}/${BINARY_NAME}"
-  "https://github.com/official-stockfish/Stockfish/releases/download/sf_${VERSION}/${BINARY_NAME}"
-  "https://github.com/official-stockfish/Stockfish/releases/download/v${VERSION}/${BINARY_NAME}"
-)
 
 # Check if binary already exists and is valid (at least 1MB - real binary is ~76MB)
 if [ -f "$OUTPUT_PATH" ]; then
@@ -63,7 +72,7 @@ fi
 # Create stockfish directory
 mkdir -p "$STOCKFISH_DIR"
 
-echo "[Stockfish Downloader] Downloading Stockfish $VERSION ($ARCH)..."
+echo "[Stockfish Downloader] Downloading Stockfish ($ARCH)..."
 echo "[Stockfish Downloader] Output: $OUTPUT_PATH"
 
 # Try each URL until one works

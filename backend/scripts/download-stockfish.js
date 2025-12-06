@@ -82,7 +82,7 @@ function detectArchitecture() {
   return "x86-64-avx2"; // Safe default
 }
 
-async function getLatestVersion() {
+async function getLatestRelease() {
   return new Promise((resolve, reject) => {
     https.get(STOCKFISH_RELEASES_URL, {
       headers: {
@@ -103,13 +103,47 @@ async function getLatestVersion() {
       res.on("end", () => {
         try {
           const release = JSON.parse(data);
-          resolve(release.tag_name);
+          resolve(release);
         } catch (e) {
           reject(e);
         }
       });
     }).on("error", reject);
   });
+}
+
+function findMatchingAsset(assets, platform, arch) {
+  // Build search patterns based on platform and architecture
+  const patterns = [];
+  
+  if (platform === "linux") {
+    patterns.push(`linux.*${arch}`);
+    patterns.push(`${arch}.*linux`);
+    // Also try without underscores/dashes
+    patterns.push(`linux.*${arch.replace(/-/g, "")}`);
+  } else if (platform === "windows") {
+    patterns.push(`windows.*${arch}`);
+    patterns.push(`${arch}.*windows`);
+    patterns.push(`windows.*${arch.replace(/-/g, "")}`);
+  } else if (platform === "darwin") {
+    patterns.push(`osx.*${arch}`);
+    patterns.push(`macos.*${arch}`);
+    patterns.push(`darwin.*${arch}`);
+    patterns.push(`${arch}.*osx`);
+  }
+  
+  // Find asset matching any pattern
+  for (const asset of assets) {
+    const name = asset.name.toLowerCase();
+    for (const pattern of patterns) {
+      const regex = new RegExp(pattern.replace(/\*/g, ".*"), "i");
+      if (regex.test(name) && !name.includes(".tar") && !name.includes(".zip")) {
+        return asset;
+      }
+    }
+  }
+  
+  return null;
 }
 
 async function downloadFile(url, dest) {
@@ -154,32 +188,55 @@ async function main() {
     process.exit(1);
   }
   
-  const binaryName = PLATFORM_MAP[platform][arch];
-  const outputPath = join(stockfishDir, platform === "windows" ? binaryName : "stockfish");
+  const outputPath = join(stockfishDir, platform === "windows" ? "stockfish.exe" : "stockfish");
   
-  // Check if binary already exists
+  // Check if binary already exists and is valid (at least 1MB)
   try {
-    await access(outputPath);
-    console.log(`[Stockfish Downloader] Binary already exists at ${outputPath}`);
-    console.log(`[Stockfish Downloader] Skipping download. Delete the file to re-download.`);
-    return;
+    const stats = await import("fs/promises").then(m => m.stat(outputPath));
+    if (stats.size > 1048576) { // 1MB minimum
+      console.log(`[Stockfish Downloader] Binary already exists at ${outputPath} (size: ${(stats.size / 1048576).toFixed(1)}MB)`);
+      console.log(`[Stockfish Downloader] Skipping download. Delete the file to re-download.`);
+      return;
+    } else {
+      console.log(`[Stockfish Downloader] Existing binary is too small (${stats.size} bytes), re-downloading...`);
+      await import("fs/promises").then(m => m.unlink(outputPath).catch(() => {}));
+    }
   } catch {
     // File doesn't exist, proceed with download
   }
   
-  // Get latest version
-  console.log(`[Stockfish Downloader] Fetching latest Stockfish version...`);
-  let version;
-  try {
-    version = await getLatestVersion();
-    console.log(`[Stockfish Downloader] Latest version: ${version}`);
-  } catch (error) {
-    console.warn(`[Stockfish Downloader] Failed to fetch latest version, using hardcoded: ${error.message}`);
-    version = "16.1"; // Fallback to known version
-  }
+  // Get latest release and find matching asset
+  console.log(`[Stockfish Downloader] Fetching latest Stockfish release...`);
+  let release;
+  let downloadUrl;
   
-  // Construct download URL
-  const downloadUrl = `${STOCKFISH_DOWNLOAD_BASE}/${version}/${binaryName}`;
+  try {
+    release = await getLatestRelease();
+    console.log(`[Stockfish Downloader] Latest release: ${release.tag_name}`);
+    
+    // Find matching asset
+    const asset = findMatchingAsset(release.assets, platform, arch);
+    if (!asset) {
+      console.error(`[Stockfish Downloader] No matching asset found for ${platform}/${arch}`);
+      console.error(`[Stockfish Downloader] Available assets:`);
+      release.assets.slice(0, 10).forEach(a => {
+        console.error(`[Stockfish Downloader]   - ${a.name}`);
+      });
+      throw new Error(`No matching binary found for ${platform}/${arch}`);
+    }
+    
+    downloadUrl = asset.browser_download_url;
+    console.log(`[Stockfish Downloader] Found asset: ${asset.name} (${(asset.size / 1048576).toFixed(1)}MB)`);
+  } catch (error) {
+    console.error(`[Stockfish Downloader] Failed to find asset: ${error.message}`);
+    console.error(`[Stockfish Downloader] Falling back to URL construction method...`);
+    
+    // Fallback: try to construct URL (less reliable)
+    const version = release?.tag_name?.replace(/^sf_/, "").replace(/^v/, "") || "16.1";
+    const binaryName = PLATFORM_MAP[platform][arch]?.replace(/16\.1/g, version) || `stockfish_${version}_${platform}_${arch}`;
+    downloadUrl = `${STOCKFISH_DOWNLOAD_BASE}/${release?.tag_name || version}/${binaryName}`;
+    console.log(`[Stockfish Downloader] Trying constructed URL: ${downloadUrl}`);
+  }
   
   // Ensure stockfish directory exists
   try {
@@ -196,7 +253,14 @@ async function main() {
   
   try {
     await downloadFile(downloadUrl, outputPath);
-    console.log(`[Stockfish Downloader] Download complete!`);
+    
+    // Verify file size
+    const stats = await import("fs/promises").then(m => m.stat(outputPath));
+    if (stats.size < 1048576) {
+      throw new Error(`Downloaded file too small (${stats.size} bytes) - likely 404 error page`);
+    }
+    
+    console.log(`[Stockfish Downloader] Download complete! (${(stats.size / 1048576).toFixed(1)}MB)`);
     
     // Make executable on Unix systems
     if (platform !== "windows") {
