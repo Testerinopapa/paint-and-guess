@@ -122,7 +122,14 @@ class EnginePoolImpl {
   ensureStarted() {
     if (this.engine) return;
 
-    const bin = findStockfishBinary();
+    let bin;
+    try {
+      bin = findStockfishBinary();
+    } catch (error) {
+      logger.error({ err: String(error) }, "binary_not_found");
+      throw error;
+    }
+
     const reqId = `start-${Date.now()}`;
 
     if (this.backoffMs > 0) {
@@ -132,10 +139,15 @@ class EnginePoolImpl {
       }
     }
 
-    this.engine = spawn(bin);
-    this.ready = false;
-    this.optionsInitialized = false;
-    logger.info({ reqId, bin, pid: this.engine.pid }, "spawned");
+    try {
+      this.engine = spawn(bin);
+      this.ready = false;
+      this.optionsInitialized = false;
+      logger.info({ reqId, bin, pid: this.engine.pid }, "spawned");
+    } catch (error) {
+      logger.error({ reqId, err: String(error), bin }, "spawn_failed");
+      throw error;
+    }
 
     const onData = (chunk) => {
       const text = chunk.toString("utf8");
@@ -155,14 +167,20 @@ class EnginePoolImpl {
 
     this.engine.stdout.on("data", onData);
     this.engine.stderr.on("data", (c) => {
-      logger.warn({ err: c.toString("utf8") }, "stderr");
+      const errText = c.toString("utf8");
+      this.lastStdoutLines.push(`[stderr] ${errText}`);
+      if (this.lastStdoutLines.length > 100) {
+        this.lastStdoutLines.shift();
+      }
+      logger.warn({ err: errText }, "stderr");
     });
-    this.engine.on("error", () => {
+    this.engine.on("error", (error) => {
+      logger.error({ err: String(error), code: error.code }, "engine_error");
       this.bumpBackoff();
       this.reset();
     });
     this.engine.on("close", (code, signal) => {
-      logger.warn({ code, signal }, "closed");
+      logger.warn({ code, signal, pid: this.engine?.pid }, "closed");
       this.bumpBackoff();
       this.reset();
     });

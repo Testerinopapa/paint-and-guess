@@ -112,14 +112,23 @@ export async function engineHealth(req, res) {
         try {
           // Trigger engine initialization by calling ensureStarted
           EnginePool.ensureStarted();
-          // Wait a moment for initialization
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Wait a moment for initialization and UCI handshake
+          await new Promise(resolve => setTimeout(resolve, 2000));
           const newStatus = EnginePool.getStatus();
           response.pid = newStatus.pid;
           response.ready = newStatus.ready;
           response.initialized = true;
+          response.lastStdout = newStatus.lastStdout?.slice(-10) || [];
+          
+          // If still not ready, check if there were errors
+          if (!newStatus.ready && newStatus.pid) {
+            response.warning = "Engine spawned but not ready yet - may need more time or check stderr";
+          } else if (!newStatus.pid) {
+            response.error = "Engine failed to spawn - check server logs for details";
+          }
         } catch (error) {
           response.initError = error.message;
+          response.initErrorStack = process.env.NODE_ENV === "development" ? error.stack : undefined;
         }
       }
     }
