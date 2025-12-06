@@ -14,7 +14,9 @@ OUTPUT_PATH="$STOCKFISH_DIR/stockfish"
 ARCH="${1:-x86-64-avx2}"
 
 # Stockfish version (update this when new versions are released)
+# Note: Release tag format on GitHub might be "16.1" or "sf_16.1"
 VERSION="16.1"
+RELEASE_TAG="16.1"  # Try this first, might need to be "sf_16.1" or other format
 
 # Binary name mapping
 declare -A BINARY_NAMES=(
@@ -35,49 +37,91 @@ if [ -z "$BINARY_NAME" ]; then
   exit 1
 fi
 
-DOWNLOAD_URL="https://github.com/official-stockfish/Stockfish/releases/download/${VERSION}/${BINARY_NAME}"
+# GitHub releases URL - need to check actual release tag format
+# Stockfish uses format like "16.1" but release tag might be different
+# Try different release tag formats
+DOWNLOAD_URLS=(
+  "https://github.com/official-stockfish/Stockfish/releases/download/${RELEASE_TAG}/${BINARY_NAME}"
+  "https://github.com/official-stockfish/Stockfish/releases/download/sf_${VERSION}/${BINARY_NAME}"
+  "https://github.com/official-stockfish/Stockfish/releases/download/v${VERSION}/${BINARY_NAME}"
+)
 
-# Check if binary already exists
+# Check if binary already exists and is valid (at least 1MB - real binary is ~76MB)
 if [ -f "$OUTPUT_PATH" ]; then
-  echo "[Stockfish Downloader] Binary already exists at $OUTPUT_PATH"
-  echo "[Stockfish Downloader] Skipping download. Delete the file to re-download."
-  exit 0
+  FILE_SIZE=$(stat -f%z "$OUTPUT_PATH" 2>/dev/null || stat -c%s "$OUTPUT_PATH" 2>/dev/null || echo "0")
+  MIN_SIZE=1048576  # 1MB minimum
+  if [ "$FILE_SIZE" -gt "$MIN_SIZE" ]; then
+    echo "[Stockfish Downloader] Binary already exists at $OUTPUT_PATH (size: $(du -h "$OUTPUT_PATH" | cut -f1))"
+    echo "[Stockfish Downloader] Skipping download. Delete the file to re-download."
+    exit 0
+  else
+    echo "[Stockfish Downloader] Existing binary is too small ($FILE_SIZE bytes), re-downloading..."
+    rm -f "$OUTPUT_PATH"
+  fi
 fi
 
 # Create stockfish directory
 mkdir -p "$STOCKFISH_DIR"
 
 echo "[Stockfish Downloader] Downloading Stockfish $VERSION ($ARCH)..."
-echo "[Stockfish Downloader] URL: $DOWNLOAD_URL"
 echo "[Stockfish Downloader] Output: $OUTPUT_PATH"
 
-# Try wget first, then curl
+# Try each URL until one works
 DOWNLOAD_SUCCESS=0
-if command -v wget >/dev/null 2>&1; then
-  echo "[Stockfish Downloader] Using wget..."
-  wget --progress=bar:force -O "$OUTPUT_PATH" "$DOWNLOAD_URL" 2>&1
-  if [ $? -eq 0 ] && [ -f "$OUTPUT_PATH" ]; then
-    DOWNLOAD_SUCCESS=1
-  else
-    echo "[Stockfish Downloader] wget failed, trying curl..."
-    rm -f "$OUTPUT_PATH"
-  fi
-fi
+MIN_SIZE=1048576  # 1MB minimum (real binary is ~76MB)
 
-if [ $DOWNLOAD_SUCCESS -eq 0 ] && command -v curl >/dev/null 2>&1; then
-  echo "[Stockfish Downloader] Using curl..."
-  curl -L --progress-bar -o "$OUTPUT_PATH" "$DOWNLOAD_URL" 2>&1
-  if [ $? -eq 0 ] && [ -f "$OUTPUT_PATH" ]; then
-    DOWNLOAD_SUCCESS=1
-  else
-    echo "[Stockfish Downloader] curl also failed!"
-    rm -f "$OUTPUT_PATH"
+for DOWNLOAD_URL in "${DOWNLOAD_URLS[@]}"; do
+  echo "[Stockfish Downloader] Trying URL: $DOWNLOAD_URL"
+  
+  # Try wget first, then curl
+  if command -v wget >/dev/null 2>&1; then
+    echo "[Stockfish Downloader] Using wget..."
+    wget --progress=bar:force -O "$OUTPUT_PATH" "$DOWNLOAD_URL" 2>&1
+    WGET_EXIT=$?
+    if [ $WGET_EXIT -eq 0 ] && [ -f "$OUTPUT_PATH" ]; then
+      FILE_SIZE=$(stat -f%z "$OUTPUT_PATH" 2>/dev/null || stat -c%s "$OUTPUT_PATH" 2>/dev/null || echo "0")
+      if [ "$FILE_SIZE" -gt "$MIN_SIZE" ]; then
+        DOWNLOAD_SUCCESS=1
+        echo "[Stockfish Downloader] Successfully downloaded (size: $(du -h "$OUTPUT_PATH" | cut -f1))"
+        break
+      else
+        echo "[Stockfish Downloader] Downloaded file too small ($FILE_SIZE bytes) - likely 404 error page"
+        rm -f "$OUTPUT_PATH"
+      fi
+    else
+      echo "[Stockfish Downloader] wget failed (exit code: $WGET_EXIT)"
+      rm -f "$OUTPUT_PATH"
+    fi
   fi
-fi
+
+  if [ $DOWNLOAD_SUCCESS -eq 0 ] && command -v curl >/dev/null 2>&1; then
+    echo "[Stockfish Downloader] Using curl..."
+    HTTP_CODE=$(curl -L -w "%{http_code}" -o "$OUTPUT_PATH" -s "$DOWNLOAD_URL")
+    if [ "$HTTP_CODE" = "200" ] && [ -f "$OUTPUT_PATH" ]; then
+      FILE_SIZE=$(stat -f%z "$OUTPUT_PATH" 2>/dev/null || stat -c%s "$OUTPUT_PATH" 2>/dev/null || echo "0")
+      if [ "$FILE_SIZE" -gt "$MIN_SIZE" ]; then
+        DOWNLOAD_SUCCESS=1
+        echo "[Stockfish Downloader] Successfully downloaded (size: $(du -h "$OUTPUT_PATH" | cut -f1))"
+        break
+      else
+        echo "[Stockfish Downloader] Downloaded file too small ($FILE_SIZE bytes) - likely 404 error page"
+        rm -f "$OUTPUT_PATH"
+      fi
+    else
+      echo "[Stockfish Downloader] curl failed (HTTP $HTTP_CODE)"
+      rm -f "$OUTPUT_PATH"
+    fi
+  fi
+done
 
 if [ $DOWNLOAD_SUCCESS -eq 0 ]; then
-  echo "[Stockfish Downloader] ERROR: Download failed - neither wget nor curl succeeded"
-  echo "[Stockfish Downloader] URL was: $DOWNLOAD_URL"
+  echo "[Stockfish Downloader] ERROR: Download failed - all URLs returned 404 or file too small"
+  echo "[Stockfish Downloader] Tried URLs:"
+  for url in "${DOWNLOAD_URLS[@]}"; do
+    echo "[Stockfish Downloader]   - $url"
+  done
+  echo "[Stockfish Downloader] Please check: https://github.com/official-stockfish/Stockfish/releases"
+  echo "[Stockfish Downloader] And verify the correct release tag and binary name format"
   exit 1
 fi
 
