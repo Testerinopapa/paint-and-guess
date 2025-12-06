@@ -14,7 +14,9 @@
     "prisma:studio": "prisma studio --schema ./prisma/schema.prisma",
     "test:puzzle-db": "node scripts/test-puzzle-db.js",
     "import:dev-db": "node scripts/import-dev-db.js",
-    "test:engine": "node scripts/test-engine.js"
+    "test:engine": "node scripts/test-engine.js",
+    "download:stockfish": "node scripts/download-stockfish.js",
+    "postinstall": "npm run download:stockfish || echo 'Stockfish download skipped (optional)'"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
