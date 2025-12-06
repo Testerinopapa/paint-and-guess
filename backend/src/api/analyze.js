@@ -74,7 +74,7 @@ export async function engineHealth(req, res) {
     };
     
     // Add diagnostic info if engine is not ready
-    if (!status.ready && !status.pid) {
+    if (!status.ready) {
       // Try to detect if binary exists
       const fs = await import("fs");
       const path = await import("path");
@@ -106,6 +106,22 @@ export async function engineHealth(req, res) {
         stockfishDir: stockfishDir,
         lastStdout: status.lastStdout?.slice(-5) || [],
       };
+      
+      // If binary found but engine not started, try to initialize it
+      if (foundBinary && !status.pid && req.query.init === "true") {
+        try {
+          // Trigger engine initialization by calling ensureStarted
+          EnginePool.ensureStarted();
+          // Wait a moment for initialization
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const newStatus = EnginePool.getStatus();
+          response.pid = newStatus.pid;
+          response.ready = newStatus.ready;
+          response.initialized = true;
+        } catch (error) {
+          response.initError = error.message;
+        }
+      }
     }
     
     return res.json(response);

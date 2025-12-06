@@ -471,5 +471,8 @@ function parseInfoLine(line) {
 
 const EnginePool = new EnginePoolImpl();
 
+// Expose ensureStarted for manual initialization
+EnginePool.ensureStarted = EnginePool.ensureStarted.bind(EnginePool);
+
 export default EnginePool;
 
