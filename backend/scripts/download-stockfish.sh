@@ -34,16 +34,44 @@ else
   # Use jq if available, otherwise use grep/sed
   if command -v jq >/dev/null 2>&1; then
     # Try ubuntu first (most common), then linux
-    DOWNLOAD_URL=$(echo "$RELEASE_INFO" | jq -r ".assets[] | select((.name | contains(\"ubuntu\") or contains(\"linux\")) and contains(\"${ARCH}\")) | .browser_download_url" | head -1)
+    # Match assets that contain both "ubuntu" (or "linux") and the architecture
+    DOWNLOAD_URL=$(echo "$RELEASE_INFO" | jq -r ".assets[] | select((.name | ascii_downcase | contains(\"ubuntu\") or contains(\"linux\")) and (ascii_downcase | contains(\"${ARCH}\"))) | .browser_download_url" | head -1)
+    if [ -z "$DOWNLOAD_URL" ] || [ "$DOWNLOAD_URL" = "null" ]; then
+      echo "[Stockfish Downloader] jq: No matching asset found, listing available assets:"
+      echo "$RELEASE_INFO" | jq -r ".assets[].name" | grep -i "ubuntu\|linux" | head -5
+    fi
   else
     # Fallback: try to extract asset URL manually
-    # Try ubuntu first, then linux
-    ASSET_NAME=$(echo "$RELEASE_INFO" | grep -o "\"name\": \"[^\"]*ubuntu[^\"]*${ARCH}[^\"]*\"" | head -1 | cut -d'"' -f4)
-    if [ -z "$ASSET_NAME" ] || [ "$ASSET_NAME" = "null" ]; then
-      ASSET_NAME=$(echo "$RELEASE_INFO" | grep -o "\"name\": \"[^\"]*linux[^\"]*${ARCH}[^\"]*\"" | head -1 | cut -d'"' -f4)
+    # Convert ARCH to lowercase for matching
+    ARCH_LOWER=$(echo "$ARCH" | tr '[:upper:]' '[:lower:]')
+    echo "[Stockfish Downloader] Using grep fallback (jq not available)"
+    echo "[Stockfish Downloader] Looking for assets matching: ubuntu/linux + ${ARCH_LOWER}"
+    
+    # Extract all asset names first, then filter
+    # The JSON structure has each asset as a block with "name" and "browser_download_url"
+    # We need to find the asset block that contains both ubuntu/linux and the arch
+    
+    # Method: Extract all asset names, find matching one
+    # Get all asset names, filter for ubuntu/linux, then filter for architecture
+    ALL_ASSET_NAMES=$(echo "$RELEASE_INFO" | grep -o '"name": "[^"]*"' | cut -d'"' -f4)
+    
+    # Try ubuntu first: find assets with both "ubuntu" and the architecture
+    MATCHING_ASSET_NAME=$(echo "$ALL_ASSET_NAMES" | grep -i "ubuntu" | grep -i "${ARCH_LOWER}" | head -1)
+    
+    # Try linux if ubuntu didn't work
+    if [ -z "$MATCHING_ASSET_NAME" ]; then
+      MATCHING_ASSET_NAME=$(echo "$ALL_ASSET_NAMES" | grep -i "linux" | grep -i "${ARCH_LOWER}" | head -1)
     fi
-    if [ -n "$ASSET_NAME" ] && [ "$ASSET_NAME" != "null" ]; then
-      DOWNLOAD_URL="https://github.com/official-stockfish/Stockfish/releases/download/${RELEASE_TAG}/${ASSET_NAME}"
+    
+    if [ -n "$MATCHING_ASSET_NAME" ]; then
+      # Now find the browser_download_url for this asset
+      # The URL should be near the asset name in the JSON
+      # We'll construct it from the tag and asset name
+      DOWNLOAD_URL="https://github.com/official-stockfish/Stockfish/releases/download/${RELEASE_TAG}/${MATCHING_ASSET_NAME}"
+      echo "[Stockfish Downloader] Found asset via grep: $MATCHING_ASSET_NAME"
+    else
+      echo "[Stockfish Downloader] Available Linux assets (for debugging):"
+      echo "$RELEASE_INFO" | grep -o '"name": "[^"]*"' | cut -d'"' -f4 | grep -i "ubuntu\|linux" | head -5
     fi
   fi
   
@@ -66,7 +94,9 @@ if [ -f "$OUTPUT_PATH" ]; then
   MIN_SIZE=1048576  # 1MB minimum
   if [ "$FILE_SIZE" -gt "$MIN_SIZE" ]; then
     echo "[Stockfish Downloader] Binary already exists at $OUTPUT_PATH (size: $(du -h "$OUTPUT_PATH" | cut -f1))"
-    echo "[Stockfish Downloader] Skipping download. Delete the file to re-download."
+    # Ensure it's executable (in case permissions were lost)
+    chmod +x "$OUTPUT_PATH"
+    echo "[Stockfish Downloader] Verified execute permissions. Skipping download. Delete the file to re-download."
     exit 0
   else
     echo "[Stockfish Downloader] Existing binary is too small ($FILE_SIZE bytes), re-downloading..."
