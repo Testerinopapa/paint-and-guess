@@ -38,7 +38,14 @@ function isExecutable(p) {
 }
 
 function findStockfishBinary() {
-  // First, check for local Stockfish binary in project's stockfish folder
+  // First, check for Docker path (production deployment)
+  const dockerPath = "/app/stockfish/stockfish";
+  if (fs.existsSync(dockerPath) && isExecutable(dockerPath)) {
+    logger.info({ path: dockerPath }, "Found Docker Stockfish binary");
+    return dockerPath;
+  }
+
+  // Then, check for local Stockfish binary in project's stockfish folder
   // This takes priority over system installations
   const projectRoot = join(__dirname, "../../..");
   const localStockfishCandidates = [

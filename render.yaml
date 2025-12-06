@@ -1,11 +1,10 @@
 services:
   - type: web
     name: paint-and-guess-backend
-    env: node
+    env: docker
     plan: free
-    rootDir: backend
-    buildCommand: npm install && npm run prisma:generate && npm run prisma:migrate && (bash scripts/download-stockfish.sh x86-64-avx2 2>&1 || echo "Stockfish download failed - check logs")
-    startCommand: npm run start
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     envVars:
       - key: NODE_VERSION
         value: 20
