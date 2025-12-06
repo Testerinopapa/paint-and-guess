@@ -174,6 +174,22 @@ async function downloadFile(url, dest) {
 }
 
 async function main() {
+  // Skip if we're in Docker (Stockfish is installed in Dockerfile)
+  if (process.env.SKIP_STOCKFISH_DOWNLOAD === "true") {
+    console.log(`[Stockfish Downloader] Skipping download (SKIP_STOCKFISH_DOWNLOAD environment variable set)`);
+    return;
+  }
+  
+  // Check if Docker path exists (synchronous check)
+  try {
+    if (fs.existsSync("/app/stockfish/stockfish")) {
+      console.log(`[Stockfish Downloader] Skipping download (Docker environment detected)`);
+      return;
+    }
+  } catch {
+    // Continue if check fails
+  }
+  
   const platform = process.argv[2] || detectPlatform();
   const arch = process.argv[3] || detectArchitecture();
   
@@ -279,27 +295,61 @@ async function main() {
         // Remove tar file
         await import("fs/promises").then(m => m.unlink(downloadPath));
         
-        // Find the extracted binary (might have a different name)
+        // Find the extracted binary (might have a different name or be in a subdirectory)
         const fs = await import("fs/promises");
-        const files = await fs.readdir(stockfishDir);
-        const binaryFile = files.find(f => 
-          !f.includes(".tar") && 
-          !f.includes(".txt") && 
-          f !== "stockfish" &&
-          (f.startsWith("stockfish") || f.includes("x86-64"))
-        );
+        const { stat } = await import("fs/promises");
         
-        if (binaryFile) {
-          const extractedPath = join(stockfishDir, binaryFile);
-          // Rename to standard name if needed
-          if (binaryFile !== "stockfish" && platform !== "windows") {
-            await fs.rename(extractedPath, outputPath);
-            console.log(`[Stockfish Downloader] Renamed ${binaryFile} to stockfish`);
-          } else if (platform === "windows" && binaryFile !== "stockfish.exe") {
-            await fs.rename(extractedPath, outputPath);
-            console.log(`[Stockfish Downloader] Renamed ${binaryFile} to stockfish.exe`);
+        // First, check if it's already at the expected location
+        try {
+          const stats = await stat(outputPath);
+          if (stats.isFile()) {
+            console.log(`[Stockfish Downloader] Binary already at expected location: ${outputPath}`);
+            return;
           }
+        } catch {
+          // File doesn't exist, continue to search
+        }
+        
+        // List all files in the directory (including subdirectories)
+        async function findBinary(dir, depth = 0) {
+          if (depth > 2) return null; // Limit recursion
+          
+          const entries = await fs.readdir(dir, { withFileTypes: true });
+          
+          for (const entry of entries) {
+            const fullPath = join(dir, entry.name);
+            
+            if (entry.isDirectory()) {
+              const found = await findBinary(fullPath, depth + 1);
+              if (found) return found;
+            } else if (entry.isFile()) {
+              // Check if it's a binary file (not .tar, .txt, etc.)
+              if (!entry.name.includes(".tar") && 
+                  !entry.name.includes(".txt") && 
+                  !entry.name.includes(".md") &&
+                  entry.name !== "stockfish" &&
+                  entry.name !== "stockfish.exe") {
+                // Check if it's likely the binary (executable or has stockfish/x86-64 in name)
+                const stats = await stat(fullPath);
+                if (stats.size > 1000000) { // At least 1MB (real binary is ~76MB)
+                  return fullPath;
+                }
+              }
+            }
+          }
+          return null;
+        }
+        
+        const foundBinary = await findBinary(stockfishDir);
+        
+        if (foundBinary) {
+          // Move to standard location
+          await fs.rename(foundBinary, outputPath);
+          console.log(`[Stockfish Downloader] Found and moved binary from ${foundBinary} to ${outputPath}`);
         } else {
+          // Last resort: list what we found for debugging
+          const allFiles = await fs.readdir(stockfishDir, { recursive: true });
+          console.error(`[Stockfish Downloader] Could not find extracted binary. Files found:`, allFiles);
           throw new Error("Could not find extracted binary in tar archive");
         }
       } catch (extractError) {

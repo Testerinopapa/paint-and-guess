@@ -13,6 +13,10 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
+# Set environment variable to skip postinstall Stockfish download
+# (we'll download it in the Dockerfile instead)
+ENV SKIP_STOCKFISH_DOWNLOAD=true
+
 # Install Node.js dependencies
 RUN npm ci
 
