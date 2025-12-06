@@ -117,9 +117,13 @@ function findMatchingAsset(assets, platform, arch) {
   const patterns = [];
   
   if (platform === "linux") {
+    // GitHub uses "ubuntu" in asset names, not "linux"
+    patterns.push(`ubuntu.*${arch}`);
+    patterns.push(`${arch}.*ubuntu`);
     patterns.push(`linux.*${arch}`);
     patterns.push(`${arch}.*linux`);
     // Also try without underscores/dashes
+    patterns.push(`ubuntu.*${arch.replace(/-/g, "")}`);
     patterns.push(`linux.*${arch.replace(/-/g, "")}`);
   } else if (platform === "windows") {
     patterns.push(`windows.*${arch}`);
@@ -132,13 +136,13 @@ function findMatchingAsset(assets, platform, arch) {
     patterns.push(`${arch}.*osx`);
   }
   
-  // Find asset matching any pattern
+  // Find asset matching any pattern (including .tar files)
   for (const asset of assets) {
     const name = asset.name.toLowerCase();
     for (const pattern of patterns) {
       const regex = new RegExp(pattern.replace(/\*/g, ".*"), "i");
-      if (regex.test(name) && !name.includes(".tar") && !name.includes(".zip")) {
-        return asset;
+      if (regex.test(name)) {
+        return asset; // Return even if it's a .tar file - we'll extract it
       }
     }
   }
@@ -247,20 +251,68 @@ async function main() {
     }
   }
   
-  // Download the binary
+  // Check if we're downloading a tar file
+  const isTarFile = downloadUrl.includes(".tar");
+  const downloadPath = isTarFile ? join(stockfishDir, "stockfish.tar") : outputPath;
+  
+  // Download the binary (or tar archive)
   console.log(`[Stockfish Downloader] Downloading from ${downloadUrl}...`);
-  console.log(`[Stockfish Downloader] Saving to ${outputPath}...`);
+  console.log(`[Stockfish Downloader] Saving to ${downloadPath}...`);
   
   try {
-    await downloadFile(downloadUrl, outputPath);
+    await downloadFile(downloadUrl, downloadPath);
     
     // Verify file size
-    const stats = await import("fs/promises").then(m => m.stat(outputPath));
+    const stats = await import("fs/promises").then(m => m.stat(downloadPath));
     if (stats.size < 1048576) {
       throw new Error(`Downloaded file too small (${stats.size} bytes) - likely 404 error page`);
     }
     
     console.log(`[Stockfish Downloader] Download complete! (${(stats.size / 1048576).toFixed(1)}MB)`);
+    
+    // Extract if it's a tar file
+    if (isTarFile) {
+      console.log(`[Stockfish Downloader] Extracting tar archive...`);
+      const { execSync } = await import("child_process");
+      try {
+        execSync(`tar -xf "${downloadPath}" -C "${stockfishDir}"`, { stdio: "inherit" });
+        // Remove tar file
+        await import("fs/promises").then(m => m.unlink(downloadPath));
+        
+        // Find the extracted binary (might have a different name)
+        const fs = await import("fs/promises");
+        const files = await fs.readdir(stockfishDir);
+        const binaryFile = files.find(f => 
+          !f.includes(".tar") && 
+          !f.includes(".txt") && 
+          f !== "stockfish" &&
+          (f.startsWith("stockfish") || f.includes("x86-64"))
+        );
+        
+        if (binaryFile) {
+          const extractedPath = join(stockfishDir, binaryFile);
+          // Rename to standard name if needed
+          if (binaryFile !== "stockfish" && platform !== "windows") {
+            await fs.rename(extractedPath, outputPath);
+            console.log(`[Stockfish Downloader] Renamed ${binaryFile} to stockfish`);
+          } else if (platform === "windows" && binaryFile !== "stockfish.exe") {
+            await fs.rename(extractedPath, outputPath);
+            console.log(`[Stockfish Downloader] Renamed ${binaryFile} to stockfish.exe`);
+          }
+        } else {
+          throw new Error("Could not find extracted binary in tar archive");
+        }
+      } catch (extractError) {
+        console.error(`[Stockfish Downloader] Extraction failed: ${extractError.message}`);
+        throw extractError;
+      }
+    }
+    
+    // Verify final binary exists
+    const finalStats = await import("fs/promises").then(m => m.stat(outputPath));
+    if (finalStats.size < 1048576) {
+      throw new Error(`Binary too small (${finalStats.size} bytes)`);
+    }
     
     // Make executable on Unix systems
     if (platform !== "windows") {
@@ -268,7 +320,7 @@ async function main() {
       console.log(`[Stockfish Downloader] Made binary executable`);
     }
     
-    console.log(`[Stockfish Downloader] Stockfish binary ready at: ${outputPath}`);
+    console.log(`[Stockfish Downloader] Stockfish binary ready at: ${outputPath} (${(finalStats.size / 1048576).toFixed(1)}MB)`);
   } catch (error) {
     console.error(`[Stockfish Downloader] Download failed: ${error.message}`);
     console.error(`[Stockfish Downloader] You may need to download manually from:`);

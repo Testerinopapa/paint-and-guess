@@ -30,13 +30,18 @@ else
   RELEASE_TAG=$(echo "$RELEASE_INFO" | grep -o '"tag_name": "[^"]*' | cut -d'"' -f4)
   echo "[Stockfish Downloader] Latest release tag: $RELEASE_TAG"
   
-  # Find asset matching the architecture
+  # Find asset matching the architecture (including .tar files - that's what GitHub provides)
   # Use jq if available, otherwise use grep/sed
   if command -v jq >/dev/null 2>&1; then
-    DOWNLOAD_URL=$(echo "$RELEASE_INFO" | jq -r ".assets[] | select(.name | contains(\"linux\") and contains(\"${ARCH}\") and (contains(\".tar\") | not)) | .browser_download_url" | head -1)
+    # Try ubuntu first (most common), then linux
+    DOWNLOAD_URL=$(echo "$RELEASE_INFO" | jq -r ".assets[] | select((.name | contains(\"ubuntu\") or contains(\"linux\")) and contains(\"${ARCH}\")) | .browser_download_url" | head -1)
   else
     # Fallback: try to extract asset URL manually
-    ASSET_NAME=$(echo "$RELEASE_INFO" | grep -o "\"name\": \"[^\"]*linux[^\"]*${ARCH}[^\"]*\"" | head -1 | cut -d'"' -f4)
+    # Try ubuntu first, then linux
+    ASSET_NAME=$(echo "$RELEASE_INFO" | grep -o "\"name\": \"[^\"]*ubuntu[^\"]*${ARCH}[^\"]*\"" | head -1 | cut -d'"' -f4)
+    if [ -z "$ASSET_NAME" ] || [ "$ASSET_NAME" = "null" ]; then
+      ASSET_NAME=$(echo "$RELEASE_INFO" | grep -o "\"name\": \"[^\"]*linux[^\"]*${ARCH}[^\"]*\"" | head -1 | cut -d'"' -f4)
+    fi
     if [ -n "$ASSET_NAME" ] && [ "$ASSET_NAME" != "null" ]; then
       DOWNLOAD_URL="https://github.com/official-stockfish/Stockfish/releases/download/${RELEASE_TAG}/${ASSET_NAME}"
     fi
@@ -75,6 +80,17 @@ mkdir -p "$STOCKFISH_DIR"
 echo "[Stockfish Downloader] Downloading Stockfish ($ARCH)..."
 echo "[Stockfish Downloader] Output: $OUTPUT_PATH"
 
+# Determine if we're downloading a tar file
+IS_TAR=false
+DOWNLOAD_PATH="$OUTPUT_PATH"
+for url in "${DOWNLOAD_URLS[@]}"; do
+  if [[ "$url" == *.tar* ]]; then
+    IS_TAR=true
+    DOWNLOAD_PATH="$STOCKFISH_DIR/stockfish.tar"
+    break
+  fi
+done
+
 # Try each URL until one works
 DOWNLOAD_SUCCESS=0
 MIN_SIZE=1048576  # 1MB minimum (real binary is ~76MB)
@@ -85,40 +101,40 @@ for DOWNLOAD_URL in "${DOWNLOAD_URLS[@]}"; do
   # Try wget first, then curl
   if command -v wget >/dev/null 2>&1; then
     echo "[Stockfish Downloader] Using wget..."
-    wget --progress=bar:force -O "$OUTPUT_PATH" "$DOWNLOAD_URL" 2>&1
+    wget --progress=bar:force -O "$DOWNLOAD_PATH" "$DOWNLOAD_URL" 2>&1
     WGET_EXIT=$?
-    if [ $WGET_EXIT -eq 0 ] && [ -f "$OUTPUT_PATH" ]; then
-      FILE_SIZE=$(stat -f%z "$OUTPUT_PATH" 2>/dev/null || stat -c%s "$OUTPUT_PATH" 2>/dev/null || echo "0")
+    if [ $WGET_EXIT -eq 0 ] && [ -f "$DOWNLOAD_PATH" ]; then
+      FILE_SIZE=$(stat -f%z "$DOWNLOAD_PATH" 2>/dev/null || stat -c%s "$DOWNLOAD_PATH" 2>/dev/null || echo "0")
       if [ "$FILE_SIZE" -gt "$MIN_SIZE" ]; then
         DOWNLOAD_SUCCESS=1
-        echo "[Stockfish Downloader] Successfully downloaded (size: $(du -h "$OUTPUT_PATH" | cut -f1))"
+        echo "[Stockfish Downloader] Successfully downloaded (size: $(du -h "$DOWNLOAD_PATH" | cut -f1))"
         break
       else
         echo "[Stockfish Downloader] Downloaded file too small ($FILE_SIZE bytes) - likely 404 error page"
-        rm -f "$OUTPUT_PATH"
+        rm -f "$DOWNLOAD_PATH"
       fi
     else
       echo "[Stockfish Downloader] wget failed (exit code: $WGET_EXIT)"
-      rm -f "$OUTPUT_PATH"
+      rm -f "$DOWNLOAD_PATH"
     fi
   fi
 
   if [ $DOWNLOAD_SUCCESS -eq 0 ] && command -v curl >/dev/null 2>&1; then
     echo "[Stockfish Downloader] Using curl..."
-    HTTP_CODE=$(curl -L -w "%{http_code}" -o "$OUTPUT_PATH" -s "$DOWNLOAD_URL")
-    if [ "$HTTP_CODE" = "200" ] && [ -f "$OUTPUT_PATH" ]; then
-      FILE_SIZE=$(stat -f%z "$OUTPUT_PATH" 2>/dev/null || stat -c%s "$OUTPUT_PATH" 2>/dev/null || echo "0")
+    HTTP_CODE=$(curl -L -w "%{http_code}" -o "$DOWNLOAD_PATH" -s "$DOWNLOAD_URL")
+    if [ "$HTTP_CODE" = "200" ] && [ -f "$DOWNLOAD_PATH" ]; then
+      FILE_SIZE=$(stat -f%z "$DOWNLOAD_PATH" 2>/dev/null || stat -c%s "$DOWNLOAD_PATH" 2>/dev/null || echo "0")
       if [ "$FILE_SIZE" -gt "$MIN_SIZE" ]; then
         DOWNLOAD_SUCCESS=1
-        echo "[Stockfish Downloader] Successfully downloaded (size: $(du -h "$OUTPUT_PATH" | cut -f1))"
+        echo "[Stockfish Downloader] Successfully downloaded (size: $(du -h "$DOWNLOAD_PATH" | cut -f1))"
         break
       else
         echo "[Stockfish Downloader] Downloaded file too small ($FILE_SIZE bytes) - likely 404 error page"
-        rm -f "$OUTPUT_PATH"
+        rm -f "$DOWNLOAD_PATH"
       fi
     else
       echo "[Stockfish Downloader] curl failed (HTTP $HTTP_CODE)"
-      rm -f "$OUTPUT_PATH"
+      rm -f "$DOWNLOAD_PATH"
     fi
   fi
 done
@@ -132,6 +148,32 @@ if [ $DOWNLOAD_SUCCESS -eq 0 ]; then
   echo "[Stockfish Downloader] Please check: https://github.com/official-stockfish/Stockfish/releases"
   echo "[Stockfish Downloader] And verify the correct release tag and binary name format"
   exit 1
+fi
+
+# Extract tar file if needed
+if [ "$IS_TAR" = true ]; then
+  echo "[Stockfish Downloader] Extracting tar archive..."
+  if ! tar -xf "$DOWNLOAD_PATH" -C "$STOCKFISH_DIR" 2>/dev/null; then
+    echo "[Stockfish Downloader] ERROR: Failed to extract tar archive"
+    exit 1
+  fi
+  
+  # Remove tar file
+  rm -f "$DOWNLOAD_PATH"
+  
+  # Find the extracted binary (might have a different name)
+  EXTRACTED_BINARY=$(find "$STOCKFISH_DIR" -maxdepth 1 -type f -name "stockfish*" ! -name "*.tar" ! -name "*.txt" | head -1)
+  
+  if [ -z "$EXTRACTED_BINARY" ]; then
+    echo "[Stockfish Downloader] ERROR: Could not find extracted binary"
+    exit 1
+  fi
+  
+  # Rename to standard name if needed
+  if [ "$EXTRACTED_BINARY" != "$OUTPUT_PATH" ]; then
+    mv "$EXTRACTED_BINARY" "$OUTPUT_PATH"
+    echo "[Stockfish Downloader] Renamed extracted binary to stockfish"
+  fi
 fi
 
 # Make executable
