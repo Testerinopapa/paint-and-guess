@@ -1,4 +1,4 @@
-import { Home, Library, Clock, Star, Settings, TrendingUp, User } from "lucide-react";
+import { Home, Library, Clock, Star, Settings, TrendingUp, User, PenTool } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const Sidebar = () => {
@@ -9,6 +9,7 @@ const Sidebar = () => {
     { icon: Star, label: "Favorites", to: "/hub/favorites" },
     { icon: TrendingUp, label: "Trending", to: "/hub/trending" },
     { icon: User, label: "Friends", to: "/hub/friends" },
+    { icon: PenTool, label: "Whiteboard", to: "/hub/whiteboard" },
   ];
 
   return (
