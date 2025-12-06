@@ -13,6 +13,7 @@ import { getRegistryResponse, loadGameRegistry } from "./gameRegistry.js";
 import { TriviaRoomRepository } from "./triviaRoomRepository.js";
 import { getSampleQuestions, getQuestionsByQuizId, QUIZZES } from "./triviaQuestions.js";
 import { canvaRoomRepository } from "./canvaRoomRepository.js";
+import { whiteboardRoomRepository } from "./whiteboardRoomRepository.js";
 import authRoutes from "./auth/routes.js";
 import { getRandomPuzzle, getPuzzles, createPuzzleAttempt } from "./puzzleRoutes.js";
 import { analyzePosition, engineHealth } from "./api/analyze.js";
@@ -264,7 +265,7 @@ io.on("connection", (socket) => {
 
 
   socket.on("disconnect", async () => {
-    const { roomId, playerId, isTrivia, isCanva } = socket.data;
+    const { roomId, playerId, isTrivia, isCanva, isWhiteboard } = socket.data;
     if (!roomId || !playerId) {
       return;
     }
@@ -937,6 +938,132 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("canva:canvas-cleared");
   });
 
+  // Whiteboard room handlers
+  socket.on("whiteboard:create-room", ({ roomName, playerName, avatar }) => {
+    const player = {
+      id: uuidv4(),
+      name: sanitizeName(playerName, "Player"),
+      avatar: sanitizeAvatar(avatar),
+      socketId: socket.id,
+    };
+
+    const room = whiteboardRoomRepository.createRoom({
+      name: sanitizeName(roomName, "Whiteboard Room"),
+      isPublic: true,
+      maxPlayers: 20,
+    });
+
+    room.addPlayer(player);
+    room.ownerId = player.id;
+
+    socket.join(room.id);
+    socket.data.roomId = room.id;
+    socket.data.playerId = player.id;
+    socket.data.isWhiteboard = true;
+
+    socket.emit("session", { playerId: player.id });
+    socket.emit("whiteboard:room-created", {
+      roomId: room.id,
+      gamePin: room.gamePin,
+      room: room.toJSON(),
+    });
+  });
+
+  socket.on("whiteboard:join-room", ({ gamePin, playerName, avatar }) => {
+    const room = whiteboardRoomRepository.getRoomByPin(gamePin);
+    if (!room) {
+      socket.emit("error", { message: "Invalid game PIN" });
+      return;
+    }
+
+    if (room.getActivePlayerCount() >= room.maxPlayers) {
+      socket.emit("error", { message: "Room is full" });
+      return;
+    }
+
+    const player = {
+      id: uuidv4(),
+      name: sanitizeName(playerName, "Player"),
+      avatar: sanitizeAvatar(avatar),
+      socketId: socket.id,
+    };
+
+    room.addPlayer(player);
+
+    socket.join(room.id);
+    socket.data.roomId = room.id;
+    socket.data.playerId = player.id;
+    socket.data.isWhiteboard = true;
+
+    socket.emit("session", { playerId: player.id });
+    socket.emit("whiteboard:joined", {
+      roomId: room.id,
+      playerId: player.id,
+    });
+    socket.emit("whiteboard:room-state", room.toJSON());
+
+    // Notify other players
+    socket.to(room.id).emit("whiteboard:player-joined", {
+      player: {
+        id: player.id,
+        name: player.name,
+        avatar: player.avatar,
+        connected: true,
+      },
+      players: room.toJSON().players,
+    });
+  });
+
+  socket.on("whiteboard:drawing-event", (event) => {
+    const { roomId, playerId } = socket.data;
+    
+    if (!roomId || !playerId) {
+      return;
+    }
+    
+    const room = whiteboardRoomRepository.getRoom(roomId);
+    if (!room) {
+      return;
+    }
+
+    // Ensure socket is in room
+    if (!socket.rooms.has(roomId)) {
+      socket.join(roomId);
+    }
+
+    // Broadcast to all OTHER sockets in room (excludes sender)
+    socket.broadcast.to(roomId).emit("whiteboard:drawing-event", event);
+  });
+
+  socket.on("whiteboard:clear-canvas", () => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) return;
+
+    const room = whiteboardRoomRepository.getRoom(roomId);
+    if (!room) return;
+
+    // Broadcast clear event to all clients in room
+    io.to(roomId).emit("whiteboard:canvas-cleared");
+  });
+
+  socket.on("whiteboard:update-avatar", ({ avatar }) => {
+    const { roomId, playerId } = socket.data;
+    if (!roomId || !playerId) {
+      return;
+    }
+
+    const room = whiteboardRoomRepository.getRoom(roomId);
+    if (!room) {
+      return;
+    }
+
+    const sanitizedAvatar = sanitizeAvatar(avatar);
+    room.updatePlayerAvatar(playerId, sanitizedAvatar);
+    
+    // Broadcast updated player list to all clients in room
+    io.to(roomId).emit("whiteboard:room-state", room.toJSON());
+  });
+
   async function endCanvaRound(roomId) {
     // Guard against concurrent executions
     if (endingRoundRooms.has(roomId)) {
@@ -1102,6 +1229,27 @@ io.on("connection", (socket) => {
         triviaRoomRepository.deleteRoom(roomId);
       } else {
         io.to(roomId).emit("trivia:player-left", {
+          playerId,
+          players: room.toJSON().players,
+        });
+      }
+      return;
+    }
+
+    // Handle whiteboard room disconnects
+    if (isWhiteboard) {
+      const room = whiteboardRoomRepository.getRoom(roomId);
+      if (!room) return;
+
+      room.markPlayerDisconnected(playerId);
+      socket.leave(roomId);
+      socket.data.roomId = null;
+      socket.data.playerId = null;
+
+      if (room.players.length === 0) {
+        whiteboardRoomRepository.deleteRoom(roomId);
+      } else {
+        io.to(roomId).emit("whiteboard:player-left", {
           playerId,
           players: room.toJSON().players,
         });

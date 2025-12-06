@@ -47,7 +47,7 @@ const AppRoutes = () => {
         <Route index element={<AllGames />} />
         <Route path="library" element={<Library />} />
         <Route path="friends" element={<Friends />} />
-        <Route path="whiteboard" element={<Whiteboard />} />
+        <Route path="whiteboard/*" element={<Whiteboard />} />
         <Route path="games/:gameId" element={<GameDetail />} />
         <Route path="games">
           <Route path="ping-pong">
