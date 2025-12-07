@@ -53,11 +53,12 @@ export default function WhiteboardRoom() {
       const containerRect = container.parentElement?.getBoundingClientRect();
       if (!containerRect) return;
 
+      const FRAME_PADDING = 24; // 12px padding on each side
       const availableWidth = containerRect.width - 32;
       const availableHeight = containerRect.height - 32;
 
-      const scaleX = availableWidth / CANVAS_WIDTH;
-      const scaleY = availableHeight / CANVAS_HEIGHT;
+      const scaleX = availableWidth / (CANVAS_WIDTH + FRAME_PADDING);
+      const scaleY = availableHeight / (CANVAS_HEIGHT + FRAME_PADDING);
       const scale = Math.min(scaleX, scaleY, 1);
 
       if (scale < 1) {
@@ -631,23 +632,36 @@ export default function WhiteboardRoom() {
       <div className="flex-1 overflow-auto bg-muted/20 rounded-lg p-4 flex items-center justify-center">
         <div 
           ref={containerRef}
-          className="relative border-8 border-gray-700 rounded-lg shadow-2xl overflow-hidden"
+          className="whiteboard-frame"
           style={{ 
-            width: `${CANVAS_WIDTH}px`,
-            height: `${CANVAS_HEIGHT}px`,
+            width: `${CANVAS_WIDTH + 24}px`,
+            height: `${CANVAS_HEIGHT + 24}px`,
             maxWidth: '100%',
             maxHeight: '100%',
-            aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}`,
-            boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.1), 0 10px 30px rgba(0, 0, 0, 0.3)',
+            aspectRatio: `${CANVAS_WIDTH + 24} / ${CANVAS_HEIGHT + 24}`,
           }}
         >
-          <canvas 
-            ref={canvasRef} 
+          {/* Mounting holes */}
+          <div className="mounting-hole top-left"></div>
+          <div className="mounting-hole top-right"></div>
+          <div className="mounting-hole bottom-left"></div>
+          <div className="mounting-hole bottom-right"></div>
+          
+          <div 
+            className="whiteboard-frame-inner"
             style={{ 
-              display: 'block',
-              cursor: 'crosshair',
-            }} 
-          />
+              width: `${CANVAS_WIDTH}px`,
+              height: `${CANVAS_HEIGHT}px`,
+            }}
+          >
+            <canvas 
+              ref={canvasRef} 
+              style={{ 
+                display: 'block',
+                cursor: 'crosshair',
+              }} 
+            />
+          </div>
         </div>
       </div>
     </div>

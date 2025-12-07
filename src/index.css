@@ -260,4 +260,112 @@ All colors MUST be HSL.
   .typed-cursor {
     animation: blink 1s infinite;
   }
+
+  /* Realistic Whiteboard Frame */
+  .whiteboard-frame {
+    position: relative;
+    padding: 12px;
+    background: linear-gradient(135deg, 
+      #e0e0e0 0%,
+      #c0c0c0 25%,
+      #d0d0d0 50%,
+      #b8b8b8 75%,
+      #d8d8d8 100%);
+    border-radius: 8px;
+    box-shadow: 
+      inset 0 2px 4px rgba(255, 255, 255, 0.6),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(0, 0, 0, 0.2),
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .whiteboard-frame::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 6px;
+    background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(0, 0, 0, 0.1) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .whiteboard-frame::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    border: 2px solid rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .whiteboard-frame-inner {
+    position: relative;
+    background: #ffffff;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 
+      inset 0 2px 8px rgba(0, 0, 0, 0.08),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+    z-index: 0;
+  }
+
+  /* Mounting holes in corners */
+  .whiteboard-frame .mounting-hole {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: radial-gradient(circle, 
+      rgba(0, 0, 0, 0.3) 0%,
+      rgba(0, 0, 0, 0.5) 50%,
+      rgba(0, 0, 0, 0.7) 100%);
+    border-radius: 50%;
+    box-shadow: 
+      inset 0 2px 4px rgba(0, 0, 0, 0.5),
+      0 1px 2px rgba(0, 0, 0, 0.3);
+    z-index: 2;
+  }
+
+  .whiteboard-frame .mounting-hole::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+
+  .whiteboard-frame .mounting-hole.top-left {
+    top: 6px;
+    left: 6px;
+  }
+
+  .whiteboard-frame .mounting-hole.top-right {
+    top: 6px;
+    right: 6px;
+  }
+
+  .whiteboard-frame .mounting-hole.bottom-left {
+    bottom: 6px;
+    left: 6px;
+  }
+
+  .whiteboard-frame .mounting-hole.bottom-right {
+    bottom: 6px;
+    right: 6px;
+  }
 }
