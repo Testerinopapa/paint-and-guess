@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Lightbulb, RotateCcw, CheckCircle2, XCircle } from "lucide-react";
 
 export function PuzzleBoard() {
-  const { puzzleState, makeMove, showHint, resetPuzzle, toggleSolution, loadPuzzleOntoBoard, loading, error } = usePuzzle();
+  const { puzzleState, makeMove, showHint, resetPuzzle, toggleSolution, loading, error } = usePuzzle();
   const chessContext = useChess();
   const [hintSquares, setHintSquares] = useState<string[]>([]);
   const [lastMoveResult, setLastMoveResult] = useState<"correct" | "incorrect" | null>(null);
@@ -55,7 +55,6 @@ export function PuzzleBoard() {
     return Math.round((puzzleState.moveIndex / puzzleState.solutionPv.length) * 100);
   }, [puzzleState.moveIndex, puzzleState.solutionPv.length]);
 
-  // No automatic loading - puzzle stays in default state until user clicks "Start Puzzle"
 
   // Debug: Log state changes
   useEffect(() => {
@@ -169,23 +168,6 @@ export function PuzzleBoard() {
         </div>
       )}
 
-      {/* Start Puzzle Overlay */}
-      {puzzleState.puzzle && !puzzleState.loadedOntoBoard && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-30">
-          <div className="flex flex-col items-center gap-4">
-            <Button
-              onClick={loadPuzzleOntoBoard}
-              size="lg"
-              className="text-base font-semibold px-8"
-            >
-              Start Puzzle
-            </Button>
-            <div className="text-center text-sm text-muted-foreground">
-              <p>Puzzle loaded: {puzzleState.puzzle.rating ? `Rating ${puzzleState.puzzle.rating}` : "Ready to start"}</p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Controls - Only show when puzzle is active */}
       {puzzleState.loadedOntoBoard && (
