@@ -153,7 +153,7 @@ PuzzlesPage
                             └── CardContent
                                 ├── "You are" Badge
                                 ├── Rating Display
-                                ├── Motif Badges
+                                ├── Motif Badge
                                 └── Move Count / Solved Badge
 ```
 
