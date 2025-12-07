@@ -228,15 +228,22 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
   const [draggedSquare, setDraggedSquare] = useState<string | null>(null);
 
   // Reset selection when fen changes (for puzzle mode)
+  // This effect ensures board state resets when puzzle loads
   useEffect(() => {
     if (fen) {
-      const prevFen = game?.fen();
-      if (prevFen && prevFen !== fen) {
-        debugBoard.fenUpdate(prevFen, fen);
-      }
       setSelectedSquare(null);
       setLegalMoves([]);
       setDraggedSquare(null);
+    }
+  }, [fen]);
+  
+  // Debug FEN changes
+  useEffect(() => {
+    if (fen && game) {
+      const currentFenFromGame = game.fen();
+      if (currentFenFromGame !== fen) {
+        debugBoard.fenUpdate(currentFenFromGame, fen);
+      }
     }
   }, [fen, game]);
 
@@ -329,12 +336,15 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
     setDraggedSquare(null);
   }, [draggedSquare, effectiveDisabled, makeMove, fen, onMove, chessContext.gameState?.gameMode, chessContext.aiConfig?.enabled]);
 
-  // Memoize FEN to track position changes
-  const currentFen = useMemo(() => game?.fen() || "", [game]);
+  // Track the effective FEN - use fen prop if provided (puzzle mode), otherwise use game FEN
+  const effectiveFen = fen || game?.fen() || "";
   const lastMove = chessContext?.gameState?.lastMove;
 
   // Memoize the squares array - only recreate when relevant state changes
+  // Use effectiveFen to ensure puzzle mode updates correctly when fen prop changes
   const squares = useMemo(() => {
+    if (!game) return [];
+    
     const squareArray = [];
     
     for (let row = 0; row < 8; row++) {
@@ -342,7 +352,7 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
         const displayRow = orientation === "white" ? row : 7 - row;
         const displayCol = orientation === "white" ? col : 7 - col;
         const squareName = getSquareName(displayRow, displayCol);
-        const piece = game?.get(squareName as Square) || null;
+        const piece = game.get(squareName as Square) || null;
         
         const file = squareName[0];
         const rank = squareName[1];
@@ -373,7 +383,7 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
     
     return squareArray;
   }, [
-    currentFen, // Only recreate if FEN changes (position changed)
+    effectiveFen, // Track the effective FEN (fen prop or game FEN) to ensure puzzle mode updates
     selectedSquare,
     legalMoves,
     draggedSquare,
@@ -383,7 +393,7 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
     handleSquareClick,
     handleMouseDown,
     handleMouseUp,
-    game,
+    game, // Game instance is needed to get piece positions
   ]);
 
   // Generate file labels (a-h) based on orientation
