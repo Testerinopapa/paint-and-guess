@@ -631,13 +631,14 @@ export default function WhiteboardRoom() {
       <div className="flex-1 overflow-auto bg-muted/20 rounded-lg p-4 flex items-center justify-center">
         <div 
           ref={containerRef}
-          className="border-2 border-border rounded-lg overflow-hidden bg-white shadow-lg"
+          className="relative border-8 border-gray-700 rounded-lg shadow-2xl overflow-hidden"
           style={{ 
             width: `${CANVAS_WIDTH}px`,
             height: `${CANVAS_HEIGHT}px`,
             maxWidth: '100%',
             maxHeight: '100%',
             aspectRatio: `${CANVAS_WIDTH} / ${CANVAS_HEIGHT}`,
+            boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.1), 0 10px 30px rgba(0, 0, 0, 0.3)',
           }}
         >
           <canvas 
