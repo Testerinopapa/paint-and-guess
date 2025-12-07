@@ -159,6 +159,15 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
     const isLastMoveTo = lastMove?.to === squareName;
     const isLastMove = isLastMoveFrom || isLastMoveTo;
 
+    // Determine if we should show labels on this square
+    // Show file label on bottom row (rank 1 for white, rank 8 for black)
+    // Show rank label on leftmost column (file a for white, file h for black)
+    const file = squareName[0]; // a-h
+    const rank = squareName[1]; // 1-8
+    const showFileLabel = orientation === "white" ? rank === "1" : rank === "8";
+    const showRankLabel = orientation === "white" ? file === "a" : file === "h";
+    const isLightSquare = (row + col) % 2 === 0;
+
     return (
       <div
         key={squareName}
@@ -204,6 +213,42 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
           boxShadow: isLastMove ? "inset 0 0 0 2px rgba(139, 195, 74, 0.5)" : "none",
         }}
       >
+        {/* Rank label (left side for white, right side for black) */}
+        {showRankLabel && (
+          <div
+            style={{
+              position: "absolute",
+              left: orientation === "white" ? 2 : "auto",
+              right: orientation === "black" ? 2 : "auto",
+              top: 2,
+              fontSize: "11px",
+              fontWeight: "600",
+              color: isLightSquare ? "#b58863" : "#f0d9b5",
+              pointerEvents: "none",
+            }}
+          >
+            {rank}
+          </div>
+        )}
+
+        {/* File label (bottom for white, top for black) */}
+        {showFileLabel && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: orientation === "white" ? 2 : "auto",
+              top: orientation === "black" ? 2 : "auto",
+              right: 2,
+              fontSize: "11px",
+              fontWeight: "600",
+              color: isLightSquare ? "#b58863" : "#f0d9b5",
+              pointerEvents: "none",
+            }}
+          >
+            {file}
+          </div>
+        )}
+
         {square && (
           <div style={{ 
             opacity: isDragged ? 0.5 : 1,
@@ -249,19 +294,178 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
     }
   }
 
+  // Generate file labels (a-h) based on orientation
+  const fileLabels = [];
+  if (orientation === "white") {
+    for (let i = 0; i < 8; i++) {
+      fileLabels.push(String.fromCharCode(97 + i)); // a-h
+    }
+  } else {
+    for (let i = 7; i >= 0; i--) {
+      fileLabels.push(String.fromCharCode(97 + i)); // h-a
+    }
+  }
+
+  // Generate rank labels (1-8) based on orientation
+  const rankLabels = [];
+  if (orientation === "white") {
+    for (let i = 8; i >= 1; i--) {
+      rankLabels.push(i.toString()); // 8-1 (top to bottom)
+    }
+  } else {
+    for (let i = 1; i <= 8; i++) {
+      rankLabels.push(i.toString()); // 1-8 (top to bottom)
+    }
+  }
+
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(8, 1fr)",
-        gridTemplateRows: "repeat(8, 1fr)",
-        width: BOARD_SIZE,
-        height: BOARD_SIZE,
-        border: "2px solid #333",
-        boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
       }}
     >
-      {squares}
+      {/* File labels at top (for black orientation) */}
+      {orientation === "black" && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(8, 1fr)",
+            width: BOARD_SIZE,
+            height: 20,
+            marginBottom: 2,
+          }}
+        >
+          {fileLabels.map((label, idx) => (
+            <div
+              key={`file-top-${idx}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "14px",
+                fontWeight: "600",
+                color: "#333",
+              }}
+            >
+              {label}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {/* Rank labels on left (for white) or right (for black) */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: BOARD_SIZE,
+            width: orientation === "white" ? 20 : 0,
+            marginRight: orientation === "white" ? 2 : 0,
+            marginLeft: orientation === "black" ? 2 : 0,
+            justifyContent: "space-between",
+          }}
+        >
+          {orientation === "white" &&
+            rankLabels.map((label, idx) => (
+              <div
+                key={`rank-left-${idx}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#333",
+                  height: SQUARE_SIZE,
+                }}
+              >
+                {label}
+              </div>
+            ))}
+        </div>
+
+        {/* Chess board */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(8, 1fr)",
+            gridTemplateRows: "repeat(8, 1fr)",
+            width: BOARD_SIZE,
+            height: BOARD_SIZE,
+            border: "2px solid #333",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+          }}
+        >
+          {squares}
+        </div>
+
+        {/* Rank labels on right (for black) */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: BOARD_SIZE,
+            width: orientation === "black" ? 20 : 0,
+            marginLeft: orientation === "black" ? 2 : 0,
+            justifyContent: "space-between",
+          }}
+        >
+          {orientation === "black" &&
+            rankLabels.map((label, idx) => (
+              <div
+                key={`rank-right-${idx}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: "#333",
+                  height: SQUARE_SIZE,
+                }}
+              >
+                {label}
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {/* File labels at bottom (for white orientation) */}
+      {orientation === "white" && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(8, 1fr)",
+            width: BOARD_SIZE,
+            height: 20,
+            marginTop: 2,
+          }}
+        >
+          {fileLabels.map((label, idx) => (
+            <div
+              key={`file-bottom-${idx}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "14px",
+                fontWeight: "600",
+                color: "#333",
+              }}
+            >
+              {label}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

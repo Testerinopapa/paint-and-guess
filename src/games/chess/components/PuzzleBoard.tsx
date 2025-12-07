@@ -107,6 +107,9 @@ export function PuzzleBoard() {
         <CardContent className="p-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2">
+              <Badge variant="outline" className="font-semibold">
+                You are: <span className="capitalize ml-1">{puzzleState.puzzle.sideToMove}</span>
+              </Badge>
               <Badge variant="outline">
                 {puzzleState.puzzle.rating ? `Rating: ${puzzleState.puzzle.rating}` : "Unrated"}
               </Badge>
