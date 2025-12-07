@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, memo } from "react";
 import { useChess } from "../state/ChessContext";
 import { Chess, Square } from "chess.js";
 import { debugBoard, isDebugEnabled } from "../utils/debug";
@@ -6,6 +6,166 @@ import { ChessPiece } from "../utils/chessPieces";
 
 const SQUARE_SIZE = 60;
 const BOARD_SIZE = SQUARE_SIZE * 8;
+
+// Memoized square component - only re-renders when its props change
+interface ChessSquareProps {
+  squareName: string;
+  piece: { type: string; color: string } | null;
+  isSelected: boolean;
+  isLegalMove: boolean;
+  isDragged: boolean;
+  isLastMove: boolean;
+  bgColor: string;
+  showFileLabel: boolean;
+  showRankLabel: boolean;
+  orientation: "white" | "black";
+  disabled: boolean;
+  onSquareClick: (square: string) => void;
+  onMouseDown: (square: string) => void;
+  onMouseUp: (square: string) => void;
+}
+
+const ChessSquare = memo(({
+  squareName,
+  piece,
+  isSelected,
+  isLegalMove,
+  isDragged,
+  isLastMove,
+  bgColor,
+  showFileLabel,
+  showRankLabel,
+  orientation,
+  disabled,
+  onSquareClick,
+  onMouseDown,
+  onMouseUp,
+}: ChessSquareProps) => {
+  const file = squareName[0];
+  const rank = squareName[1];
+  const isLightSquare = (parseInt(rank) + (file.charCodeAt(0) - 96)) % 2 === 1;
+
+  return (
+    <div
+      onClick={() => onSquareClick(squareName)}
+      onMouseDown={() => onMouseDown(squareName)}
+      onMouseUp={() => onMouseUp(squareName)}
+      style={{
+        width: SQUARE_SIZE,
+        height: SQUARE_SIZE,
+        backgroundColor: isSelected 
+          ? "#baca44" 
+          : isLegalMove 
+          ? "#f6f669" 
+          : isLastMove
+          ? "#cdd26a"
+          : bgColor,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: disabled ? "not-allowed" : (piece || isLegalMove ? "pointer" : "default"),
+        position: "relative",
+        userSelect: "none",
+        transition: "background-color 0.2s",
+        boxShadow: isLastMove ? "inset 0 0 0 2px rgba(139, 195, 74, 0.5)" : "none",
+      }}
+    >
+      {/* Rank label (left side for white, right side for black) */}
+      {showRankLabel && (
+        <div
+          style={{
+            position: "absolute",
+            left: orientation === "white" ? 2 : "auto",
+            right: orientation === "black" ? 2 : "auto",
+            top: 2,
+            fontSize: "11px",
+            fontWeight: "600",
+            color: isLightSquare ? "#b58863" : "#f0d9b5",
+            pointerEvents: "none",
+          }}
+        >
+          {rank}
+        </div>
+      )}
+
+      {/* File label (bottom for white, top for black) */}
+      {showFileLabel && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: orientation === "white" ? 2 : "auto",
+            top: orientation === "black" ? 2 : "auto",
+            right: 2,
+            fontSize: "11px",
+            fontWeight: "600",
+            color: isLightSquare ? "#b58863" : "#f0d9b5",
+            pointerEvents: "none",
+          }}
+        >
+          {file}
+        </div>
+      )}
+
+      {piece && (
+        <div style={{ 
+          opacity: isDragged ? 0.5 : 1,
+          pointerEvents: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: SQUARE_SIZE,
+          height: SQUARE_SIZE,
+          position: "absolute",
+          top: 0,
+          left: 0,
+          boxSizing: "border-box",
+        }}>
+          <ChessPiece 
+            piece={piece} 
+            size={SQUARE_SIZE}
+          />
+        </div>
+      )}
+      {isLegalMove && !piece && (
+        <div
+          style={{
+            width: 20,
+            height: 20,
+            borderRadius: "50%",
+            backgroundColor: "#000",
+            opacity: 0.3,
+          }}
+        />
+      )}
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison - returns true if props are equal (skip render), false if different (render)
+  // Note: We don't compare callbacks - if callbacks change but data didn't, we skip render for performance
+  
+  // Compare piece (handle null case)
+  const pieceEqual = 
+    (!prevProps.piece && !nextProps.piece) ||
+    (prevProps.piece && nextProps.piece && 
+     prevProps.piece.type === nextProps.piece.type &&
+     prevProps.piece.color === nextProps.piece.color);
+  
+  return (
+    prevProps.squareName === nextProps.squareName &&
+    pieceEqual &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isLegalMove === nextProps.isLegalMove &&
+    prevProps.isDragged === nextProps.isDragged &&
+    prevProps.isLastMove === nextProps.isLastMove &&
+    prevProps.bgColor === nextProps.bgColor &&
+    prevProps.showFileLabel === nextProps.showFileLabel &&
+    prevProps.showRankLabel === nextProps.showRankLabel &&
+    prevProps.orientation === nextProps.orientation &&
+    prevProps.disabled === nextProps.disabled
+  );
+});
+
+ChessSquare.displayName = "ChessSquare";
 
 interface ChessBoardProps {
   fen?: string; // FEN string to display (if provided, overrides ChessContext)
@@ -114,10 +274,10 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
       return;
     }
 
-    const piece = game.get(square as Square);
+    const piece = game?.get(square as Square);
     const isCurrentPlayerPiece = piece && 
-      ((game.turn() === "w" && piece.color === "w") || 
-       (game.turn() === "b" && piece.color === "b"));
+      ((game?.turn() === "w" && piece.color === "w") || 
+       (game?.turn() === "b" && piece.color === "b"));
 
     if (selectedSquare && legalMoves.includes(square)) {
       // Make the move
@@ -143,156 +303,88 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
       setSelectedSquare(null);
       setLegalMoves([]);
     }
-  }, [selectedSquare, legalMoves, game, makeMove, getLegalMoves, onMove, fen, effectiveDisabled]);
+  }, [selectedSquare, legalMoves, game, makeMove, getLegalMoves, onMove, fen, effectiveDisabled, chessContext.gameState?.gameMode, chessContext.aiConfig?.enabled]);
 
-  const renderSquare = (row: number, col: number) => {
-    const squareName = getSquareName(row, col);
-    const square = game.get(squareName as Square);
-    const isSelected = selectedSquare === squareName;
-    const isLegalMove = legalMoves.includes(squareName);
-    const isDragged = draggedSquare === squareName;
-    const bgColor = getSquareColor(row, col);
-    
-    // Highlight last move
-    const lastMove = chessContext?.gameState?.lastMove;
-    const isLastMoveFrom = lastMove?.from === squareName;
-    const isLastMoveTo = lastMove?.to === squareName;
-    const isLastMove = isLastMoveFrom || isLastMoveTo;
-
-    // Determine if we should show labels on this square
-    // Show file label on bottom row (rank 1 for white, rank 8 for black)
-    // Show rank label on leftmost column (file a for white, file h for black)
-    const file = squareName[0]; // a-h
-    const rank = squareName[1]; // 1-8
-    const showFileLabel = orientation === "white" ? rank === "1" : rank === "8";
-    const showRankLabel = orientation === "white" ? file === "a" : file === "h";
-    const isLightSquare = (row + col) % 2 === 0;
-
-    return (
-      <div
-        key={squareName}
-        onClick={() => handleSquareClick(squareName)}
-        onMouseDown={() => {
-          if (square) {
-            setDraggedSquare(squareName);
-          }
-        }}
-        onMouseUp={() => {
-          // Prevent drag-drop in AI mode until game is started
-          if (chessContext.gameState?.gameMode === "ai" && !chessContext.aiConfig?.enabled) {
-            setDraggedSquare(null);
-            return;
-          }
-          
-          if (!effectiveDisabled && draggedSquare && draggedSquare !== squareName) {
-            const success = makeMove(draggedSquare, squareName);
-            if (success && !fen && onMove) {
-              // onMove is already called in makeMove for fen mode
-              onMove(draggedSquare, squareName);
-            }
-          }
-          setDraggedSquare(null);
-        }}
-        style={{
-          width: SQUARE_SIZE,
-          height: SQUARE_SIZE,
-          backgroundColor: isSelected 
-            ? "#baca44" 
-            : isLegalMove 
-            ? "#f6f669" 
-            : isLastMove
-            ? "#cdd26a"
-            : bgColor,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: effectiveDisabled ? "not-allowed" : (square || isLegalMove ? "pointer" : "default"),
-          position: "relative",
-          userSelect: "none",
-          transition: "background-color 0.2s",
-          boxShadow: isLastMove ? "inset 0 0 0 2px rgba(139, 195, 74, 0.5)" : "none",
-        }}
-      >
-        {/* Rank label (left side for white, right side for black) */}
-        {showRankLabel && (
-          <div
-            style={{
-              position: "absolute",
-              left: orientation === "white" ? 2 : "auto",
-              right: orientation === "black" ? 2 : "auto",
-              top: 2,
-              fontSize: "11px",
-              fontWeight: "600",
-              color: isLightSquare ? "#b58863" : "#f0d9b5",
-              pointerEvents: "none",
-            }}
-          >
-            {rank}
-          </div>
-        )}
-
-        {/* File label (bottom for white, top for black) */}
-        {showFileLabel && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: orientation === "white" ? 2 : "auto",
-              top: orientation === "black" ? 2 : "auto",
-              right: 2,
-              fontSize: "11px",
-              fontWeight: "600",
-              color: isLightSquare ? "#b58863" : "#f0d9b5",
-              pointerEvents: "none",
-            }}
-          >
-            {file}
-          </div>
-        )}
-
-        {square && (
-          <div style={{ 
-            opacity: isDragged ? 0.5 : 1,
-            pointerEvents: "none",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: SQUARE_SIZE,
-            height: SQUARE_SIZE,
-            position: "absolute",
-            top: 0,
-            left: 0,
-            boxSizing: "border-box",
-          }}>
-            <ChessPiece 
-              piece={square} 
-              size={SQUARE_SIZE}
-            />
-          </div>
-        )}
-        {isLegalMove && !square && (
-          <div
-            style={{
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              backgroundColor: "#000",
-              opacity: 0.3,
-            }}
-          />
-        )}
-      </div>
-    );
-  };
-
-  // Create squares in the correct order based on orientation
-  const squares = [];
-  for (let row = 0; row < 8; row++) {
-    for (let col = 0; col < 8; col++) {
-      const displayRow = orientation === "white" ? row : 7 - row;
-      const displayCol = orientation === "white" ? col : 7 - col;
-      squares.push(renderSquare(displayRow, displayCol));
+  const handleMouseDown = useCallback((square: string) => {
+    const piece = game?.get(square as Square);
+    if (piece) {
+      setDraggedSquare(square);
     }
-  }
+  }, [game]);
+
+  const handleMouseUp = useCallback((square: string) => {
+    // Prevent drag-drop in AI mode until game is started
+    if (chessContext.gameState?.gameMode === "ai" && !chessContext.aiConfig?.enabled) {
+      setDraggedSquare(null);
+      return;
+    }
+    
+    if (!effectiveDisabled && draggedSquare && draggedSquare !== square) {
+      const success = makeMove(draggedSquare, square);
+      if (success && !fen && onMove) {
+        // onMove is already called in makeMove for fen mode
+        onMove(draggedSquare, square);
+      }
+    }
+    setDraggedSquare(null);
+  }, [draggedSquare, effectiveDisabled, makeMove, fen, onMove, chessContext.gameState?.gameMode, chessContext.aiConfig?.enabled]);
+
+  // Memoize FEN to track position changes
+  const currentFen = useMemo(() => game?.fen() || "", [game]);
+  const lastMove = chessContext?.gameState?.lastMove;
+
+  // Memoize the squares array - only recreate when relevant state changes
+  const squares = useMemo(() => {
+    const squareArray = [];
+    
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const displayRow = orientation === "white" ? row : 7 - row;
+        const displayCol = orientation === "white" ? col : 7 - col;
+        const squareName = getSquareName(displayRow, displayCol);
+        const piece = game?.get(squareName as Square) || null;
+        
+        const file = squareName[0];
+        const rank = squareName[1];
+        const showFileLabel = orientation === "white" ? rank === "1" : rank === "8";
+        const showRankLabel = orientation === "white" ? file === "a" : file === "h";
+        
+        squareArray.push(
+          <ChessSquare
+            key={squareName}
+            squareName={squareName}
+            piece={piece}
+            isSelected={selectedSquare === squareName}
+            isLegalMove={legalMoves.includes(squareName)}
+            isDragged={draggedSquare === squareName}
+            isLastMove={lastMove?.from === squareName || lastMove?.to === squareName}
+            bgColor={getSquareColor(displayRow, displayCol)}
+            showFileLabel={showFileLabel}
+            showRankLabel={showRankLabel}
+            orientation={orientation}
+            disabled={effectiveDisabled}
+            onSquareClick={handleSquareClick}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+          />
+        );
+      }
+    }
+    
+    return squareArray;
+  }, [
+    currentFen, // Only recreate if FEN changes (position changed)
+    selectedSquare,
+    legalMoves,
+    draggedSquare,
+    lastMove,
+    orientation,
+    effectiveDisabled,
+    handleSquareClick,
+    handleMouseDown,
+    handleMouseUp,
+    game,
+  ]);
 
   // Generate file labels (a-h) based on orientation
   const fileLabels = [];

@@ -10,249 +10,216 @@ This document describes the visual layout, component structure, and UI organizat
 
 ## 1. Puzzle Mode Page Layout
 
-The puzzle mode page consists of two main sections: the Puzzle Settings panel and the Puzzle Board interface.
+The puzzle mode page uses a three-column layout: centered chess board with a right sidebar containing all puzzle controls and information.
 
 ### Desktop Layout
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    Puzzle Mode Container                             │
-│                    (space-y-6, vertical stack)                       │
+│              (flex, h-[calc(100vh-4rem)], gap-4, p-4)              │
 │                                                                       │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │              Puzzle Settings Card                              │  │
-│  │                                                                │  │
-│  │  ┌────────────────────────────────────────────────────────┐  │  │
-│  │  │ Card Header                                            │  │  │
-│  │  │ Puzzle Settings (CardTitle)                            │  │  │
-│  │  │ Choose difficulty, rating range, or motif...           │  │  │
-│  │  │ (CardDescription)                                      │  │  │
-│  │  └────────────────────────────────────────────────────────┘  │  │
-│  │                                                                │  │
-│  │  ┌────────────────────────────────────────────────────────┐  │  │
-│  │  │ Card Content (space-y-4)                              │  │  │
-│  │  │                                                        │  │  │
-│  │  │  ┌────────────────────┐  ┌────────────────────┐     │  │  │
-│  │  │  │ Difficulty         │  │ Motif (Optional)   │     │  │  │
-│  │  │  │                    │  │                    │     │  │  │
-│  │  │  │ [Select: Medium ▼] │  │ [Select: All ▼]   │     │  │  │
-│  │  │  │                    │  │                    │     │  │  │
-│  │  │  └────────────────────┘  └────────────────────┘     │  │  │
-│  │  │                                                        │  │  │
-│  │  │  ┌────────────────────┐  ┌────────────────────┐     │  │  │
-│  │  │  │ Min Rating        │  │ Max Rating         │     │  │  │
-│  │  │  │ (conditional)     │  │ (conditional)       │     │  │  │
-│  │  │  │ [Input: 0]        │  │ [Input: 10000]     │     │  │  │
-│  │  │  └────────────────────┘  └────────────────────┘     │  │  │
-│  │  │                                                        │  │  │
-│  │  │  ┌──────────────────────────────────────────────┐     │  │  │
-│  │  │  │ [New Puzzle Button] (full width, lg size)  │     │  │  │
-│  │  │  │   (disabled when loading)                   │     │  │  │
-│  │  │  └──────────────────────────────────────────────┘     │  │  │
-│  │  │                                                        │  │  │
-│  │  └────────────────────────────────────────────────────────┘  │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                                                                       │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │                    Puzzle Board Section                         │  │
-│  │                    (PuzzleBoard component)                      │  │
-│  │                    (see section 2)                             │  │
-│  └──────────────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────┐  ┌───────────────────┐  │
+│  │      Center: Chess Board               │  │  Right Sidebar     │  │
+│  │      (flex-1, centered)                │  │  (w-80, scroll)   │  │
+│  │                                        │  │                    │  │
+│  │         ┌──────────────────┐          │  │  ┌──────────────┐  │  │
+│  │         │                  │          │  │  │ Header Card  │  │  │
+│  │         │                  │          │  │  │              │  │  │
+│  │         │   Chess Board    │          │  │  │ [🧩] Puzzles │  │  │
+│  │         │   (480×480px)    │          │  │  │ [⚙️] Settings │  │  │
+│  │         │                  │          │  │  │              │  │  │
+│  │         │   [File labels]  │          │  │  │ User Info    │  │  │
+│  │         │   [Rank labels] │          │  │  │  │ Rating: 219  │  │  │
+│  │         │                  │          │  │  │ [━━━━] 🔥 6  │  │  │
+│  │         │                  │          │  │  └──────────────┘  │  │
+│  │         └──────────────────┘          │  │                    │  │
+│  │                                        │  │  [Solve Puzzles]   │  │
+│  │         [Move Feedback]                │  │  (large button)   │  │
+│  │         (conditional)                  │  │                    │  │
+│  │                                        │  │  ┌──────────────┐  │  │
+│  │         [💡 Hint] [🔄 Reset]         │  │  │ Settings Card │  │  │
+│  │         [ℹ️ Solution]                  │  │  │              │  │  │
+│  │                                        │  │  │ Difficulty   │  │  │
+│  │         [Solution Display]             │  │  │ Motif        │  │  │
+│  │         (conditional)                  │  │  │ Custom Range │  │  │
+│  │                                        │  │  └──────────────┘  │  │
+│  │                                        │  │                    │  │
+│  │                                        │  │  ┌──────────────┐  │  │
+│  │                                        │  │  │ More Puzzles │  │  │
+│  │                                        │  │  │              │  │  │
+│  │                                        │  │  │ Puzzle Rush  │  │  │
+│  │                                        │  │  │ Daily Puzzle │  │  │
+│  │                                        │  │  │ Puzzle Battle│  │  │
+│  │                                        │  │  │ Custom Puzzles│  │  │
+│  │                                        │  │  └──────────────┘  │  │
+│  │                                        │  │                    │  │
+│  │                                        │  │  [📊 Stats]       │  │
+│  │                                        │  │                    │  │
+│  │                                        │  │  ┌──────────────┐  │  │
+│  │                                        │  │  │ Current Puzzle│  │  │
+│  │                                        │  │  │ (conditional) │  │  │
+│  │                                        │  │  └──────────────┘  │  │
+│  └──────────────────────────────────────┘  └───────────────────┘  │
 │                                                                       │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Mobile Layout (Single Column)
+### Mobile Layout (Stacked)
 
 ```
 ┌─────────────────────────────┐
 │   Puzzle Mode Container      │
+│   (flex-col, full height)    │
 │                             │
 │  ┌───────────────────────┐  │
-│  │ Puzzle Settings Card   │  │
+│  │   Center: Chess Board  │  │
+│  │   (flex-1, centered)   │  │
 │  │                       │  │
-│  │   Puzzle Settings     │  │
-│  │   Description...      │  │
+│  │     [Chess Board]     │  │
+│  │     (scaled to fit)   │  │
 │  │                       │  │
-│  │   Difficulty:         │  │
-│  │   [Select ▼]          │  │
-│  │                       │  │
-│  │   Min Rating:         │  │
-│  │   [Input]             │  │
-│  │                       │  │
-│  │   Max Rating:         │  │
-│  │   [Input]             │  │
-│  │                       │  │
-│  │   Motif:              │  │
-│  │   [Select ▼]          │  │
-│  │                       │  │
-│  │   [New Puzzle]        │  │
+│  │   [Move Feedback]      │  │
+│  │   [Controls]          │  │
 │  └───────────────────────┘  │
 │                             │
 │  ┌───────────────────────┐  │
-│  │   Puzzle Board         │  │
-│  │   (stacked cards)      │  │
+│  │   Right Sidebar        │  │
+│  │   (w-full, scroll)     │  │
+│  │                       │  │
+│  │   [Header Card]        │  │
+│  │   [Solve Puzzles]     │  │
+│  │   [Settings Card]     │  │
+│  │   [More Puzzles]      │  │
+│  │   [Stats]             │  │
+│  │   [Current Puzzle]    │  │
 │  └───────────────────────┘  │
 │                             │
 └─────────────────────────────┘
 ```
 
-### Component Structure (Settings Panel)
+### Component Structure (Page Layout)
 
 ```
 PuzzlesPage
 └── ChessProvider
     └── PuzzleProvider
         └── PuzzlesContent
-            └── Container (space-y-6)
-                ├── Puzzle Settings Card
-                │   ├── CardHeader
-                │   │   ├── CardTitle "Puzzle Settings"
-                │   │   └── CardDescription
-                │   └── CardContent (space-y-4)
-                │       ├── Grid Container (grid, gap-4, md:grid-cols-2)
-                │       │   ├── Difficulty Selector
-                │       │   │   ├── Label "Difficulty"
-                │       │   │   └── Select
-                │       │   │       ├── SelectTrigger
-                │       │   │       └── SelectContent
-                │       │   │           ├── "Easy (0-1400)"
-                │       │   │           ├── "Medium (1400-2000)"
-                │       │   │           ├── "Hard (2000+)"
-                │       │   │           └── "Custom Range"
-                │       │   │
-                │       │   ├── Custom Rating Inputs (conditional)
-                │       │   │   ├── Min Rating Input Group
-                │       │   │   │   ├── Label "Min Rating"
-                │       │   │   │   └── Input (type="number", placeholder="0")
-                │       │   │   └── Max Rating Input Group
-                │       │   │       ├── Label "Max Rating"
-                │       │   │       └── Input (type="number", placeholder="10000")
-                │       │   │
-                │       │   └── Motif Selector
-                │       │       ├── Label "Motif (Optional)"
-                │       │       └── Select
-                │       │           ├── SelectTrigger
-                │       │           └── SelectContent
-                │       │               ├── "All motifs"
-                │       │               └── [25+ motif options]
-                │       │
-                │       └── New Puzzle Button
-                │           └── Button (size="lg", w-full, disabled={loading})
+            └── Container (flex, flex-col lg:flex-row, h-[calc(100vh-4rem)], gap-4, p-4)
+                ├── Center: Chess Board Area (flex-1, min-h-0)
+                │   └── PuzzleBoard
+                │       └── (see section 2)
                 │
-                └── PuzzleBoard
-                    └── (see section 2)
+                └── Right Sidebar (w-full lg:w-80, flex-shrink-0, overflow-y-auto)
+                    └── PuzzleSidebar
+                        ├── Header Card
+                        │   ├── CardHeader (flex-row, justify-between)
+                        │   │   ├── Title with Puzzle Icon
+                        │   │   └── Settings Button (icon)
+                        │   └── CardContent
+                        │       ├── User Info Section
+                        │       │   ├── Avatar
+                        │       │   └── Motivational Text
+                        │       └── Rating Display
+                        │           ├── Rating Number
+                        │           └── Streak Progress Bar
+                        │
+                        ├── Solve Puzzles Button (size="lg", w-full)
+                        │
+                        ├── Settings Card
+                        │   ├── CardHeader
+                        │   │   ├── CardTitle "Settings"
+                        │   │   └── CardDescription
+                        │   └── CardContent
+                        │       ├── Difficulty Selector
+                        │       ├── Custom Rating Inputs (conditional)
+                        │       └── Motif Selector
+                        │
+                        ├── More Puzzles Card
+                        │   ├── CardHeader
+                        │   │   └── CardTitle "More Puzzles"
+                        │   └── CardContent
+                        │       ├── Puzzle Rush Button
+                        │       ├── Daily Puzzle Button
+                        │       ├── Puzzle Battle Button
+                        │       └── Custom Puzzles Button
+                        │
+                        ├── Stats Link Button
+                        │
+                        └── Current Puzzle Card (conditional)
+                            ├── CardHeader
+                            │   └── CardTitle "Current Puzzle"
+                            └── CardContent
+                                ├── "You are" Badge
+                                ├── Rating Display
+                                ├── Motif Badges
+                                └── Move Count / Solved Badge
 ```
 
-### Responsive Behavior (Settings Panel)
+### Responsive Behavior
 
-- **Desktop (md and above)**: Two-column grid layout for filters
-- **Mobile**: Single column stack
-- **Custom Rating Inputs**: Only visible when "Custom Range" is selected
-- **Button**: Full width on all screen sizes
+- **Desktop (lg: 1024px+)**: Three-column layout
+  - Center: Chess board (flex-1, takes remaining space)
+  - Right: Sidebar (fixed width 320px / w-80)
+  - Sidebar scrolls independently when content overflows
+  
+- **Mobile/Tablet (< lg)**: Stacked layout
+  - Top: Chess board area (flex-1)
+  - Bottom: Sidebar (full width, scrollable)
+  - Both sections maintain full height within viewport
 
 ---
 
 ## 2. Puzzle Board Layout
 
-The puzzle board section displays the current puzzle, chessboard, and controls.
+The puzzle board section displays the centered chess board with move feedback and controls below.
 
 ### Desktop Layout
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    Puzzle Board Container                             │
-│                    (space-y-4, vertical stack)                       │
+│        (flex flex-col, items-center justify-center, h-full, gap-4)    │
 │                                                                       │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │              Puzzle Info Card                                  │  │
-│  │                                                                │  │
-│  │  ┌────────────────────────────────────────────────────────┐  │  │
-│  │  │ Card Content (p-4)                                    │  │  │
-│  │  │                                                        │  │  │
-│  │  │  ┌──────────────────────┐  ┌──────────────────────┐   │  │  │
-│  │  │  │ Left Badges         │  │ Right Badge          │   │  │  │
-│  │  │  │                     │  │                      │   │  │  │
-│  │  │  │ [You are: white]    │  │ [Move 1 / 5]        │   │  │  │
-│  │  │  │ [Rating: 1500]      │  │ or                   │   │  │  │
-│  │  │  │ [fork]              │  │ [✓ Solved!]          │   │  │  │
-│  │  │  └──────────────────────┘  └──────────────────────┘   │  │  │
-│  │  │                                                        │  │  │
-│  │  │  ┌──────────────────────────────────────────────┐     │  │  │
-│  │  │  │ Progress Bar                                │     │  │  │
-│  │  │  │ [━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━] │     │  │  │
-│  │  │  │ ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │     │  │  │
-│  │  │  │ (20% complete)                              │     │  │  │
-│  │  │  └──────────────────────────────────────────────┘     │  │  │
-│  │  │                                                        │  │  │
-│  │  └────────────────────────────────────────────────────────┘  │  │
-│  └──────────────────────────────────────────────────────────────┘  │
+│         ┌──────────────────────────────────────────┐                │
+│         │  Move Feedback Alert (conditional)        │                │
+│         │  (max-w-md)                               │                │
+│         │                                           │                │
+│         │  [✓] Correct! Opponent's move...         │                │
+│         │  or                                       │                │
+│         │  [✗] Incorrect. Try again.               │                │
+│         └──────────────────────────────────────────┘                │
 │                                                                       │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │              Move Feedback Alert (conditional)                 │  │
-│  │                                                                │  │
-│  │  ┌────────────────────────────────────────────────────────┐  │  │
-│  │  │ [✓] Correct! Opponent's move played automatically.     │  │  │
-│  │  │ or                                                      │  │  │
-│  │  │ [✗] Incorrect. Try again.                              │  │  │
-│  │  └────────────────────────────────────────────────────────┘  │  │
-│  └──────────────────────────────────────────────────────────────┘  │
+│         ┌──────────────────────────────────────────┐                │
+│         │  Chess Board Container (relative)         │                │
+│         │                                           │                │
+│         │  ┌────────────────────────────────────┐  │                │
+│         │  │                                    │  │                │
+│         │  │   Chess Board (480×480px)          │  │                │
+│         │  │                                    │  │                │
+│         │  │   [File labels a-h]                │  │                │
+│         │  │   [Rank labels 1-8]                │  │                │
+│         │  │                                    │  │                │
+│         │  │   [Debug Panel] (conditional)      │  │                │
+│         │  │   [Hint Overlay] (conditional)     │  │                │
+│         │  │                                    │  │                │
+│         │  └────────────────────────────────────┘  │                │
+│         │                                           │                │
+│         └──────────────────────────────────────────┘                │
 │                                                                       │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │              Chess Board Card                                  │  │
-│  │                                                                │  │
-│  │  ┌────────────────────────────────────────────────────────┐  │  │
-│  │  │ Card Content (p-6)                                    │  │  │
-│  │  │                                                        │  │  │
-│  │  │         ┌──────────────────────────────┐              │  │  │
-│  │  │         │  Chess Board Container      │              │  │  │
-│  │  │         │  (relative positioning)     │              │  │  │
-│  │  │         │                              │              │  │  │
-│  │  │         │  ┌────────────────────────┐ │              │  │  │
-│  │  │         │  │                        │ │              │  │  │
-│  │  │         │  │   Chess Board          │ │              │  │  │
-│  │  │         │  │   (480×480px)          │ │              │  │  │
-│  │  │         │  │                        │ │              │  │  │
-│  │  │         │  │   [File labels a-h]    │ │              │  │  │
-│  │  │         │  │   [Rank labels 1-8]   │ │              │  │  │
-│  │  │         │  │                        │ │              │  │  │
-│  │  │         │  └────────────────────────┘ │              │  │  │
-│  │  │         │                              │              │  │  │
-│  │  │         │  [Debug Panel] (conditional)│              │  │  │
-│  │  │         │  [Hint Overlay] (conditional)│              │  │  │
-│  │  │         └──────────────────────────────┘              │  │  │
-│  │  │                                                        │  │  │
-│  │  └────────────────────────────────────────────────────────┘  │  │
-│  └──────────────────────────────────────────────────────────────┘  │
+│         ┌──────────────────────────────────────────┐                │
+│         │  Control Buttons (flex-wrap, gap-2)        │                │
+│         │                                           │                │
+│         │  [💡 Hint (0)]  [🔄 Reset]  [ℹ️ Solution]│                │
+│         └──────────────────────────────────────────┘                │
 │                                                                       │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │              Controls Card                                     │  │
-│  │                                                                │  │
-│  │  ┌────────────────────────────────────────────────────────┐  │  │
-│  │  │ Card Content (p-4)                                    │  │  │
-│  │  │                                                        │  │  │
-│  │  │  ┌──────────────────────────────────────────────────┐ │  │  │
-│  │  │  │ Control Buttons (flex-wrap, gap-2, centered)   │ │  │  │
-│  │  │  │                                                  │ │  │  │
-│  │  │  │ [💡 Hint (0)]  [🔄 Reset]  [ℹ️ Show Solution] │ │  │  │
-│  │  │  └──────────────────────────────────────────────────┘ │  │  │
-│  │  │                                                        │  │  │
-│  │  │  ┌──────────────────────────────────────────────────┐ │  │  │
-│  │  │  │ Solution Display (conditional)                  │ │  │  │
-│  │  │  │                                                  │ │  │  │
-│  │  │  │ Solution:                                       │ │  │  │
-│  │  │  │ [e2→e4] [e7→e5] [f1→c4] [f8→c5] [d1→f3]        │ │  │  │
-│  │  │  │ (completed moves highlighted)                   │ │  │  │
-│  │  │  └──────────────────────────────────────────────────┘ │  │  │
-│  │  │                                                        │  │  │
-│  │  │  ┌──────────────────────────────────────────────────┐ │  │  │
-│  │  │  │ Stats (conditional)                              │ │  │  │
-│  │  │  │                                                  │ │  │  │
-│  │  │  │ Mistakes: 2                                     │ │  │  │
-│  │  │  └──────────────────────────────────────────────────┘ │  │  │
-│  │  │                                                        │  │  │
-│  │  └────────────────────────────────────────────────────────┘  │  │
-│  └──────────────────────────────────────────────────────────────┘  │
+│         ┌──────────────────────────────────────────┐                │
+│         │  Solution Display (conditional, max-w-md)  │                │
+│         │                                           │                │
+│         │  Solution:                                │                │
+│         │  [e2→e4] [e7→e5] [f1→c4] [f8→c5] [d1→f3]│                │
+│         │  (completed moves highlighted)            │                │
+│         └──────────────────────────────────────────┘                │
 │                                                                       │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -262,17 +229,7 @@ The puzzle board section displays the current puzzle, chessboard, and controls.
 ```
 ┌─────────────────────────────┐
 │   Puzzle Board Container     │
-│                             │
-│  ┌───────────────────────┐  │
-│  │ Puzzle Info Card      │  │
-│  │                       │  │
-│  │   [You are: white]    │  │
-│  │   [Rating: 1500]      │  │
-│  │   [fork]              │  │
-│  │   [Move 1 / 5]        │  │
-│  │                       │  │
-│  │   [Progress Bar]      │  │
-│  └───────────────────────┘  │
+│   (flex-col, centered)       │
 │                             │
 │  ┌───────────────────────┐  │
 │  │ Move Feedback         │  │
@@ -280,22 +237,20 @@ The puzzle board section displays the current puzzle, chessboard, and controls.
 │  └───────────────────────┘  │
 │                             │
 │  ┌───────────────────────┐  │
-│  │ Chess Board Card      │  │
-│  │                       │  │
-│  │   [Chess Board]       │  │
-│  │   (scaled to fit)     │  │
-│  │                       │  │
+│  │                     │  │
+│  │   Chess Board       │  │
+│  │   (scaled to fit)   │  │
+│  │                     │  │
 │  └───────────────────────┘  │
 │                             │
 │  ┌───────────────────────┐  │
-│  │ Controls Card         │  │
-│  │                       │  │
-│  │   [💡 Hint]           │  │
-│  │   [🔄 Reset]          │  │
-│  │   [ℹ️ Solution]       │  │
-│  │                       │  │
-│  │   [Solution Display]  │  │
-│  │   [Stats]             │  │
+│  │ Controls              │  │
+│  │ [💡] [🔄] [ℹ️]        │  │
+│  └───────────────────────┘  │
+│                             │
+│  ┌───────────────────────┐  │
+│  │ Solution Display       │  │
+│  │ (if shown)            │  │
 │  └───────────────────────┘  │
 │                             │
 └─────────────────────────────┘
@@ -305,73 +260,57 @@ The puzzle board section displays the current puzzle, chessboard, and controls.
 
 ```
 PuzzleBoard
-├── Container (space-y-4)
+├── Container (flex flex-col, items-center justify-center, h-full, gap-4)
 │   │
-│   ├── Puzzle Info Card
-│   │   ├── CardContent (p-4)
-│   │   │   ├── Badge Row (flex, justify-between, wrap, gap-4)
-│   │   │   │   ├── Left Badges (flex, gap-2)
-│   │   │   │   │   ├── Badge "You are: {sideToMove}"
-│   │   │   │   │   ├── Badge "Rating: {rating}"
-│   │   │   │   │   └── Badge "{motif}" (if exists)
-│   │   │   │   │
-│   │   │   │   └── Right Badge
-│   │   │   │       ├── "Move {index+1} / {total}" (if not solved)
-│   │   │   │       └── "✓ Solved!" (if solved)
-│   │   │   │
-│   │   │   └── Progress Bar (mt-4)
-│   │   │       ├── Container (w-full, bg-muted, rounded-full, h-2)
-│   │   │       └── Progress Fill (bg-primary, h-2, rounded-full, transition)
-│   │   │
+│   ├── Loading State (conditional)
+│   │   └── Centered text "Loading puzzle..."
 │   │
-│   ├── Move Feedback Alert (conditional)
-│   │   ├── Alert (variant based on result)
-│   │   │   ├── CheckCircle2 Icon (if correct)
-│   │   │   ├── XCircle Icon (if incorrect)
-│   │   │   └── AlertDescription
-│   │   │       └── Feedback message
+│   ├── Error State (conditional)
+│   │   └── Alert (destructive variant, max-w-md)
 │   │
-│   ├── Chess Board Card
-│   │   ├── CardContent (p-6)
-│   │   │   └── Board Container (flex, justify-center)
-│   │   │       └── Relative Container
-│   │   │           ├── ChessBoard Component
-│   │   │           │   ├── FEN prop
-│   │   │           │   ├── Orientation prop
-│   │   │           │   ├── onMove callback
-│   │   │           │   └── disabled prop
-│   │   │           │
-│   │   │           ├── Debug Panel (conditional, absolute, top-0, left-0)
-│   │   │           │   └── Debug info (FEN, move index, solved, mistakes)
-│   │   │           │
-│   │   │           └── Hint Overlay (conditional, absolute, inset-0)
-│   │   │               └── Yellow border squares (pulse animation)
-│   │   │
+│   ├── Empty State (conditional)
+│   │   └── Centered text "No puzzle loaded..."
 │   │
-│   └── Controls Card
-│       ├── CardContent (p-4)
-│       │   ├── Control Buttons (flex, flex-wrap, gap-2, justify-center)
-│       │   │   ├── Hint Button
-│       │   │   │   ├── Lightbulb Icon
-│       │   │   │   └── "Hint ({hintsUsed})"
-│       │   │   │
-│       │   │   ├── Reset Button
-│       │   │   │   ├── RotateCcw Icon
-│       │   │   │   └── "Reset"
-│       │   │   │
-│       │   │   └── Solution Button
-│       │   │       ├── Info Icon
-│       │   │       └── "Show/Hide Solution"
+│   └── Puzzle Content (when puzzle loaded)
+│       ├── Move Feedback Alert (conditional, max-w-md)
+│       │   ├── Alert (variant based on result)
+│       │   │   ├── CheckCircle2 Icon (if correct)
+│       │   │   ├── XCircle Icon (if incorrect)
+│       │   │   └── AlertDescription
+│       │   │       └── Feedback message
+│       │
+│       ├── Chess Board Container (relative)
+│       │   ├── ChessBoard Component
+│       │   │   ├── FEN prop
+│       │   │   ├── Orientation prop
+│       │   │   ├── onMove callback
+│       │   │   └── disabled prop
 │       │   │
-│       │   ├── Solution Display (conditional, mt-4, p-4, bg-muted, rounded-lg)
-│       │   │   ├── Title "Solution:"
-│       │   │   └── Solution Moves (flex, flex-wrap, gap-2)
-│       │   │       └── Badge for each move
-│       │   │           ├── Completed moves (default variant)
-│       │   │           └── Remaining moves (outline variant)
+│       │   ├── Debug Panel (conditional, absolute, top-0, left-0)
+│       │   │   └── Debug info (FEN, move index, solved, mistakes)
 │       │   │
-│       │   └── Stats (conditional, mt-4, text-center, text-sm, muted)
-│       │       └── "Mistakes: {mistakes}"
+│       │   └── Hint Overlay (conditional, absolute, inset-0)
+│       │       └── Yellow border squares (pulse animation)
+│       │
+│       ├── Control Buttons (flex, flex-wrap, gap-2, justify-center)
+│       │   ├── Hint Button
+│       │   │   ├── Lightbulb Icon
+│       │   │   └── "Hint ({hintsUsed})"
+│       │   │
+│       │   ├── Reset Button
+│       │   │   ├── RotateCcw Icon
+│       │   │   └── "Reset"
+│       │   │
+│       │   └── Solution Button
+│       │       ├── Info Icon
+│       │       └── "Show/Hide Solution"
+│       │
+│       └── Solution Display (conditional, max-w-md, p-4, bg-muted, rounded-lg)
+│           ├── Title "Solution:"
+│           └── Solution Moves (flex, flex-wrap, gap-2)
+│               └── Badge for each move
+│                   ├── Completed moves (default variant)
+│                   └── Remaining moves (outline variant)
 ```
 
 ---
@@ -625,12 +564,20 @@ Page Container
 └── ChessProvider (Context Provider)
     └── PuzzleProvider (Context Provider)
         └── PuzzlesContent
-            ├── Puzzle Settings Card
-            └── PuzzleBoard
-                ├── Puzzle Info Card
-                ├── Move Feedback Alert (conditional)
-                ├── Chess Board Card
-                └── Controls Card
+            └── Flex Container (flex, flex-col lg:flex-row)
+                ├── Center: PuzzleBoard (flex-1)
+                │   ├── Move Feedback Alert (conditional)
+                │   ├── Chess Board
+                │   ├── Control Buttons
+                │   └── Solution Display (conditional)
+                │
+                └── Right: PuzzleSidebar (w-80)
+                    ├── Header Card
+                    ├── Solve Puzzles Button
+                    ├── Settings Card
+                    ├── More Puzzles Card
+                    ├── Stats Link
+                    └── Current Puzzle Card (conditional)
 ```
 
 ### Component Dependencies
@@ -639,11 +586,18 @@ Page Container
 PuzzlesPage
 ├── ChessProvider (provides chess utilities)
 ├── PuzzleProvider (provides puzzle state)
-├── PuzzleBoard (displays puzzle)
-│   ├── ChessBoard (displays board)
-│   │   └── ChessPiece (renders pieces)
-│   └── UI Components (Card, Badge, Button, Alert)
-└── UI Components (Card, Select, Input, Button, Label)
+├── PuzzlesContent
+│   ├── PuzzleBoard (displays centered puzzle)
+│   │   ├── ChessBoard (displays board)
+│   │   │   └── ChessPiece (renders pieces)
+│   │   └── UI Components (Button, Badge, Alert)
+│   │
+│   └── PuzzleSidebar (right sidebar controls)
+│       ├── Header Card (user info, rating, streak)
+│       ├── Settings Card (filters)
+│       ├── More Puzzles Card (other modes)
+│       └── Current Puzzle Card (puzzle info)
+└── UI Components (Card, Select, Input, Button, Label, Badge, Progress)
 ```
 
 ---
@@ -773,11 +727,26 @@ PuzzlesPage
 
 ## Summary
 
-Puzzle Mode uses a clean, card-based layout with three main sections:
+Puzzle Mode uses a modern three-column layout inspired by Chess.com:
 
-1. **Puzzle Settings Panel**: Filter controls in a responsive grid
-2. **Puzzle Info Card**: Status badges and progress bar
-3. **Puzzle Board Section**: Chess board with controls and solution display
+1. **Center Area**: Centered chess board with move feedback and controls below
+2. **Right Sidebar**: All puzzle controls, settings, and information in a scrollable sidebar
+
+### Key Layout Features
+
+- **Three-Column Desktop Layout**: Board centered, sidebar on right (320px fixed width)
+- **Stacked Mobile Layout**: Board on top, sidebar below (both full width)
+- **Sidebar Sections**:
+  - Header with user info, rating, and streak progress
+  - Large "Solve Puzzles" action button
+  - Settings card for difficulty and motif filters
+  - More puzzle modes section
+  - Stats link
+  - Current puzzle info card (when puzzle is loaded)
+
+- **Centered Board**: Chess board is centered without card wrappers, with controls and solution display below
+- **Responsive Design**: Seamlessly adapts from mobile to desktop
+- **Independent Scrolling**: Sidebar scrolls independently when content overflows
 
 The layout is fully responsive, working seamlessly from mobile to desktop screens. The chess board includes coordinate labels (files and ranks) and maintains a fixed aspect ratio. All interactive elements provide clear visual feedback and maintain accessibility standards.
 
