@@ -14,6 +14,7 @@
     "prisma:studio": "prisma studio --schema ./prisma/schema.prisma",
     "test:puzzle-db": "node scripts/test-puzzle-db.js",
     "test:puzzle-validation": "node scripts/test-puzzle-validation.js",
+    "test:puzzle-solutions": "node scripts/test-puzzle-solutions.js",
     "import:dev-db": "node scripts/import-dev-db.js",
     "test:engine": "node scripts/test-engine.js",
     "download:stockfish": "node scripts/download-stockfish.js",
