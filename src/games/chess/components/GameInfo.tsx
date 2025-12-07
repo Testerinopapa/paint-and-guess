@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AIConfig } from "./AIConfig";
 import { AIStatus } from "./AIStatus";
 import { useNavigate } from "react-router-dom";
 import { BarChart3, Trophy } from "lucide-react";
 import { apiPath } from "@/config/api";
 import { useState } from "react";
+import { getOpponentById } from "../data/opponents";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export function GameInfo() {
   const { gameState, resetGame, undoMove, exportPgn, aiConfig, isAIThinking } = useChess();
@@ -17,6 +18,7 @@ export function GameInfo() {
 
   const isGameOver = gameState.inCheckmate || gameState.inStalemate || gameState.inDraw;
   const isAIGame = gameState.gameMode === "ai" && aiConfig.enabled;
+  const currentOpponent = aiConfig.opponentId ? getOpponentById(aiConfig.opponentId) : null;
 
   const handleAnalyzeGame = async () => {
     if (!gameState.moves || gameState.moves.length === 0) {
@@ -112,8 +114,28 @@ export function GameInfo() {
       {/* AI Status Indicator */}
       <AIStatus />
 
-      {/* AI Configuration */}
-      {gameState.gameMode === "ai" && <AIConfig />}
+      {/* Current Opponent Info */}
+      {isAIGame && currentOpponent && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Opponent</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              <Avatar className="w-12 h-12">
+                <AvatarImage src={currentOpponent.avatar} alt={currentOpponent.name} />
+                <AvatarFallback>{currentOpponent.name[0]}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="font-medium">{currentOpponent.name}</div>
+                <Badge variant="secondary" className="text-xs mt-1">
+                  {currentOpponent.rating}
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

@@ -7,6 +7,7 @@ export interface AIConfig {
   color: "white" | "black";
   elo?: number;        // 1350-2850, or undefined for max strength
   depth?: number;      // Analysis depth (default 12)
+  opponentId?: string; // Reference to selected opponent
 }
 
 export interface ChessMove {
