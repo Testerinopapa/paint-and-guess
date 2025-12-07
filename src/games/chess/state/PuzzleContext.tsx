@@ -3,6 +3,7 @@ import { Chess } from "chess.js";
 import type { Puzzle, PuzzleState, PuzzleFilters, PuzzleDifficulty } from "./puzzleTypes";
 import { apiPath } from "@/config/api";
 import { debugPuzzle, debugMove, debugState, debugPuzzleState, isDebugEnabled } from "../utils/debug";
+import { useChess } from "./ChessContext";
 
 interface PuzzleContextType {
   puzzleState: PuzzleState;
@@ -40,10 +41,14 @@ function createInitialState(): PuzzleState {
 }
 
 export function PuzzleProvider({ children }: { children: ReactNode }) {
+  // Use ChessContext for board state instead of maintaining our own game
+  const chessContext = useChess();
   const [puzzleState, setPuzzleState] = useState<PuzzleState>(createInitialState());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [game, setGame] = useState<Chess | null>(null);
+  
+  // Store original makeMove to wrap it
+  const originalMakeMove = chessContext.makeMove;
 
   const loadRandomPuzzle = useCallback(async (filters?: PuzzleFilters) => {
     console.log("[PUZZLE DEBUG] loadRandomPuzzle called", { filters, debugEnabled: isDebugEnabled() });
@@ -93,24 +98,22 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         ? JSON.parse(puzzle.solutionPv) 
         : puzzle.solutionPv;
 
-      // Initialize game from puzzle FEN
-      const newGame = new Chess(puzzle.fen);
-      
-      // Determine if we need to auto-advance (for mate puzzles)
+      // Load puzzle FEN into ChessContext
       let initialFen = puzzle.fen;
       let initialMoveIndex = 0;
       
       // For mate puzzles, ensure player is on the side that delivers mate
+      const tempGame = new Chess(puzzle.fen);
       const isMatePuzzle = puzzle.motifs.some(m => m.includes("mate"));
-      if (isMatePuzzle && puzzle.sideToMove !== (newGame.turn() === "w" ? "white" : "black")) {
+      if (isMatePuzzle && puzzle.sideToMove !== (tempGame.turn() === "w" ? "white" : "black")) {
         // Auto-advance one move if needed
         if (solutionPv.length > 0) {
           const firstMove = solutionPv[0];
           try {
             const from = firstMove.slice(0, 2);
             const to = firstMove.slice(2, 4);
-            newGame.move({ from, to });
-            initialFen = newGame.fen();
+            tempGame.move({ from, to });
+            initialFen = tempGame.fen();
             initialMoveIndex = 1;
             debugPuzzle.autoAdvance(from, to, initialFen, initialMoveIndex);
           } catch (e) {
@@ -119,6 +122,10 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
           }
         }
       }
+
+      // Load the puzzle position into ChessContext
+      chessContext.loadFromFen(initialFen);
+      chessContext.setGameMode("local"); // Set mode to local for puzzle mode
 
       const newState = {
         puzzle,
@@ -132,7 +139,6 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         showSolution: false,
       };
 
-      setGame(newGame);
       setPuzzleState(newState);
       debugPuzzleState(newState);
       debugState.fen(puzzle.fen, initialFen, "puzzle load");
@@ -146,9 +152,9 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const makeMove = useCallback((from: string, to: string): boolean => {
-    console.log("[PUZZLE DEBUG] makeMove called", { from, to, hasGame: !!game, hasPuzzle: !!puzzleState.puzzle, solved: puzzleState.solved });
-    if (!game || !puzzleState.puzzle || puzzleState.solved) {
-      debugMove.error("Invalid move attempt", `game: ${!!game}, puzzle: ${!!puzzleState.puzzle}, solved: ${puzzleState.solved}`);
+    console.log("[PUZZLE DEBUG] makeMove called", { from, to, hasPuzzle: !!puzzleState.puzzle, solved: puzzleState.solved });
+    if (!puzzleState.puzzle || puzzleState.solved) {
+      debugMove.error("Invalid move attempt", `puzzle: ${!!puzzleState.puzzle}, solved: ${puzzleState.solved}`);
       return false;
     }
 
@@ -165,14 +171,19 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     debugMove.attempt(from, to, expectedMoveNormalized);
 
     if (userMove === expectedMoveNormalized) {
-      // Correct move
+      // Correct move - apply it to ChessContext
       try {
-        const oldFen = game.fen();
+        const oldFen = chessContext.game.fen();
         const oldMoveIndex = puzzleState.moveIndex;
         
-        // Apply player's move
-        game.move({ from, to });
-        debugMove.correct(from, to, game.fen(), puzzleState.moveIndex);
+        // Apply player's move via ChessContext
+        const moveSuccess = originalMakeMove(from, to);
+        if (!moveSuccess) {
+          debugMove.error("Failed to apply move", "ChessContext makeMove returned false");
+          return false;
+        }
+        
+        debugMove.correct(from, to, chessContext.game.fen(), puzzleState.moveIndex);
         
         // Auto-play opponent reply if exists
         const nextMoveIndex = puzzleState.moveIndex + 1;
@@ -180,22 +191,24 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
           const opponentMove = puzzleState.solutionPv[nextMoveIndex];
           const oppFrom = opponentMove.slice(0, 2);
           const oppTo = opponentMove.slice(2, 4);
-          game.move({ from: oppFrom, to: oppTo });
-          debugMove.autoReply(oppFrom, oppTo, game.fen());
+          originalMakeMove(oppFrom, oppTo);
+          debugMove.autoReply(oppFrom, oppTo, chessContext.game.fen());
         }
 
         const isComplete = nextMoveIndex + 1 >= puzzleState.solutionPv.length;
         const newMoveIndex = isComplete ? puzzleState.moveIndex : nextMoveIndex + 1;
 
+        // Update puzzle state - sync currentFen with ChessContext
         setPuzzleState((prev) => {
+          const newFen = chessContext.game.fen();
           const newState = {
             ...prev,
-            currentFen: game.fen(),
+            currentFen: newFen, // Keep in sync with ChessContext
             moveIndex: newMoveIndex,
             solved: isComplete,
           };
           debugState.update(prev, newState, "correct move");
-          debugState.fen(oldFen, game.fen(), "player move + auto-reply");
+          debugState.fen(oldFen, newFen, "player move + auto-reply");
           debugState.moveIndex(oldMoveIndex, newMoveIndex, "correct move");
           if (isComplete) {
             debugState.solved(true);
@@ -203,7 +216,6 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
           return newState;
         });
 
-        setGame(new Chess(game.fen()));
         return true;
       } catch (error) {
         debugMove.error(error, "applying move");
@@ -220,7 +232,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       }));
       return false;
     }
-  }, [game, puzzleState]);
+  }, [puzzleState, chessContext, originalMakeMove]);
 
   const resetPuzzle = useCallback(() => {
     if (!puzzleState.puzzle) {
@@ -231,24 +243,23 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     debugPuzzle.reset();
     const oldState = { ...puzzleState };
 
-    const newGame = new Chess(puzzleState.puzzle.fen);
-    
-    // Handle auto-advance for mate puzzles
+    // Calculate initial FEN (same logic as loadRandomPuzzle)
     let initialFen = puzzleState.puzzle.fen;
     let initialMoveIndex = 0;
     
+    const tempGame = new Chess(puzzleState.puzzle.fen);
     if (puzzleState.puzzle.motifs.some(m => m.includes("mate"))) {
       const solutionPv = typeof puzzleState.puzzle.solutionPv === "string"
         ? JSON.parse(puzzleState.puzzle.solutionPv)
         : puzzleState.puzzle.solutionPv;
       
-      if (solutionPv.length > 0 && puzzleState.puzzle.sideToMove !== (newGame.turn() === "w" ? "white" : "black")) {
+      if (solutionPv.length > 0 && puzzleState.puzzle.sideToMove !== (tempGame.turn() === "w" ? "white" : "black")) {
         const firstMove = solutionPv[0];
         try {
           const from = firstMove.slice(0, 2);
           const to = firstMove.slice(2, 4);
-          newGame.move({ from, to });
-          initialFen = newGame.fen();
+          tempGame.move({ from, to });
+          initialFen = tempGame.fen();
           initialMoveIndex = 1;
           debugPuzzle.autoAdvance(from, to, initialFen, initialMoveIndex);
         } catch (e) {
@@ -257,6 +268,9 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         }
       }
     }
+
+    // Reset ChessContext to puzzle position
+    chessContext.loadFromFen(initialFen);
 
     const newState = {
       ...puzzleState,
@@ -269,13 +283,12 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       showSolution: false,
     };
 
-    setGame(newGame);
     setPuzzleState(newState);
     debugState.update(oldState, newState, "reset");
     debugState.fen(oldState.currentFen, initialFen, "reset");
     debugState.moveIndex(oldState.moveIndex, initialMoveIndex, "reset");
     debugState.solved(false);
-  }, [puzzleState]);
+  }, [puzzleState, chessContext]);
 
   const showHint = useCallback(() => {
     if (!puzzleState.puzzle || puzzleState.solved || puzzleState.showSolution) {

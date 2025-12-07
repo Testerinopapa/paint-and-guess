@@ -205,14 +205,11 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
     return chessContext.game;
   }, [fen, chessContext.game]);
 
-  // Get move functions - if fen is provided, we handle moves via onMove callback only
-  const makeMove = fen ? 
+  // Get move functions - use onMove callback if provided (for puzzle mode), otherwise use ChessContext
+  const makeMove = onMove ? 
     (from: string, to: string) => {
-      // For puzzle mode, moves are handled by parent via onMove callback
-      if (onMove) {
-        return onMove(from, to);
-      }
-      return false;
+      // If onMove callback is provided, use it (allows puzzle mode to intercept and validate)
+      return onMove(from, to);
     } : 
     chessContext.makeMove;
 
