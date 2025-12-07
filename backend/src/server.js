@@ -16,7 +16,7 @@ import { canvaRoomRepository } from "./canvaRoomRepository.js";
 import { whiteboardRoomRepository } from "./whiteboardRoomRepository.js";
 import authRoutes from "./auth/routes.js";
 import { getRandomPuzzle, getPuzzles, createPuzzleAttempt } from "./puzzleRoutes.js";
-import { analyzePosition, engineHealth } from "./api/analyze.js";
+import { analyzePosition, engineHealth, validatePuzzleMove } from "./api/analyze.js";
 import { generateReport, getReportDetails, getReportById } from "./api/report.js";
 
 const LOG_LEVELS = {
@@ -162,6 +162,7 @@ app.post("/api/puzzles/attempt", createPuzzleAttempt);
 
 // Chess analysis endpoints
 app.post("/api/analyze", analyzePosition);
+app.post("/api/puzzles/validate-move", validatePuzzleMove);
 app.get("/api/health/engine", engineHealth);
 
 // Chess report endpoints

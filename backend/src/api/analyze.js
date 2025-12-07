@@ -63,6 +63,147 @@ export async function analyzePosition(req, res) {
   }
 }
 
+// POST /api/puzzles/validate-move
+// Validates a puzzle move by comparing evaluations
+export async function validatePuzzleMove(req, res) {
+  const reqId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  
+  try {
+    const { fen, userMove, solutionMove, depth = 8 } = req.body;
+    
+    if (!fen || !userMove || !solutionMove) {
+      return res.status(400).json({ error: "Missing required fields: fen, userMove, solutionMove" });
+    }
+    
+    // Validate FEN format
+    if (!fen.includes("/") || !fen.includes(" ")) {
+      return res.status(400).json({ error: "Invalid fen format" });
+    }
+    
+    const normalizedDepth = Math.max(4, Math.min(12, parseInt(depth, 10) || 8));
+    
+    logger.info({ reqId, fen, userMove, solutionMove, depth: normalizedDepth }, "puzzle_move_validation");
+    
+    // Parse FEN and play moves to get resulting positions
+    const { parseFen, makeFen } = await import("chessops/fen");
+    const { Chess } = await import("chessops/chess");
+    const { parseUci } = await import("chessops/util");
+    
+    const setupResult = parseFen(fen);
+    if (!setupResult.isOk) {
+      return res.status(400).json({ error: "Invalid FEN position" });
+    }
+    
+    const pos = Chess.fromSetup(setupResult.unwrap());
+    if (!pos.isOk) {
+      return res.status(400).json({ error: "Invalid chess position" });
+    }
+    const position = pos.unwrap();
+    
+    // Play user move
+    const userMoveParsed = parseUci(userMove);
+    if (!userMoveParsed) {
+      return res.status(400).json({ error: "Invalid user move UCI" });
+    }
+    
+    const posAfterUser = position.clone();
+    const userPlayResult = posAfterUser.play(userMoveParsed);
+    if (!userPlayResult.isOk) {
+      return res.status(400).json({ error: "User move is illegal" });
+    }
+    const userFen = makeFen(posAfterUser.toSetup());
+    
+    // Play solution move
+    const solutionMoveParsed = parseUci(solutionMove);
+    if (!solutionMoveParsed) {
+      return res.status(400).json({ error: "Invalid solution move UCI" });
+    }
+    
+    const posAfterSolution = position.clone();
+    const solutionPlayResult = posAfterSolution.play(solutionMoveParsed);
+    if (!solutionPlayResult.isOk) {
+      return res.status(400).json({ error: "Solution move is illegal" });
+    }
+    const solutionFen = makeFen(posAfterSolution.toSetup());
+    
+    // Evaluate both positions from opponent's perspective
+    // (flip the turn in FEN to evaluate from opponent's view)
+    const flipFen = (fenStr) => {
+      const parts = fenStr.split(" ");
+      parts[1] = parts[1] === "w" ? "b" : "w"; // Flip turn
+      return parts.join(" ");
+    };
+    
+    const userEvalFen = flipFen(userFen);
+    const solutionEvalFen = flipFen(solutionFen);
+    
+    // Analyze both positions
+    const [userEval, solutionEval] = await Promise.all([
+      EnginePool.analyze({
+        fen: userEvalFen,
+        depth: normalizedDepth,
+        multiPv: 1,
+      }),
+      EnginePool.analyze({
+        fen: solutionEvalFen,
+        depth: normalizedDepth,
+        multiPv: 1,
+      }),
+    ]);
+    
+    const userCp = scoreToCp(userEval.info?.score) ?? 0;
+    const solutionCp = scoreToCp(solutionEval.info?.score) ?? 0;
+    
+    // Calculate evaluation difference (from opponent's perspective)
+    // If user move is better for opponent (higher cp), it's worse for player
+    // We want: |userCp - solutionCp| <= 30 (within threshold)
+    const evalDiff = Math.abs(userCp - solutionCp);
+    const threshold = 30; // From detectAgreement in moveEvaluation.js
+    const isEquivalent = evalDiff <= threshold;
+    
+    // Check for mate outcomes
+    const userIsMate = userEval.info?.score?.type === "mate";
+    const solutionIsMate = solutionEval.info?.score?.type === "mate";
+    
+    // If both are mate, check if they're equivalent
+    let isCorrect = isEquivalent;
+    if (userIsMate && solutionIsMate) {
+      // Both deliver mate - check if mate distance is similar
+      const userMateVal = userEval.info.score.value;
+      const solutionMateVal = solutionEval.info.score.value;
+      // Mate values are negative for the side being mated
+      // If both are mate, they're equivalent if same sign
+      isCorrect = Math.sign(userMateVal) === Math.sign(solutionMateVal);
+    } else if (userIsMate !== solutionIsMate) {
+      // One is mate, other isn't - not equivalent
+      isCorrect = false;
+    }
+    
+    logger.info(
+      { reqId, userCp, solutionCp, evalDiff, isCorrect, userIsMate, solutionIsMate },
+      "puzzle_validation_complete"
+    );
+    
+    return res.json({
+      isCorrect,
+      userCp,
+      solutionCp,
+      evalDiff,
+      threshold,
+      userIsMate,
+      solutionIsMate,
+      userFen,
+      solutionFen,
+    });
+  } catch (error) {
+    logger.error({ reqId, err: String(error), stack: error.stack }, "puzzle_validation_error");
+    return res.status(500).json({
+      error: "Validation failed",
+      message: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+}
+
 // GET /api/health/engine
 export async function engineHealth(req, res) {
   try {

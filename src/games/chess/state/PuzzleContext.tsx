@@ -193,6 +193,37 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Helper function to validate move with engine evaluation
+  const validateMoveWithEngine = useCallback(async (
+    fen: string,
+    userMoveUci: string,
+    solutionMoveUci: string
+  ): Promise<boolean> => {
+    try {
+      const response = await fetch(apiPath("/api/puzzles/validate-move"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fen,
+          userMove: userMoveUci,
+          solutionMove: solutionMoveUci,
+          depth: 8, // Fast depth for puzzle validation
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("[PUZZLE] Engine validation failed:", response.statusText);
+        return false;
+      }
+
+      const result = await response.json();
+      return result.isCorrect === true;
+    } catch (error) {
+      console.error("[PUZZLE] Engine validation error:", error);
+      return false;
+    }
+  }, []);
+
   const makeMove = useCallback((from: string, to: string, promotion?: string): boolean => {
     console.log("[PUZZLE DEBUG] makeMove called", { from, to, promotion, hasPuzzle: !!puzzleState.puzzle, solved: puzzleState.solved });
     
@@ -258,7 +289,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
 
       debugMove.attempt(from, to, expectedMoveNormalized);
 
-      // Check if move matches expected solution
+      // Check if move matches expected solution (exact match)
       const matchesSolution = userMoveNormalized === expectedMoveNormalized;
 
       // For mate puzzles, also check if move delivers mate (alternative solution)
@@ -279,6 +310,19 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         if (isCorrectMove) {
           console.log("[PUZZLE] Alternative mate solution found:", userMoveUci);
         }
+      }
+
+      // For non-matching moves in non-mate puzzles, check if move is equivalent via evaluation
+      // Note: This is a synchronous check, so we reject immediately if not exact match
+      // Engine-based validation for equivalent moves would require async interface changes
+      // For now, we require exact match for non-mate puzzles to ensure correctness
+      if (!isCorrectMove && !isMatePuzzle) {
+        // Log for debugging - in future could add async validation
+        console.log("[PUZZLE] Move rejected (not exact match):", {
+          user: userMoveUciNormalized,
+          expected: expectedMoveNormalized,
+          note: "Exact match required for non-mate puzzles"
+        });
       }
 
       if (isCorrectMove) {
