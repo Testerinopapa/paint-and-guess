@@ -15,6 +15,7 @@
     "test:puzzle-db": "node scripts/test-puzzle-db.js",
     "test:puzzle-validation": "node scripts/test-puzzle-validation.js",
     "test:puzzle-solutions": "node scripts/test-puzzle-solutions.js",
+    "validate:all-puzzles": "node scripts/validate-all-puzzles.js",
     "import:dev-db": "node scripts/import-dev-db.js",
     "test:engine": "node scripts/test-engine.js",
     "download:stockfish": "node scripts/download-stockfish.js",

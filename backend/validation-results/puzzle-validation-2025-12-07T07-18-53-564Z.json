@@ -1,0 +1,6728 @@
+{
+  "timestamp": "2025-12-07T07:18:53.566Z",
+  "summary": {
+    "totalPuzzles": 604,
+    "validCount": 604,
+    "invalidCount": 0,
+    "validPercent": "100.00",
+    "invalidPercent": "0.00"
+  },
+  "errorBreakdown": {
+    "invalidFen": 0,
+    "invalidPv": 0,
+    "emptyPv": 0,
+    "tooShortForAutoAdvance": 0,
+    "wouldBeCompleteOnLoad": 0,
+    "autoAdvanceFailed": 0,
+    "other": 0
+  },
+  "errorDetails": {
+    "invalidFen": [],
+    "invalidPv": [],
+    "emptyPv": [],
+    "tooShortForAutoAdvance": [],
+    "wouldBeCompleteOnLoad": [],
+    "autoAdvanceFailed": [],
+    "other": []
+  },
+  "validPuzzles": [
+    {
+      "id": "cmidchoyh00dxuoyr604iqn22",
+      "rating": 2102,
+      "source": "lichess-puzzle:00Qog",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchoce00dwuoyrbug9swwv",
+      "rating": 1064,
+      "source": "lichess-puzzle:00Qo8",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchnsc00dvuoyrxurn1kru",
+      "rating": 1452,
+      "source": "lichess-puzzle:00QnO",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchn8900duuoyrdhtrim2y",
+      "rating": 1824,
+      "source": "lichess-puzzle:00Qm5",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchmnc00dtuoyrjmsf8hgx",
+      "rating": 1610,
+      "source": "lichess-puzzle:00Qlc",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchm3000dsuoyrsgc3nsaa",
+      "rating": 1012,
+      "source": "lichess-puzzle:00QkV",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchlfz00druoyr64q4b2tx",
+      "rating": 2103,
+      "source": "lichess-puzzle:00QjF",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchkri00dquoyrycbq40fy",
+      "rating": 599,
+      "source": "lichess-puzzle:00QZV",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchk1o00dpuoyrjqjxt176",
+      "rating": 1093,
+      "source": "lichess-puzzle:00QZ3",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchjaa00douoyrhc0z2v0j",
+      "rating": 1048,
+      "source": "lichess-puzzle:00QY3",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchicj00dnuoyr1leum2wc",
+      "rating": 899,
+      "source": "lichess-puzzle:00QW1",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchhl700dmuoyrpepghb9d",
+      "rating": 1459,
+      "source": "lichess-puzzle:00QVZ",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchgwr00dluoyrzjcbvo80",
+      "rating": 1828,
+      "source": "lichess-puzzle:00QQS",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchgan00dkuoyrhz62545s",
+      "rating": 435,
+      "source": "lichess-puzzle:00QOp",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchfny00djuoyrzzdqtyxb",
+      "rating": 862,
+      "source": "lichess-puzzle:00QOa",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchf0g00diuoyrz33nys7a",
+      "rating": 1908,
+      "source": "lichess-puzzle:00QN3",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchedp00dhuoyrytz5oxf5",
+      "rating": 911,
+      "source": "lichess-puzzle:00QHM",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchdnh00dguoyrka045of7",
+      "rating": 1398,
+      "source": "lichess-puzzle:00QCe",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchcv100dfuoyrubklaptm",
+      "rating": 1041,
+      "source": "lichess-puzzle:00QCD",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchc4i00deuoyr0rj0t4je",
+      "rating": 1219,
+      "source": "lichess-puzzle:00QBx",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchb5q00dduoyroovo01x6",
+      "rating": 1228,
+      "source": "lichess-puzzle:00Q4v",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidchagg00dcuoyr7e94pd6x",
+      "rating": 1194,
+      "source": "lichess-puzzle:00Q4m",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidch8xz00dbuoyr524dis28",
+      "rating": 1104,
+      "source": "lichess-puzzle:00Pw1",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidch86h00dauoyrw09pa3pl",
+      "rating": 1660,
+      "source": "lichess-puzzle:00PvX",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidch7h200d9uoyru9japx6i",
+      "rating": 848,
+      "source": "lichess-puzzle:00PvP",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidch6qa00d8uoyrih1ohiop",
+      "rating": 1394,
+      "source": "lichess-puzzle:00Pu5",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidch5yj00d7uoyr5jgs54ca",
+      "rating": 969,
+      "source": "lichess-puzzle:00PrK",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidch51j00d6uoyri6jgluzy",
+      "rating": 1375,
+      "source": "lichess-puzzle:00Pr6",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidch2yc00d5uoyr63iq3824",
+      "rating": 2159,
+      "source": "lichess-puzzle:00Pms",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidch2bk00d4uoyrv67lulx7",
+      "rating": 2412,
+      "source": "lichess-puzzle:00Pgk",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidch1m200d3uoyrxhwpjctf",
+      "rating": 2121,
+      "source": "lichess-puzzle:00PgQ",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidch0zg00d2uoyr1svuki56",
+      "rating": 1110,
+      "source": "lichess-puzzle:00Pc8",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidch0ae00d1uoyrhobmom1x",
+      "rating": 2108,
+      "source": "lichess-puzzle:00Pbs",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgzk500d0uoyrbqsqftyt",
+      "rating": 2295,
+      "source": "lichess-puzzle:00PIO",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgyw000czuoyrlxus09ve",
+      "rating": 1400,
+      "source": "lichess-puzzle:00PHg",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgy6q00cyuoyry92t2b18",
+      "rating": 1029,
+      "source": "lichess-puzzle:00PGi",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgxil00cxuoyrfsf5e9k3",
+      "rating": 1392,
+      "source": "lichess-puzzle:00PF3",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgwps00cwuoyrxa7it82u",
+      "rating": 2253,
+      "source": "lichess-puzzle:00P81",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgw0h00cvuoyr075udq5c",
+      "rating": 1170,
+      "source": "lichess-puzzle:00P7n",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgvbg00cuuoyr3kp6v945",
+      "rating": 1664,
+      "source": "lichess-puzzle:00P6s",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgulb00ctuoyr3wxggn0b",
+      "rating": 1326,
+      "source": "lichess-puzzle:00P6j",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgu1300csuoyrj84er5t4",
+      "rating": 2420,
+      "source": "lichess-puzzle:00P45",
+      "pvLength": 10,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgt7e00cruoyru3ubyn3h",
+      "rating": 868,
+      "source": "lichess-puzzle:00Ozz",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgsf600cquoyrhgrwdvnj",
+      "rating": 2707,
+      "source": "lichess-puzzle:00Oyf",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgrqq00cpuoyrvplff2ry",
+      "rating": 1515,
+      "source": "lichess-puzzle:00Or5",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgr1600couoyr04uzxhvs",
+      "rating": 898,
+      "source": "lichess-puzzle:00Oqz",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgqap00cnuoyrd62ifg8t",
+      "rating": 1234,
+      "source": "lichess-puzzle:00Oim",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgoj200cmuoyraxw0vje9",
+      "rating": 2098,
+      "source": "lichess-puzzle:00Ocp",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgnv900cluoyrmb8ay6e1",
+      "rating": 1959,
+      "source": "lichess-puzzle:00OYl",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgn7o00ckuoyr4wu7u4pk",
+      "rating": 686,
+      "source": "lichess-puzzle:00OXc",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgmk100cjuoyrmlj4b97i",
+      "rating": 2265,
+      "source": "lichess-puzzle:00OR6",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcglvv00ciuoyrib0bso1o",
+      "rating": 1663,
+      "source": "lichess-puzzle:00OQt",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgl9f00chuoyrfb6i2xhs",
+      "rating": 816,
+      "source": "lichess-puzzle:00OPk",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgkon00cguoyrfeqm0tgu",
+      "rating": 630,
+      "source": "lichess-puzzle:00OPi",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgk0p00cfuoyr0e4xae94",
+      "rating": 2116,
+      "source": "lichess-puzzle:00OPc",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgjc700ceuoyrs1g8nbeo",
+      "rating": 1053,
+      "source": "lichess-puzzle:00OOp",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgipg00cduoyr32ahmclx",
+      "rating": 1812,
+      "source": "lichess-puzzle:00ON5",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgi1800ccuoyrd2yp9093",
+      "rating": 2331,
+      "source": "lichess-puzzle:00OKo",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcghcg00cbuoyrkhwocc3s",
+      "rating": 937,
+      "source": "lichess-puzzle:00OCQ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcggm900cauoyr1aed63jr",
+      "rating": 985,
+      "source": "lichess-puzzle:00O9a",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgfzj00c9uoyrc0oru5mp",
+      "rating": 1611,
+      "source": "lichess-puzzle:00O9Z",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgfcs00c8uoyrazg7d5cc",
+      "rating": 1409,
+      "source": "lichess-puzzle:00O8m",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgeqw00c7uoyr6sjbrhs5",
+      "rating": 1206,
+      "source": "lichess-puzzle:00O3h",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgcqn00c6uoyr3a3isrbm",
+      "rating": 1300,
+      "source": "lichess-puzzle:00O37",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcgc1w00c5uoyrs1le1s7q",
+      "rating": 751,
+      "source": "lichess-puzzle:00O2z",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcg9p800c2uoyravtf27jw",
+      "rating": 1698,
+      "source": "lichess-puzzle:00Nte",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcg8xv00c1uoyrpvwfyjaw",
+      "rating": 2608,
+      "source": "lichess-puzzle:00Ns0",
+      "pvLength": 10,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcg8au00c0uoyrauie2u5i",
+      "rating": 1765,
+      "source": "lichess-puzzle:00Nqd",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcg7rt00bzuoyrvuyxx53k",
+      "rating": 1178,
+      "source": "lichess-puzzle:00Nih",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcg75f00byuoyr2z6we5b0",
+      "rating": 1038,
+      "source": "lichess-puzzle:00NiV",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcg6hj00bxuoyredn6bc2r",
+      "rating": 2327,
+      "source": "lichess-puzzle:00Nhl",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcg5wq00bwuoyrtk9z3iob",
+      "rating": 1547,
+      "source": "lichess-puzzle:00Ngg",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcdwt3008tuoyrn6jgmomk",
+      "rating": 1719,
+      "source": "lichess-puzzle:00IiM",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcdvyz008suoyr327m8o91",
+      "rating": 1629,
+      "source": "lichess-puzzle:00IbM",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcdv9o008ruoyrbrlenv15",
+      "rating": 923,
+      "source": "lichess-puzzle:00IaZ",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcduik008quoyrv4lwd6b3",
+      "rating": 1857,
+      "source": "lichess-puzzle:00IYg",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcdtt9008puoyr4lpu017x",
+      "rating": 1725,
+      "source": "lichess-puzzle:00IUW",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcdt5o008ouoyrmlscx5j8",
+      "rating": 1509,
+      "source": "lichess-puzzle:00IUT",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcdsj9008nuoyrxs22w2xz",
+      "rating": 922,
+      "source": "lichess-puzzle:00ITc",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcdrt1008muoyramsx8qn6",
+      "rating": 907,
+      "source": "lichess-puzzle:00ISm",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcdr63008luoyrmjqn7960",
+      "rating": 1572,
+      "source": "lichess-puzzle:00IPp",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcdqhx008kuoyrsw8solmw",
+      "rating": 1714,
+      "source": "lichess-puzzle:00IMS",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcch1r007auoyrlgtlktpj",
+      "rating": 2594,
+      "source": "lichess-puzzle:00FOM",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidccgfs0079uoyrbzkd6bam",
+      "rating": 1831,
+      "source": "lichess-puzzle:00FND",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidccft20078uoyrb00sk201",
+      "rating": 495,
+      "source": "lichess-puzzle:00FHX",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidccf6w0077uoyrf7mh4d5p",
+      "rating": 2236,
+      "source": "lichess-puzzle:00FHO",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidccek70076uoyripgnghg3",
+      "rating": 1026,
+      "source": "lichess-puzzle:00FH6",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidccdu60075uoyr5hhnj3bw",
+      "rating": 2017,
+      "source": "lichess-puzzle:00FF5",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidccd8a0074uoyre13fx036",
+      "rating": 1677,
+      "source": "lichess-puzzle:00FAe",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcccmp0073uoyr3dseilha",
+      "rating": 849,
+      "source": "lichess-puzzle:00F6y",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidccc0a0072uoyrefwglvca",
+      "rating": 1522,
+      "source": "lichess-puzzle:00F5G",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcc8o7006xuoyrsivyljve",
+      "rating": 1103,
+      "source": "lichess-puzzle:00Evs",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcc80j006wuoyrxto50xcj",
+      "rating": 1406,
+      "source": "lichess-puzzle:00Erm",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcc770006vuoyr6hjx9v3c",
+      "rating": 1345,
+      "source": "lichess-puzzle:00Er4",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcc6gy006uuoyr5abwzw88",
+      "rating": 974,
+      "source": "lichess-puzzle:00EoE",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcc5se006tuoyrwm7cqps8",
+      "rating": 838,
+      "source": "lichess-puzzle:00Enl",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcc4z4006suoyrszjbpfpe",
+      "rating": 1819,
+      "source": "lichess-puzzle:00EgR",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcc3z5006ruoyrx0onkd0t",
+      "rating": 640,
+      "source": "lichess-puzzle:00EdH",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcc3cw006quoyrzrp6hap2",
+      "rating": 827,
+      "source": "lichess-puzzle:00Ec4",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidcc2qe006puoyrzceqjbb1",
+      "rating": 1201,
+      "source": "lichess-puzzle:00EbJ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidca78z004auoyrts1pamht",
+      "rating": 645,
+      "source": "lichess-puzzle:009tE",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidca6i70049uoyrnimod7by",
+      "rating": 1161,
+      "source": "lichess-puzzle:009oc",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidca5g20048uoyrok5v0l4o",
+      "rating": 934,
+      "source": "lichess-puzzle:009lk",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidca4p20047uoyrponicz3s",
+      "rating": 1831,
+      "source": "lichess-puzzle:009hH",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc8ywg00e6uoeulw4u80c7",
+      "rating": 996,
+      "source": "lichess-puzzle:00O14",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc8y3900e5uoeuani8se7s",
+      "rating": 1841,
+      "source": "lichess-puzzle:00Nua",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7w1u00e0uoeuvnibomyk",
+      "rating": 1637,
+      "source": "lichess-puzzle:00Nf5",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7vc300dzuoeuno8863qp",
+      "rating": 1105,
+      "source": "lichess-puzzle:00Nej",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7un900dyuoeux2hji53l",
+      "rating": 1748,
+      "source": "lichess-puzzle:00Nay",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7u0q00dxuoeut2g6erk4",
+      "rating": 433,
+      "source": "lichess-puzzle:00NaX",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7tei00dwuoeu58epqsps",
+      "rating": 1821,
+      "source": "lichess-puzzle:00NVe",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7srz00dvuoeusmod73yt",
+      "rating": 1536,
+      "source": "lichess-puzzle:00NUc",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7s5k00duuoeu4eqm8aq4",
+      "rating": 1348,
+      "source": "lichess-puzzle:00NUS",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7rgn00dtuoeun2tb75rv",
+      "rating": 964,
+      "source": "lichess-puzzle:00NOI",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7qu600dsuoeu169sa33p",
+      "rating": 1848,
+      "source": "lichess-puzzle:00NKk",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7q1w00druoeul0v28i9y",
+      "rating": 1831,
+      "source": "lichess-puzzle:00NHK",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7pch00dquoeu508ruiqz",
+      "rating": 2351,
+      "source": "lichess-puzzle:00NGM",
+      "pvLength": 10,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7ol100dpuoeu7c8uu20v",
+      "rating": 1961,
+      "source": "lichess-puzzle:00NEO",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7o1k00douoeugjun4doj",
+      "rating": 2022,
+      "source": "lichess-puzzle:00NBR",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7lwk00dnuoeui2pyiote",
+      "rating": 762,
+      "source": "lichess-puzzle:00NAM",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7l2r00dmuoeuhipxcfor",
+      "rating": 1196,
+      "source": "lichess-puzzle:00N3B",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7k9a00dluoeu7t25f6na",
+      "rating": 2017,
+      "source": "lichess-puzzle:00Mzs",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7j6l00dkuoeuvm8b2cbo",
+      "rating": 923,
+      "source": "lichess-puzzle:00MyT",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7iba00djuoeuvkdobvut",
+      "rating": 1768,
+      "source": "lichess-puzzle:00MwU",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7hms00diuoeuhh8vawep",
+      "rating": 1877,
+      "source": "lichess-puzzle:00Msq",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7gkr00dhuoeu4p11g1bo",
+      "rating": 2370,
+      "source": "lichess-puzzle:00Mf0",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7frm00dguoeu0ww1sewe",
+      "rating": 2591,
+      "source": "lichess-puzzle:00Mei",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7e3x00dfuoeuc2gfv9jl",
+      "rating": 1507,
+      "source": "lichess-puzzle:00MeO",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7d6y00deuoeuwincj5aw",
+      "rating": 2323,
+      "source": "lichess-puzzle:00Mca",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7cgw00dduoeufschnw89",
+      "rating": 1536,
+      "source": "lichess-puzzle:00Mbv",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7bqg00dcuoeuuqkmllkf",
+      "rating": 1991,
+      "source": "lichess-puzzle:00MZr",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7asy00dbuoeugnmnxg58",
+      "rating": 1140,
+      "source": "lichess-puzzle:00MYL",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc7a3x00dauoeuv9fmfifl",
+      "rating": 844,
+      "source": "lichess-puzzle:00MWz",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc79bl00d9uoeuy97kxbe4",
+      "rating": 767,
+      "source": "lichess-puzzle:00MTG",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc78ne00d8uoeu71aoq48m",
+      "rating": 809,
+      "source": "lichess-puzzle:00MS3",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc77xh00d7uoeu6i9z40yx",
+      "rating": 2027,
+      "source": "lichess-puzzle:00MNf",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc778400d6uoeuvc13ihi1",
+      "rating": 1500,
+      "source": "lichess-puzzle:00MIY",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc769900d5uoeueivzg1fe",
+      "rating": 2231,
+      "source": "lichess-puzzle:00MHi",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc75iz00d4uoeur6yub37v",
+      "rating": 919,
+      "source": "lichess-puzzle:00MGA",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc74t700d3uoeu4bivzt2g",
+      "rating": 1384,
+      "source": "lichess-puzzle:00MFe",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc743i00d2uoeunitfr2t2",
+      "rating": 1625,
+      "source": "lichess-puzzle:00ME0",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc73dq00d1uoeusro2wlve",
+      "rating": 1496,
+      "source": "lichess-puzzle:00MDy",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc72nz00d0uoeuar19ocir",
+      "rating": 2002,
+      "source": "lichess-puzzle:00MBF",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc71xf00czuoeunsfcma4l",
+      "rating": 2276,
+      "source": "lichess-puzzle:00M7w",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc71aw00cyuoeuj2efzpg0",
+      "rating": 1143,
+      "source": "lichess-puzzle:00M6i",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc70nj00cxuoeud227rz3k",
+      "rating": 1385,
+      "source": "lichess-puzzle:00M1q",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc701200cwuoeumbfbq9y7",
+      "rating": 1126,
+      "source": "lichess-puzzle:00M0i",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6zd400cvuoeuuwgi270d",
+      "rating": 1935,
+      "source": "lichess-puzzle:00Lyc",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6yn600cuuoeuefyq3t4i",
+      "rating": 1741,
+      "source": "lichess-puzzle:00Lt1",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6y0p00ctuoeu5hnpbaj8",
+      "rating": 1175,
+      "source": "lichess-puzzle:00Lqo",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6xej00csuoeu9mtmrqeq",
+      "rating": 1858,
+      "source": "lichess-puzzle:00LoE",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6vf500cruoeudrtkfsmp",
+      "rating": 1790,
+      "source": "lichess-puzzle:00Lhb",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6ulc00cquoeu7jsk0eiw",
+      "rating": 1324,
+      "source": "lichess-puzzle:00Lh9",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6txp00cpuoeucpv6q0iv",
+      "rating": 587,
+      "source": "lichess-puzzle:00LdT",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6t5e00couoeu94ynm2fn",
+      "rating": 2210,
+      "source": "lichess-puzzle:00LZl",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6sfz00cnuoeughmges0k",
+      "rating": 2185,
+      "source": "lichess-puzzle:00LZf",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6rsh00cmuoeus6m2gbom",
+      "rating": 2318,
+      "source": "lichess-puzzle:00LXD",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6r5z00cluoeu5cx42e53",
+      "rating": 741,
+      "source": "lichess-puzzle:00LWX",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6qg100ckuoeue4rzzytc",
+      "rating": 704,
+      "source": "lichess-puzzle:00LUZ",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6pu000cjuoeutc6coeed",
+      "rating": 1742,
+      "source": "lichess-puzzle:00LSv",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6oyg00ciuoeub7d6ss62",
+      "rating": 2411,
+      "source": "lichess-puzzle:00LRv",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6o1b00chuoeuwcrxq3n1",
+      "rating": 2059,
+      "source": "lichess-puzzle:00LRq",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6ndf00cguoeuyi0ea7j2",
+      "rating": 1483,
+      "source": "lichess-puzzle:00LOy",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6mng00cfuoeunsz7d5j8",
+      "rating": 1655,
+      "source": "lichess-puzzle:00LO6",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6lwy00ceuoeudsrzjjhu",
+      "rating": 969,
+      "source": "lichess-puzzle:00LNB",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6lav00cduoeue1wks6uk",
+      "rating": 1771,
+      "source": "lichess-puzzle:00LMb",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6kop00ccuoeuwzl4x2on",
+      "rating": 1302,
+      "source": "lichess-puzzle:00LI0",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6k2k00cbuoeuqalyw9su",
+      "rating": 1467,
+      "source": "lichess-puzzle:00LH7",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6jfr00cauoeu36zeg1mr",
+      "rating": 1113,
+      "source": "lichess-puzzle:00LG5",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6iq800c9uoeu0qowx4i2",
+      "rating": 2179,
+      "source": "lichess-puzzle:00LBF",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6hza00c8uoeuva635jkg",
+      "rating": 1067,
+      "source": "lichess-puzzle:00L84",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6gz400c7uoeu0vek4ne1",
+      "rating": 2535,
+      "source": "lichess-puzzle:00L53",
+      "pvLength": 10,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6gb400c6uoeuvi0kukab",
+      "rating": 1243,
+      "source": "lichess-puzzle:00L4x",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6fnf00c5uoeuuxvp6zs2",
+      "rating": 1773,
+      "source": "lichess-puzzle:00L1Y",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6f4a00c4uoeugjnflb04",
+      "rating": 1204,
+      "source": "lichess-puzzle:00Kyy",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6eag00c3uoeu2e5dvyqd",
+      "rating": 909,
+      "source": "lichess-puzzle:00Kxt",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6diy00c2uoeus9xkysab",
+      "rating": 1828,
+      "source": "lichess-puzzle:00Ksa",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6cwq00c1uoeupxul07ne",
+      "rating": 1435,
+      "source": "lichess-puzzle:00Kq4",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6cat00c0uoeumr1itqil",
+      "rating": 1865,
+      "source": "lichess-puzzle:00Knu",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6boc00bzuoeug5iypvsz",
+      "rating": 2521,
+      "source": "lichess-puzzle:00Kip",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6b4w00byuoeutk9zl59t",
+      "rating": 1666,
+      "source": "lichess-puzzle:00Kia",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc6agn00bxuoeu01bzq2u4",
+      "rating": 1339,
+      "source": "lichess-puzzle:00KhM",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc69ru00bwuoeugfyhpjkv",
+      "rating": 794,
+      "source": "lichess-puzzle:00KgR",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc698s00bvuoeu3148k4gn",
+      "rating": 854,
+      "source": "lichess-puzzle:00Keu",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc68mj00buuoeu4tz3kmw9",
+      "rating": 2133,
+      "source": "lichess-puzzle:00Kd8",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc67zs00btuoeujz9eo3vs",
+      "rating": 1488,
+      "source": "lichess-puzzle:00Kbj",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc67ba00bsuoeuzdpsln3e",
+      "rating": 1204,
+      "source": "lichess-puzzle:00KYU",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc65ag00bruoeu5rfo5eq6",
+      "rating": 917,
+      "source": "lichess-puzzle:00KYE",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc64oz00bquoeusg1at82m",
+      "rating": 2268,
+      "source": "lichess-puzzle:00KYC",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc63qb00bpuoeuv5otufgw",
+      "rating": 556,
+      "source": "lichess-puzzle:00KVb",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc633j00bouoeus0mv0dwg",
+      "rating": 834,
+      "source": "lichess-puzzle:00KVO",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc62f100bnuoeuki65spoy",
+      "rating": 2326,
+      "source": "lichess-puzzle:00KVF",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc61pv00bmuoeurfmo6lzt",
+      "rating": 1523,
+      "source": "lichess-puzzle:00KSB",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc613z00bluoeud1a2r9ux",
+      "rating": 969,
+      "source": "lichess-puzzle:00KOz",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc60gy00bkuoeuywh59v3w",
+      "rating": 1351,
+      "source": "lichess-puzzle:00KO5",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5znn00bjuoeu96odnxkr",
+      "rating": 2035,
+      "source": "lichess-puzzle:00KNK",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5yut00biuoeugu8rdydx",
+      "rating": 2491,
+      "source": "lichess-puzzle:00KNB",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5xx400bhuoeunqapeoc0",
+      "rating": 953,
+      "source": "lichess-puzzle:00KMV",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5xa300bguoeuy0ukij0n",
+      "rating": 1412,
+      "source": "lichess-puzzle:00KHR",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5wmt00bfuoeu5cvwjk2s",
+      "rating": 1449,
+      "source": "lichess-puzzle:00K8j",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5vz800beuoeugyj1im3z",
+      "rating": 453,
+      "source": "lichess-puzzle:00K48",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5v9m00bduoeubfnhk6z4",
+      "rating": 777,
+      "source": "lichess-puzzle:00K0G",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5un400bcuoeu9xtsww12",
+      "rating": 1660,
+      "source": "lichess-puzzle:00JzT",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5tyw00bbuoeu0oa5802a",
+      "rating": 2241,
+      "source": "lichess-puzzle:00JtR",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5t9k00bauoeuwihg9rmx",
+      "rating": 1820,
+      "source": "lichess-puzzle:00JsQ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5smi00b9uoeuh8gxmm76",
+      "rating": 1952,
+      "source": "lichess-puzzle:00JqT",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5s0300b8uoeu6f6qrx3w",
+      "rating": 991,
+      "source": "lichess-puzzle:00JfN",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5rb100b7uoeuzt35e4ha",
+      "rating": 1080,
+      "source": "lichess-puzzle:00JaW",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5qjk00b6uoeuzlsgwwt3",
+      "rating": 2105,
+      "source": "lichess-puzzle:00JZk",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5pti00b5uoeuu3sf2cwo",
+      "rating": 1634,
+      "source": "lichess-puzzle:00JYV",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5p6r00b4uoeuzhqepsih",
+      "rating": 566,
+      "source": "lichess-puzzle:00JS1",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5ogw00b3uoeuqjh4g500",
+      "rating": 1500,
+      "source": "lichess-puzzle:00JR7",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5nnn00b2uoeuzlxty6ka",
+      "rating": 561,
+      "source": "lichess-puzzle:00JQS",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5mxb00b1uoeucxyxq476",
+      "rating": 986,
+      "source": "lichess-puzzle:00JO7",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5mb300b0uoeucgfc2lgd",
+      "rating": 2188,
+      "source": "lichess-puzzle:00JMV",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5lne00azuoeuw70dck72",
+      "rating": 2031,
+      "source": "lichess-puzzle:00JH5",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5kvx00ayuoeuirj6ac9a",
+      "rating": 2015,
+      "source": "lichess-puzzle:00JFF",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5k7p00axuoeu7w6m3lgp",
+      "rating": 409,
+      "source": "lichess-puzzle:00JET",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5jlu00awuoeubp99r46u",
+      "rating": 999,
+      "source": "lichess-puzzle:00J7i",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5j2k00avuoeuqpqwwo29",
+      "rating": 2112,
+      "source": "lichess-puzzle:00J5r",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5i2s00auuoeuoawos7nd",
+      "rating": 1617,
+      "source": "lichess-puzzle:00J1t",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5hbe00atuoeuazjmy4ue",
+      "rating": 1182,
+      "source": "lichess-puzzle:00J1Y",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5f5o00asuoeub0bhpw5g",
+      "rating": 1619,
+      "source": "lichess-puzzle:00Ivf",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5efg00aruoeugxgmxleq",
+      "rating": 1537,
+      "source": "lichess-puzzle:00IqI",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5dlb00aquoeuqsoawfr8",
+      "rating": 2089,
+      "source": "lichess-puzzle:00IpT",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc5ap300apuoeu2mg4mx9e",
+      "rating": 1381,
+      "source": "lichess-puzzle:00InW",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc430f00anuoeuoaxil0di",
+      "rating": 1849,
+      "source": "lichess-puzzle:00IHi",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc41p400amuoeuu2leixq4",
+      "rating": 2133,
+      "source": "lichess-puzzle:00IFk",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc40g200aluoeu01t2q03b",
+      "rating": 1649,
+      "source": "lichess-puzzle:00IF7",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3xsc00akuoeu1507pg4h",
+      "rating": 1267,
+      "source": "lichess-puzzle:00IF1",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3wto00ajuoeunutcqpq4",
+      "rating": 903,
+      "source": "lichess-puzzle:00IEW",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3vfe00aiuoeun8vnlxx2",
+      "rating": 1862,
+      "source": "lichess-puzzle:00IDw",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3u7600ahuoeujaychhhs",
+      "rating": 1276,
+      "source": "lichess-puzzle:00ICz",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3sav00aguoeu0siywemh",
+      "rating": 950,
+      "source": "lichess-puzzle:00I8g",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3qqf00afuoeuj44s65z7",
+      "rating": 1607,
+      "source": "lichess-puzzle:00HzX",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3phx00aeuoeu27sxncko",
+      "rating": 766,
+      "source": "lichess-puzzle:00HzH",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3nt800aduoeufkfwg0p1",
+      "rating": 1125,
+      "source": "lichess-puzzle:00Hxb",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3mha00acuoeulgpth6re",
+      "rating": 1800,
+      "source": "lichess-puzzle:00Huv",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3lht00abuoeurwcgis2p",
+      "rating": 1331,
+      "source": "lichess-puzzle:00Hut",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3jhh00aauoeuqo3e71ir",
+      "rating": 977,
+      "source": "lichess-puzzle:00Htd",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3hyw00a9uoeu5sqlzkvk",
+      "rating": 1807,
+      "source": "lichess-puzzle:00Hpe",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3fq500a8uoeu3hd2o4uz",
+      "rating": 1564,
+      "source": "lichess-puzzle:00HoG",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3dyg00a7uoeuhx6nqqyu",
+      "rating": 1016,
+      "source": "lichess-puzzle:00HnR",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc3b1200a6uoeucrbpxtjp",
+      "rating": 546,
+      "source": "lichess-puzzle:00Hk4",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc36od00a5uoeuc8h1h2qd",
+      "rating": 834,
+      "source": "lichess-puzzle:00HeG",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc33rh00a4uoeub4bapzt3",
+      "rating": 937,
+      "source": "lichess-puzzle:00HZa",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc310d00a3uoeutc2uf710",
+      "rating": 1524,
+      "source": "lichess-puzzle:00HZC",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2ypk00a2uoeu8md4g42w",
+      "rating": 691,
+      "source": "lichess-puzzle:00HPz",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2xmq00a1uoeur0guwfbg",
+      "rating": 1261,
+      "source": "lichess-puzzle:00HJd",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2wkk00a0uoeud79e40lq",
+      "rating": 782,
+      "source": "lichess-puzzle:00HIV",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2u6u009zuoeu8qm3foiy",
+      "rating": 651,
+      "source": "lichess-puzzle:00HHN",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2rmf009yuoeuzwiimcgb",
+      "rating": 1668,
+      "source": "lichess-puzzle:00HGG",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2pnk009xuoeu137ko7xw",
+      "rating": 985,
+      "source": "lichess-puzzle:00HEx",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2m7h009wuoeuulot4ba6",
+      "rating": 803,
+      "source": "lichess-puzzle:00HEh",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2kv9009vuoeusjfcx7d7",
+      "rating": 1467,
+      "source": "lichess-puzzle:00HDS",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2ibn009uuoeu68d5fqu9",
+      "rating": 894,
+      "source": "lichess-puzzle:00H9n",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2hc8009tuoeu07hpw9ar",
+      "rating": 795,
+      "source": "lichess-puzzle:00H8a",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2eqi009suoeuuvljfxin",
+      "rating": 1958,
+      "source": "lichess-puzzle:00H87",
+      "pvLength": 14,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2dj0009ruoeuadlh884n",
+      "rating": 2439,
+      "source": "lichess-puzzle:00H5n",
+      "pvLength": 10,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2cnc009quoeun6mqpqfp",
+      "rating": 2416,
+      "source": "lichess-puzzle:00H2L",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc2bl2009puoeuqbxiemqz",
+      "rating": 2033,
+      "source": "lichess-puzzle:00H2I",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc29kd009ouoeupz03xaht",
+      "rating": 1453,
+      "source": "lichess-puzzle:00H1C",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc27ff009nuoeu2cn400qr",
+      "rating": 2446,
+      "source": "lichess-puzzle:00Gz6",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc262t009muoeuxizq4whi",
+      "rating": 450,
+      "source": "lichess-puzzle:00Gyu",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc24ul009luoeubnq4g5qd",
+      "rating": 1134,
+      "source": "lichess-puzzle:00Gvr",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc23ht009kuoeubfkfy8if",
+      "rating": 999,
+      "source": "lichess-puzzle:00Gvp",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc22iv009juoeukfe2tftu",
+      "rating": 2536,
+      "source": "lichess-puzzle:00GuG",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc21dl009iuoeuqa4rz8ba",
+      "rating": 1165,
+      "source": "lichess-puzzle:00GuD",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc20mn009huoeumvcnw5xh",
+      "rating": 1052,
+      "source": "lichess-puzzle:00Gt0",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1zur009guoeu4a7lb7it",
+      "rating": 449,
+      "source": "lichess-puzzle:00GoO",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1z7v009fuoeuebyh5pyg",
+      "rating": 1864,
+      "source": "lichess-puzzle:00GiQ",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1ym0009euoeuurq64iia",
+      "rating": 1665,
+      "source": "lichess-puzzle:00GYk",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1y08009duoeutedzz2mt",
+      "rating": 1259,
+      "source": "lichess-puzzle:00GY4",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1x8l009cuoeu6j0ppz82",
+      "rating": 2242,
+      "source": "lichess-puzzle:00GWg",
+      "pvLength": 10,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1w9u009buoeunsn22ac5",
+      "rating": 1617,
+      "source": "lichess-puzzle:00GVf",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1voa009auoeu409nflf1",
+      "rating": 430,
+      "source": "lichess-puzzle:00GRa",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1v3b0099uoeu5f8dws40",
+      "rating": 2566,
+      "source": "lichess-puzzle:00GHw",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1rs60098uoeucrbept8y",
+      "rating": 932,
+      "source": "lichess-puzzle:00GBX",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1pg80097uoeue07zqv3w",
+      "rating": 1464,
+      "source": "lichess-puzzle:00GBV",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1oq30096uoeu0kcww86p",
+      "rating": 1328,
+      "source": "lichess-puzzle:00GAf",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1o0i0095uoeudcvx2uwm",
+      "rating": 1321,
+      "source": "lichess-puzzle:00G81",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1n8q0094uoeuq7tmowgr",
+      "rating": 1240,
+      "source": "lichess-puzzle:00G7g",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1mkk0093uoeuemzh3x45",
+      "rating": 1860,
+      "source": "lichess-puzzle:00G1l",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1lsq0092uoeuztf1w87o",
+      "rating": 1339,
+      "source": "lichess-puzzle:00G0z",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1kxc0091uoeuvpz80uu8",
+      "rating": 576,
+      "source": "lichess-puzzle:00Flp",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1jx60090uoeun6hzqt44",
+      "rating": 879,
+      "source": "lichess-puzzle:00FjB",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1iwq008zuoeulihdz71n",
+      "rating": 673,
+      "source": "lichess-puzzle:00FaB",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1i5e008yuoeu2ebl309q",
+      "rating": 1763,
+      "source": "lichess-puzzle:00FPo",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc1gm3008xuoeu5610up3m",
+      "rating": 954,
+      "source": "lichess-puzzle:00FON",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc0aca008uuoeu0pi6iay8",
+      "rating": 1330,
+      "source": "lichess-puzzle:00F3S",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc098e008tuoeutt82c0sf",
+      "rating": 979,
+      "source": "lichess-puzzle:00F2o",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc088c008suoeurpetgah8",
+      "rating": 836,
+      "source": "lichess-puzzle:00F1l",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidc07ab008ruoeuidc4hzdo",
+      "rating": 1986,
+      "source": "lichess-puzzle:00Ezc",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbz07h008ouoeu1s6lyd97",
+      "rating": 1317,
+      "source": "lichess-puzzle:00Ea3",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyzie008nuoeui9a5bgmr",
+      "rating": 1580,
+      "source": "lichess-puzzle:00EXS",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyyu4008muoeun1iz1qsm",
+      "rating": 884,
+      "source": "lichess-puzzle:00EWi",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyy7d008luoeus9ufsi4y",
+      "rating": 2564,
+      "source": "lichess-puzzle:00EUu",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyxg9008kuoeukf2xufkc",
+      "rating": 729,
+      "source": "lichess-puzzle:00ERL",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbywo8008juoeuvn0nt3j4",
+      "rating": 2288,
+      "source": "lichess-puzzle:00EJb",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyvzo008iuoeucq2b6oso",
+      "rating": 1665,
+      "source": "lichess-puzzle:00EEp",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbytlv008huoeugza9l4p1",
+      "rating": 892,
+      "source": "lichess-puzzle:00EDa",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbysud008guoeu3xfm2kr4",
+      "rating": 1623,
+      "source": "lichess-puzzle:00EDN",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyrko008fuoeuys9h0h52",
+      "rating": 845,
+      "source": "lichess-puzzle:00EBZ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyq14008euoeuzxcr93d7",
+      "rating": 2290,
+      "source": "lichess-puzzle:00E4Z",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyo3v008duoeuv4ff8ytx",
+      "rating": 956,
+      "source": "lichess-puzzle:00E29",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbymnr008cuoeufohw2q23",
+      "rating": 2589,
+      "source": "lichess-puzzle:00DzI",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbykv4008buoeuilusd1lx",
+      "rating": 1386,
+      "source": "lichess-puzzle:00Dxh",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyjsu008auoeufl7aqcl0",
+      "rating": 1204,
+      "source": "lichess-puzzle:00Dt6",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyj6h0089uoeu9dmeszrb",
+      "rating": 548,
+      "source": "lichess-puzzle:00Dlt",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyibn0088uoeu61c1q1uz",
+      "rating": 1667,
+      "source": "lichess-puzzle:00DkJ",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyhl40087uoeu8otufonw",
+      "rating": 1693,
+      "source": "lichess-puzzle:00DdW",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbygf70086uoeu6hsk0fez",
+      "rating": 1367,
+      "source": "lichess-puzzle:00DcC",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyf6r0085uoeu79yelki0",
+      "rating": 2331,
+      "source": "lichess-puzzle:00DZe",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbye2i0084uoeucld4w13h",
+      "rating": 512,
+      "source": "lichess-puzzle:00DYf",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbydhi0083uoeu7vo103c1",
+      "rating": 1063,
+      "source": "lichess-puzzle:00DWo",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyc3i0082uoeuvlo7uyz5",
+      "rating": 487,
+      "source": "lichess-puzzle:00DU5",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbyar00081uoeu67pmkxnl",
+      "rating": 766,
+      "source": "lichess-puzzle:00DPQ",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidby9j50080uoeumhh5v2ko",
+      "rating": 969,
+      "source": "lichess-puzzle:00DPI",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidby85x007zuoeulng62o0o",
+      "rating": 1964,
+      "source": "lichess-puzzle:00DKr",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidby6m0007yuoeuujzsc44k",
+      "rating": 1785,
+      "source": "lichess-puzzle:00DII",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidby3zl007xuoeu9pfo7p4s",
+      "rating": 1091,
+      "source": "lichess-puzzle:00DEc",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidby2ta007wuoeu53x36yv8",
+      "rating": 1168,
+      "source": "lichess-puzzle:00DBg",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidby1z0007vuoeuy79f2hum",
+      "rating": 1244,
+      "source": "lichess-puzzle:00DBP",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidby0p9007uuoeu0ep0zgel",
+      "rating": 724,
+      "source": "lichess-puzzle:00DAs",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxzfl007tuoeukof44q37",
+      "rating": 1969,
+      "source": "lichess-puzzle:00D77",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxyg3007suoeuzsz5m4r0",
+      "rating": 2263,
+      "source": "lichess-puzzle:00D12",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxx44007ruoeudy165nmn",
+      "rating": 1489,
+      "source": "lichess-puzzle:00Cwz",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxwep007quoeufnditiln",
+      "rating": 948,
+      "source": "lichess-puzzle:00CtS",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxvok007puoeuomsy0tm0",
+      "rating": 1406,
+      "source": "lichess-puzzle:00Cs4",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxv11007ouoeup79kk78t",
+      "rating": 633,
+      "source": "lichess-puzzle:00CpR",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxud0007nuoeuajs75b33",
+      "rating": 1362,
+      "source": "lichess-puzzle:00CiZ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxto4007muoeu3cagldum",
+      "rating": 549,
+      "source": "lichess-puzzle:00Cfq",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxt09007luoeum7rbj65g",
+      "rating": 1691,
+      "source": "lichess-puzzle:00CcK",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxsbc007kuoeuss3414ol",
+      "rating": 2354,
+      "source": "lichess-puzzle:00CbV",
+      "pvLength": 10,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxrm5007juoeuqibos4ea",
+      "rating": 1920,
+      "source": "lichess-puzzle:00CXr",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxqye007iuoeuicnlyueq",
+      "rating": 1515,
+      "source": "lichess-puzzle:00CWE",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxq90007huoeucrjsd2k1",
+      "rating": 2569,
+      "source": "lichess-puzzle:00CNA",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxpku007guoeua60zqmu2",
+      "rating": 1713,
+      "source": "lichess-puzzle:00CMj",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxowt007fuoeuxhhs9ljm",
+      "rating": 404,
+      "source": "lichess-puzzle:00CFp",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxob5007euoeu7fh3ksf1",
+      "rating": 1822,
+      "source": "lichess-puzzle:00CBU",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxnk1007duoeu7pkfl8i6",
+      "rating": 1509,
+      "source": "lichess-puzzle:00C8e",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxmvv007cuoeuk75qrxig",
+      "rating": 1043,
+      "source": "lichess-puzzle:00C8Y",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxm5y007buoeulixao1sb",
+      "rating": 749,
+      "source": "lichess-puzzle:00C7m",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxli0007auoeun69vc3hr",
+      "rating": 2104,
+      "source": "lichess-puzzle:00C3O",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxktu0079uoeuwtc28e0j",
+      "rating": 1180,
+      "source": "lichess-puzzle:00Bul",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxk0l0078uoeu4ooeuk6u",
+      "rating": 849,
+      "source": "lichess-puzzle:00Bse",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxjbk0077uoeumscq08q9",
+      "rating": 1382,
+      "source": "lichess-puzzle:00BrZ",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxi110076uoeu7whmpxnv",
+      "rating": 1304,
+      "source": "lichess-puzzle:00Bp0",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxgqu0075uoeujlmmcxzh",
+      "rating": 889,
+      "source": "lichess-puzzle:00Bot",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxfzt0074uoeuq6yhokim",
+      "rating": 691,
+      "source": "lichess-puzzle:00Bn4",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxf8g0073uoeulcds8y3o",
+      "rating": 1039,
+      "source": "lichess-puzzle:00Bn0",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxd0r0072uoeu91lbrex3",
+      "rating": 1126,
+      "source": "lichess-puzzle:00Bm8",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxc290071uoeug7u6jsit",
+      "rating": 1373,
+      "source": "lichess-puzzle:00Bg4",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxb700070uoeu7lpaxacq",
+      "rating": 1308,
+      "source": "lichess-puzzle:00Bg0",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbxahy006zuoeuxwqf8ic7",
+      "rating": 1695,
+      "source": "lichess-puzzle:00Bex",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx9sn006yuoeuzzx6uv6p",
+      "rating": 1257,
+      "source": "lichess-puzzle:00BSo",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx93z006xuoeucfw3qp6n",
+      "rating": 721,
+      "source": "lichess-puzzle:00BQD",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx8g5006wuoeurm25u194",
+      "rating": 1839,
+      "source": "lichess-puzzle:00BPh",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx7o6006vuoeu0dmd2v7f",
+      "rating": 906,
+      "source": "lichess-puzzle:00BNd",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx6zh006uuoeu748eztut",
+      "rating": 1656,
+      "source": "lichess-puzzle:00BM8",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx68b006tuoeu7w4rse7i",
+      "rating": 2570,
+      "source": "lichess-puzzle:00BKa",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx5hz006suoeu53wdudc7",
+      "rating": 1050,
+      "source": "lichess-puzzle:00BJm",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx4ca006ruoeuv04rxqty",
+      "rating": 1500,
+      "source": "lichess-puzzle:00B8m",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx372006quoeuk8iqg7ih",
+      "rating": 1643,
+      "source": "lichess-puzzle:00B7G",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx2in006puoeumtkrt1ue",
+      "rating": 1441,
+      "source": "lichess-puzzle:00B3B",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx1r5006ouoeufhyqfb2r",
+      "rating": 830,
+      "source": "lichess-puzzle:00B2k",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx0xa006nuoeue19u89zx",
+      "rating": 2685,
+      "source": "lichess-puzzle:00Aul",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbx09d006muoeu8infs3e8",
+      "rating": 1695,
+      "source": "lichess-puzzle:00AuR",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwzl9006luoeul4311lg8",
+      "rating": 924,
+      "source": "lichess-puzzle:00Au2",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwwjk006kuoeunjwuamhk",
+      "rating": 1808,
+      "source": "lichess-puzzle:00Ar2",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwvjh006juoeuwj01nnux",
+      "rating": 1437,
+      "source": "lichess-puzzle:00Aq4",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwusm006iuoeurwuk3g8m",
+      "rating": 2236,
+      "source": "lichess-puzzle:00Aok",
+      "pvLength": 10,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwu3f006huoeu3ox1sanq",
+      "rating": 1033,
+      "source": "lichess-puzzle:00AoZ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwtfn006guoeucd84deq3",
+      "rating": 1677,
+      "source": "lichess-puzzle:00Al5",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwso1006fuoeus6y82y1q",
+      "rating": 1135,
+      "source": "lichess-puzzle:00Ahb",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwrto006euoeup4nu4cky",
+      "rating": 1281,
+      "source": "lichess-puzzle:00AhO",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwr4q006duoeuoipsf8t5",
+      "rating": 969,
+      "source": "lichess-puzzle:00AfZ",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwqdf006cuoeu1eavekn5",
+      "rating": 1174,
+      "source": "lichess-puzzle:00Af3",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwpl6006buoeu95h3ndnq",
+      "rating": 1227,
+      "source": "lichess-puzzle:00AdI",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwovc006auoeuqd4yugj4",
+      "rating": 1682,
+      "source": "lichess-puzzle:00AcQ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwn080069uoeuh9aypl11",
+      "rating": 2158,
+      "source": "lichess-puzzle:00Ac7",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwmcn0068uoeualaptwl5",
+      "rating": 804,
+      "source": "lichess-puzzle:00AbP",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwlnu0067uoeucr3gcx85",
+      "rating": 1273,
+      "source": "lichess-puzzle:00Aas",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwl5o0066uoeugjfy5re4",
+      "rating": 1020,
+      "source": "lichess-puzzle:00Aae",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwkgw0065uoeuzyzpe0i3",
+      "rating": 2115,
+      "source": "lichess-puzzle:00AXb",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwjq20064uoeuip4x5qok",
+      "rating": 1771,
+      "source": "lichess-puzzle:00AVR",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwj250063uoeuhf7ndwsg",
+      "rating": 885,
+      "source": "lichess-puzzle:00AOH",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwif50062uoeuywym67ny",
+      "rating": 1358,
+      "source": "lichess-puzzle:00AHY",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwhpq0061uoeuhsav725w",
+      "rating": 932,
+      "source": "lichess-puzzle:00AGs",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwgxk0060uoeujwqtfne7",
+      "rating": 1018,
+      "source": "lichess-puzzle:00AB1",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwg8e005zuoeuxdrub8i6",
+      "rating": 876,
+      "source": "lichess-puzzle:00A5v",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwfif005yuoeuhhpxuobv",
+      "rating": 1984,
+      "source": "lichess-puzzle:00A5m",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwer9005xuoeu5p43t63f",
+      "rating": 2041,
+      "source": "lichess-puzzle:00A1H",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwe01005wuoeulh1aeds2",
+      "rating": 1315,
+      "source": "lichess-puzzle:009zS",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwdco005vuoeuqo2s9fz8",
+      "rating": 1629,
+      "source": "lichess-puzzle:009zR",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbwcpa005uuoeuwa1y1mmw",
+      "rating": 1042,
+      "source": "lichess-puzzle:009uB",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvok9005ruoeu08fpys2c",
+      "rating": 1116,
+      "source": "lichess-puzzle:009f8",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvnlq005quoeuiyv4r194",
+      "rating": 992,
+      "source": "lichess-puzzle:009eX",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvmrn005puoeuvhv6i7y6",
+      "rating": 836,
+      "source": "lichess-puzzle:009bn",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvm0i005ouoeuzz5yumld",
+      "rating": 1048,
+      "source": "lichess-puzzle:009bR",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvkma005nuoeu0mbyl6lw",
+      "rating": 1429,
+      "source": "lichess-puzzle:009aD",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvj66005muoeufc8a8uei",
+      "rating": 687,
+      "source": "lichess-puzzle:009YT",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvijq005luoeucs8zc90t",
+      "rating": 1913,
+      "source": "lichess-puzzle:009XT",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvhxl005kuoeukzci7awk",
+      "rating": 1102,
+      "source": "lichess-puzzle:009Wc",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvh8n005juoeud486hpt3",
+      "rating": 1392,
+      "source": "lichess-puzzle:009Os",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvgi1005iuoeu12w5fbqi",
+      "rating": 706,
+      "source": "lichess-puzzle:009L0",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvfv2005huoeui0e3c0no",
+      "rating": 1163,
+      "source": "lichess-puzzle:009IO",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvf9h005guoeuml1ysie6",
+      "rating": 1702,
+      "source": "lichess-puzzle:009FS",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbveog005fuoeub25w1pf6",
+      "rating": 1376,
+      "source": "lichess-puzzle:009FP",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvdj2005euoeu2xrbnvrh",
+      "rating": 1566,
+      "source": "lichess-puzzle:009BH",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvcv5005duoeuxbcamgpa",
+      "rating": 1850,
+      "source": "lichess-puzzle:0095W",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvc3g005cuoeuiwyt7wea",
+      "rating": 938,
+      "source": "lichess-puzzle:0092z",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvbik005buoeuz2jjnh5i",
+      "rating": 2307,
+      "source": "lichess-puzzle:0092V",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvaxx005auoeue6vhi2xk",
+      "rating": 2239,
+      "source": "lichess-puzzle:0091A",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbvadd0059uoeu9an6xule",
+      "rating": 1104,
+      "source": "lichess-puzzle:008tL",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv9tw0058uoeuk5l0shsu",
+      "rating": 920,
+      "source": "lichess-puzzle:008rw",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv95t0057uoeuu57qwhbi",
+      "rating": 978,
+      "source": "lichess-puzzle:008oX",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv8m30056uoeufoiex944",
+      "rating": 471,
+      "source": "lichess-puzzle:008o6",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv6y90055uoeufqptykfd",
+      "rating": 2133,
+      "source": "lichess-puzzle:008nF",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv6b40054uoeust97a61v",
+      "rating": 2074,
+      "source": "lichess-puzzle:008lc",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv5pn0053uoeuwzd4q7a8",
+      "rating": 813,
+      "source": "lichess-puzzle:008cl",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv53s0052uoeu15kbglk7",
+      "rating": 1082,
+      "source": "lichess-puzzle:008Y3",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv4ij0051uoeuik962xmr",
+      "rating": 2140,
+      "source": "lichess-puzzle:008Sk",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv3xd0050uoeu0x0id271",
+      "rating": 788,
+      "source": "lichess-puzzle:008P4",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv3dv004zuoeuxz22t2mt",
+      "rating": 455,
+      "source": "lichess-puzzle:008Nz",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv2x8004yuoeurf42ljkr",
+      "rating": 2092,
+      "source": "lichess-puzzle:008LT",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv2fr004xuoeulou9fexx",
+      "rating": 404,
+      "source": "lichess-puzzle:008LD",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv1z5004wuoeutxdm1yrx",
+      "rating": 536,
+      "source": "lichess-puzzle:008GK",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv1gk004vuoeuxkb0x3g3",
+      "rating": 2244,
+      "source": "lichess-puzzle:008EC",
+      "pvLength": 10,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv0xm004uuoeuxxhiuo0y",
+      "rating": 1423,
+      "source": "lichess-puzzle:008D5",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbv0ap004tuoeu14hzmo91",
+      "rating": 1133,
+      "source": "lichess-puzzle:0088O",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuzry004suoeuxc4j7cle",
+      "rating": 932,
+      "source": "lichess-puzzle:0082f",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuz9u004ruoeumv2cn6aq",
+      "rating": 1148,
+      "source": "lichess-puzzle:007tv",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuyss004quoeu768aibdl",
+      "rating": 1627,
+      "source": "lichess-puzzle:007ku",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuy3k004puoeudxxogxx1",
+      "rating": 2177,
+      "source": "lichess-puzzle:007gO",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuxg3004ouoeufdnm8uy1",
+      "rating": 542,
+      "source": "lichess-puzzle:007fJ",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuwr8004nuoeujdra8kio",
+      "rating": 1876,
+      "source": "lichess-puzzle:007en",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuw2o004muoeuwr25hlui",
+      "rating": 1297,
+      "source": "lichess-puzzle:007eS",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuvh9004luoeu5g61si42",
+      "rating": 721,
+      "source": "lichess-puzzle:007c6",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuuvw004kuoeu2gwv0ja7",
+      "rating": 645,
+      "source": "lichess-puzzle:007XE",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuu8i004juoeuu8dy0vfu",
+      "rating": 992,
+      "source": "lichess-puzzle:007Rn",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbutjx004iuoeub502ix9i",
+      "rating": 542,
+      "source": "lichess-puzzle:007HB",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbusw8004huoeujty693he",
+      "rating": 1597,
+      "source": "lichess-puzzle:007AS",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbus3p004guoeugh43rev2",
+      "rating": 2248,
+      "source": "lichess-puzzle:0078T",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbur2y004fuoeu582k1lbx",
+      "rating": 1474,
+      "source": "lichess-puzzle:00761",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuq7l004euoeudv1qsiui",
+      "rating": 1661,
+      "source": "lichess-puzzle:00734",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbupfd004duoeuodgwjhd0",
+      "rating": 2325,
+      "source": "lichess-puzzle:0072T",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuorb004cuoeu7uv3ho67",
+      "rating": 483,
+      "source": "lichess-puzzle:0071N",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbunz0004buoeugl45lvx4",
+      "rating": 1130,
+      "source": "lichess-puzzle:0071K",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbun9n004auoeubem8hp4e",
+      "rating": 819,
+      "source": "lichess-puzzle:006yP",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbumjn0049uoeuks367yi8",
+      "rating": 1434,
+      "source": "lichess-puzzle:006wz",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbulq40048uoeuh9kqwu7u",
+      "rating": 1628,
+      "source": "lichess-puzzle:006pe",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbukpn0047uoeuk9zsyg9j",
+      "rating": 1816,
+      "source": "lichess-puzzle:006om",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbujr10046uoeu120x8xks",
+      "rating": 2602,
+      "source": "lichess-puzzle:006of",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuite0045uoeubsjr9bqe",
+      "rating": 2073,
+      "source": "lichess-puzzle:006ia",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbugr00044uoeunbf04djr",
+      "rating": 1727,
+      "source": "lichess-puzzle:006i7",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbufwb0043uoeucanm9o4g",
+      "rating": 1768,
+      "source": "lichess-puzzle:006fF",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuf2d0042uoeu21boqx04",
+      "rating": 1365,
+      "source": "lichess-puzzle:006cZ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbue6o0041uoeusf5py6gj",
+      "rating": 2337,
+      "source": "lichess-puzzle:006XF",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbucqt0040uoeury2jv17q",
+      "rating": 1455,
+      "source": "lichess-puzzle:006RM",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbuc21003zuoeuheluk8cg",
+      "rating": 843,
+      "source": "lichess-puzzle:006OI",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbub6j003yuoeuth2sbfhd",
+      "rating": 2545,
+      "source": "lichess-puzzle:006NL",
+      "pvLength": 10,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbua9t003xuoeu3rtl03ra",
+      "rating": 1145,
+      "source": "lichess-puzzle:006HV",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu9ie003wuoeu160nxouc",
+      "rating": 1086,
+      "source": "lichess-puzzle:006GK",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu8el003vuoeuodeg4ms9",
+      "rating": 1567,
+      "source": "lichess-puzzle:006E1",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu7ps003uuoeu2s53cn0g",
+      "rating": 1867,
+      "source": "lichess-puzzle:0068D",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu70v003tuoeua512jo5a",
+      "rating": 1388,
+      "source": "lichess-puzzle:0068B",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu696003suoeuj9qouvnf",
+      "rating": 652,
+      "source": "lichess-puzzle:00656",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu5np003ruoeuynsywb08",
+      "rating": 801,
+      "source": "lichess-puzzle:0061g",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu50k003quoeuwe4i10uc",
+      "rating": 2973,
+      "source": "lichess-puzzle:005yO",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu4bo003puoeudm87oqvi",
+      "rating": 1914,
+      "source": "lichess-puzzle:005xu",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu3bn003ouoeuohgrofnr",
+      "rating": 917,
+      "source": "lichess-puzzle:005x9",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu2kt003nuoeu8d1c5c26",
+      "rating": 1881,
+      "source": "lichess-puzzle:005wy",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu1px003muoeuaghfw94n",
+      "rating": 2339,
+      "source": "lichess-puzzle:005ws",
+      "pvLength": 10,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu0zc003luoeuro8ydhig",
+      "rating": 1558,
+      "source": "lichess-puzzle:005wJ",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbu0bo003kuoeuukgguuwu",
+      "rating": 2310,
+      "source": "lichess-puzzle:005qG",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtzlp003juoeuwtk9dd9p",
+      "rating": 1066,
+      "source": "lichess-puzzle:005nD",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtyxu003iuoeu626f89w6",
+      "rating": 2696,
+      "source": "lichess-puzzle:005jR",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtxyj003huoeuqou5ac24",
+      "rating": 1215,
+      "source": "lichess-puzzle:005jJ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtx8e003guoeujp41qblg",
+      "rating": 1995,
+      "source": "lichess-puzzle:005f3",
+      "pvLength": 12,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtwij003fuoeuv5yz3rin",
+      "rating": 1444,
+      "source": "lichess-puzzle:005do",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtvq4003euoeuf4vfa0qc",
+      "rating": 1820,
+      "source": "lichess-puzzle:005YX",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtv1u003duoeu9parfn9f",
+      "rating": 2437,
+      "source": "lichess-puzzle:005YM",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtua6003cuoeuoalyudf1",
+      "rating": 640,
+      "source": "lichess-puzzle:005N7",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbttov003buoeuhmmbmwp5",
+      "rating": 850,
+      "source": "lichess-puzzle:005Ep",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtt01003auoeuv78d1cbh",
+      "rating": 1322,
+      "source": "lichess-puzzle:005Bm",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtr4e0039uoeuboedg6f6",
+      "rating": 2041,
+      "source": "lichess-puzzle:0055Y",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtq0o0038uoeuriensexu",
+      "rating": 1456,
+      "source": "lichess-puzzle:0054a",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtp4l0037uoeusve8k5ud",
+      "rating": 1068,
+      "source": "lichess-puzzle:0050w",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtok50036uoeuheh3jbw8",
+      "rating": 2622,
+      "source": "lichess-puzzle:004zh",
+      "pvLength": 12,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtntt0035uoeuxc3n124r",
+      "rating": 1461,
+      "source": "lichess-puzzle:004zI",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtn3l0034uoeuizvi5yob",
+      "rating": 1388,
+      "source": "lichess-puzzle:004u0",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtmfm0033uoeuwkftmjwa",
+      "rating": 2444,
+      "source": "lichess-puzzle:004sg",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtls90032uoeuo38ptjxq",
+      "rating": 2191,
+      "source": "lichess-puzzle:004sY",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtl000031uoeu1opipvoh",
+      "rating": 898,
+      "source": "lichess-puzzle:004nd",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtk530030uoeuoqlueqe9",
+      "rating": 1338,
+      "source": "lichess-puzzle:004mT",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtj9f002zuoeux9a3n151",
+      "rating": 1209,
+      "source": "lichess-puzzle:004kB",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtidq002yuoeuph0jvtrt",
+      "rating": 400,
+      "source": "lichess-puzzle:004iZ",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbthin002xuoeuwdn55ew9",
+      "rating": 1608,
+      "source": "lichess-puzzle:004d8",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtgpw002wuoeu5v6glwxq",
+      "rating": 2368,
+      "source": "lichess-puzzle:004b0",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtfu1002vuoeuoqrf25th",
+      "rating": 2362,
+      "source": "lichess-puzzle:004Ys",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtezq002uuoeuiuyzhbd2",
+      "rating": 982,
+      "source": "lichess-puzzle:004XI",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbte2g002tuoeutkcp8kvh",
+      "rating": 1152,
+      "source": "lichess-puzzle:004X6",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtd6s002suoeuno5f8zj6",
+      "rating": 891,
+      "source": "lichess-puzzle:004WZ",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtc9g002ruoeukpxuwply",
+      "rating": 1625,
+      "source": "lichess-puzzle:004Ud",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbtb5l002quoeu8zvggvpk",
+      "rating": 1746,
+      "source": "lichess-puzzle:004RF",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbt9vk002puoeursp1yx7d",
+      "rating": 2189,
+      "source": "lichess-puzzle:004Op",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbt8ev002ouoeupn6h15cc",
+      "rating": 1157,
+      "source": "lichess-puzzle:004Lu",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbt7kv002nuoeujry5efzb",
+      "rating": 1201,
+      "source": "lichess-puzzle:004LZ",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbt6op002muoeuh5cbkbun",
+      "rating": 1238,
+      "source": "lichess-puzzle:004JD",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbt5uf002luoeu4wsutkuh",
+      "rating": 1611,
+      "source": "lichess-puzzle:004BW",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbt52z002kuoeujfdmkjm3",
+      "rating": 1928,
+      "source": "lichess-puzzle:004Ax",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbt494002juoeuyv7xlvlk",
+      "rating": 1711,
+      "source": "lichess-puzzle:004Ao",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbt3h6002iuoeuewyus21r",
+      "rating": 1166,
+      "source": "lichess-puzzle:0048h",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbt0sm002huoeuk7qzmzlq",
+      "rating": 1769,
+      "source": "lichess-puzzle:0047P",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbszw2002guoeujaafzdjy",
+      "rating": 573,
+      "source": "lichess-puzzle:00465",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsyzn002fuoeux41ianxf",
+      "rating": 428,
+      "source": "lichess-puzzle:0042j",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsyeb002euoeu1bpphy21",
+      "rating": 1983,
+      "source": "lichess-puzzle:003wQ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsxp3002duoeuzc7te4ti",
+      "rating": 1107,
+      "source": "lichess-puzzle:003r5",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsx0c002cuoeundi3gnee",
+      "rating": 1003,
+      "source": "lichess-puzzle:003o0",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsw99002buoeu6bfbdiqt",
+      "rating": 1287,
+      "source": "lichess-puzzle:003nQ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsvgf002auoeuww774tch",
+      "rating": 1419,
+      "source": "lichess-puzzle:003mh",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsuoq0029uoeu5eqsqzjg",
+      "rating": 2155,
+      "source": "lichess-puzzle:003md",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbstxp0028uoeuibeq5mg5",
+      "rating": 1007,
+      "source": "lichess-puzzle:003jv",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbst7a0027uoeuuzo7veri",
+      "rating": 961,
+      "source": "lichess-puzzle:003jb",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbssfl0026uoeu1ll2bpam",
+      "rating": 1067,
+      "source": "lichess-puzzle:003jH",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsrly0025uoeur6tnv1ve",
+      "rating": 1632,
+      "source": "lichess-puzzle:003if",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsqxf0024uoeuvrddskvg",
+      "rating": 1156,
+      "source": "lichess-puzzle:003eP",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsq9h0023uoeuqq3lrbmp",
+      "rating": 1995,
+      "source": "lichess-puzzle:003cs",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsplr0022uoeusugs0ggw",
+      "rating": 1959,
+      "source": "lichess-puzzle:003aS",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsovi0021uoeuwebq57r5",
+      "rating": 1055,
+      "source": "lichess-puzzle:003YF",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsnta0020uoeul01d915s",
+      "rating": 1521,
+      "source": "lichess-puzzle:003UW",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsmix001zuoeueqlltfuv",
+      "rating": 1532,
+      "source": "lichess-puzzle:003Tx",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbslni001yuoeup29v747d",
+      "rating": 1384,
+      "source": "lichess-puzzle:003S3",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbskxk001xuoeukdscgalj",
+      "rating": 993,
+      "source": "lichess-puzzle:003Jb",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsk7b001wuoeubw0eng5e",
+      "rating": 1718,
+      "source": "lichess-puzzle:003IX",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsjnq001vuoeuuxm3095n",
+      "rating": 947,
+      "source": "lichess-puzzle:003AX",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsid2001uuoeuwtm8bsk5",
+      "rating": 1067,
+      "source": "lichess-puzzle:0039T",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsgsj001tuoeuyjkcg1mh",
+      "rating": 2264,
+      "source": "lichess-puzzle:00347",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsf4i001suoeuhk7w7i9t",
+      "rating": 771,
+      "source": "lichess-puzzle:0030b",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbse24001ruoeulgc9g0lc",
+      "rating": 2099,
+      "source": "lichess-puzzle:002xh",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbscm2001quoeuybgcjv88",
+      "rating": 435,
+      "source": "lichess-puzzle:002vV",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbsa52001puoeu08xdcv2v",
+      "rating": 1631,
+      "source": "lichess-puzzle:002uV",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbs96i001ouoeusebn8jqh",
+      "rating": 1795,
+      "source": "lichess-puzzle:002rd",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbs7x2001nuoeu76dnoix3",
+      "rating": 880,
+      "source": "lichess-puzzle:002p5",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbs6wq001muoeuxpnybpxf",
+      "rating": 2465,
+      "source": "lichess-puzzle:002e8",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbs5w5001luoeuad5ydxiv",
+      "rating": 2583,
+      "source": "lichess-puzzle:002e5",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbs52e001kuoeu31gxtno0",
+      "rating": 1129,
+      "source": "lichess-puzzle:002bK",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbs3uz001juoeuq4gixnv7",
+      "rating": 1237,
+      "source": "lichess-puzzle:002Z9",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbs2hl001iuoeualgi65xz",
+      "rating": 1420,
+      "source": "lichess-puzzle:002VP",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbs0p0001huoeuxcciwn8x",
+      "rating": 1572,
+      "source": "lichess-puzzle:002Uy",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrzcp001guoeu1nyk9ywy",
+      "rating": 1659,
+      "source": "lichess-puzzle:002Ua",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbry8x001fuoeux0imkgvz",
+      "rating": 1576,
+      "source": "lichess-puzzle:002Tf",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrxi7001euoeu5axlyk1f",
+      "rating": 881,
+      "source": "lichess-puzzle:002Q2",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrws9001duoeuc3ivhkhw",
+      "rating": 968,
+      "source": "lichess-puzzle:002O7",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrvtn001cuoeuj9ed5403",
+      "rating": 2464,
+      "source": "lichess-puzzle:002LW",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrv1z001buoeu3uje72db",
+      "rating": 2158,
+      "source": "lichess-puzzle:002LF",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbru1p001auoeuf3u0mt0i",
+      "rating": 1644,
+      "source": "lichess-puzzle:002KJ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrsqu0019uoeu9r8s9n5b",
+      "rating": 1219,
+      "source": "lichess-puzzle:002IE",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrrri0018uoeun8hlajte",
+      "rating": 1603,
+      "source": "lichess-puzzle:002Hv",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrqhv0017uoeub5f8bj7x",
+      "rating": 654,
+      "source": "lichess-puzzle:002GQ",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrpsg0016uoeu4z4tkmll",
+      "rating": 1987,
+      "source": "lichess-puzzle:002Ds",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrox50015uoeulzv9fro0",
+      "rating": 926,
+      "source": "lichess-puzzle:002CP",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrnyn0014uoeu6dxmxnt7",
+      "rating": 1149,
+      "source": "lichess-puzzle:001xl",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrn350013uoeunilysszq",
+      "rating": 1812,
+      "source": "lichess-puzzle:001xO",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrmd20012uoeu7te2r6yp",
+      "rating": 987,
+      "source": "lichess-puzzle:001wr",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrkhs0011uoeuw8bvxrt1",
+      "rating": 1246,
+      "source": "lichess-puzzle:001wb",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrjlm0010uoeulwnxb2kx",
+      "rating": 1172,
+      "source": "lichess-puzzle:001wR",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrilk000zuoeu84gh3jkj",
+      "rating": 1039,
+      "source": "lichess-puzzle:001w5",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrhkd000yuoeufgg4a1yh",
+      "rating": 1894,
+      "source": "lichess-puzzle:001uD",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrgw4000xuoeuyuypmaij",
+      "rating": 2175,
+      "source": "lichess-puzzle:001u3",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrg88000wuoeuqja0bmk4",
+      "rating": 809,
+      "source": "lichess-puzzle:001pC",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrfij000vuoeutdhtril5",
+      "rating": 1018,
+      "source": "lichess-puzzle:001om",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbresn000uuoeuukd5nzvc",
+      "rating": 1467,
+      "source": "lichess-puzzle:001m3",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrdvr000tuoeu7qhhk9z9",
+      "rating": 1780,
+      "source": "lichess-puzzle:001h8",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrd21000suoeui3rprs7k",
+      "rating": 820,
+      "source": "lichess-puzzle:001gi",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrceb000ruoeuzejn0p18",
+      "rating": 1703,
+      "source": "lichess-puzzle:001cr",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbrbkf000quoeu037oulvb",
+      "rating": 1989,
+      "source": "lichess-puzzle:001aK",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbratm000puoeukei8nafp",
+      "rating": 1648,
+      "source": "lichess-puzzle:001XA",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbra1e000ouoeu563vp5c5",
+      "rating": 1120,
+      "source": "lichess-puzzle:001Wz",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr9ai000nuoeuwssz9jgq",
+      "rating": 2069,
+      "source": "lichess-puzzle:001Oo",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr8ln000muoeu5b7psy2u",
+      "rating": 658,
+      "source": "lichess-puzzle:001KR",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr7ur000luoeu5m8dqram",
+      "rating": 2389,
+      "source": "lichess-puzzle:001Hi",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr71n000kuoeuj23e1jzq",
+      "rating": 1390,
+      "source": "lichess-puzzle:001Fg",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr64l000juoeuwhhtmzoz",
+      "rating": 2560,
+      "source": "lichess-puzzle:0018S",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr5ai000iuoeu7frgwqbs",
+      "rating": 1694,
+      "source": "lichess-puzzle:0017R",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr4n0000huoeuwqaat4iw",
+      "rating": 1835,
+      "source": "lichess-puzzle:00143",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr3qg000guoeuyga0jlwk",
+      "rating": 923,
+      "source": "lichess-puzzle:000rZ",
+      "pvLength": 2,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr2tu000fuoeudvtkc9gg",
+      "rating": 1110,
+      "source": "lichess-puzzle:000rO",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr1z4000euoeuamg306s7",
+      "rating": 2052,
+      "source": "lichess-puzzle:000qP",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr142000duoeuqbmlqy7v",
+      "rating": 946,
+      "source": "lichess-puzzle:000o3",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbr06w000cuoeurv8kdqow",
+      "rating": 1941,
+      "source": "lichess-puzzle:000mr",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbqz6d000buoeubuxrij6p",
+      "rating": 1378,
+      "source": "lichess-puzzle:000lC",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbqybb000auoeuivdpm21x",
+      "rating": 1508,
+      "source": "lichess-puzzle:000hf",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbqxho0009uoeucqabz4tn",
+      "rating": 1930,
+      "source": "lichess-puzzle:000h0",
+      "pvLength": 8,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbqwk00008uoeu12g238mi",
+      "rating": 1436,
+      "source": "lichess-puzzle:000aY",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbquna0007uoeur6ssryj1",
+      "rating": 1353,
+      "source": "lichess-puzzle:000Zo",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbqsyb0006uoeuapvv0fue",
+      "rating": 1615,
+      "source": "lichess-puzzle:000Vc",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbqs1f0005uoeu3emcye62",
+      "rating": 2854,
+      "source": "lichess-puzzle:000VW",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbqqv90004uoeumc6cantz",
+      "rating": 1425,
+      "source": "lichess-puzzle:000Pw",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbqp690003uoeul10yoc02",
+      "rating": 1103,
+      "source": "lichess-puzzle:0009B",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbqnva0002uoeu3l8f6r5a",
+      "rating": 1340,
+      "source": "lichess-puzzle:0008Q",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbqm070001uoeut7jylm2b",
+      "rating": 1492,
+      "source": "lichess-puzzle:0000D",
+      "pvLength": 4,
+      "isMatePuzzle": false
+    },
+    {
+      "id": "cmidbql3v0000uoeueu9grmbi",
+      "rating": 1800,
+      "source": "lichess-puzzle:00008",
+      "pvLength": 6,
+      "isMatePuzzle": false
+    }
+  ],
+  "invalidPuzzles": [],
+  "invalidPuzzleIds": [],
+  "statistics": {
+    "bySource": {
+      "lichess-puzzle:00Qog": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Qo8": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QnO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Qm5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Qlc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QkV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QjF": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QZV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QZ3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QY3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QW1": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QVZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QQS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QOp": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QOa": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QN3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QHM": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QCe": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QCD": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00QBx": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Q4v": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Q4m": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Pw1": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00PvX": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00PvP": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Pu5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00PrK": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Pr6": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Pms": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Pgk": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00PgQ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Pc8": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Pbs": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00PIO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00PHg": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00PGi": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00PF3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00P81": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00P7n": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00P6s": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00P6j": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00P45": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ozz": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Oyf": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Or5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Oqz": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Oim": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ocp": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00OYl": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00OXc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00OR6": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00OQt": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00OPk": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00OPi": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00OPc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00OOp": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00ON5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00OKo": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00OCQ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00O9a": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00O9Z": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00O8m": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00O3h": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00O37": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00O2z": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Nte": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ns0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Nqd": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Nih": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NiV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Nhl": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ngg": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IiM": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IbM": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IaZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IYg": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IUW": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IUT": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00ITc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00ISm": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IPp": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IMS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00FOM": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00FND": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00FHX": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00FHO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00FH6": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00FF5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00FAe": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00F6y": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00F5G": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Evs": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Erm": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Er4": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EoE": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Enl": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EgR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EdH": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ec4": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EbJ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009tE": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009oc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009lk": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009hH": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00O14": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Nua": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Nf5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Nej": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Nay": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NaX": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NVe": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NUc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NUS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NOI": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NKk": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NHK": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NGM": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NEO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NBR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00NAM": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00N3B": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Mzs": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MyT": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MwU": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Msq": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Mf0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Mei": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MeO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Mca": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Mbv": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MZr": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MYL": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MWz": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MTG": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MS3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MNf": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MIY": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MHi": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MGA": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MFe": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00ME0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MDy": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00MBF": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00M7w": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00M6i": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00M1q": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00M0i": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Lyc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Lt1": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Lqo": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LoE": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Lhb": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Lh9": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LdT": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LZl": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LZf": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LXD": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LWX": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LUZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LSv": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LRv": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LRq": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LOy": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LO6": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LNB": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LMb": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LI0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LH7": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LG5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00LBF": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00L84": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00L53": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00L4x": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00L1Y": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Kyy": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Kxt": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ksa": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Kq4": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Knu": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Kip": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Kia": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KhM": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KgR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Keu": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Kd8": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Kbj": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KYU": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KYE": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KYC": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KVb": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KVO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KVF": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KSB": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KOz": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KO5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KNK": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KNB": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KMV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00KHR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00K8j": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00K48": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00K0G": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JzT": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JtR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JsQ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JqT": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JfN": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JaW": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JZk": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JYV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JS1": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JR7": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JQS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JO7": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JMV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JH5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JFF": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00JET": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00J7i": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00J5r": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00J1t": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00J1Y": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ivf": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IqI": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IpT": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00InW": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IHi": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IFk": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IF7": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IF1": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IEW": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00IDw": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00ICz": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00I8g": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HzX": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HzH": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Hxb": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Huv": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Hut": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Htd": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Hpe": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HoG": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HnR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Hk4": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HeG": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HZa": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HZC": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HPz": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HJd": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HIV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HHN": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HGG": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HEx": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HEh": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00HDS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00H9n": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00H8a": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00H87": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00H5n": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00H2L": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00H2I": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00H1C": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Gz6": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Gyu": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Gvr": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Gvp": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GuG": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GuD": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Gt0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GoO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GiQ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GYk": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GY4": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GWg": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GVf": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GRa": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GHw": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GBX": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GBV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00GAf": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00G81": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00G7g": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00G1l": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00G0z": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Flp": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00FjB": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00FaB": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00FPo": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00FON": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00F3S": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00F2o": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00F1l": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ezc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ea3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EXS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EWi": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EUu": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00ERL": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EJb": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EEp": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EDa": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EDN": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00EBZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00E4Z": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00E29": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DzI": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Dxh": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Dt6": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Dlt": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DkJ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DdW": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DcC": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DZe": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DYf": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DWo": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DU5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DPQ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DPI": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DKr": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DII": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DEc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DBg": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DBP": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00DAs": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00D77": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00D12": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Cwz": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00CtS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Cs4": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00CpR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00CiZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Cfq": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00CcK": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00CbV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00CXr": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00CWE": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00CNA": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00CMj": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00CFp": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00CBU": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00C8e": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00C8Y": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00C7m": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00C3O": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Bul": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Bse": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00BrZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Bp0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Bot": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Bn4": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Bn0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Bm8": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Bg4": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Bg0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Bex": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00BSo": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00BQD": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00BPh": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00BNd": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00BM8": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00BKa": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00BJm": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00B8m": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00B7G": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00B3B": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00B2k": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Aul": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AuR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Au2": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ar2": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Aq4": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Aok": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AoZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Al5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ahb": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AhO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AfZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Af3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AdI": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AcQ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Ac7": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AbP": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Aas": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00Aae": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AXb": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AVR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AOH": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AHY": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AGs": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00AB1": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00A5v": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00A5m": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00A1H": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009zS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009zR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009uB": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009f8": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009eX": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009bn": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009bR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009aD": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009YT": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009XT": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009Wc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009Os": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009L0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009IO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009FS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009FP": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:009BH": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0095W": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0092z": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0092V": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0091A": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008tL": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008rw": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008oX": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008o6": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008nF": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008lc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008cl": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008Y3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008Sk": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008P4": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008Nz": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008LT": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008LD": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008GK": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008EC": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:008D5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0088O": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0082f": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:007tv": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:007ku": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:007gO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:007fJ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:007en": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:007eS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:007c6": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:007XE": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:007Rn": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:007HB": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:007AS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0078T": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00761": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00734": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0072T": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0071N": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0071K": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006yP": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006wz": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006pe": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006om": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006of": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006ia": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006i7": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006fF": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006cZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006XF": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006RM": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006OI": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006NL": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006HV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006GK": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:006E1": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0068D": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0068B": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00656": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0061g": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005yO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005xu": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005x9": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005wy": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005ws": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005wJ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005qG": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005nD": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005jR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005jJ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005f3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005do": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005YX": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005YM": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005N7": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005Ep": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:005Bm": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0055Y": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0054a": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0050w": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004zh": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004zI": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004u0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004sg": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004sY": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004nd": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004mT": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004kB": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004iZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004d8": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004b0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004Ys": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004XI": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004X6": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004WZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004Ud": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004RF": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004Op": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004Lu": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004LZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004JD": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004BW": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004Ax": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:004Ao": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0048h": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0047P": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00465": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0042j": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003wQ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003r5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003o0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003nQ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003mh": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003md": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003jv": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003jb": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003jH": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003if": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003eP": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003cs": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003aS": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003YF": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003UW": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003Tx": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003S3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003Jb": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003IX": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:003AX": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0039T": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00347": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0030b": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002xh": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002vV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002uV": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002rd": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002p5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002e8": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002e5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002bK": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002Z9": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002VP": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002Uy": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002Ua": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002Tf": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002Q2": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002O7": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002LW": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002LF": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002KJ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002IE": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002Hv": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002GQ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002Ds": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:002CP": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001xl": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001xO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001wr": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001wb": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001wR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001w5": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001uD": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001u3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001pC": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001om": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001m3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001h8": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001gi": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001cr": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001aK": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001XA": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001Wz": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001Oo": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001KR": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001Hi": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:001Fg": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0018S": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0017R": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00143": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000rZ": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000rO": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000qP": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000o3": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000mr": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000lC": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000hf": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000h0": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000aY": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000Zo": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000Vc": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000VW": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:000Pw": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0009B": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0008Q": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:0000D": {
+        "valid": 1,
+        "invalid": 0
+      },
+      "lichess-puzzle:00008": {
+        "valid": 1,
+        "invalid": 0
+      }
+    },
+    "byRating": {
+      "easy": {
+        "valid": 304,
+        "invalid": 0
+      },
+      "medium": {
+        "valid": 189,
+        "invalid": 0
+      },
+      "hard": {
+        "valid": 111,
+        "invalid": 0
+      },
+      "noRating": {
+        "valid": 0,
+        "invalid": 0
+      }
+    },
+    "byPvLength": {
+      "2": {
+        "valid": 101,
+        "invalid": 0
+      },
+      "4": {
+        "valid": 302,
+        "invalid": 0
+      },
+      "6": {
+        "valid": 161,
+        "invalid": 0
+      },
+      "8": {
+        "valid": 26,
+        "invalid": 0
+      },
+      "10": {
+        "valid": 11,
+        "invalid": 0
+      },
+      "12": {
+        "valid": 2,
+        "invalid": 0
+      },
+      "14": {
+        "valid": 1,
+        "invalid": 0
+      }
+    }
+  }
+}

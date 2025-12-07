@@ -55,11 +55,14 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   // Store original makeMove to wrap it
   const originalMakeMove = chessContext.makeMove;
 
-  const loadRandomPuzzle = useCallback(async (filters?: PuzzleFilters) => {
-    console.log("[PUZZLE DEBUG] loadRandomPuzzle called", { filters, debugEnabled: isDebugEnabled() });
-    debugPuzzle.load(filters);
-    setLoading(true);
-    setError(null);
+  const loadRandomPuzzle = useCallback(async (filters?: PuzzleFilters, retryCount = 0) => {
+    const maxRetries = 3;
+    console.log("[PUZZLE DEBUG] loadRandomPuzzle called", { filters, debugEnabled: isDebugEnabled(), retryCount });
+    if (retryCount === 0) {
+      debugPuzzle.load(filters);
+      setLoading(true);
+      setError(null);
+    }
 
     try {
       const params = new URLSearchParams();
@@ -107,6 +110,20 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       let initialFen = puzzle.fen;
       let initialMoveIndex = 0;
       
+      // Validate solutionPv is not empty
+      if (!Array.isArray(solutionPv) || solutionPv.length === 0) {
+        debugPuzzle.error("Invalid solution PV", `type: ${typeof solutionPv}, length: ${solutionPv?.length}`);
+        // Auto-retry with a new puzzle
+        if (retryCount < maxRetries) {
+          console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries}) - invalid PV`);
+          setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
+          return;
+        }
+        setError("Puzzle configuration error - please try another puzzle");
+        setLoading(false);
+        return;
+      }
+
       // For mate puzzles, ensure player is on the side that delivers mate
       const tempGame = new Chess(puzzle.fen);
       const isMatePuzzle = puzzle.motifs.some(m => m.includes("mate"));
@@ -115,20 +132,28 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         // solutionPv structure: [playerMove1, opponentReply1, playerMove2, opponentReply2, ...]
         // Player moves are at even indices (0, 2, 4...)
         // After auto-advancing move 0, we need moveIndex to point to the NEXT player move (index 2)
-        // But if solutionPv.length <= 2, there's no next player move after auto-advance
         if (solutionPv.length > 0) {
           const firstMove = solutionPv[0];
           try {
             const from = firstMove.slice(0, 2);
             const to = firstMove.slice(2, 4);
-            tempGame.move({ from, to });
+            const moveResult = tempGame.move({ from, to });
+            if (!moveResult) {
+              throw new Error(`Invalid move: ${from}${to}`);
+            }
             initialFen = tempGame.fen();
             
             // After auto-advancing move 0 (player's first move), the next player move is at index 2
-            // If solutionPv.length <= 2, there's no next player move, so puzzle would be immediately complete
-            // Skip puzzles that would be complete after auto-advance
-            if (solutionPv.length <= 2) {
-              debugPuzzle.error("Puzzle too short for auto-advance", `length: ${solutionPv.length}`);
+            // We need at least 3 moves total (move0, reply1, move2) for puzzle to have moves after auto-advance
+            // If solutionPv.length < 3, there's no next player move, so puzzle would be immediately complete
+            if (solutionPv.length < 3) {
+              debugPuzzle.error("Puzzle too short for auto-advance", `length: ${solutionPv.length}, needs at least 3`);
+              // Auto-retry with a new puzzle
+              if (retryCount < maxRetries) {
+                console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries})`);
+                setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
+                return;
+              }
               setError("Puzzle configuration error - please try another puzzle");
               setLoading(false);
               return;
@@ -150,7 +175,21 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       // CRITICAL: Ensure puzzle is not already complete when loaded
       // moveIndex must be less than solutionPv.length for puzzle to have moves remaining
       if (initialMoveIndex >= solutionPv.length) {
-        debugPuzzle.error("Puzzle would be complete on load", `moveIndex: ${initialMoveIndex}, length: ${solutionPv.length}`);
+        const errorDetails = `moveIndex: ${initialMoveIndex}, length: ${solutionPv.length}, isMatePuzzle: ${isMatePuzzle}, sideToMove: ${puzzle.sideToMove}, fenTurn: ${tempGame.turn() === "w" ? "white" : "black"}`;
+        debugPuzzle.error("Puzzle would be complete on load", errorDetails);
+        console.error("[PUZZLE] Validation failed:", {
+          moveIndex: initialMoveIndex,
+          length: solutionPv.length,
+          isMatePuzzle,
+          sideToMove: puzzle.sideToMove,
+          fenTurn: tempGame.turn() === "w" ? "white" : "black"
+        });
+        // Auto-retry with a new puzzle
+        if (retryCount < maxRetries) {
+          console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries})`);
+          setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
+          return;
+        }
         setError("Puzzle configuration error - please try another puzzle");
         setLoading(false);
         return;
