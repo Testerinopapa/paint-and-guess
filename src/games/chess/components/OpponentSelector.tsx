@@ -22,12 +22,14 @@ export function OpponentSelector({
   onStartGame,
   isGameActive,
 }: OpponentSelectorProps) {
-  const [activeCategory, setActiveCategory] = useState<keyof typeof OPPONENTS>("streamers");
+  const [activeCategory, setActiveCategory] = useState<keyof typeof OPPONENTS>("beginner");
 
   const categoryLabels: Record<keyof typeof OPPONENTS, string> = {
-    streamers: "Streamers",
-    "top-players": "Top Players",
-    personalities: "Personalities",
+    beginner: "Beginner",
+    intermediate: "Intermediate",
+    advanced: "Advanced",
+    expert: "Expert",
+    master: "Master",
     custom: "Custom",
   };
 
