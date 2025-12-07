@@ -142,12 +142,6 @@ export function PuzzleBoard() {
         )}
       </div>
 
-      {/* Loading Message */}
-      {loading && (
-        <div className="flex items-center justify-center">
-          <p className="text-muted-foreground text-lg">Loading puzzle...</p>
-        </div>
-      )}
 
       {/* Error Message */}
       {error && (
