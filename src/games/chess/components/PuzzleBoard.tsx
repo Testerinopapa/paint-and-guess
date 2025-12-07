@@ -71,70 +71,25 @@ export function PuzzleBoard() {
     }
   }, [puzzleState.currentFen]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Loading puzzle...</p>
-      </div>
-    );
-  }
+  // Determine board FEN - show puzzle FEN as soon as puzzle data is loaded (even before "Start Puzzle")
+  // This allows pieces to appear immediately, and clicking "Start Puzzle" just enables interaction
+  const boardFen = puzzleState.puzzle 
+    ? puzzleState.currentFen 
+    : undefined;
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  // Determine board orientation - use puzzle sideToMove when puzzle exists, otherwise default to white
+  const boardOrientation = puzzleState.puzzle 
+    ? (puzzleState.puzzle.sideToMove === "white" ? "white" : "black")
+    : "white";
 
-  if (!puzzleState.puzzle) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground text-center">
-          No puzzle loaded.<br />
-          Click "Solve Puzzles" to start.
-        </p>
-      </div>
-    );
-  }
-
-  // Show default board state with "Start Puzzle" button if puzzle data loaded but not on board
-  if (!puzzleState.loadedOntoBoard) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full gap-6">
-        {/* Default board state - show empty/starting position */}
-        <div className="relative">
-          <ChessBoard />
-        </div>
-
-        {/* Start Puzzle Button */}
-        <div className="flex flex-col items-center gap-4">
-          <Button
-            onClick={loadPuzzleOntoBoard}
-            size="lg"
-            className="text-base font-semibold px-8"
-          >
-            Start Puzzle
-          </Button>
-          {puzzleState.puzzle && (
-            <div className="text-center text-sm text-muted-foreground">
-              <p>Puzzle loaded: {puzzleState.puzzle.rating ? `Rating ${puzzleState.puzzle.rating}` : "Ready to start"}</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
+  // Always render the board - use conditional overlays for different states
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-4">
+    <div className="flex flex-col items-center justify-center h-full gap-4 relative">
       {/* Move Feedback */}
       {lastMoveResult && (
         <Alert 
           variant={lastMoveResult === "correct" ? "default" : "destructive"}
-          className="max-w-md"
+          className="max-w-md z-10"
         >
           <AlertDescription className="flex items-center gap-2">
             {lastMoveResult === "correct" ? (
@@ -152,15 +107,16 @@ export function PuzzleBoard() {
         </Alert>
       )}
 
-      {/* Chess Board */}
+      {/* Chess Board - ALWAYS RENDERED */}
       <div className="relative">
         <ChessBoard 
-          orientation={puzzleState.puzzle.sideToMove === "white" ? "white" : "black"}
-          onMove={handleMove}
-          disabled={puzzleState.solved || puzzleState.showSolution}
+          fen={boardFen}
+          orientation={boardOrientation}
+          onMove={puzzleState.loadedOntoBoard ? handleMove : undefined}
+          disabled={!puzzleState.loadedOntoBoard || puzzleState.solved || puzzleState.showSolution}
         />
-        {isDebugEnabled() && (
-          <div className="absolute top-0 left-0 bg-black/70 text-white text-xs p-2 rounded font-mono">
+        {isDebugEnabled() && puzzleState.loadedOntoBoard && (
+          <div className="absolute top-0 left-0 bg-black/70 text-white text-xs p-2 rounded font-mono z-20">
             <div>FEN: {puzzleState.currentFen}</div>
             <div>Move: {puzzleState.moveIndex + 1}/{puzzleState.solutionPv.length}</div>
             <div>Solved: {puzzleState.solved ? "Yes" : "No"}</div>
@@ -169,7 +125,7 @@ export function PuzzleBoard() {
         )}
         {/* Hint Overlay */}
         {hintSquares.length > 0 && (
-          <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 pointer-events-none z-10">
             {hintSquares.map((square, idx) => (
               <div
                 key={idx}
@@ -187,52 +143,100 @@ export function PuzzleBoard() {
         )}
       </div>
 
-      {/* Controls - Below Board */}
-      <div className="flex flex-wrap gap-2 justify-center">
-        <Button
-          onClick={handleShowHint}
-          variant="outline"
-          disabled={puzzleState.solved || puzzleState.showSolution}
-        >
-          <Lightbulb className="w-4 h-4 mr-2" />
-          Hint ({puzzleState.hintsUsed})
-        </Button>
-        <Button
-          onClick={resetPuzzle}
-          variant="outline"
-          disabled={puzzleState.solved}
-        >
-          <RotateCcw className="w-4 h-4 mr-2" />
-          Reset
-        </Button>
-        <Button
-          onClick={toggleSolution}
-          variant="outline"
-        >
-          <Info className="w-4 h-4 mr-2" />
-          {puzzleState.showSolution ? "Hide" : "Show"} Solution
-        </Button>
-      </div>
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-30">
+          <p className="text-muted-foreground text-lg">Loading puzzle...</p>
+        </div>
+      )}
 
-      {/* Solution Display */}
-      {puzzleState.showSolution && (
-        <div className="max-w-md p-4 bg-muted rounded-lg">
-          <p className="text-sm font-semibold mb-2">Solution:</p>
-          <div className="flex flex-wrap gap-2">
-            {puzzleState.solutionPv.map((move, idx) => {
-              const from = move.slice(0, 2);
-              const to = move.slice(2, 4);
-              return (
-                <Badge
-                  key={idx}
-                  variant={idx < puzzleState.moveIndex ? "default" : "outline"}
-                >
-                  {from}→{to}
-                </Badge>
-              );
-            })}
+      {/* Error Overlay */}
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-30">
+          <Alert variant="destructive" className="max-w-md">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
+
+      {/* Empty State Overlay */}
+      {!loading && !error && !puzzleState.puzzle && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-30">
+          <p className="text-muted-foreground text-center text-lg">
+            No puzzle loaded.<br />
+            <span className="text-sm">Click "Solve Puzzles" to start.</span>
+          </p>
+        </div>
+      )}
+
+      {/* Start Puzzle Overlay */}
+      {puzzleState.puzzle && !puzzleState.loadedOntoBoard && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-30">
+          <div className="flex flex-col items-center gap-4">
+            <Button
+              onClick={loadPuzzleOntoBoard}
+              size="lg"
+              className="text-base font-semibold px-8"
+            >
+              Start Puzzle
+            </Button>
+            <div className="text-center text-sm text-muted-foreground">
+              <p>Puzzle loaded: {puzzleState.puzzle.rating ? `Rating ${puzzleState.puzzle.rating}` : "Ready to start"}</p>
+            </div>
           </div>
         </div>
+      )}
+
+      {/* Controls - Only show when puzzle is active */}
+      {puzzleState.loadedOntoBoard && (
+        <>
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Button
+              onClick={handleShowHint}
+              variant="outline"
+              disabled={puzzleState.solved || puzzleState.showSolution}
+            >
+              <Lightbulb className="w-4 h-4 mr-2" />
+              Hint ({puzzleState.hintsUsed})
+            </Button>
+            <Button
+              onClick={resetPuzzle}
+              variant="outline"
+              disabled={puzzleState.solved}
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Reset
+            </Button>
+            <Button
+              onClick={toggleSolution}
+              variant="outline"
+            >
+              <Info className="w-4 h-4 mr-2" />
+              {puzzleState.showSolution ? "Hide" : "Show"} Solution
+            </Button>
+          </div>
+
+          {/* Solution Display */}
+          {puzzleState.showSolution && (
+            <div className="max-w-md p-4 bg-muted rounded-lg">
+              <p className="text-sm font-semibold mb-2">Solution:</p>
+              <div className="flex flex-wrap gap-2">
+                {puzzleState.solutionPv.map((move, idx) => {
+                  const from = move.slice(0, 2);
+                  const to = move.slice(2, 4);
+                  return (
+                    <Badge
+                      key={idx}
+                      variant={idx < puzzleState.moveIndex ? "default" : "outline"}
+                    >
+                      {from}→{to}
+                    </Badge>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
