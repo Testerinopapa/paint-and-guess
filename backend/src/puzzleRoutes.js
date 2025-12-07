@@ -116,6 +116,23 @@ export async function getRandomPuzzle(req, res) {
         continue;
       }
 
+      // CRITICAL: Ensure puzzle has at least one player move remaining
+      // solutionPv contains alternating moves: [playerMove1, opponentReply1, playerMove2, opponentReply2, ...]
+      // Player moves are at even indices (0, 2, 4...)
+      // For a puzzle to be solvable, we need at least 1 player move (index 0 must exist)
+      // After the last player move, there may be an opponent reply, but no more player moves
+      // So if solutionPv.length = 1, that's a player move (solvable)
+      // If solutionPv.length = 2, that's player move + opponent reply (solvable, player makes 1 move)
+      // If solutionPv.length = 3, that's player move + opponent reply + player move (solvable, player makes 2 moves)
+      // The puzzle is only complete when moveIndex >= solutionPv.length
+      // So we need to ensure solutionPv.length >= 1 (at least one move for the player)
+      // This validation is already covered by the length > 0 check above
+      
+      // However, we should also ensure the puzzle structure makes sense
+      // A puzzle with only 1 move is valid (player makes 1 move, puzzle solved)
+      // A puzzle with 2 moves is valid (player makes 1 move, opponent replies, puzzle solved)
+      // So we don't need to filter by length here - all puzzles with length >= 1 are valid
+
       // Quality validation
       const isMate = isMatePuzzle(puzzle.motifs);
       

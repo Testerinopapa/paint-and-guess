@@ -107,7 +107,11 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       const tempGame = new Chess(puzzle.fen);
       const isMatePuzzle = puzzle.motifs.some(m => m.includes("mate"));
       if (isMatePuzzle && puzzle.sideToMove !== (tempGame.turn() === "w" ? "white" : "black")) {
-        // Auto-advance one move if needed
+        // Auto-advance one move if needed to get player on the correct side
+        // solutionPv structure: [playerMove1, opponentReply1, playerMove2, opponentReply2, ...]
+        // Player moves are at even indices (0, 2, 4...)
+        // After auto-advancing move 0, we need moveIndex to point to the NEXT player move (index 2)
+        // But if solutionPv.length <= 2, there's no next player move after auto-advance
         if (solutionPv.length > 0) {
           const firstMove = solutionPv[0];
           try {
@@ -115,13 +119,37 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
             const to = firstMove.slice(2, 4);
             tempGame.move({ from, to });
             initialFen = tempGame.fen();
-            initialMoveIndex = 1;
+            
+            // After auto-advancing move 0 (player's first move), the next player move is at index 2
+            // If solutionPv.length <= 2, there's no next player move, so puzzle would be immediately complete
+            // Skip puzzles that would be complete after auto-advance
+            if (solutionPv.length <= 2) {
+              debugPuzzle.error("Puzzle too short for auto-advance", `length: ${solutionPv.length}`);
+              setError("Puzzle configuration error - please try another puzzle");
+              setLoading(false);
+              return;
+            }
+            
+            // After auto-advancing move 0, next player move is at index 2
+            initialMoveIndex = 2;
             debugPuzzle.autoAdvance(from, to, initialFen, initialMoveIndex);
           } catch (e) {
             debugPuzzle.error(e, "auto-advance");
             console.error("Error auto-advancing puzzle:", e);
+            // If auto-advance fails, don't auto-advance - keep moveIndex at 0
+            initialMoveIndex = 0;
+            initialFen = puzzle.fen;
           }
         }
+      }
+      
+      // CRITICAL: Ensure puzzle is not already complete when loaded
+      // moveIndex must be less than solutionPv.length for puzzle to have moves remaining
+      if (initialMoveIndex >= solutionPv.length) {
+        debugPuzzle.error("Puzzle would be complete on load", `moveIndex: ${initialMoveIndex}, length: ${solutionPv.length}`);
+        setError("Puzzle configuration error - please try another puzzle");
+        setLoading(false);
+        return;
       }
 
       // Apply the same reset pattern as "New Game" button - reset first, then load puzzle
@@ -136,7 +164,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         currentFen: initialFen,
         moveIndex: initialMoveIndex,
         solutionPv,
-        solved: false,
+        solved: false, // Always start as unsolved
         mistakes: 0,
         startTime: Date.now(), // Start timer immediately
         hintsUsed: 0,
