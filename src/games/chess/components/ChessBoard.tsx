@@ -340,11 +340,25 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
   const effectiveFen = fen || game?.fen() || "";
   const lastMove = chessContext?.gameState?.lastMove;
 
-  // Memoize the squares array - only recreate when relevant state changes
-  // Use effectiveFen to ensure puzzle mode updates correctly when fen prop changes
-  const squares = useMemo(() => {
-    if (!game) return [];
+  // Extract piece positions into a stable map - only changes when FEN actually changes
+  // This prevents unnecessary recreations when game instance changes but position doesn't
+  const pieceMap = useMemo(() => {
+    if (!game) return new Map<string, { type: string; color: string } | null>();
     
+    const map = new Map<string, { type: string; color: string } | null>();
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const squareName = getSquareName(row, col);
+        const piece = game.get(squareName as Square);
+        map.set(squareName, piece || null);
+      }
+    }
+    return map;
+  }, [effectiveFen, game]); // Depend on FEN and game - game changes when FEN changes anyway
+
+  // Memoize the squares array - only recreate when relevant state changes
+  // Use pieceMap instead of game instance to prevent unnecessary recreations
+  const squares = useMemo(() => {
     const squareArray = [];
     
     for (let row = 0; row < 8; row++) {
@@ -352,7 +366,7 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
         const displayRow = orientation === "white" ? row : 7 - row;
         const displayCol = orientation === "white" ? col : 7 - col;
         const squareName = getSquareName(displayRow, displayCol);
-        const piece = game.get(squareName as Square) || null;
+        const piece = pieceMap.get(squareName) || null;
         
         const file = squareName[0];
         const rank = squareName[1];
@@ -383,7 +397,7 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
     
     return squareArray;
   }, [
-    effectiveFen, // Track the effective FEN (fen prop or game FEN) to ensure puzzle mode updates
+    pieceMap, // Use pieceMap instead of game - more stable, only changes when pieces actually move
     selectedSquare,
     legalMoves,
     draggedSquare,
@@ -393,7 +407,6 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
     handleSquareClick,
     handleMouseDown,
     handleMouseUp,
-    game, // Game instance is needed to get piece positions
   ]);
 
   // Generate file labels (a-h) based on orientation
