@@ -29,8 +29,9 @@ The puzzle mode page uses a three-column layout: centered chess board with a rig
 │  │         │   Chess Board    │          │  │  │ [🧩] Puzzles │  │  │
 │  │         │   (480×480px)    │          │  │  │ [⚙️] Settings │  │  │
 │  │         │                  │          │  │  │              │  │  │
-│  │         │   [File labels]  │          │  │  │ User Info    │  │  │
-│  │         │   [Rank labels] │          │  │  │  │ Rating: 219  │  │  │
+│  │         │                  │          │  │  │ User Info    │  │  │
+│  │         │   (Internal      │          │  │  │  │ Rating: 219  │  │  │
+│  │         │    labels only)  │          │  │  │ [━━━━] 🔥 6  │  │  │
 │  │         │                  │          │  │  │ [━━━━] 🔥 6  │  │  │
 │  │         │                  │          │  │  └──────────────┘  │  │
 │  │         └──────────────────┘          │  │                    │  │
@@ -197,8 +198,8 @@ The puzzle board section displays the centered chess board with move feedback an
 │         │  │                                    │  │                │
 │         │  │   Chess Board (480×480px)          │  │                │
 │         │  │                                    │  │                │
-│         │  │   [File labels a-h]                │  │                │
-│         │  │   [Rank labels 1-8]                │  │                │
+│         │  │   (Internal labels in corners)    │  │                │
+│         │  │   (a1, a8, h1, h8 only)            │  │                │
 │         │  │                                    │  │                │
 │         │  │   [Debug Panel] (conditional)      │  │                │
 │         │  │   [Hint Overlay] (conditional)     │  │                │
@@ -260,15 +261,17 @@ The puzzle board section displays the centered chess board with move feedback an
 
 ```
 PuzzleBoard
-├── Container (flex flex-col, items-center justify-center, h-full, gap-4)
+├── Container (flex flex-col, items-center justify-center, h-full, gap-4, relative)
 │   │
-│   ├── Loading State (conditional)
-│   │   └── Centered text "Loading puzzle..."
+│   ├── Chess Board (ALWAYS RENDERED)
+│   │   └── ChessBoard component (always visible)
 │   │
-│   ├── Error State (conditional)
+│   ├── Move Feedback Alert (conditional, max-w-md, z-10)
+│   │
+│   ├── Error Overlay (conditional, absolute, z-30)
 │   │   └── Alert (destructive variant, max-w-md)
 │   │
-│   ├── Empty State (conditional)
+│   ├── Empty State Overlay (conditional, absolute, z-30)
 │   │   └── Centered text "No puzzle loaded..."
 │   │
 │   └── Puzzle Content (when puzzle loaded)
@@ -280,16 +283,16 @@ PuzzleBoard
 │       │   │       └── Feedback message
 │       │
 │       ├── Chess Board Container (relative)
-│       │   ├── ChessBoard Component
-│       │   │   ├── FEN prop
+│       │   ├── ChessBoard Component (ALWAYS RENDERED)
+│       │   │   ├── FEN prop (puzzle FEN when loaded, undefined otherwise)
 │       │   │   ├── Orientation prop
-│       │   │   ├── onMove callback
+│       │   │   ├── onMove callback (only when puzzle active)
 │       │   │   └── disabled prop
 │       │   │
-│       │   ├── Debug Panel (conditional, absolute, top-0, left-0)
+│       │   ├── Debug Panel (conditional, absolute, top-0, left-0, z-20)
 │       │   │   └── Debug info (FEN, move index, solved, mistakes)
 │       │   │
-│       │   └── Hint Overlay (conditional, absolute, inset-0)
+│       │   └── Hint Overlay (conditional, absolute, inset-0, z-10)
 │       │       └── Yellow border squares (pulse animation)
 │       │
 │       ├── Control Buttons (flex, flex-wrap, gap-2, justify-center)
@@ -392,9 +395,11 @@ The chess board itself has a specific layout with labels and squares.
 
 ### Square Label Positioning
 
+- **Internal labels only**: Labels appear only inside corner squares (a1, a8, h1, h8)
 - **Rank labels (1-8)**: Top-left corner (white orientation) or top-right corner (black orientation)
 - **File labels (a-h)**: Bottom-right corner (white orientation) or top-right corner (black orientation)
 - **Label colors**: Dark on light squares (#b58863), light on dark squares (#f0d9b5)
+- **No external labels**: File labels (a-h) and rank labels (1-8) are NOT displayed around board edges
 
 ---
 
@@ -491,16 +496,9 @@ The chess board itself has a specific layout with labels and squares.
 
 ### Loading State
 
-```
-┌─────────────────────────────────────┐
-│         Card                        │
-│                                     │
-│     "Loading puzzle..."            │
-│     (text-muted-foreground,        │
-│      centered, p-8)                 │
-│                                     │
-└─────────────────────────────────────┘
-```
+- **Board**: Always visible (no overlay)
+- **Button**: Shows "Loading..." text (disabled state)
+- **No loading text overlay**: Board remains visible during loading
 
 ### Error State
 
@@ -520,17 +518,10 @@ The chess board itself has a specific layout with labels and squares.
 
 ### Empty State (No Puzzle)
 
-```
-┌─────────────────────────────────────┐
-│         Card                        │
-│                                     │
-│  "No puzzle loaded. Click          │
-│   'New Puzzle' to start."           │
-│  (text-muted-foreground,           │
-│   centered, p-8)                   │
-│                                     │
-└─────────────────────────────────────┘
-```
+- **Board**: Always visible (shows default/starting position)
+- **Overlay**: Absolute positioned overlay with message
+- **Message**: "No puzzle loaded. Click 'Solve Puzzles' to start."
+- **Styling**: Centered text, no blur backdrop
 
 ### Solved State
 
@@ -538,6 +529,22 @@ The chess board itself has a specific layout with labels and squares.
 - **Buttons**: Hint and Reset buttons disabled
 - **Board**: Disabled (no moves allowed)
 - **Auto-record**: Attempt automatically recorded
+
+### Puzzle Loading Flow
+
+1. **User clicks "Solve Puzzles"**:
+   - Button shows "Loading..." and becomes disabled
+   - Board remains visible (no loading overlay)
+   
+2. **Puzzle data loads**:
+   - `resetGame()` called first (same as "New Game" button)
+   - Puzzle FEN loaded into ChessContext
+   - Pieces update automatically via React reactivity
+   
+3. **Puzzle ready**:
+   - Board shows puzzle position immediately
+   - Controls appear below board
+   - Timer starts automatically
 
 ### Hint State
 
@@ -745,6 +752,9 @@ Puzzle Mode uses a modern three-column layout inspired by Chess.com:
   - Current puzzle info card (when puzzle is loaded)
 
 - **Centered Board**: Chess board is centered without card wrappers, with controls and solution display below
+- **Always Rendered**: Board component is always mounted, preventing re-rendering issues
+- **Direct Loading**: Puzzles load directly onto board (no "Start Puzzle" step)
+- **Internal Labels Only**: Coordinate labels appear only in corner squares, not around board edges
 - **Responsive Design**: Seamlessly adapts from mobile to desktop
 - **Independent Scrolling**: Sidebar scrolls independently when content overflows
 

@@ -95,19 +95,20 @@ The ChessAnalyzer application includes a comprehensive puzzle mode that allows u
 ## Puzzle UI/Interaction
 
 ### Puzzle Page
-- **Location**: `src/app/puzzle/page.tsx`
+- **Location**: `src/games/chess/pages/Puzzles.tsx` and `src/games/chess/components/PuzzleBoard.tsx`
 - **Features**:
-  - Interactive chessboard using `react-chessboard`
+  - Interactive chessboard (always rendered, no conditional mounting)
+  - Direct puzzle loading (puzzles load immediately onto board when "Solve Puzzles" clicked)
   - Real-time move validation
   - Auto-play of opponent replies from solution PV
   - Progress tracking (current move index / total moves)
   - Difficulty selector (Easy/Medium/Hard/Custom)
   - Custom rating range inputs
   - Motif dropdown with all 54 motifs organized by category
-  - Hint system (highlights next move squares)
-  - Solution display
-  - Reset, play step, play all solution buttons
-  - Side swap functionality (for non-mate puzzles)
+  - Hint system (highlights next move squares with yellow borders)
+  - Solution display (toggleable)
+  - Reset button (resets puzzle to starting position)
+  - Internal coordinate labels only (a1, a8, h1, h8 corner squares)
   - Debug panel toggle for troubleshooting
 
 ### Move Validation
@@ -164,10 +165,13 @@ The ChessAnalyzer application includes a comprehensive puzzle mode that allows u
 
 ### User Experience
 - **Interactive Solving**: Drag-and-drop piece movement
-- **Visual Feedback**: Hint highlighting, incorrect move messages
-- **Solution Tools**: Show solution, play step-by-step, play all
+- **Visual Feedback**: Hint highlighting (yellow borders with pulse animation), incorrect move messages
+- **Solution Tools**: Show/hide solution display with move badges
 - **Progress Tracking**: Visual indicator of progress through solution
 - **Auto-Play**: Opponent replies automatically played from solution PV
+- **Smooth Transitions**: Board always mounted, pieces update smoothly when puzzles change
+- **Direct Loading**: Puzzles load immediately onto board (no intermediate "Start Puzzle" step)
+- **Clean Interface**: Internal coordinate labels only, no external labels around board edges
 
 ### Debugging & Diagnostics
 - **Server-Side Logging**: Comprehensive logging in puzzle selection API using pino logger
@@ -207,23 +211,38 @@ The ChessAnalyzer application includes a comprehensive puzzle mode that allows u
 
 1. **Import**: CSV → Parse → Filter → Deduplicate → Store in DB
 2. **Selection**: User filters → API query → Random sampling → Quality validation → Return puzzle
-3. **Solving**: Load puzzle → Display board → User moves → Validate → Auto-play replies → Track progress
-4. **Tracking**: (Future) Record attempt → Store in PuzzleAttempt table
+3. **Solving**: 
+   - User clicks "Solve Puzzles" → `resetGame()` called first (same reset pattern as "New Game" button)
+   - This ensures pieces reset properly before loading new puzzle
+   - Puzzle data fetched from API
+   - Puzzle FEN loaded directly into ChessContext via `loadFromFen()`
+   - Board updates automatically via React reactivity (pieces reset and update smoothly)
+   - User moves → Validate → Auto-play replies → Track progress
+4. **Tracking**: Record attempt → Store in PuzzleAttempt table (auto-recorded on solve)
 
 ## File Structure
 
 ```
 src/
-├── app/
-│   ├── puzzle/
-│   │   └── page.tsx              # Main puzzle UI
-│   └── api/
-│       └── puzzles/
-│           ├── route.ts          # List puzzles endpoint
-│           ├── random/
-│           │   └── route.ts     # Random puzzle selection
-│           └── attempt/
-│               └── route.ts     # Track puzzle attempts
+├── games/
+│   └── chess/
+│       ├── pages/
+│       │   └── Puzzles.tsx       # Main puzzle page component
+│       ├── components/
+│       │   ├── PuzzleBoard.tsx   # Puzzle board component (always renders board)
+│       │   ├── PuzzleSidebar.tsx # Right sidebar with controls
+│       │   └── ChessBoard.tsx    # Chess board component (internal labels only)
+│       └── state/
+│           ├── PuzzleContext.tsx # Puzzle state management
+│           └── ChessContext.tsx   # Chess game state (shared with play mode)
+└── app/
+    └── api/
+        └── puzzles/
+            ├── route.ts          # List puzzles endpoint
+            ├── random/
+            │   └── route.ts     # Random puzzle selection
+            └── attempt/
+                └── route.ts     # Track puzzle attempts
 scripts/
 ├── puzzle_import_csv.ts         # Puzzle import script
 ├── puzzle_crawler.ts            # Automated testing & debugging crawler
@@ -231,9 +250,10 @@ scripts/
 └── test_motif_search.ts        # Test script to verify motif search functionality
 prisma/
 └── schema.prisma                # Database schema (Puzzle, PuzzleAttempt models)
-docs/
-├── puzzle_crawler.md            # Crawler documentation
-└── puzzle_mode_summary.md       # This file - comprehensive puzzle mode documentation
+ChessModeDocs/
+├── puzzle-mode-visual-layout.md # Visual layout documentation
+├── puzzle_mode_summary.md       # This file - comprehensive puzzle mode documentation
+└── solve-puzzles-button.md      # "Solve Puzzles" button documentation
 ```
 
 ## Automated Testing
