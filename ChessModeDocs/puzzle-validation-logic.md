@@ -62,6 +62,7 @@ if (!Array.isArray(solutionPv) || solutionPv.length === 0) {
 - ✅ Solution PV must be valid JSON (if stored as string)
 - ✅ Solution PV must be an array
 - ✅ Solution PV must not be empty
+- ✅ Solution PV must have at least 1 move (minimum player move requirement)
 - ❌ Puzzles failing these checks are skipped
 
 **Error Handling:**
@@ -95,11 +96,14 @@ function isMatePuzzle(motifs) {
 - Checks if motifs array contains "mate" (but excludes "mateIn1", "mateIn2", etc.)
 - Handles both string (JSON) and array formats
 - Returns `false` on parsing errors (safe fallback)
+- **Note**: Currently case-sensitive; test scripts use case-insensitive matching for robustness
 
 **Mate Puzzle Types:**
 - ✅ `"mate"` - General mate puzzle
+- ✅ `"Mate"` - General mate puzzle (case variation)
 - ✅ `"smotheredMate"` - Smothered mate
 - ✅ `"arabianMate"` - Arabian mate
+- ✅ `"SmotheredMate"` - Smothered mate (case variation)
 - ❌ `"mateIn1"` - Not considered a mate puzzle (has move count)
 - ❌ `"mateIn2"` - Not considered a mate puzzle
 
@@ -154,6 +158,7 @@ Last mover: "black" (last move)
 - Returns `null` if FEN parsing fails
 - Returns `null` if PV is invalid
 - Logs errors but doesn't throw
+- **Note**: Test scripts use `chessops` `Result` type handling for more robust error checking
 
 ### 4. Mate Puzzle Validation
 
@@ -194,6 +199,97 @@ if (isMate) {
   PV: ["Qh7#"]  // White delivers mate
   sideToMove: "black"  // Solver is black
   ❌ Invalid: Solver doesn't match last mover
+```
+
+### 4a. Puzzle Completion State Validation (Frontend)
+
+**Code Location:** `src/games/chess/state/PuzzleContext.tsx` (lines 150-168)
+
+**Critical Fix:** Ensures puzzles never load as already completed (showing "1/1", "2/2", "3/3").
+
+```typescript
+// CRITICAL: Ensure puzzle is not already complete when loaded
+// moveIndex must be less than solutionPv.length for puzzle to have moves remaining
+if (initialMoveIndex >= solutionPv.length) {
+  debugPuzzle.error("Puzzle would be complete on load", ...);
+  setError("Puzzle configuration error - please try another puzzle");
+  setLoading(false);
+  return;
+}
+```
+
+**Validation Rule:**
+- `moveIndex` must be less than `solutionPv.length` when puzzle loads
+- Prevents puzzles from appearing as already solved
+- Ensures player always has at least one move to make
+
+**Why This Matters:**
+- Puzzles should never load showing "Move 2/2" or "Move 3/3" (already complete)
+- Player must always have moves remaining when puzzle starts
+- Prevents confusing UX where puzzle appears solved before any interaction
+
+**Example:**
+```
+✅ Valid Puzzle Load:
+  solutionPv.length = 4
+  initialMoveIndex = 0
+  Display: "Move 1/4"  ✅ Player has moves to make
+
+❌ Invalid Puzzle Load:
+  solutionPv.length = 2
+  initialMoveIndex = 2  (or >= 2)
+  Display: "Move 2/2"  ❌ Puzzle already complete
+  → Validation rejects this puzzle
+```
+
+### 4b. Auto-Advance Validation for Mate Puzzles
+
+**Code Location:** `src/games/chess/state/PuzzleContext.tsx` (lines 106-148)
+
+**Critical Fix:** Prevents mate puzzles from becoming immediately complete after auto-advance.
+
+```typescript
+if (isMatePuzzle && puzzle.sideToMove !== (tempGame.turn() === "w" ? "white" : "black")) {
+  // Auto-advance one move if needed
+  if (solutionPv.length > 0) {
+    // ... auto-advance move 0 ...
+    
+    // Skip puzzles that would be complete after auto-advance
+    if (solutionPv.length <= 2) {
+      debugPuzzle.error("Puzzle too short for auto-advance", ...);
+      setError("Puzzle configuration error - please try another puzzle");
+      setLoading(false);
+      return;
+    }
+    
+    // After auto-advancing move 0, next player move is at index 2
+    initialMoveIndex = 2;
+  }
+}
+```
+
+**Validation Rules:**
+- If auto-advance is needed, puzzle must have `length > 2`
+- After auto-advancing move 0, `moveIndex` is set to 2 (next player move)
+- Ensures puzzle has moves remaining after auto-advance
+
+**Why This Matters:**
+- Auto-advance plays the first move to get player on correct side
+- If puzzle only has 1-2 moves, it becomes immediately complete after auto-advance
+- Setting `moveIndex = 2` ensures we point to the next player move (not opponent's reply)
+
+**Example:**
+```
+✅ Valid Auto-Advance:
+  solutionPv = [move0, reply1, move2, reply3]  // 4 moves
+  Auto-advance move0 → moveIndex = 2
+  Display: "Move 3/4"  ✅ Player has move 2 remaining
+
+❌ Invalid Auto-Advance:
+  solutionPv = [move0, reply1]  // 2 moves
+  Auto-advance move0 → would set moveIndex = 2
+  But solutionPv.length = 2, so puzzle complete
+  → Validation rejects this puzzle
 ```
 
 ### 5. FEN Validation
@@ -449,6 +545,9 @@ if (!moveSuccess) {
 | **FEN Parsing** | `puzzleRoutes.js:26` | Last mover calc | FEN format validity |
 | **Last Mover** | `puzzleRoutes.js:23-42` | Mate validation | Calculates correct mating side |
 | **Mate Validation** | `puzzleRoutes.js:122-128` | Puzzle retrieval | Solver matches last mover |
+| **Completion State** | `PuzzleContext.tsx:150-168` | Puzzle load | moveIndex < solutionPv.length |
+| **Auto-Advance** | `PuzzleContext.tsx:131-138` | Puzzle load | Skip puzzles that would be complete after auto-advance |
+| **MoveIndex Validation** | `PuzzleContext.tsx:163-168` | Puzzle load | Ensures puzzle has moves remaining |
 | **FEN Integrity** | `test-puzzle-db.js:145` | Database testing | FEN validity for sample puzzles |
 | **PV Integrity** | `test-puzzle-db.js:152-160` | Database testing | PV validity for sample puzzles |
 | **Puzzle State** | `PuzzleContext.tsx:166-175` | Move attempt | Puzzle exists, not solved |
@@ -640,6 +739,55 @@ if (puzzleState.solved) {
 
 **Result:** Move is rejected, no state change
 
+### 8. Puzzle Loads as Already Complete
+
+**Scenario:** Puzzle loads with `moveIndex >= solutionPv.length` (showing "2/2", "3/3", etc.)
+
+**Handling:**
+```typescript
+// Final validation: Ensure puzzle is not already complete
+if (initialMoveIndex >= solutionPv.length) {
+  debugPuzzle.error("Puzzle would be complete on load", ...);
+  setError("Puzzle configuration error - please try another puzzle");
+  setLoading(false);
+  return;
+}
+```
+
+**Result:** Puzzle is rejected, error message shown, new puzzle requested
+
+**Why This Happens:**
+- Auto-advance logic might set `moveIndex` incorrectly
+- Puzzle data might be corrupted
+- Edge case in puzzle structure
+
+**Prevention:**
+- Validation ensures `moveIndex < solutionPv.length` before loading
+- Auto-advance skips puzzles with `length <= 2` that would become complete
+- After auto-advance, `moveIndex` is set to 2 (next player move), not 1 (opponent reply)
+
+### 9. Auto-Advance Makes Puzzle Complete
+
+**Scenario:** Mate puzzle needs auto-advance, but puzzle only has 1-2 moves
+
+**Handling:**
+```typescript
+if (solutionPv.length <= 2) {
+  // Skip puzzles that would be complete after auto-advance
+  debugPuzzle.error("Puzzle too short for auto-advance", ...);
+  setError("Puzzle configuration error - please try another puzzle");
+  setLoading(false);
+  return;
+}
+```
+
+**Result:** Puzzle is skipped, new puzzle requested
+
+**Why This Matters:**
+- Auto-advance plays move 0 to get player on correct side
+- If puzzle only has 1-2 moves, it becomes immediately complete
+- Player would see "Move 2/2" with no moves to make
+
 ---
 
 ## Validation Performance
@@ -671,6 +819,76 @@ Each validation attempt performs:
 **Total per request:** ~5-300ms (depending on attempts)
 
 ---
+
+## Frontend Puzzle Loading Validation
+
+### Location: `src/games/chess/state/PuzzleContext.tsx`
+
+The frontend performs critical validation when loading puzzles to ensure they're not already complete.
+
+### Validation Flow
+
+```
+Load Puzzle from API
+    ↓
+Parse Solution PV
+    ↓
+Check if Mate Puzzle Needs Auto-Advance
+    ├─ Yes → Check if length > 2
+    │   ├─ No → Skip puzzle (would be complete)
+    │   └─ Yes → Auto-advance move 0, set moveIndex = 2
+    └─ No → Set moveIndex = 0
+    ↓
+Validate moveIndex < solutionPv.length
+    ├─ Invalid → Reject puzzle, show error
+    └─ Valid → Load puzzle onto board
+```
+
+### 1. Auto-Advance Validation
+
+**Code Location:** Lines 106-148
+
+```typescript
+if (isMatePuzzle && puzzle.sideToMove !== (tempGame.turn() === "w" ? "white" : "black")) {
+  // Auto-advance needed
+  if (solutionPv.length <= 2) {
+    // Skip puzzles that would be complete after auto-advance
+    setError("Puzzle configuration error - please try another puzzle");
+    return;
+  }
+  // Auto-advance move 0, set moveIndex to 2 (next player move)
+  initialMoveIndex = 2;
+}
+```
+
+**Validation Rules:**
+- Mate puzzles needing auto-advance must have `length > 2`
+- After auto-advance, `moveIndex` is set to 2 (next player move at even index)
+- Puzzles with `length <= 2` are rejected to prevent immediate completion
+
+### 2. Completion State Validation
+
+**Code Location:** Lines 150-168
+
+```typescript
+// CRITICAL: Ensure puzzle is not already complete when loaded
+if (initialMoveIndex >= solutionPv.length) {
+  debugPuzzle.error("Puzzle would be complete on load", ...);
+  setError("Puzzle configuration error - please try another puzzle");
+  setLoading(false);
+  return;
+}
+```
+
+**Validation Rules:**
+- `moveIndex` must be less than `solutionPv.length`
+- Prevents puzzles from loading as "1/1", "2/2", "3/3"
+- Ensures player always has at least one move to make
+
+**Why This Is Critical:**
+- High-priority fix to prevent confusing UX
+- Puzzles should never appear solved before player interaction
+- Ensures all puzzles start in a solvable state
 
 ## Future Validation Enhancements
 
@@ -706,7 +924,35 @@ Each validation attempt performs:
    - Pre-compute validation results
    - Store validation status in database
 
+6. **Minimum Solution Length Filtering**
+   - Could add configurable minimum length filter
+   - Allow filtering out very short puzzles (1-2 moves)
+   - Currently handled by auto-advance validation
+
 ---
+
+## Recent Critical Fixes
+
+### High-Priority: Prevent Puzzles Loading as Already Complete
+
+**Issue:** Puzzles were loading showing "Move 2/2", "Move 3/3" (already completed state)
+
+**Root Cause:**
+- Auto-advance logic for mate puzzles was setting `moveIndex` incorrectly
+- No validation to ensure `moveIndex < solutionPv.length` before loading
+- Short puzzles (1-2 moves) becoming complete after auto-advance
+
+**Fixes Implemented:**
+1. **Auto-Advance Validation**: Skip puzzles with `length <= 2` that would be complete after auto-advance
+2. **MoveIndex Correction**: After auto-advance, set `moveIndex = 2` (next player move) instead of 1 (opponent reply)
+3. **Completion Check**: Validate `initialMoveIndex < solutionPv.length` before loading puzzle
+4. **Error Handling**: Show user-friendly error and request new puzzle if validation fails
+
+**Impact:**
+- ✅ Puzzles always start with moves remaining
+- ✅ No more "2/2" or "3/3" completed puzzles on load
+- ✅ Better user experience - puzzles are always solvable
+- ✅ Prevents confusing UX where puzzle appears solved before interaction
 
 ## Conclusion
 
@@ -715,12 +961,14 @@ The puzzle validation system provides robust quality assurance through multiple 
 1. **Backend API**: Validates puzzles before serving
 2. **Data Integrity**: Tests database quality
 3. **Frontend**: Validates moves during solving
+4. **Loading State**: Ensures puzzles never load as already complete
 
 The system prioritizes:
 - ✅ **Reliability**: Silent skipping prevents crashes
 - ✅ **Performance**: Efficient random sampling
 - ✅ **Correctness**: Multiple validation checks
 - ✅ **User Experience**: Graceful error handling
+- ✅ **Puzzle State**: Always ensures puzzles start unsolved
 
-Validation ensures only high-quality, correctly formatted puzzles are served to users, maintaining a good puzzle-solving experience.
+Validation ensures only high-quality, correctly formatted puzzles are served to users, maintaining a good puzzle-solving experience. The recent fixes ensure puzzles always start in a solvable state, preventing the critical issue of puzzles loading as already completed.
 

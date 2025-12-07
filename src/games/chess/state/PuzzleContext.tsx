@@ -1,5 +1,9 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
 import { Chess } from "chess.js";
+import { parseFen } from "chessops/fen";
+import { Chess as ChessOps } from "chessops/chess";
+import { parseUci, makeUci } from "chessops/util";
+import { isNormal } from "chessops";
 import type { Puzzle, PuzzleState, PuzzleFilters, PuzzleDifficulty } from "./puzzleTypes";
 import { apiPath } from "@/config/api";
 import { debugPuzzle, debugMove, debugState, debugPuzzleState, isDebugEnabled, debugBoard } from "../utils/debug";
@@ -189,8 +193,10 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const makeMove = useCallback((from: string, to: string): boolean => {
-    console.log("[PUZZLE DEBUG] makeMove called", { from, to, hasPuzzle: !!puzzleState.puzzle, solved: puzzleState.solved });
+  const makeMove = useCallback((from: string, to: string, promotion?: string): boolean => {
+    console.log("[PUZZLE DEBUG] makeMove called", { from, to, promotion, hasPuzzle: !!puzzleState.puzzle, solved: puzzleState.solved });
+    
+    // Pre-validation checks
     if (!puzzleState.puzzle || puzzleState.solved) {
       debugMove.error("Invalid move attempt", `puzzle: ${!!puzzleState.puzzle}, solved: ${puzzleState.solved}`);
       return false;
@@ -202,72 +208,149 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    // Normalize move (ignore promotion)
-    const userMove = `${from}${to}`;
-    const expectedMoveNormalized = expectedMove.slice(0, 4);
-
-    debugMove.attempt(from, to, expectedMoveNormalized);
-
-    if (userMove === expectedMoveNormalized) {
-      // Correct move - apply it to ChessContext
-      try {
-        const oldFen = chessContext.game.fen();
-        const oldMoveIndex = puzzleState.moveIndex;
-        
-        // Apply player's move via ChessContext
-        const moveSuccess = originalMakeMove(from, to);
-        if (!moveSuccess) {
-          debugMove.error("Failed to apply move", "ChessContext makeMove returned false");
-          return false;
-        }
-        
-        debugMove.correct(from, to, chessContext.game.fen(), puzzleState.moveIndex);
-        
-        // Auto-play opponent reply if exists
-        const nextMoveIndex = puzzleState.moveIndex + 1;
-        if (nextMoveIndex < puzzleState.solutionPv.length) {
-          const opponentMove = puzzleState.solutionPv[nextMoveIndex];
-          const oppFrom = opponentMove.slice(0, 2);
-          const oppTo = opponentMove.slice(2, 4);
-          originalMakeMove(oppFrom, oppTo);
-          debugMove.autoReply(oppFrom, oppTo, chessContext.game.fen());
-        }
-
-        const isComplete = nextMoveIndex + 1 >= puzzleState.solutionPv.length;
-        const newMoveIndex = isComplete ? puzzleState.moveIndex : nextMoveIndex + 1;
-
-        // Update puzzle state - sync currentFen with ChessContext
-        setPuzzleState((prev) => {
-          const newFen = chessContext.game.fen();
-          const newState = {
-            ...prev,
-            currentFen: newFen, // Keep in sync with ChessContext
-            moveIndex: newMoveIndex,
-            solved: isComplete,
-          };
-          debugState.update(prev, newState, "correct move");
-          debugState.fen(oldFen, newFen, "player move + auto-reply");
-          debugState.moveIndex(oldMoveIndex, newMoveIndex, "correct move");
-          if (isComplete) {
-            debugState.solved(true);
-          }
-          return newState;
-        });
-
-        return true;
-      } catch (error) {
-        debugMove.error(error, "applying move");
-        console.error("Error applying move:", error);
+    try {
+      // Parse current FEN using chessops for robust validation
+      const setupResult = parseFen(chessContext.game.fen());
+      if (!setupResult.isOk) {
+        debugMove.error("Invalid FEN", chessContext.game.fen());
         return false;
       }
-    } else {
-      // Incorrect move
-      const newMistakes = puzzleState.mistakes + 1;
-      debugMove.incorrect(from, to, expectedMoveNormalized, newMistakes);
-      setPuzzleState((prev) => ({
-        ...prev,
-        mistakes: newMistakes,
-      }));
+
+      // Create chessops position for move validation
+      const posResult = ChessOps.fromSetup(setupResult.unwrap());
+      if (!posResult.isOk) {
+        debugMove.error("Invalid position", "Failed to create chessops position");
+        return false;
+      }
+      const pos = posResult.unwrap();
+
+      // Build UCI move string from user input
+      let userMoveUci = `${from}${to}`;
+      if (promotion) {
+        userMoveUci += promotion.toLowerCase();
+      }
+
+      // Parse user's move as UCI using chessops
+      const userMove = parseUci(userMoveUci);
+      if (!userMove || !isNormal(userMove)) {
+        debugMove.error("Invalid UCI move", userMoveUci);
+        return false;
+      }
+
+      // Get context for move validation
+      const ctx = pos.ctx();
+
+      // Check if move is legal using chessops
+      if (!pos.isLegal(userMove, ctx)) {
+        debugMove.error("Illegal move", userMoveUci);
+        return false;
+      }
+
+      // Normalize moves for comparison (handle promotions)
+      const normalizeUci = (uci: string): string => {
+        // Compare first 4 characters (from-to squares), ignoring promotion
+        return uci.slice(0, 4).toLowerCase();
+      };
+
+      const userMoveUciNormalized = makeUci(userMove);
+      const userMoveNormalized = normalizeUci(userMoveUciNormalized);
+      const expectedMoveNormalized = normalizeUci(expectedMove);
+
+      debugMove.attempt(from, to, expectedMoveNormalized);
+
+      // Check if move matches expected solution
+      const matchesSolution = userMoveNormalized === expectedMoveNormalized;
+
+      // For mate puzzles, also check if move delivers mate (alternative solution)
+      const isMatePuzzle = puzzleState.puzzle.motifs.some(m => 
+        m.toLowerCase().includes("mate") && !m.toLowerCase().includes("matein")
+      );
+
+      let isCorrectMove = matchesSolution;
+
+      // If it's a mate puzzle and move doesn't match, check if it delivers mate
+      if (!matchesSolution && isMatePuzzle) {
+        // Create a copy of position and play the move
+        const testPos = pos.clone();
+        testPos.play(userMove);
+        const testCtx = testPos.ctx();
+        
+        isCorrectMove = testPos.isCheckmate(testCtx);
+        if (isCorrectMove) {
+          console.log("[PUZZLE] Alternative mate solution found:", userMoveUci);
+        }
+      }
+
+      if (isCorrectMove) {
+        // Correct move - apply it to ChessContext
+        try {
+          const oldFen = chessContext.game.fen();
+          const oldMoveIndex = puzzleState.moveIndex;
+          
+          // Apply player's move via ChessContext (still using chess.js for board state)
+          // But we've validated with chessops first
+          const moveSuccess = originalMakeMove(from, to, promotion);
+          if (!moveSuccess) {
+            debugMove.error("Failed to apply move", "ChessContext makeMove returned false");
+            return false;
+          }
+          
+          debugMove.correct(from, to, chessContext.game.fen(), puzzleState.moveIndex);
+          
+          // Auto-play opponent reply if exists
+          const nextMoveIndex = puzzleState.moveIndex + 1;
+          if (nextMoveIndex < puzzleState.solutionPv.length) {
+            const opponentMove = puzzleState.solutionPv[nextMoveIndex];
+            
+            // Parse opponent move properly
+            const oppFrom = opponentMove.slice(0, 2);
+            const oppTo = opponentMove.slice(2, 4);
+            const oppPromotion = opponentMove.length > 4 ? opponentMove[4] : undefined;
+            
+            originalMakeMove(oppFrom, oppTo, oppPromotion);
+            debugMove.autoReply(oppFrom, oppTo, chessContext.game.fen());
+          }
+
+          const isComplete = nextMoveIndex + 1 >= puzzleState.solutionPv.length;
+          const newMoveIndex = isComplete ? puzzleState.moveIndex : nextMoveIndex + 1;
+
+          // Update puzzle state - sync currentFen with ChessContext
+          setPuzzleState((prev) => {
+            const newFen = chessContext.game.fen();
+            const newState = {
+              ...prev,
+              currentFen: newFen, // Keep in sync with ChessContext
+              moveIndex: newMoveIndex,
+              solved: isComplete,
+            };
+            debugState.update(prev, newState, "correct move");
+            debugState.fen(oldFen, newFen, "player move + auto-reply");
+            debugState.moveIndex(oldMoveIndex, newMoveIndex, "correct move");
+            if (isComplete) {
+              debugState.solved(true);
+            }
+            return newState;
+          });
+
+          return true;
+        } catch (error) {
+          debugMove.error(error, "applying move");
+          console.error("Error applying move:", error);
+          return false;
+        }
+      } else {
+        // Incorrect move
+        const newMistakes = puzzleState.mistakes + 1;
+        debugMove.incorrect(from, to, expectedMoveNormalized, newMistakes);
+        setPuzzleState((prev) => ({
+          ...prev,
+          mistakes: newMistakes,
+        }));
+        return false;
+      }
+    } catch (error) {
+      debugMove.error(error, "validation");
+      console.error("Error validating move:", error);
       return false;
     }
   }, [puzzleState, chessContext, originalMakeMove]);
@@ -299,13 +382,25 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
           const to = firstMove.slice(2, 4);
           tempGame.move({ from, to });
           initialFen = tempGame.fen();
-          initialMoveIndex = 1;
+          // After auto-advancing move 0, next player move is at index 2 (same as loadRandomPuzzle)
+          initialMoveIndex = 2;
           debugPuzzle.autoAdvance(from, to, initialFen, initialMoveIndex);
         } catch (e) {
           debugPuzzle.error(e, "reset auto-advance");
           console.error("Error resetting puzzle:", e);
         }
       }
+    }
+    
+    // CRITICAL: Ensure puzzle is not already complete when reset
+    const solutionPv = typeof puzzleState.puzzle.solutionPv === "string"
+      ? JSON.parse(puzzleState.puzzle.solutionPv)
+      : puzzleState.puzzle.solutionPv;
+    if (initialMoveIndex >= solutionPv.length) {
+      debugPuzzle.error("Puzzle would be complete on reset", `moveIndex: ${initialMoveIndex}, length: ${solutionPv.length}`);
+      // Fallback: reset to beginning
+      initialMoveIndex = 0;
+      initialFen = puzzleState.puzzle.fen;
     }
 
     // Reset ChessContext to puzzle position
