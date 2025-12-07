@@ -133,11 +133,17 @@ export function ChessProvider({ children }: { children: ReactNode }) {
   const loadFromFen = useCallback((fen: string) => {
     try {
       const newGame = new Chess(fen);
-      updateState(newGame);
+      const newState = updateGameState(newGame); // Don't pass lastMove - it will be undefined
+      newState.gameMode = gameMode;
+      newState.whitePlayer = whitePlayer;
+      newState.blackPlayer = blackPlayer;
+      newState.lastMove = undefined; // Explicitly clear lastMove (same pattern as resetGame)
+      setGameState(newState);
+      setGame(newGame);
     } catch (error) {
       console.error("Error loading FEN:", error);
     }
-  }, [updateState]);
+  }, [gameMode, whitePlayer, blackPlayer]);
 
   const loadFromPgn = useCallback((pgn: string): boolean => {
     try {

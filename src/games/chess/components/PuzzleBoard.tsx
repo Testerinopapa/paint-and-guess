@@ -142,25 +142,25 @@ export function PuzzleBoard() {
         )}
       </div>
 
-      {/* Loading Overlay */}
+      {/* Loading Message */}
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-30">
+        <div className="flex items-center justify-center">
           <p className="text-muted-foreground text-lg">Loading puzzle...</p>
         </div>
       )}
 
-      {/* Error Overlay */}
+      {/* Error Message */}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-30">
+        <div className="flex items-center justify-center">
           <Alert variant="destructive" className="max-w-md">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         </div>
       )}
 
-      {/* Empty State Overlay */}
+      {/* Empty State Message */}
       {!loading && !error && !puzzleState.puzzle && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-30">
+        <div className="flex items-center justify-center">
           <p className="text-muted-foreground text-center text-lg">
             No puzzle loaded.<br />
             <span className="text-sm">Click "Solve Puzzles" to start.</span>

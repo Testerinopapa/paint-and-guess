@@ -124,7 +124,9 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Load puzzle position into ChessContext immediately
+      // Apply the same reset pattern as "New Game" button - reset first, then load puzzle
+      // This ensures pieces reset properly, just like when clicking "New Game"
+      chessContext.resetGame();
       chessContext.loadFromFen(initialFen);
       chessContext.setGameMode("local");
 
