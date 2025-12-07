@@ -2,7 +2,7 @@ import { createContext, useContext, useState, ReactNode, useCallback, useEffect 
 import { Chess } from "chess.js";
 import type { Puzzle, PuzzleState, PuzzleFilters, PuzzleDifficulty } from "./puzzleTypes";
 import { apiPath } from "@/config/api";
-import { debugPuzzle, debugMove, debugState, debugPuzzleState, isDebugEnabled } from "../utils/debug";
+import { debugPuzzle, debugMove, debugState, debugPuzzleState, isDebugEnabled, debugBoard } from "../utils/debug";
 import { useChess } from "./ChessContext";
 
 interface PuzzleContextType {
@@ -10,6 +10,7 @@ interface PuzzleContextType {
   loading: boolean;
   error: string | null;
   loadRandomPuzzle: (filters?: PuzzleFilters) => Promise<void>;
+  loadPuzzleOntoBoard: () => void; // Load puzzle pieces onto the board
   makeMove: (from: string, to: string) => boolean;
   resetPuzzle: () => void;
   showHint: () => void;
@@ -37,6 +38,7 @@ function createInitialState(): PuzzleState {
     startTime: 0,
     hintsUsed: 0,
     showSolution: false,
+    loadedOntoBoard: false,
   };
 }
 
@@ -135,6 +137,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         startTime: 0, // Will be set when puzzle actually starts
         hintsUsed: 0,
         showSolution: false,
+        loadedOntoBoard: false, // Puzzle data loaded but not on board yet
       };
 
       setPuzzleState(newState);
@@ -232,6 +235,35 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     }
   }, [puzzleState, chessContext, originalMakeMove]);
 
+  // Load puzzle pieces onto the board (changes from default state to puzzle state)
+  const loadPuzzleOntoBoard = useCallback(() => {
+    if (!puzzleState.puzzle) {
+      debugPuzzle.error("No puzzle to load onto board", "loadPuzzleOntoBoard");
+      return;
+    }
+
+    if (puzzleState.loadedOntoBoard) {
+      // Already loaded, no need to reload
+      return;
+    }
+
+    // Load puzzle position into ChessContext
+    chessContext.loadFromFen(puzzleState.currentFen);
+    chessContext.setGameMode("local");
+
+    // Update state to mark puzzle as loaded onto board and start timer
+    setPuzzleState((prev) => ({
+      ...prev,
+      loadedOntoBoard: true,
+      startTime: Date.now(),
+    }));
+
+    if (isDebugEnabled()) {
+      debugBoard.fenUpdate(undefined, puzzleState.currentFen);
+      console.log("[PUZZLE] Puzzle loaded onto board:", puzzleState.puzzle.id);
+    }
+  }, [puzzleState, chessContext]);
+
   const resetPuzzle = useCallback(() => {
     if (!puzzleState.puzzle) {
       debugPuzzle.error("No puzzle to reset", "resetPuzzle");
@@ -279,6 +311,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       startTime: Date.now(),
       hintsUsed: 0,
       showSolution: false,
+      loadedOntoBoard: true, // Reset keeps puzzle on board
     };
 
     setPuzzleState(newState);
@@ -341,6 +374,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         loading,
         error,
         loadRandomPuzzle,
+        loadPuzzleOntoBoard,
         makeMove,
         resetPuzzle,
         showHint,

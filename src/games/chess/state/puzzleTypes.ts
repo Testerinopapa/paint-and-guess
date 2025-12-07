@@ -38,5 +38,6 @@ export interface PuzzleState {
   startTime: number;
   hintsUsed: number;
   showSolution: boolean;
+  loadedOntoBoard: boolean; // Whether puzzle pieces are currently on the board
 }
 

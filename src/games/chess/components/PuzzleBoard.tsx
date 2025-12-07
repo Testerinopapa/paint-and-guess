@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { usePuzzle } from "../state/PuzzleContext";
 import { useChess } from "../state/ChessContext";
 import { ChessBoard } from "./ChessBoard";
@@ -9,11 +9,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Lightbulb, RotateCcw, CheckCircle2, XCircle } from "lucide-react";
 
 export function PuzzleBoard() {
-  const { puzzleState, makeMove, showHint, resetPuzzle, toggleSolution, loading, error } = usePuzzle();
+  const { puzzleState, makeMove, showHint, resetPuzzle, toggleSolution, loadPuzzleOntoBoard, loading, error } = usePuzzle();
   const chessContext = useChess();
   const [hintSquares, setHintSquares] = useState<string[]>([]);
   const [lastMoveResult, setLastMoveResult] = useState<"correct" | "incorrect" | null>(null);
-  const loadedPuzzleIdRef = useRef<string | null>(null);
 
   const expectedMove = useMemo(() => {
     if (!puzzleState.solutionPv || puzzleState.moveIndex >= puzzleState.solutionPv.length) {
@@ -56,20 +55,7 @@ export function PuzzleBoard() {
     return Math.round((puzzleState.moveIndex / puzzleState.solutionPv.length) * 100);
   }, [puzzleState.moveIndex, puzzleState.solutionPv.length]);
 
-  // Load puzzle onto board when a new puzzle is loaded (decoupled from button click)
-  // This ensures the board only changes when PuzzleBoard is ready, not when button is clicked
-  useEffect(() => {
-    if (puzzleState.puzzle && puzzleState.puzzle.id !== loadedPuzzleIdRef.current && !loading) {
-      // New puzzle loaded and ready - load it onto the board
-      loadedPuzzleIdRef.current = puzzleState.puzzle.id;
-      chessContext.loadFromFen(puzzleState.currentFen);
-      chessContext.setGameMode("local");
-      if (isDebugEnabled()) {
-        debugBoard.fenUpdate(undefined, puzzleState.currentFen);
-        console.log("[PUZZLE BOARD] Loading puzzle onto board:", puzzleState.puzzle.id);
-      }
-    }
-  }, [puzzleState.puzzle, puzzleState.currentFen, loading, chessContext]);
+  // No automatic loading - puzzle stays in default state until user clicks "Start Puzzle"
 
   // Debug: Log state changes
   useEffect(() => {
@@ -110,6 +96,34 @@ export function PuzzleBoard() {
           No puzzle loaded.<br />
           Click "Solve Puzzles" to start.
         </p>
+      </div>
+    );
+  }
+
+  // Show default board state with "Start Puzzle" button if puzzle data loaded but not on board
+  if (!puzzleState.loadedOntoBoard) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-6">
+        {/* Default board state - show empty/starting position */}
+        <div className="relative">
+          <ChessBoard />
+        </div>
+
+        {/* Start Puzzle Button */}
+        <div className="flex flex-col items-center gap-4">
+          <Button
+            onClick={loadPuzzleOntoBoard}
+            size="lg"
+            className="text-base font-semibold px-8"
+          >
+            Start Puzzle
+          </Button>
+          {puzzleState.puzzle && (
+            <div className="text-center text-sm text-muted-foreground">
+              <p>Puzzle loaded: {puzzleState.puzzle.rating ? `Rating ${puzzleState.puzzle.rating}` : "Ready to start"}</p>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
