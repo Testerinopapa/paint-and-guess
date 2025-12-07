@@ -1,63 +1,78 @@
-npm run test:puzzle-validation              
+Short answer:
+No — that output is not correct for a White-to-move puzzle.
 
-> paint-and-guess-backend@1.0.0 test:puzzle-validation
-> node scripts/test-puzzle-validation.js
+✅ Why it’s wrong
 
-🧪 Puzzle Validation Logic Tests
+Your screen shows:
 
-============================================================
-✅ FEN Validation - Valid Starting Position
-✅ FEN Validation - Valid Mid-Game Position
-❌ FEN Validation - Invalid FEN Format - Test failed
-❌ FEN Validation - Missing Fields - Test failed
-✅ PV Parsing - Valid JSON String
-✅ PV Parsing - Already Array
-✅ PV Parsing - Invalid JSON
-✅ PV Parsing - Empty Array
-✅ PV Parsing - Non-Array Value
-✅ Mate Puzzle Detection - Array with 'mate'
-✅ Mate Puzzle Detection - JSON String with 'mate'
-❌ Mate Puzzle Detection - 'smotheredMate' - Test failed
-❌ Mate Puzzle Detection - 'arabianMate' - Test failed
-✅ Mate Puzzle Detection - Excludes 'mateIn1'
-✅ Mate Puzzle Detection - Excludes 'mateIn2'
-✅ Mate Puzzle Detection - No Mate Motif
-✅ Mate Puzzle Detection - Invalid JSON String
-❌ Last Mover - Odd PV Length (White Starts) - Test failed
-❌ Last Mover - Even PV Length (White Starts) - Test failed
-❌ Last Mover - Odd PV Length (Black Starts) - Test failed
-✅ Last Mover - Even PV Length (Black Starts)
-❌ Last Mover - Single Move (Odd) - Test failed
-❌ Last Mover - Invalid FEN - Test failed
-✅ Last Mover - Empty PV
-❌ Last Mover - PV as JSON String - Test failed
-❌ Mate Validation - Valid Mate Puzzle (White Mates) - Test failed
-✅ Mate Validation - Invalid Mate Puzzle (Wrong Side)
-✅ Mate Validation - Non-Mate Puzzle (No Validation)
-✅ Move Normalization - Standard Move
-✅ Move Normalization - Move with Promotion
-✅ Move Normalization - Move with Knight Promotion
-✅ Move Normalization - Short Move
-✅ Move Comparison - Exact Match
-✅ Move Comparison - Match with Promotion
-✅ Move Comparison - No Match
-✅ Edge Case - Empty Database Handling
-✅ Edge Case - Large Database Sampling
-✅ Edge Case - Medium Database Sampling
-✅ Edge Case - Motif Filter Doubles Attempts
-✅ Edge Case - Motif Filter Caps at 50
-Error calculating last mover: TypeError: Cannot read properties of null (reading 'split')
-    at parseFen (file:///C:/Users/null/paint-and-guess/backend/node_modules/chessops/dist/esm/fen.js:133:23)      
-    at calculateLastMover (file:///C:/Users/null/paint-and-guess/backend/scripts/test-puzzle-validation.js:29:22) 
-    at file:///C:/Users/null/paint-and-guess/backend/scripts/test-puzzle-validation.js:401:21
-    at ValidationTestRunner.run (file:///C:/Users/null/paint-and-guess/backend/scripts/test-puzzle-validation.js:70:30)
-    at async main (file:///C:/Users/null/paint-and-guess/backend/scripts/test-puzzle-validation.js:514:19)        
-✅ Edge Case - Null FEN in Last Mover
-✅ Edge Case - Null PV in Last Mover
-✅ Integration - Complete Valid Puzzle
-❌ Integration - Invalid Puzzle (Empty PV) - Test failed
-✅ Integration - Invalid Mate Puzzle (Wrong Side)
+Solution:
+d7–b7
+e5–h5
+f7–e7
+e3–c5
+c2–c5
+h5–c5
 
-============================================================
-📊 Results: 33 passed, 12 failed
-============================================================
+
+But here's the issue:
+
+1. The first move listed is d7–b7 — that is the BLACK queen moving.
+
+But the right sidebar says:
+
+You are: White
+Move 1 / 6
+
+So the puzzle must start with White, but the first move in the solution is Black’s defensive move. That means your extraction or ordering is wrong.
+
+✅ Correct flow in a puzzle solution
+
+Chess.com puzzles always follow:
+
+Move 1: White
+Move 1…: Black
+Move 2: White
+Move 2…: Black, etc.
+
+Your output reverses that — it starts with Black.
+
+⚠️ 2. Some moves are impossible in the shown position
+
+Examples:
+
+c2–c5
+This implies the black rook at c2 moves to c5, but the white bishop is sitting on e3 and controls c5, so that square must already be occupied or defended, and a rook would need a clear path (c3/c4). The board suggests that piece movement doesn't align.
+
+e3–c5
+The bishop on e3 can go to c5 — but only after the rook moves out of the way, and the sequence order you have doesn’t make geometric sense.
+
+h5–c5
+White queen from h5 going to c5 is legal, but only if h5 was reachable, which depends on whether Black already moved.
+
+❌ 3. Chess.com never shows raw square-to-square notation like “d7–b7”
+
+They display:
+
+Piece moves: Qb7
+
+Captures: Qxb7
+
+Checks: Qh5+
+
+Checkmates: Qc8#
+
+So the extracted text is not matching Chess.com’s usual notation format either.
+
+✅ Conclusion
+
+Your solution extraction code (or OCR/text parser) is mixing move order and misreading notation.
+This output is not a valid or correct solution for the puzzle.
+
+If you want, I can:
+
+✔️ Fix your parser
+✔️ Reconstruct the actual puzzle line
+✔️ Generate correct algebraic notation
+✔️ Explain the real tactical motif
+
+Just tell me what you want next.

@@ -124,6 +124,72 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // Validate that first move in solutionPv matches sideToMove
+      // solutionPv should start with the player's move, not the opponent's
+      if (solutionPv.length > 0) {
+        const firstMove = solutionPv[0];
+        try {
+          // Check who's turn it is in the FEN (before any moves)
+          const fenTurn = tempGame.turn() === "w" ? "white" : "black";
+          const expectedTurn = puzzle.sideToMove;
+          
+          // The first move should be made by the side whose turn it is in the FEN
+          // If sideToMove is "white", then tempGame.turn() should be "w"
+          if (fenTurn !== expectedTurn) {
+            debugPuzzle.error("FEN turn doesn't match sideToMove", {
+              fenTurn,
+              expectedTurn,
+              fen: puzzle.fen,
+            });
+            // This is a data integrity issue - skip this puzzle
+            if (retryCount < maxRetries) {
+              console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries}) - FEN/sideToMove mismatch`);
+              setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
+              return;
+            }
+            setError("Puzzle configuration error - please try another puzzle");
+            setLoading(false);
+            return;
+          }
+          
+          // Verify the first move is legal for the expected side
+          const from = firstMove.slice(0, 2);
+          const to = firstMove.slice(2, 4);
+          const testMove = tempGame.move({ from, to });
+          
+          if (!testMove) {
+            debugPuzzle.error("First move is illegal", {
+              firstMove,
+              fen: puzzle.fen,
+              sideToMove: puzzle.sideToMove,
+            });
+            // Auto-retry with a new puzzle
+            if (retryCount < maxRetries) {
+              console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries}) - illegal first move`);
+              setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
+              return;
+            }
+            setError("Puzzle configuration error - please try another puzzle");
+            setLoading(false);
+            return;
+          }
+          
+          // Reset tempGame for further checks (auto-advance logic)
+          tempGame = new Chess(puzzle.fen);
+        } catch (e) {
+          debugPuzzle.error("Error validating first move", e);
+          // Auto-retry with a new puzzle
+          if (retryCount < maxRetries) {
+            console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries}) - validation error`);
+            setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
+            return;
+          }
+          setError("Puzzle configuration error - please try another puzzle");
+          setLoading(false);
+          return;
+        }
+      }
+
       // For mate puzzles, ensure player is on the side that delivers mate
       const tempGame = new Chess(puzzle.fen);
       const isMatePuzzle = puzzle.motifs.some(m => m.includes("mate"));
