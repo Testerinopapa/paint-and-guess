@@ -10,8 +10,14 @@ import { apiPath } from "@/config/api";
 import { useState } from "react";
 import { getOpponentById } from "../data/opponents";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { RefreshCw } from "lucide-react";
 
-export function GameInfo() {
+interface GameInfoProps {
+  onNewGame?: () => void;
+  onChangeOpponent?: () => void;
+}
+
+export function GameInfo({ onNewGame, onChangeOpponent }: GameInfoProps = {}) {
   const { gameState, resetGame, undoMove, exportPgn, aiConfig, isAIThinking } = useChess();
   const navigate = useNavigate();
   const [generatingReport, setGeneratingReport] = useState(false);
@@ -147,9 +153,23 @@ export function GameInfo() {
           </div>
           
           <div className="flex gap-2 flex-wrap">
-            <Button onClick={resetGame} variant="outline" size="sm">
+            <Button 
+              onClick={onNewGame || resetGame} 
+              variant="outline" 
+              size="sm"
+            >
               New Game
             </Button>
+            {isAIGame && onChangeOpponent && (
+              <Button 
+                onClick={onChangeOpponent} 
+                variant="outline" 
+                size="sm"
+              >
+                <RefreshCw className="w-3 h-3 mr-1" />
+                Change Opponent
+              </Button>
+            )}
             <Button 
               onClick={undoMove} 
               variant="outline" 

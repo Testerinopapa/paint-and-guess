@@ -5,15 +5,29 @@ import { OpponentSelector } from "../components/OpponentSelector";
 import { OpponentProfile } from "../components/OpponentProfile";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, Bot } from "lucide-react";
 import type { Opponent } from "../data/opponents";
+import { getOpponentById } from "../data/opponents";
 
 function PlayContent() {
   const { gameState, setGameMode, aiConfig, setAIConfig, resetGame } = useChess();
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const [gameMode, setGameModeLocal] = useState<"local" | "ai">("local");
   const [selectedOpponent, setSelectedOpponent] = useState<Opponent | null>(null);
+
+  // Sync selectedOpponent with aiConfig.opponentId when it changes
+  useEffect(() => {
+    if (aiConfig.opponentId) {
+      const opponent = getOpponentById(aiConfig.opponentId);
+      if (opponent && selectedOpponent?.id !== opponent.id) {
+        setSelectedOpponent(opponent);
+      }
+    } else if (!aiConfig.opponentId && selectedOpponent && !aiConfig.enabled) {
+      // Only clear if game is not active and opponentId is cleared
+      setSelectedOpponent(null);
+    }
+  }, [aiConfig.opponentId, aiConfig.enabled, selectedOpponent?.id]);
 
   const handleModeChange = (mode: "local" | "ai") => {
     setGameModeLocal(mode);
@@ -55,6 +69,31 @@ function PlayContent() {
       opponentId: selectedOpponent.id,
     });
     resetGame();
+  };
+
+  const handleNewGame = () => {
+    // Reset the game and disable AI to show opponent selector again
+    resetGame();
+    setAIConfig({
+      enabled: false,
+      color: aiConfig.color,
+      elo: aiConfig.elo,
+      depth: aiConfig.depth,
+      opponentId: aiConfig.opponentId, // Keep the opponent selected
+    });
+  };
+
+  const handleChangeOpponent = () => {
+    // Stop current game and show opponent selector
+    resetGame();
+    setAIConfig({
+      enabled: false,
+      color: "black",
+      elo: undefined,
+      depth: undefined,
+      opponentId: undefined,
+    });
+    setSelectedOpponent(null);
   };
 
   return (
@@ -110,7 +149,10 @@ function PlayContent() {
               isGameActive={aiConfig.enabled}
             />
           ) : (
-            <GameInfo />
+            <GameInfo 
+              onNewGame={gameMode === "ai" ? handleNewGame : undefined}
+              onChangeOpponent={gameMode === "ai" ? handleChangeOpponent : undefined}
+            />
           )}
         </div>
       </div>
