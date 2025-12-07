@@ -1,5 +1,6 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { usePuzzle } from "../state/PuzzleContext";
+import { useChess } from "../state/ChessContext";
 import { ChessBoard } from "./ChessBoard";
 import { debugBoard, debugPuzzleState, isDebugEnabled } from "../utils/debug";
 import { Button } from "@/components/ui/button";
@@ -9,8 +10,10 @@ import { Info, Lightbulb, RotateCcw, CheckCircle2, XCircle } from "lucide-react"
 
 export function PuzzleBoard() {
   const { puzzleState, makeMove, showHint, resetPuzzle, toggleSolution, loading, error } = usePuzzle();
+  const chessContext = useChess();
   const [hintSquares, setHintSquares] = useState<string[]>([]);
   const [lastMoveResult, setLastMoveResult] = useState<"correct" | "incorrect" | null>(null);
+  const loadedPuzzleIdRef = useRef<string | null>(null);
 
   const expectedMove = useMemo(() => {
     if (!puzzleState.solutionPv || puzzleState.moveIndex >= puzzleState.solutionPv.length) {
@@ -52,6 +55,21 @@ export function PuzzleBoard() {
     if (!puzzleState.solutionPv.length) return 0;
     return Math.round((puzzleState.moveIndex / puzzleState.solutionPv.length) * 100);
   }, [puzzleState.moveIndex, puzzleState.solutionPv.length]);
+
+  // Load puzzle onto board when a new puzzle is loaded (decoupled from button click)
+  // This ensures the board only changes when PuzzleBoard is ready, not when button is clicked
+  useEffect(() => {
+    if (puzzleState.puzzle && puzzleState.puzzle.id !== loadedPuzzleIdRef.current && !loading) {
+      // New puzzle loaded and ready - load it onto the board
+      loadedPuzzleIdRef.current = puzzleState.puzzle.id;
+      chessContext.loadFromFen(puzzleState.currentFen);
+      chessContext.setGameMode("local");
+      if (isDebugEnabled()) {
+        debugBoard.fenUpdate(undefined, puzzleState.currentFen);
+        console.log("[PUZZLE BOARD] Loading puzzle onto board:", puzzleState.puzzle.id);
+      }
+    }
+  }, [puzzleState.puzzle, puzzleState.currentFen, loading, chessContext]);
 
   // Debug: Log state changes
   useEffect(() => {

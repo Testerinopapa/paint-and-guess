@@ -123,10 +123,8 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Load the puzzle position into ChessContext
-      chessContext.loadFromFen(initialFen);
-      chessContext.setGameMode("local"); // Set mode to local for puzzle mode
-
+      // Store puzzle data but don't load it to the board yet
+      // The board will be updated separately when user is ready to start
       const newState = {
         puzzle,
         currentFen: initialFen,
@@ -134,14 +132,14 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         solutionPv,
         solved: false,
         mistakes: 0,
-        startTime: Date.now(),
+        startTime: 0, // Will be set when puzzle actually starts
         hintsUsed: 0,
         showSolution: false,
       };
 
       setPuzzleState(newState);
       debugPuzzleState(newState);
-      debugState.fen(puzzle.fen, initialFen, "puzzle load");
+      debugState.fen(puzzle.fen, initialFen, "puzzle loaded (not on board yet)");
     } catch (err) {
       debugPuzzle.error(err, "loadRandomPuzzle");
       console.error("Error loading puzzle:", err);
