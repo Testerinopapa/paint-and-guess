@@ -9,6 +9,7 @@ import { getRpgPreviewComponent, getRpgPreviewEntry } from "@/games/rpg/hubEntry
 import { getTriviaBlitzPreviewComponent, getTriviaBlitzPreviewEntry } from "@/games/trivia-blitz/hubEntry";
 import { getCanvaPreviewComponent, getCanvaPreviewEntry } from "@/games/canva/hubEntry";
 import { getChessPreviewComponent, getChessPreviewEntry } from "@/games/chess/hubEntry";
+import { getSemanticPreviewComponent, getSemanticPreviewEntry } from "@/games/semantic/hubEntry";
 import { apiPath } from "@/config/api";
 
 const registryEndpoint = import.meta.env.VITE_GAME_REGISTRY_URL ?? apiPath("/api/games");
@@ -57,6 +58,9 @@ function getPreviewComponent(entry: NormalizedGameEntry) {
   if (entry.plugin?.previewComponent === "chessPreview") {
     return getChessPreviewComponent();
   }
+  if (entry.plugin?.previewComponent === "semanticPreview") {
+    return getSemanticPreviewComponent();
+  }
   return undefined;
 }
 
@@ -82,6 +86,7 @@ const localHubEntries: Record<string, () => NormalizedGameEntry> = {
   "ping-pong": getPingPongPreviewEntry,
   "chronicles-of-the-abyss": getRpgPreviewEntry, // RPG game ID
   "chess": getChessPreviewEntry,
+  "semantic": getSemanticPreviewEntry,
 };
 
 function attachPlugin(entry: NormalizedGameEntry): HubGame {
