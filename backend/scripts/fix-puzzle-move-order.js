@@ -2,6 +2,7 @@ import { prisma } from "../src/prismaClient.js";
 import { parseFen, makeFen } from "chessops/fen";
 import { Chess as ChessOps } from "chessops/chess";
 import { parseUci } from "chessops/util";
+import EnginePool from "../src/lib/enginePool.js";
 
 /**
  * Fix puzzle move ordering issue
@@ -22,6 +23,26 @@ async function fixPuzzleMoveOrder() {
   try {
     await prisma.$connect();
     console.log("✅ Connected to database\n");
+
+    // Initialize engine pool
+    console.log("🔧 Initializing engine...\n");
+    try {
+      EnginePool.ensureStarted();
+      // Wait a bit for engine to be ready
+      let attempts = 0;
+      while (attempts < 20 && !EnginePool.getStatus().ready) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      if (EnginePool.getStatus().ready) {
+        console.log("✅ Engine ready\n");
+      } else {
+        console.log("⚠️  Engine not ready, will use basic validation only\n");
+      }
+    } catch (engineError) {
+      console.log(`⚠️  Engine initialization failed: ${engineError.message}`);
+      console.log("   Will use basic validation only...\n");
+    }
 
     const allPuzzles = await prisma.puzzle.findMany({
       orderBy: { createdAt: "desc" },
@@ -103,9 +124,26 @@ async function fixPuzzleMoveOrder() {
           continue;
         }
 
-        // Check if move is legal
-        const ctx = startPos.ctx();
-        if (!startPos.isLegal(move, ctx)) {
+        // Check if move is legal by trying to play it
+        // Use play() instead of isLegal() as it's more reliable
+        let testPos;
+        try {
+          testPos = startPos.clone();
+          const playResult = testPos.play(move);
+          
+          // play() may return a Result type or void - check if it failed
+          if (playResult && typeof playResult === 'object' && 'isOk' in playResult && !playResult.isOk) {
+            results.errors.push({
+              id: puzzle.id,
+              error: "First move is illegal",
+              move: firstMove,
+              fen: puzzle.fen,
+            });
+            continue;
+          }
+          // If play() succeeded (returned void or Ok result), move is legal
+        } catch (playError) {
+          // If play() throws, the move is illegal
           results.errors.push({
             id: puzzle.id,
             error: "First move is illegal",
@@ -114,9 +152,52 @@ async function fixPuzzleMoveOrder() {
           });
           continue;
         }
+        
+        // If engine is available, also validate it's a reasonable move
+        let moveValidatedByEngine = false;
+        if (EnginePool.getStatus().ready) {
+          try {
+            const analysis = await Promise.race([
+              EnginePool.analyze({
+                fen: puzzle.fen,
+                depth: 6, // Fast depth for validation
+                multiPv: 3, // Check top 3 moves
+              }),
+              new Promise((_, reject) => 
+                setTimeout(() => reject(new Error("Engine timeout")), 5000)
+              )
+            ]);
+            
+            if (analysis.info && analysis.bestmove) {
+              // Check if first move is in top 3 engine moves
+              const firstMoveNormalized = firstMove.slice(0, 4).toLowerCase();
+              const bestMoveNormalized = analysis.bestmove.slice(0, 4).toLowerCase();
+              
+              if (firstMoveNormalized === bestMoveNormalized) {
+                moveValidatedByEngine = true;
+              } else if (analysis.infos && analysis.infos.length > 0) {
+                // Check if it's in the top 3 moves
+                for (const info of analysis.infos.slice(0, 3)) {
+                  if (info.pv && info.pv.length > 0) {
+                    const pvMove = info.pv[0].slice(0, 4).toLowerCase();
+                    if (pvMove === firstMoveNormalized) {
+                      moveValidatedByEngine = true;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          } catch (engineError) {
+            // Engine validation failed - that's okay, we'll proceed with basic validation
+            if (puzzleNum % 100 === 0) {
+              console.warn(`   Engine validation failed for puzzle ${puzzle.id}: ${engineError.message}`);
+            }
+          }
+        }
 
         // Determine which side the first move belongs to
-        // The move is legal for the current turn, so:
+        // The move was successfully played, so it belongs to the side whose turn it was
         // - If startTurn is "white", first move is White's move
         // - If startTurn is "black", first move is Black's move
         const firstMoveSide = startTurn === "white" ? "white" : "black";
@@ -129,22 +210,41 @@ async function fixPuzzleMoveOrder() {
             firstMove: firstMove,
             sideToMove: expectedSide,
             firstMoveSide: firstMoveSide,
+            engineValidated: moveValidatedByEngine,
           });
         } else {
           // Move order is incorrect - first move is opponent's move
           // We need to check if removing the first move fixes it
-          // OR if we need to reorder the moves
           
-          // Try playing the first move to see what the next position is
-          const testPos = startPos.clone();
-          testPos.play(move);
+          // We already played the move above, so use that result
+          // testPos was already created and move was played, so get next turn from there
           const nextTurn = testPos.turn;
           const nextSide = nextTurn === "white" ? "white" : "black";
 
-          // If the next turn matches expectedSide, then we should remove the first move
-          // OR if solutionPv[1] matches expectedSide, we should shift the array
-          if (nextSide === expectedSide && solutionPv.length > 1) {
-            // The first move is opponent's move, we should remove it
+          // Special case: Single-move puzzles are valid for beginners!
+          // If it's a single move and it's the opponent's move, the FEN or sideToMove might be wrong
+          // But we can't just remove the move (would leave empty array)
+          // Check if maybe the FEN represents the position AFTER the opponent's move
+          if (solutionPv.length === 1) {
+            // Single-move puzzle where first move doesn't match sideToMove
+            // This could mean:
+            // 1. The FEN is wrong (should be before opponent's move)
+            // 2. The sideToMove is wrong
+            // 3. The move is actually correct but stored wrong
+            // For now, flag for manual review but note it's a single-move puzzle
+            results.needsFix.push({
+              id: puzzle.id,
+              issue: "Single-move puzzle: first move doesn't match sideToMove",
+              firstMove: firstMove,
+              firstMoveSide: firstMoveSide,
+              expectedSide: expectedSide,
+              solutionPv: solutionPv,
+              fix: "manual_review",
+              note: "Single-move puzzles are valid for beginners - check if FEN or sideToMove is incorrect",
+            });
+          } else if (nextSide === expectedSide && solutionPv.length > 1) {
+            // The first move is opponent's move, and removing it would leave valid moves
+            // We should remove it
             results.needsFix.push({
               id: puzzle.id,
               issue: "First move is opponent's move",
@@ -204,23 +304,69 @@ async function fixPuzzleMoveOrder() {
             ? JSON.parse(puzzle.solutionPv) 
             : puzzle.solutionPv;
 
-          // Remove first move (opponent's move)
-          const fixedPv = solutionPv.slice(1);
+          // Parse FEN to check which side should move first
+          const setupResult = parseFen(puzzle.fen);
+          if (!setupResult.isOk) continue;
+          
+          const posResult = ChessOps.fromSetup(setupResult.unwrap());
+          if (!posResult.isOk) continue;
+          
+          const startPos = posResult.unwrap();
+          const expectedSide = puzzle.sideToMove;
+          const startTurn = startPos.turn;
+          
+          // Recursively remove opponent moves from the start until we find the player's move
+          let fixedPv = [...solutionPv];
+          let removedMoves = [];
+          let attempts = 0;
+          const maxAttempts = 10; // Safety limit
+          
+          while (attempts < maxAttempts && fixedPv.length > 0) {
+            const firstMove = fixedPv[0];
+            const move = parseUci(firstMove);
+            
+            if (!move) break; // Can't parse, stop
+            
+            // Check which side this move belongs to
+            const currentTurn = startPos.turn;
+            const moveSide = currentTurn === "white" ? "white" : "black";
+            
+            // If this move matches the expected side, we're done
+            if (moveSide === expectedSide) {
+              break;
+            }
+            
+            // This is still an opponent move, remove it
+            removedMoves.push(fixedPv.shift());
+            
+            // Play the move to update the position for next check
+            try {
+              startPos.play(move);
+            } catch {
+              break; // Can't play, stop
+            }
+            
+            attempts++;
+          }
+          
+          // Only update if we actually removed moves and have moves left
+          if (removedMoves.length > 0 && fixedPv.length > 0) {
+            // Update puzzle in database
+            await prisma.puzzle.update({
+              where: { id: puzzle.id },
+              data: {
+                solutionPv: JSON.stringify(fixedPv),
+              },
+            });
 
-          // Update puzzle in database
-          await prisma.puzzle.update({
-            where: { id: puzzle.id },
-            data: {
-              solutionPv: JSON.stringify(fixedPv),
-            },
-          });
-
-          results.fixed.push({
-            id: puzzle.id,
-            originalLength: solutionPv.length,
-            fixedLength: fixedPv.length,
-            removedMove: solutionPv[0],
-          });
+            results.fixed.push({
+              id: puzzle.id,
+              originalLength: solutionPv.length,
+              fixedLength: fixedPv.length,
+              removedMoves: removedMoves,
+              removedCount: removedMoves.length,
+            });
+          }
         } catch (error) {
           console.error(`   ⚠️  Error fixing puzzle ${puzzleFix.id}:`, error.message);
         }

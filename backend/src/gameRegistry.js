@@ -234,14 +234,76 @@ let cachedRegistry = null;
 let cachedAt = 0;
 const CACHE_TTL_MS = 60_000;
 
-async function loadGitRegistry() {
+async function ensureRegistryExists() {
   try {
+    await fs.access(registryPath);
+    return true; // File exists
+  } catch {
+    // File doesn't exist, create it from fallback
+    try {
+      const dataDir = path.dirname(registryPath);
+      await fs.mkdir(dataDir, { recursive: true });
+      
+      // Remove source field from fallback before saving
+      const { source, ...fallbackData } = fallbackRegistry;
+      await fs.writeFile(
+        registryPath,
+        JSON.stringify(fallbackData, null, 2),
+        "utf-8"
+      );
+      console.warn(`[GameRegistry] Created missing registry file at ${registryPath}`);
+      return false;
+    } catch (createError) {
+      console.error(`[GameRegistry] Failed to create registry file: ${createError.message}`);
+      return false;
+    }
+  }
+}
+
+async function loadGitRegistry() {
+  // Ensure file exists before trying to load
+  const fileExisted = await ensureRegistryExists();
+  
+  try {
+    // Check if directory exists first
+    const dataDir = path.dirname(registryPath);
+    try {
+      await fs.access(dataDir);
+    } catch (dirError) {
+      console.error(`[GameRegistry] CRITICAL: Directory missing: ${dataDir}`, dirError);
+      throw new Error(`Registry directory does not exist: ${dataDir}`);
+    }
+    
     const file = await fs.readFile(registryPath, "utf-8");
     const data = JSON.parse(file);
-    return registrySchema.parse({ ...data, source: "git" });
+    const registry = registrySchema.parse({ ...data, source: "git" });
+    
+    if (!fileExisted) {
+      console.log(`[GameRegistry] Loaded newly created registry with ${registry.entries.length} games`);
+    }
+    
+    return registry;
   } catch (error) {
-    console.warn("[GameRegistry] Unable to read git-managed registry, using fallback", error);
-    return fallbackRegistry;
+    // More detailed error logging
+    const errorDetails = {
+      path: registryPath,
+      message: error.message,
+      code: error.code,
+      usingFallback: true,
+    };
+    
+    if (error.code === "ENOENT") {
+      console.error(`[GameRegistry] CRITICAL: Registry file not found`, errorDetails);
+    } else if (error instanceof SyntaxError) {
+      console.error(`[GameRegistry] CRITICAL: Invalid JSON in registry file`, errorDetails);
+    } else {
+      console.error(`[GameRegistry] CRITICAL: Failed to load registry`, errorDetails);
+    }
+    
+    // Add warning flag to make fallback more visible
+    const fallback = { ...fallbackRegistry };
+    fallback._warning = "Using fallback registry - registry file is missing or invalid";
+    return fallback;
   }
 }
 
@@ -252,7 +314,8 @@ async function getRegistryInternal(forceRefresh = false) {
   }
 
   if (forceRefresh) {
-    debugLog("Force refresh requested, clearing cache");
+    cachedRegistry = null;
+    cachedAt = 0;
   }
 
   const registry = await loadGitRegistry();

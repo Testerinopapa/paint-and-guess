@@ -9,7 +9,7 @@ import { fileURLToPath } from "url";
 import { v4 as uuidv4 } from "uuid";
 import { getWordPacks, getRandomWordFromPack } from "./words.js";
 import { initializeRedis, getRedisSubscriber, getRedisPublisher, isRedisEnabled, shutdownRedis } from "./redisClient.js";
-import { getRegistryResponse, loadGameRegistry } from "./gameRegistry.js";
+import { getRegistryResponse, loadGameRegistry, getRegistryPath } from "./gameRegistry.js";
 import { TriviaRoomRepository } from "./triviaRoomRepository.js";
 import { getSampleQuestions, getQuestionsByQuizId, QUIZZES } from "./triviaQuestions.js";
 import { canvaRoomRepository } from "./canvaRoomRepository.js";
@@ -1274,6 +1274,22 @@ async function cleanup() {
 
 process.on("SIGINT", cleanup);
 process.on("SIGTERM", cleanup);
+
+// Validate registry on startup
+(async () => {
+  try {
+    const registry = await loadGameRegistry({ forceRefresh: true });
+    if (registry.source === "fallback") {
+      logger.warn(
+        `[GameRegistry] Using fallback registry - file missing at ${getRegistryPath()}. Games may differ from expected.`
+      );
+    } else {
+      console.log(`[GameRegistry] Loaded ${registry.entries.length} games from ${registry.source}`);
+    }
+  } catch (error) {
+    logger.error("[GameRegistry] Startup validation failed", error);
+  }
+})();
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {

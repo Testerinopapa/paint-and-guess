@@ -476,3 +476,13 @@ The Opponent Selector sidebar panel provides an intuitive, visual interface for 
 
 The component seamlessly integrates with the chess game flow, allowing users to easily browse, select, and start games against AI opponents of varying difficulty levels.
 
+
+
+
+
+
+
+
+
+
+

@@ -361,3 +361,13 @@ backend/src/
 5. Use the bottom toolbar for tools and zoom controls
 6. View other participants in the video sidebar
 
+
+
+
+
+
+
+
+
+
+

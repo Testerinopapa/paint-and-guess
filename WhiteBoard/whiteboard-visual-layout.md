@@ -538,3 +538,13 @@ The Whiteboard feature uses a clean, two-view layout:
 
 Both views maintain consistency with the GameHub design system using shadcn-ui components and Tailwind CSS styling. The layout is fully responsive, working seamlessly from mobile to desktop screens.
 
+
+
+
+
+
+
+
+
+
+

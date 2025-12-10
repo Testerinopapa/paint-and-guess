@@ -18,6 +18,7 @@
     "validate:all-puzzles": "node scripts/validate-all-puzzles.js",
     "fix:puzzle-move-order": "node scripts/fix-puzzle-move-order.js",
     "import:dev-db": "node scripts/import-dev-db.js",
+    "import:lichess-zst": "node --max-old-space-size=4096 scripts/import-lichess-zst.js",
     "test:engine": "node scripts/test-engine.js",
     "download:stockfish": "node scripts/download-stockfish.js",
     "postinstall": "npm run download:stockfish || echo 'Stockfish download skipped (optional)'"
