@@ -1,28 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { usePuzzle } from "../state/PuzzleContext";
 import { Settings, Puzzle, Flame, Calendar, Shield, Book, BarChart3 } from "lucide-react";
 import type { PuzzleDifficulty } from "../state/puzzleTypes";
 
-const MOTIFS = [
-  // Easy
-  "advantage", "fork", "pin", "mateIn1", "oneMove", "hangingPiece", "trappedPiece",
-  "equality", "arabianMate", "attackingF2F7", "backRankMate", "bodenMate",
-  "doubleBishopMate", "hookMate", "skewer",
-  // Medium
-  "mateIn2", "mateIn3", "deflection", "discoveredAttack", "doubleCheck",
-  "advancedPawn", "attraction", "capturingDefender", "clearance", "exposedKing",
-  "interference", "intermezzo", "kingsideAttack", "promotion", "queensideAttack", "xRayAttack",
-  // Hard
-  "mateIn4", "zugzwang",
-  // Other
-  "mate", "sacrifice", "short", "smotheredMate",
-];
+// Motifs removed - no longer needed for hardcoded puzzles
 
 interface PuzzleSidebarProps {
   difficulty: PuzzleDifficulty;
@@ -36,6 +20,8 @@ interface PuzzleSidebarProps {
   onLoadPuzzle: () => void;
   loading: boolean;
 }
+
+// Note: Filters are kept for API compatibility but ignored (hardcoded puzzle)
 
 export function PuzzleSidebar({
   difficulty,
@@ -109,68 +95,15 @@ export function PuzzleSidebar({
         {loading ? "Loading..." : "Solve Puzzles"}
       </Button>
 
-      {/* Puzzle Settings */}
+      {/* Puzzle Settings - Simplified (no database filters) */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Settings</CardTitle>
-          <CardDescription>Customize puzzle difficulty and filters</CardDescription>
+          <CardDescription>Puzzle mode (hardcoded puzzle)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="difficulty">Difficulty</Label>
-            <Select value={difficulty} onValueChange={(v) => setDifficulty(v as PuzzleDifficulty)}>
-              <SelectTrigger id="difficulty">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="easy">Easy (0-1400)</SelectItem>
-                <SelectItem value="medium">Medium (1400-2000)</SelectItem>
-                <SelectItem value="hard">Hard (2000+)</SelectItem>
-                <SelectItem value="custom">Custom Range</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {difficulty === "custom" && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="minRating">Min Rating</Label>
-                <Input
-                  id="minRating"
-                  type="number"
-                  placeholder="0"
-                  value={minRating}
-                  onChange={(e) => setMinRating(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="maxRating">Max Rating</Label>
-                <Input
-                  id="maxRating"
-                  type="number"
-                  placeholder="10000"
-                  value={maxRating}
-                  onChange={(e) => setMaxRating(e.target.value)}
-                />
-              </div>
-            </>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="motif">Motif (Optional)</Label>
-            <Select value={motif || "all"} onValueChange={(v) => setMotif(v === "all" ? "" : v)}>
-              <SelectTrigger id="motif">
-                <SelectValue placeholder="All motifs" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All motifs</SelectItem>
-                {MOTIFS.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="text-sm text-muted-foreground">
+            Using a simple hardcoded puzzle. Filters are disabled.
           </div>
         </CardContent>
       </Card>

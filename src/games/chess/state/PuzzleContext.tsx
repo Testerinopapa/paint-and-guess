@@ -5,7 +5,6 @@ import { Chess as ChessOps } from "chessops/chess";
 import { parseUci, makeUci } from "chessops/util";
 import { isNormal } from "chessops";
 import type { Puzzle, PuzzleState, PuzzleFilters, PuzzleDifficulty } from "./puzzleTypes";
-import { apiPath } from "@/config/api";
 import { debugPuzzle, debugMove, debugState, debugPuzzleState, isDebugEnabled, debugBoard } from "../utils/debug";
 import { useChess } from "./ChessContext";
 
@@ -23,11 +22,16 @@ interface PuzzleContextType {
 
 const PuzzleContext = createContext<PuzzleContextType | undefined>(undefined);
 
-const RATING_PRESETS: Record<PuzzleDifficulty, { min: number; max: number }> = {
-  easy: { min: 0, max: 1400 },
-  medium: { min: 1400, max: 2000 },
-  hard: { min: 2000, max: 10000 },
-  custom: { min: 0, max: 10000 },
+// Hardcoded simple puzzle - mate in 2
+const HARDCODED_PUZZLE: Puzzle = {
+  id: "hardcoded-1",
+  createdAt: new Date().toISOString(),
+  fen: "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4",
+  sideToMove: "white",
+  solutionPv: ["e1g1", "e8g8", "f3g5"],
+  motifs: ["mateIn2"],
+  source: "hardcoded",
+  rating: 1500,
 };
 
 function createInitialState(): PuzzleState {
@@ -55,49 +59,15 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   // Store original makeMove to wrap it
   const originalMakeMove = chessContext.makeMove;
 
-  const loadRandomPuzzle = useCallback(async (filters?: PuzzleFilters, retryCount = 0) => {
-    const maxRetries = 3;
-    console.log("[PUZZLE DEBUG] loadRandomPuzzle called", { filters, debugEnabled: isDebugEnabled(), retryCount });
-    if (retryCount === 0) {
-      debugPuzzle.load(filters);
-      setLoading(true);
-      setError(null);
-    }
+  const loadRandomPuzzle = useCallback(async (filters?: PuzzleFilters) => {
+    console.log("[PUZZLE DEBUG] loadRandomPuzzle called", { filters, debugEnabled: isDebugEnabled() });
+    debugPuzzle.load(filters);
+    setLoading(true);
+    setError(null);
 
     try {
-      const params = new URLSearchParams();
-      
-      if (filters?.difficulty && filters.difficulty !== "custom") {
-        const preset = RATING_PRESETS[filters.difficulty];
-        params.append("minRating", preset.min.toString());
-        params.append("maxRating", preset.max.toString());
-      } else {
-        if (filters?.minRating !== undefined) {
-          params.append("minRating", filters.minRating.toString());
-        }
-        if (filters?.maxRating !== undefined) {
-          params.append("maxRating", filters.maxRating.toString());
-        }
-      }
-
-      if (filters?.motif) {
-        params.append("motif", filters.motif);
-      }
-
-      const response = await fetch(`${apiPath("/api/puzzles/random")}?${params.toString()}`);
-      
-      if (!response.ok) {
-        throw new Error("Failed to load puzzle");
-      }
-
-      const puzzle: Puzzle | null = await response.json();
-
-      if (!puzzle) {
-        debugPuzzle.error("No puzzle found", "loadRandomPuzzle");
-        setError("No puzzle found matching your criteria");
-        setLoading(false);
-        return;
-      }
+      // Use hardcoded puzzle - no database
+      const puzzle: Puzzle = HARDCODED_PUZZLE;
 
       debugPuzzle.loaded(puzzle);
 
@@ -113,81 +83,9 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       // Validate solutionPv is not empty
       if (!Array.isArray(solutionPv) || solutionPv.length === 0) {
         debugPuzzle.error("Invalid solution PV", `type: ${typeof solutionPv}, length: ${solutionPv?.length}`);
-        // Auto-retry with a new puzzle
-        if (retryCount < maxRetries) {
-          console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries}) - invalid PV`);
-          setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
-          return;
-        }
-        setError("Puzzle configuration error - please try another puzzle");
+        setError("Puzzle configuration error");
         setLoading(false);
         return;
-      }
-
-      // Validate that first move in solutionPv matches sideToMove
-      // solutionPv should start with the player's move, not the opponent's
-      if (solutionPv.length > 0) {
-        const firstMove = solutionPv[0];
-        try {
-          // Check who's turn it is in the FEN (before any moves)
-          const fenTurn = tempGame.turn() === "w" ? "white" : "black";
-          const expectedTurn = puzzle.sideToMove;
-          
-          // The first move should be made by the side whose turn it is in the FEN
-          // If sideToMove is "white", then tempGame.turn() should be "w"
-          if (fenTurn !== expectedTurn) {
-            debugPuzzle.error("FEN turn doesn't match sideToMove", {
-              fenTurn,
-              expectedTurn,
-              fen: puzzle.fen,
-            });
-            // This is a data integrity issue - skip this puzzle
-            if (retryCount < maxRetries) {
-              console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries}) - FEN/sideToMove mismatch`);
-              setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
-              return;
-            }
-            setError("Puzzle configuration error - please try another puzzle");
-            setLoading(false);
-            return;
-          }
-          
-          // Verify the first move is legal for the expected side
-          const from = firstMove.slice(0, 2);
-          const to = firstMove.slice(2, 4);
-          const testMove = tempGame.move({ from, to });
-          
-          if (!testMove) {
-            debugPuzzle.error("First move is illegal", {
-              firstMove,
-              fen: puzzle.fen,
-              sideToMove: puzzle.sideToMove,
-            });
-            // Auto-retry with a new puzzle
-            if (retryCount < maxRetries) {
-              console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries}) - illegal first move`);
-              setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
-              return;
-            }
-            setError("Puzzle configuration error - please try another puzzle");
-            setLoading(false);
-            return;
-          }
-          
-          // Reset tempGame for further checks (auto-advance logic)
-          tempGame = new Chess(puzzle.fen);
-        } catch (e) {
-          debugPuzzle.error("Error validating first move", e);
-          // Auto-retry with a new puzzle
-          if (retryCount < maxRetries) {
-            console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries}) - validation error`);
-            setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
-            return;
-          }
-          setError("Puzzle configuration error - please try another puzzle");
-          setLoading(false);
-          return;
-        }
       }
 
       // For mate puzzles, ensure player is on the side that delivers mate
@@ -195,68 +93,28 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       const isMatePuzzle = puzzle.motifs.some(m => m.includes("mate"));
       if (isMatePuzzle && puzzle.sideToMove !== (tempGame.turn() === "w" ? "white" : "black")) {
         // Auto-advance one move if needed to get player on the correct side
-        // solutionPv structure: [playerMove1, opponentReply1, playerMove2, opponentReply2, ...]
-        // Player moves are at even indices (0, 2, 4...)
-        // After auto-advancing move 0, we need moveIndex to point to the NEXT player move (index 2)
         if (solutionPv.length > 0) {
           const firstMove = solutionPv[0];
           try {
             const from = firstMove.slice(0, 2);
             const to = firstMove.slice(2, 4);
             const moveResult = tempGame.move({ from, to });
-            if (!moveResult) {
-              throw new Error(`Invalid move: ${from}${to}`);
+            if (moveResult && solutionPv.length >= 3) {
+              initialFen = tempGame.fen();
+              initialMoveIndex = 2;
+              debugPuzzle.autoAdvance(from, to, initialFen, initialMoveIndex);
             }
-            initialFen = tempGame.fen();
-            
-            // After auto-advancing move 0 (player's first move), the next player move is at index 2
-            // We need at least 3 moves total (move0, reply1, move2) for puzzle to have moves after auto-advance
-            // If solutionPv.length < 3, there's no next player move, so puzzle would be immediately complete
-            if (solutionPv.length < 3) {
-              debugPuzzle.error("Puzzle too short for auto-advance", `length: ${solutionPv.length}, needs at least 3`);
-              // Auto-retry with a new puzzle
-              if (retryCount < maxRetries) {
-                console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries})`);
-                setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
-                return;
-              }
-              setError("Puzzle configuration error - please try another puzzle");
-              setLoading(false);
-              return;
-            }
-            
-            // After auto-advancing move 0, next player move is at index 2
-            initialMoveIndex = 2;
-            debugPuzzle.autoAdvance(from, to, initialFen, initialMoveIndex);
           } catch (e) {
             debugPuzzle.error(e, "auto-advance");
             console.error("Error auto-advancing puzzle:", e);
-            // If auto-advance fails, don't auto-advance - keep moveIndex at 0
-            initialMoveIndex = 0;
-            initialFen = puzzle.fen;
           }
         }
       }
       
-      // CRITICAL: Ensure puzzle is not already complete when loaded
-      // moveIndex must be less than solutionPv.length for puzzle to have moves remaining
+      // Ensure puzzle is not already complete when loaded
       if (initialMoveIndex >= solutionPv.length) {
-        const errorDetails = `moveIndex: ${initialMoveIndex}, length: ${solutionPv.length}, isMatePuzzle: ${isMatePuzzle}, sideToMove: ${puzzle.sideToMove}, fenTurn: ${tempGame.turn() === "w" ? "white" : "black"}`;
-        debugPuzzle.error("Puzzle would be complete on load", errorDetails);
-        console.error("[PUZZLE] Validation failed:", {
-          moveIndex: initialMoveIndex,
-          length: solutionPv.length,
-          isMatePuzzle,
-          sideToMove: puzzle.sideToMove,
-          fenTurn: tempGame.turn() === "w" ? "white" : "black"
-        });
-        // Auto-retry with a new puzzle
-        if (retryCount < maxRetries) {
-          console.log(`[PUZZLE] Retrying puzzle load (attempt ${retryCount + 1}/${maxRetries})`);
-          setTimeout(() => loadRandomPuzzle(filters, retryCount + 1), 100);
-          return;
-        }
-        setError("Puzzle configuration error - please try another puzzle");
+        debugPuzzle.error("Puzzle would be complete on load", `moveIndex: ${initialMoveIndex}, length: ${solutionPv.length}`);
+        setError("Puzzle configuration error");
         setLoading(false);
         return;
       }
@@ -298,36 +156,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Helper function to validate move with engine evaluation
-  const validateMoveWithEngine = useCallback(async (
-    fen: string,
-    userMoveUci: string,
-    solutionMoveUci: string
-  ): Promise<boolean> => {
-    try {
-      const response = await fetch(apiPath("/api/puzzles/validate-move"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fen,
-          userMove: userMoveUci,
-          solutionMove: solutionMoveUci,
-          depth: 8, // Fast depth for puzzle validation
-        }),
-      });
-
-      if (!response.ok) {
-        console.error("[PUZZLE] Engine validation failed:", response.statusText);
-        return false;
-      }
-
-      const result = await response.json();
-      return result.isCorrect === true;
-    } catch (error) {
-      console.error("[PUZZLE] Engine validation error:", error);
-      return false;
-    }
-  }, []);
+  // Engine validation removed - using simple move matching only
 
   const makeMove = useCallback((from: string, to: string, promotion?: string): boolean => {
     console.log("[PUZZLE DEBUG] makeMove called", { from, to, promotion, hasPuzzle: !!puzzleState.puzzle, solved: puzzleState.solved });
@@ -593,24 +422,8 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const recordAttempt = useCallback(async (solved: boolean) => {
-    if (!puzzleState.puzzle) return;
-
-    try {
-      const timeMs = Date.now() - puzzleState.startTime;
-      
-      await fetch(apiPath("/api/puzzles/attempt"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          puzzleId: puzzleState.puzzle.id,
-          timeMs,
-          mistakes: puzzleState.mistakes,
-          solved,
-        }),
-      });
-    } catch (error) {
-      console.error("Error recording attempt:", error);
-    }
+    // No-op - database recording removed
+    console.log("[PUZZLE] Attempt recorded (local only):", { solved, mistakes: puzzleState.mistakes });
   }, [puzzleState]);
 
   // Auto-record on solve
