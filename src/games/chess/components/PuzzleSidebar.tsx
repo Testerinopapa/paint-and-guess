@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from "@/components/ui/select";
 import { usePuzzle } from "../state/PuzzleContext";
 import { Settings, Puzzle, Flame, Calendar, Shield, Book, BarChart3, Filter } from "lucide-react";
 import type { PuzzleDifficulty } from "../state/puzzleTypes";
@@ -110,18 +110,69 @@ export function PuzzleSidebar({
           <CardDescription>Customize puzzle selection</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Difficulty Selection */}
+          {/* Combined Difficulty + Motif Selection */}
           <div className="space-y-2">
-            <Label htmlFor="difficulty">Difficulty</Label>
-            <Select value={difficulty} onValueChange={(value) => setDifficulty(value as PuzzleDifficulty)}>
-              <SelectTrigger id="difficulty">
-                <SelectValue placeholder="Select difficulty" />
+            <Label htmlFor="puzzle-filter">Puzzle Type</Label>
+            <Select 
+              value={`${difficulty}:${motif || "all"}`} 
+              onValueChange={(value) => {
+                const [newDifficulty, newMotif] = value.split(":");
+                setDifficulty(newDifficulty as PuzzleDifficulty);
+                setMotif(newMotif === "all" ? "" : newMotif);
+              }}
+            >
+              <SelectTrigger id="puzzle-filter">
+                <SelectValue placeholder="Select puzzle type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="easy">Easy (0-1400)</SelectItem>
-                <SelectItem value="medium">Medium (1400-2000)</SelectItem>
-                <SelectItem value="hard">Hard (2000+)</SelectItem>
-                <SelectItem value="custom">Custom Range</SelectItem>
+                <SelectGroup>
+                  <SelectLabel>Easy (0-1400)</SelectLabel>
+                  <SelectItem value="easy:all">Easy - All Themes</SelectItem>
+                  <SelectItem value="easy:fork">Easy - Fork</SelectItem>
+                  <SelectItem value="easy:pin">Easy - Pin</SelectItem>
+                  <SelectItem value="easy:skewer">Easy - Skewer</SelectItem>
+                  <SelectItem value="easy:hangingPiece">Easy - Hanging Piece</SelectItem>
+                  <SelectItem value="easy:mateIn1">Easy - Mate in 1</SelectItem>
+                  <SelectItem value="easy:backRankMate">Easy - Back Rank Mate</SelectItem>
+                  <SelectItem value="easy:advantage">Easy - Advantage</SelectItem>
+                  <SelectItem value="easy:equality">Easy - Equality</SelectItem>
+                </SelectGroup>
+                
+                <SelectSeparator />
+                
+                <SelectGroup>
+                  <SelectLabel>Medium (1400-2000)</SelectLabel>
+                  <SelectItem value="medium:all">Medium - All Themes</SelectItem>
+                  <SelectItem value="medium:mateIn2">Medium - Mate in 2</SelectItem>
+                  <SelectItem value="medium:mateIn3">Medium - Mate in 3</SelectItem>
+                  <SelectItem value="medium:deflection">Medium - Deflection</SelectItem>
+                  <SelectItem value="medium:discoveredAttack">Medium - Discovered Attack</SelectItem>
+                  <SelectItem value="medium:doubleCheck">Medium - Double Check</SelectItem>
+                  <SelectItem value="medium:interference">Medium - Interference</SelectItem>
+                  <SelectItem value="medium:capturingDefender">Medium - Capturing Defender</SelectItem>
+                  <SelectItem value="medium:promotion">Medium - Promotion</SelectItem>
+                </SelectGroup>
+                
+                <SelectSeparator />
+                
+                <SelectGroup>
+                  <SelectLabel>Hard (2000+)</SelectLabel>
+                  <SelectItem value="hard:all">Hard - All Themes</SelectItem>
+                  <SelectItem value="hard:mateIn4">Hard - Mate in 4</SelectItem>
+                  <SelectItem value="hard:zugzwang">Hard - Zugzwang</SelectItem>
+                  <SelectItem value="hard:sacrifice">Hard - Sacrifice</SelectItem>
+                </SelectGroup>
+                
+                <SelectSeparator />
+                
+                <SelectGroup>
+                  <SelectLabel>Custom Range</SelectLabel>
+                  <SelectItem value="custom:all">Custom - All Themes</SelectItem>
+                  <SelectItem value="custom:fork">Custom - Fork</SelectItem>
+                  <SelectItem value="custom:pin">Custom - Pin</SelectItem>
+                  <SelectItem value="custom:mate">Custom - Mate</SelectItem>
+                  <SelectItem value="custom:sacrifice">Custom - Sacrifice</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
@@ -155,21 +206,6 @@ export function PuzzleSidebar({
               </div>
             </div>
           )}
-
-          {/* Motif Filter */}
-          <div className="space-y-2">
-            <Label htmlFor="motif">Theme/Motif (optional)</Label>
-            <Input
-              id="motif"
-              type="text"
-              placeholder="e.g., mateIn2, fork, pin"
-              value={motif}
-              onChange={(e) => setMotif(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Common themes: mateIn1, mateIn2, fork, pin, skewer, deflection
-            </p>
-          </div>
         </CardContent>
       </Card>
 
