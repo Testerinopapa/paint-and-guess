@@ -139,6 +139,18 @@ try {
   console.log(`   Total Attempts: ${finalAttemptCount}`);
   console.log("=".repeat(50));
   
+  // Rebuild catalog if puzzles were imported
+  if (imported > 0) {
+    console.log("\n🔄 Rebuilding puzzle catalog...");
+    try {
+      const { buildPuzzleCatalog } = await import("./build-puzzle-catalog.js");
+      await buildPuzzleCatalog();
+    } catch (error) {
+      console.error("⚠️  Failed to rebuild catalog:", error.message);
+      console.log("   You can rebuild it manually by running: node backend/scripts/build-puzzle-catalog.js");
+    }
+  }
+  
   sourceDb.close();
   await prisma.$disconnect();
   

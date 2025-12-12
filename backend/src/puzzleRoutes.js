@@ -62,6 +62,70 @@ export async function getRandomPuzzle(req, res) {
       if (maxRating) ratingMax = parseInt(maxRating, 10);
     }
 
+    // Try to use catalog first (fast path)
+    try {
+      const catalogEntry = await prisma.puzzleCatalog.findUnique({
+        where: {
+          ratingMin_ratingMax_motif: {
+            ratingMin,
+            ratingMax,
+            motif: motif || "all",
+          },
+        },
+      });
+
+      if (catalogEntry && catalogEntry.count > 0) {
+        // Parse puzzle IDs from catalog
+        const puzzleIds = JSON.parse(catalogEntry.puzzleIds);
+        
+        if (Array.isArray(puzzleIds) && puzzleIds.length > 0) {
+          // Pick random puzzle ID from catalog
+          const randomIndex = Math.floor(Math.random() * puzzleIds.length);
+          const puzzleId = puzzleIds[randomIndex];
+          
+          // Fetch the puzzle
+          const puzzle = await prisma.puzzle.findUnique({
+            where: { id: puzzleId },
+          });
+          
+          if (puzzle) {
+            // Parse solution PV
+            let solutionPv;
+            try {
+              solutionPv = typeof puzzle.solutionPv === "string"
+                ? JSON.parse(puzzle.solutionPv)
+                : puzzle.solutionPv;
+            } catch (error) {
+              console.error("[Puzzle API] Error parsing solution PV:", error);
+              // Fall through to fallback method
+            }
+            
+            if (Array.isArray(solutionPv) && solutionPv.length > 0) {
+              // Return puzzle from catalog
+              const puzzleData = {
+                id: puzzle.id,
+                createdAt: puzzle.createdAt.toISOString(),
+                fen: puzzle.fen,
+                sideToMove: puzzle.sideToMove,
+                solutionPv: solutionPv,
+                motifs: typeof puzzle.motifs === "string" ? JSON.parse(puzzle.motifs) : puzzle.motifs,
+                source: puzzle.source,
+                rating: puzzle.rating,
+              };
+              console.log(`[Puzzle API] Returning puzzle from catalog: ${puzzle.id} (${catalogEntry.count} available)`);
+              return res.json(puzzleData);
+            }
+          }
+        }
+      }
+    } catch (catalogError) {
+      // Catalog lookup failed, fall back to random sampling
+      console.log("[Puzzle API] Catalog lookup failed, using fallback:", catalogError.message);
+    }
+
+    // Fallback: Use old random sampling method (if catalog not available or lookup failed)
+    console.log("[Puzzle API] Using fallback random sampling method");
+
     // Build where clause
     const where = {
       rating: {
@@ -116,23 +180,6 @@ export async function getRandomPuzzle(req, res) {
       if (!Array.isArray(solutionPv) || solutionPv.length === 0) {
         continue;
       }
-
-      // CRITICAL: Ensure puzzle has at least one player move remaining
-      // solutionPv contains alternating moves: [playerMove1, opponentReply1, playerMove2, opponentReply2, ...]
-      // Player moves are at even indices (0, 2, 4...)
-      // For a puzzle to be solvable, we need at least 1 player move (index 0 must exist)
-      // After the last player move, there may be an opponent reply, but no more player moves
-      // So if solutionPv.length = 1, that's a player move (solvable)
-      // If solutionPv.length = 2, that's player move + opponent reply (solvable, player makes 1 move)
-      // If solutionPv.length = 3, that's player move + opponent reply + player move (solvable, player makes 2 moves)
-      // The puzzle is only complete when moveIndex >= solutionPv.length
-      // So we need to ensure solutionPv.length >= 1 (at least one move for the player)
-      // This validation is already covered by the length > 0 check above
-      
-      // However, we should also ensure the puzzle structure makes sense
-      // A puzzle with only 1 move is valid (player makes 1 move, puzzle solved)
-      // A puzzle with 2 moves is valid (player makes 1 move, opponent replies, puzzle solved)
-      // So we don't need to filter by length here - all puzzles with length >= 1 are valid
 
       // Structural validation (fast, no engine needed)
       // Lichess already validates puzzle quality, so we only check app-specific compatibility

@@ -37,6 +37,20 @@ model Puzzle {
   attempts    PuzzleAttempt[]
 
   @@index([createdAt])
+  @@index([rating])
+}
+
+model PuzzleCatalog {
+  id        String   @id @default(cuid())
+  ratingMin Int
+  ratingMax Int
+  motif     String  @default("all") // "all" = all motifs, otherwise specific motif
+  puzzleIds String  // JSON array of valid puzzle IDs
+  count     Int      // Number of puzzles in this catalog entry
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([ratingMin, ratingMax, motif])
+  @@index([ratingMin, ratingMax, motif])
 }
 
 model PuzzleAttempt {

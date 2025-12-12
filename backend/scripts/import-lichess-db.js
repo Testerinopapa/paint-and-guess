@@ -85,6 +85,18 @@ try {
   console.log("=".repeat(50));
   console.log("✅ Import complete!");
   console.log(`   Total Puzzles in database: ${finalPuzzleCount}`);
+  
+  // Rebuild catalog if puzzles were imported
+  if (imported > 0) {
+    console.log("\n🔄 Rebuilding puzzle catalog...");
+    try {
+      const { buildPuzzleCatalog } = await import("./build-puzzle-catalog.js");
+      await buildPuzzleCatalog();
+    } catch (error) {
+      console.error("⚠️  Failed to rebuild catalog:", error.message);
+      console.log("   You can rebuild it manually by running: node backend/scripts/build-puzzle-catalog.js");
+    }
+  }
   console.log("=".repeat(50));
   
   sourceDb.close();
