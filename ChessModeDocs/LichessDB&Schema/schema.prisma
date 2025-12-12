@@ -1,0 +1,61 @@
+generator client {
+	provider = "prisma-client-js"
+}
+
+datasource db {
+	provider = "sqlite"
+	url      = env("DATABASE_URL")
+}
+
+model Analysis {
+	id        String  @id @default(cuid())
+	createdAt DateTime @default(now())
+	pgn       String
+	depth     Int
+	ply       Int
+	// Stored as JSON strings to keep schema simple for MVP
+	sans      String   // JSON string: string[]
+	fens      String   // JSON string: string[]
+	series    String   // JSON string: number[] (centipawns per ply)
+}
+
+model Report {
+	id         String   @id @default(cuid())
+	createdAt  DateTime @default(now())
+	pgn        String
+	depth      Int
+	elo        Int?
+	fens       String   // JSON string: string[]
+	sans       String   // JSON string: string[]
+	evals      String   // JSON string: number[] (cp per ply)
+	tags       String   // JSON string: string[] (per ply annotation)
+	accuracy   Float
+}
+
+model Puzzle {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  fen         String
+  sideToMove  String
+  solutionPv  String   // JSON string: string[] (UCI or SAN sequence)
+  motifs      String   // JSON string: string[] (e.g., ["mate-in-1","only-move"])
+  source      String   // e.g., "lichess-2025-08"
+  rating      Int?
+
+  @@index([fen])
+  @@index([createdAt])
+}
+
+model PuzzleAttempt {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  puzzleId  String
+  timeMs    Int
+  mistakes  Int
+  solved    Boolean
+  rating    Int?
+
+  @@index([puzzleId, createdAt])
+}
+
+

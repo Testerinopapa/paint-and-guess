@@ -4,6 +4,7 @@ import { setupPosition } from "chessops/variant";
 import { parseUci } from "chessops/util";
 import type { Position, Move } from "chessops";
 import type { Puzzle, PuzzleFilters } from "./puzzleTypes";
+import { apiPath } from "@/config/api";
 import { debugPuzzle, debugMove, debugState, isDebugEnabled } from "../utils/debug";
 
 interface PuzzleContextType {
@@ -36,16 +37,11 @@ interface PuzzleContextType {
 
 const PuzzleContext = createContext<PuzzleContextType | undefined>(undefined);
 
-// Hardcoded simple puzzle - mate in 2
-const HARDCODED_PUZZLE: Puzzle = {
-  id: "hardcoded-1",
-  createdAt: new Date().toISOString(),
-  fen: "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4",
-  sideToMove: "white",
-  solutionPv: ["e1g1", "e8g8", "f3g5"],
-  motifs: ["mateIn2"],
-  source: "hardcoded",
-  rating: 1500,
+const RATING_PRESETS: Record<string, { min: number; max: number }> = {
+  easy: { min: 0, max: 1400 },
+  medium: { min: 1400, max: 2000 },
+  hard: { min: 2000, max: 10000 },
+  custom: { min: 0, max: 10000 },
 };
 
 export function PuzzleProvider({ children }: { children: ReactNode }) {
@@ -127,8 +123,42 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     setError(null);
 
     try {
-      // Use hardcoded puzzle - no database
-      const puzzle: Puzzle = HARDCODED_PUZZLE;
+      // Build query parameters
+      const params = new URLSearchParams();
+      
+      if (filters?.difficulty && filters.difficulty !== "custom") {
+        const preset = RATING_PRESETS[filters.difficulty];
+        params.append("minRating", preset.min.toString());
+        params.append("maxRating", preset.max.toString());
+      } else {
+        if (filters?.minRating !== undefined) {
+          params.append("minRating", filters.minRating.toString());
+        }
+        if (filters?.maxRating !== undefined) {
+          params.append("maxRating", filters.maxRating.toString());
+        }
+      }
+
+      if (filters?.motif) {
+        params.append("motif", filters.motif);
+      }
+
+      // Fetch puzzle from API
+      const response = await fetch(`${apiPath("/api/puzzles/random")}?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error("Failed to load puzzle");
+      }
+
+      const puzzle: Puzzle | null = await response.json();
+
+      if (!puzzle) {
+        debugPuzzle.error("No puzzle found", "loadRandomPuzzle");
+        setError("No puzzle found matching your criteria");
+        setLoading(false);
+        return;
+      }
+
       debugPuzzle.loaded(puzzle);
 
       // Parse solution PV
@@ -337,6 +367,36 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       resetPuzzle();
     }
   }, [showSolution, playAll, resetPuzzle]);
+
+  // Record attempt to database
+  const recordAttempt = useCallback(async (solved: boolean) => {
+    if (!pz) return;
+
+    try {
+      const timeMs = Date.now() - (pz.createdAt ? new Date(pz.createdAt).getTime() : Date.now());
+      
+      await fetch(apiPath("/api/puzzles/attempt"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          puzzleId: pz.id,
+          timeMs: Math.max(0, timeMs),
+          mistakes,
+          solved,
+        }),
+      });
+    } catch (error) {
+      console.error("Error recording attempt:", error);
+      // Don't show error to user - attempt recording is non-critical
+    }
+  }, [pz, mistakes]);
+
+  // Auto-record on solve
+  useEffect(() => {
+    if (solved && pz) {
+      recordAttempt(true);
+    }
+  }, [solved, pz, recordAttempt]);
 
   return (
     <PuzzleContext.Provider

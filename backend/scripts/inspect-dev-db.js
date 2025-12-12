@@ -5,7 +5,10 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.resolve(__dirname, "../../../ChessModeDocs/CorrectDBARch/prisma/dev.db");
+// Use DATABASE_URL if set, otherwise use default path
+const dbPath = process.env.DATABASE_URL 
+  ? process.env.DATABASE_URL.replace(/^file:/, "")
+  : path.resolve(__dirname, "../../../ChessModeDocs/LichessDB&Schema/dev.db");
 
 console.log("Inspecting database at:", dbPath);
 
