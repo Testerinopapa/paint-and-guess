@@ -118,41 +118,43 @@ export function PuzzleBoard() {
         </Alert>
       )}
 
-      {/* Chess Board - ALWAYS RENDERED */}
-      <div className="relative">
-        <ChessBoard 
-          fen={boardFen}
-          orientation={playerSide}
-          onMove={pz ? handleMove : undefined}
-          disabled={!pz || solved || showSolution}
-        />
-        {isDebugEnabled() && pz && (
-          <div className="absolute top-0 left-0 bg-black/70 text-white text-xs p-2 rounded font-mono z-20">
-            <div>FEN: {fen || "N/A"}</div>
-            <div>Move: {idx + 1}/{pv.length}</div>
-            <div>Solved: {solved ? "Yes" : "No"}</div>
-            <div>Mistakes: {mistakes}</div>
-          </div>
-        )}
-        {/* Hint Overlay */}
-        {hintSquares.length > 0 && (
-          <div className="absolute inset-0 pointer-events-none z-10">
-            {hintSquares.map((square, idx) => (
-              <div
-                key={idx}
-                className="absolute border-4 border-yellow-400 rounded"
-                style={{
-                  left: `${((square.charCodeAt(0) - 97) * 60)}px`,
-                  top: `${((8 - parseInt(square[1])) * 60)}px`,
-                  width: "60px",
-                  height: "60px",
-                  animation: "pulse 1s infinite",
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Chess Board - Only render when we have a valid FEN */}
+      {boardFen && (
+        <div className="relative">
+          <ChessBoard 
+            fen={boardFen}
+            orientation={playerSide}
+            onMove={pz ? handleMove : undefined}
+            disabled={!pz || solved || showSolution}
+          />
+          {isDebugEnabled() && pz && (
+            <div className="absolute top-0 left-0 bg-black/70 text-white text-xs p-2 rounded font-mono z-20">
+              <div>FEN: {fen || "N/A"}</div>
+              <div>Move: {idx + 1}/{pv.length}</div>
+              <div>Solved: {solved ? "Yes" : "No"}</div>
+              <div>Mistakes: {mistakes}</div>
+            </div>
+          )}
+          {/* Hint Overlay */}
+          {hintSquares.length > 0 && (
+            <div className="absolute inset-0 pointer-events-none z-10">
+              {hintSquares.map((square, idx) => (
+                <div
+                  key={idx}
+                  className="absolute border-4 border-yellow-400 rounded"
+                  style={{
+                    left: `${((square.charCodeAt(0) - 97) * 60)}px`,
+                    top: `${((8 - parseInt(square[1])) * 60)}px`,
+                    width: "60px",
+                    height: "60px",
+                    animation: "pulse 1s infinite",
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
 
       {/* Error Message */}
