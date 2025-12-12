@@ -2,11 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePuzzle } from "../state/PuzzleContext";
-import { Settings, Puzzle, Flame, Calendar, Shield, Book, BarChart3 } from "lucide-react";
+import { Settings, Puzzle, Flame, Calendar, Shield, Book, BarChart3, Filter } from "lucide-react";
 import type { PuzzleDifficulty } from "../state/puzzleTypes";
-
-// Motifs removed - no longer needed for hardcoded puzzles
 
 interface PuzzleSidebarProps {
   difficulty: PuzzleDifficulty;
@@ -20,8 +21,6 @@ interface PuzzleSidebarProps {
   onLoadPuzzle: () => void;
   loading: boolean;
 }
-
-// Note: Filters are kept for API compatibility but ignored (hardcoded puzzle)
 
 export function PuzzleSidebar({
   difficulty,
@@ -95,15 +94,75 @@ export function PuzzleSidebar({
         {loading ? "Loading..." : "Solve Puzzles"}
       </Button>
 
-      {/* Puzzle Settings - Simplified (no database filters) */}
+      {/* Puzzle Settings - Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Settings</CardTitle>
-          <CardDescription>Puzzle mode (hardcoded puzzle)</CardDescription>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            <CardTitle className="text-lg">Filters</CardTitle>
+          </div>
+          <CardDescription>Customize puzzle selection</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-sm text-muted-foreground">
-            Using a simple hardcoded puzzle. Filters are disabled.
+          {/* Difficulty Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="difficulty">Difficulty</Label>
+            <Select value={difficulty} onValueChange={(value) => setDifficulty(value as PuzzleDifficulty)}>
+              <SelectTrigger id="difficulty">
+                <SelectValue placeholder="Select difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="easy">Easy (0-1400)</SelectItem>
+                <SelectItem value="medium">Medium (1400-2000)</SelectItem>
+                <SelectItem value="hard">Hard (2000+)</SelectItem>
+                <SelectItem value="custom">Custom Range</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Custom Rating Range (only shown when custom is selected) */}
+          {difficulty === "custom" && (
+            <div className="space-y-3 pt-2 border-t">
+              <div className="space-y-2">
+                <Label htmlFor="minRating">Min Rating</Label>
+                <Input
+                  id="minRating"
+                  type="number"
+                  placeholder="0"
+                  value={minRating}
+                  onChange={(e) => setMinRating(e.target.value)}
+                  min="0"
+                  max="3000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="maxRating">Max Rating</Label>
+                <Input
+                  id="maxRating"
+                  type="number"
+                  placeholder="3000"
+                  value={maxRating}
+                  onChange={(e) => setMaxRating(e.target.value)}
+                  min="0"
+                  max="3000"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Motif Filter */}
+          <div className="space-y-2">
+            <Label htmlFor="motif">Theme/Motif (optional)</Label>
+            <Input
+              id="motif"
+              type="text"
+              placeholder="e.g., mateIn2, fork, pin"
+              value={motif}
+              onChange={(e) => setMotif(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Common themes: mateIn1, mateIn2, fork, pin, skewer, deflection
+            </p>
           </div>
         </CardContent>
       </Card>
