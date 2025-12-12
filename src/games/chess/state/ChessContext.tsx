@@ -25,7 +25,7 @@ interface ChessContextType {
   makeAIMove: () => Promise<void>;
 }
 
-const ChessContext = createContext<ChessContextType | undefined>(undefined);
+export const ChessContext = createContext<ChessContextType | undefined>(undefined);
 
 function createInitialGameState(): GameState {
   return {

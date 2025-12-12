@@ -1,5 +1,5 @@
-import { useState, useCallback, useMemo, useEffect, memo } from "react";
-import { useChess } from "../state/ChessContext";
+import { useState, useCallback, useMemo, useEffect, memo, useContext } from "react";
+import { ChessContext } from "../state/ChessContext";
 import { Chess, Square } from "chess.js";
 import { debugBoard, isDebugEnabled } from "../utils/debug";
 import { ChessPiece } from "../utils/chessPieces";
@@ -175,15 +175,22 @@ interface ChessBoardProps {
 }
 
 export function ChessBoard({ fen, orientation = "white", onMove, disabled = false }: ChessBoardProps) {
-  // Use ChessContext if fen is not provided (backward compatibility)
-  const chessContext = useChess();
+  // Use useContext directly to safely access ChessContext (may be undefined in puzzle mode)
+  // Puzzle mode provides fen prop and doesn't need ChessContext
+  const chessContext = useContext(ChessContext);
   
-  // Check if AI mode is selected but game hasn't started yet (waiting for "Start Game vs AI")
-  const isAIModePending = chessContext.gameState?.gameMode === "ai" && 
-    (!chessContext.aiConfig?.enabled);
+  // If fen is provided, we're in puzzle mode and don't need ChessContext
+  // If fen is not provided, ChessContext is required
+  if (!fen && !chessContext) {
+    throw new Error("ChessContext required when fen is not provided");
+  }
   
-  // Check if AI is thinking or if it's AI's turn (disable player moves)
-  const isAIDisabled = chessContext.aiConfig && chessContext.aiConfig.enabled && 
+  // Check if AI mode is selected but game hasn't started yet (only if ChessContext available)
+  const isAIModePending = chessContext?.gameState?.gameMode === "ai" && 
+    (!chessContext?.aiConfig?.enabled);
+  
+  // Check if AI is thinking or if it's AI's turn (only if ChessContext available)
+  const isAIDisabled = chessContext?.aiConfig && chessContext.aiConfig.enabled && 
     (chessContext.isAIThinking || chessContext.isAITurn());
   
   const effectiveDisabled = disabled || isAIDisabled || isAIModePending;
@@ -202,8 +209,11 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
         return new Chess(); // Fallback to starting position
       }
     }
+    if (!chessContext) {
+      throw new Error("ChessContext required when fen is not provided");
+    }
     return chessContext.game;
-  }, [fen, chessContext.game]);
+  }, [fen, chessContext?.game]);
 
   // Get move functions - use onMove callback if provided (for puzzle mode), otherwise use ChessContext
   const makeMove = onMove ? 
@@ -211,7 +221,7 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
       // If onMove callback is provided, use it (allows puzzle mode to intercept and validate)
       return onMove(from, to);
     } : 
-    chessContext.makeMove;
+    (chessContext?.makeMove || (() => false));
 
   const getLegalMoves = useCallback((square?: string): string[] => {
     if (!game) return [];
@@ -265,8 +275,8 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
   const handleSquareClick = useCallback((square: string) => {
     if (effectiveDisabled) return; // Don't allow moves if disabled or AI's turn
     
-    // In AI mode, don't allow moves until "Start Game vs AI" is clicked
-    if (chessContext.gameState?.gameMode === "ai" && !chessContext.aiConfig?.enabled) {
+    // In AI mode, don't allow moves until "Start Game vs AI" is clicked (only if ChessContext available)
+    if (chessContext?.gameState?.gameMode === "ai" && !chessContext?.aiConfig?.enabled) {
       console.log("[AI DEBUG] Board disabled: AI mode selected but game not started");
       return; // AI mode selected but "Start Game vs AI" not clicked yet
     }
@@ -307,7 +317,7 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
       setSelectedSquare(null);
       setLegalMoves([]);
     }
-  }, [selectedSquare, legalMoves, game, makeMove, getLegalMoves, onMove, fen, effectiveDisabled, chessContext.gameState?.gameMode, chessContext.aiConfig?.enabled]);
+  }, [selectedSquare, legalMoves, game, makeMove, getLegalMoves, onMove, fen, effectiveDisabled, chessContext?.gameState?.gameMode, chessContext?.aiConfig?.enabled]);
 
   const handleMouseDown = useCallback((square: string) => {
     const piece = game?.get(square as Square);
@@ -317,8 +327,8 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
   }, [game]);
 
   const handleMouseUp = useCallback((square: string) => {
-    // Prevent drag-drop in AI mode until game is started
-    if (chessContext.gameState?.gameMode === "ai" && !chessContext.aiConfig?.enabled) {
+    // Prevent drag-drop in AI mode until game is started (only if ChessContext available)
+    if (chessContext?.gameState?.gameMode === "ai" && !chessContext?.aiConfig?.enabled) {
       setDraggedSquare(null);
       return;
     }
@@ -331,11 +341,11 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
       }
     }
     setDraggedSquare(null);
-  }, [draggedSquare, effectiveDisabled, makeMove, fen, onMove, chessContext.gameState?.gameMode, chessContext.aiConfig?.enabled]);
+  }, [draggedSquare, effectiveDisabled, makeMove, fen, onMove, chessContext?.gameState?.gameMode, chessContext?.aiConfig?.enabled]);
 
   // Track the effective FEN - use fen prop if provided (puzzle mode), otherwise use game FEN
   const effectiveFen = fen || game?.fen() || "";
-  const lastMove = chessContext?.gameState?.lastMove;
+  const lastMove = chessContext?.gameState?.lastMove || null;
 
   // Extract piece positions into a stable map - only changes when FEN actually changes
   // This prevents unnecessary recreations when game instance changes but position doesn't
