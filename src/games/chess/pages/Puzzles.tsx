@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { PuzzleProvider, usePuzzle } from "../state/PuzzleContext";
-import { ChessProvider } from "../state/ChessContext";
 import { PuzzleBoard } from "../components/PuzzleBoard";
 import { PuzzleSidebar } from "../components/PuzzleSidebar";
 import type { PuzzleDifficulty, PuzzleFilters } from "../state/puzzleTypes";
@@ -50,11 +49,9 @@ function PuzzlesContent() {
 
 export default function PuzzlesPage() {
   return (
-    <ChessProvider>
-      <PuzzleProvider>
-        <PuzzlesContent />
-      </PuzzleProvider>
-    </ChessProvider>
+    <PuzzleProvider>
+      <PuzzlesContent />
+    </PuzzleProvider>
   );
 }
 

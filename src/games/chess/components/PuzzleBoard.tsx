@@ -1,36 +1,62 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { usePuzzle } from "../state/PuzzleContext";
-import { useChess } from "../state/ChessContext";
 import { ChessBoard } from "./ChessBoard";
-import { debugBoard, debugPuzzleState, isDebugEnabled } from "../utils/debug";
+import { debugBoard, isDebugEnabled } from "../utils/debug";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Lightbulb, RotateCcw, CheckCircle2, XCircle } from "lucide-react";
 
 export function PuzzleBoard() {
-  const { puzzleState, makeMove, showHint, resetPuzzle, toggleSolution, loading, error } = usePuzzle();
-  const chessContext = useChess();
+  const { 
+    pz, fen, idx, solved, message, showHint, playerSide,
+    pv, boardFen, sideToMove,
+    onPieceDrop, resetPuzzle, showHintAction, toggleSolution,
+    loading, error, mistakes, hintsUsed, showSolution
+  } = usePuzzle();
+  
   const [hintSquares, setHintSquares] = useState<string[]>([]);
   const [lastMoveResult, setLastMoveResult] = useState<"correct" | "incorrect" | null>(null);
 
+  // Expected move computation
   const expectedMove = useMemo(() => {
-    if (!puzzleState.solutionPv || puzzleState.moveIndex >= puzzleState.solutionPv.length) {
+    if (!pv || idx >= pv.length) {
       return null;
     }
-    const move = puzzleState.solutionPv[puzzleState.moveIndex];
+    const move = pv[idx];
     return {
       from: move.slice(0, 2),
       to: move.slice(2, 4),
       uci: move,
     };
-  }, [puzzleState.solutionPv, puzzleState.moveIndex]);
+  }, [pv, idx]);
+
+  // Square styles for hints (following document pattern)
+  const squareStyles = useMemo<Record<string, React.CSSProperties>>(() => {
+    const styles: Record<string, React.CSSProperties> = {};
+    if (showHint && pv[idx]) {
+      const uci = pv[idx];
+      const from = uci.slice(0, 2);
+      const to = uci.slice(2, 4);
+      styles[from] = { 
+        outline: "2px solid rgba(234,179,8,.9)", 
+        outlineOffset: "-2px", 
+        backgroundColor: "rgba(234,179,8,.15)" 
+      };
+      styles[to] = { 
+        outline: "2px solid rgba(234,179,8,.9)", 
+        outlineOffset: "-2px", 
+        backgroundColor: "rgba(234,179,8,.15)" 
+      };
+    }
+    return styles;
+  }, [showHint, pv, idx]);
 
   const handleMove = useCallback((from: string, to: string) => {
     if (isDebugEnabled()) {
       console.log("[PUZZLE BOARD] Move received from ChessBoard", { from, to });
     }
-    const success = makeMove(from, to);
+    const success = onPieceDrop({ sourceSquare: from, targetSquare: to });
     setLastMoveResult(success ? "correct" : "incorrect");
     
     if (success) {
@@ -40,61 +66,47 @@ export function PuzzleBoard() {
     }
     
     return success;
-  }, [makeMove]);
+  }, [onPieceDrop]);
 
   const handleShowHint = useCallback(() => {
     if (expectedMove) {
       setHintSquares([expectedMove.from, expectedMove.to]);
-      showHint();
+      showHintAction();
       setTimeout(() => setHintSquares([]), 3000);
     }
-  }, [expectedMove, showHint]);
+  }, [expectedMove, showHintAction]);
 
   const progress = useMemo(() => {
-    if (!puzzleState.solutionPv.length) return 0;
-    return Math.round((puzzleState.moveIndex / puzzleState.solutionPv.length) * 100);
-  }, [puzzleState.moveIndex, puzzleState.solutionPv.length]);
-
-
-  // Debug: Log state changes
-  useEffect(() => {
-    if (isDebugEnabled() && puzzleState.puzzle) {
-      debugPuzzleState(puzzleState);
-    }
-  }, [puzzleState.currentFen, puzzleState.moveIndex, puzzleState.solved]);
+    if (!pv.length) return 0;
+    return Math.round((idx / pv.length) * 100);
+  }, [idx, pv.length]);
 
   // Debug: Log FEN changes
   useEffect(() => {
-    if (isDebugEnabled() && puzzleState.currentFen) {
-      debugBoard.fenUpdate(undefined, puzzleState.currentFen);
+    if (isDebugEnabled() && fen) {
+      debugBoard.fenUpdate(undefined, fen);
     }
-  }, [puzzleState.currentFen]);
-
-  // Determine board FEN - show puzzle FEN as soon as puzzle data is loaded (even before "Start Puzzle")
-  // This allows pieces to appear immediately, and clicking "Start Puzzle" just enables interaction
-  const boardFen = puzzleState.puzzle 
-    ? puzzleState.currentFen 
-    : undefined;
-
-  // Determine board orientation - use puzzle sideToMove when puzzle exists, otherwise default to white
-  const boardOrientation = puzzleState.puzzle 
-    ? (puzzleState.puzzle.sideToMove === "white" ? "white" : "black")
-    : "white";
+  }, [fen]);
 
   // Always render the board - use conditional overlays for different states
   return (
     <div className="flex flex-col items-center justify-center h-full gap-4 relative">
       {/* Move Feedback */}
-      {lastMoveResult && (
+      {(lastMoveResult || message) && (
         <Alert 
-          variant={lastMoveResult === "correct" ? "default" : "destructive"}
+          variant={lastMoveResult === "correct" || !lastMoveResult ? "default" : "destructive"}
           className="max-w-md z-10"
         >
           <AlertDescription className="flex items-center gap-2">
             {lastMoveResult === "correct" ? (
               <>
                 <CheckCircle2 className="w-4 h-4" />
-                Correct! {puzzleState.solved ? "Puzzle solved!" : "Opponent's move played automatically."}
+                Correct! {solved ? "Puzzle solved!" : "Opponent's move played automatically."}
+              </>
+            ) : message ? (
+              <>
+                <XCircle className="w-4 h-4" />
+                {message}
               </>
             ) : (
               <>
@@ -110,16 +122,16 @@ export function PuzzleBoard() {
       <div className="relative">
         <ChessBoard 
           fen={boardFen}
-          orientation={boardOrientation}
-          onMove={puzzleState.loadedOntoBoard ? handleMove : undefined}
-          disabled={!puzzleState.loadedOntoBoard || puzzleState.solved || puzzleState.showSolution}
+          orientation={playerSide}
+          onMove={pz ? handleMove : undefined}
+          disabled={!pz || solved || showSolution}
         />
-        {isDebugEnabled() && puzzleState.loadedOntoBoard && (
+        {isDebugEnabled() && pz && (
           <div className="absolute top-0 left-0 bg-black/70 text-white text-xs p-2 rounded font-mono z-20">
-            <div>FEN: {puzzleState.currentFen}</div>
-            <div>Move: {puzzleState.moveIndex + 1}/{puzzleState.solutionPv.length}</div>
-            <div>Solved: {puzzleState.solved ? "Yes" : "No"}</div>
-            <div>Mistakes: {puzzleState.mistakes}</div>
+            <div>FEN: {fen || "N/A"}</div>
+            <div>Move: {idx + 1}/{pv.length}</div>
+            <div>Solved: {solved ? "Yes" : "No"}</div>
+            <div>Mistakes: {mistakes}</div>
           </div>
         )}
         {/* Hint Overlay */}
@@ -153,7 +165,7 @@ export function PuzzleBoard() {
       )}
 
       {/* Empty State Message */}
-      {!loading && !error && !puzzleState.puzzle && (
+      {!loading && !error && !pz && (
         <div className="flex items-center justify-center">
           <p className="text-muted-foreground text-center text-lg">
             No puzzle loaded.<br />
@@ -162,23 +174,22 @@ export function PuzzleBoard() {
         </div>
       )}
 
-
       {/* Controls - Only show when puzzle is active */}
-      {puzzleState.loadedOntoBoard && (
+      {pz && (
         <>
           <div className="flex flex-wrap gap-2 justify-center">
             <Button
               onClick={handleShowHint}
               variant="outline"
-              disabled={puzzleState.solved || puzzleState.showSolution}
+              disabled={solved || showSolution}
             >
               <Lightbulb className="w-4 h-4 mr-2" />
-              Hint ({puzzleState.hintsUsed})
+              Hint ({hintsUsed})
             </Button>
             <Button
               onClick={resetPuzzle}
               variant="outline"
-              disabled={puzzleState.solved}
+              disabled={solved}
             >
               <RotateCcw className="w-4 h-4 mr-2" />
               Reset
@@ -188,22 +199,22 @@ export function PuzzleBoard() {
               variant="outline"
             >
               <Info className="w-4 h-4 mr-2" />
-              {puzzleState.showSolution ? "Hide" : "Show"} Solution
+              {showSolution ? "Hide" : "Show"} Solution
             </Button>
           </div>
 
           {/* Solution Display */}
-          {puzzleState.showSolution && (
+          {showSolution && (
             <div className="max-w-md p-4 bg-muted rounded-lg">
               <p className="text-sm font-semibold mb-2">Solution:</p>
               <div className="flex flex-wrap gap-2">
-                {puzzleState.solutionPv.map((move, idx) => {
+                {pv.map((move, moveIdx) => {
                   const from = move.slice(0, 2);
                   const to = move.slice(2, 4);
                   return (
                     <Badge
-                      key={idx}
-                      variant={idx < puzzleState.moveIndex ? "default" : "outline"}
+                      key={moveIdx}
+                      variant={moveIdx < idx ? "default" : "outline"}
                     >
                       {from}→{to}
                     </Badge>

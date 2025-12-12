@@ -35,8 +35,8 @@ export function PuzzleSidebar({
   onLoadPuzzle,
   loading,
 }: PuzzleSidebarProps) {
-  const { puzzleState } = usePuzzle();
-  const puzzleRating = puzzleState.puzzle?.rating || 0;
+  const { pz, idx, solved, pv } = usePuzzle();
+  const puzzleRating = pz?.rating || 0;
   const streak = 6; // TODO: Implement streak tracking
 
   return (
@@ -140,7 +140,7 @@ export function PuzzleSidebar({
       </Button>
 
       {/* Current Puzzle Info */}
-      {puzzleState.puzzle && (
+      {pz && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Current Puzzle</CardTitle>
@@ -148,29 +148,29 @@ export function PuzzleSidebar({
           <CardContent className="space-y-2">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="font-semibold">
-                You are: <span className="capitalize ml-1">{puzzleState.puzzle.sideToMove}</span>
+                You are: <span className="capitalize ml-1">{pz.sideToMove}</span>
               </Badge>
             </div>
-            {puzzleState.puzzle.rating && (
+            {pz.rating && (
               <div className="text-sm text-muted-foreground">
-                Rating: {puzzleState.puzzle.rating}
+                Rating: {pz.rating}
               </div>
             )}
-            {puzzleState.puzzle.motifs.length > 0 && (
+            {pz.motifs.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {puzzleState.puzzle.motifs.slice(0, 3).map((m, idx) => (
-                  <Badge key={idx} variant="secondary" className="text-xs">
+                {pz.motifs.slice(0, 3).map((m, moveIdx) => (
+                  <Badge key={moveIdx} variant="secondary" className="text-xs">
                     {m}
                   </Badge>
                 ))}
               </div>
             )}
-            {!puzzleState.solved && (
+            {!solved && (
               <div className="text-sm text-muted-foreground">
-                Move {puzzleState.moveIndex + 1} / {puzzleState.solutionPv.length}
+                Move {idx + 1} / {pv.length}
               </div>
             )}
-            {puzzleState.solved && (
+            {solved && (
               <Badge variant="default" className="bg-green-600">
                 ✓ Solved!
               </Badge>
