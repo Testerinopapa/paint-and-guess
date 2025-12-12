@@ -1,5 +1,6 @@
 import { prisma } from "./prismaClient.js";
 import { parseFen } from "chessops/fen";
+import { validatePuzzleByMotif } from "./lib/puzzleValidation.js";
 
 const RATING_PRESETS = {
   easy: { min: 0, max: 1400 },
@@ -133,18 +134,23 @@ export async function getRandomPuzzle(req, res) {
       // A puzzle with 2 moves is valid (player makes 1 move, opponent replies, puzzle solved)
       // So we don't need to filter by length here - all puzzles with length >= 1 are valid
 
-      // Quality validation
-      const isMate = isMatePuzzle(puzzle.motifs);
-      
-      if (isMate) {
-        // For mate puzzles, verify solver matches last mover
-        const lastMover = calculateLastMover(puzzle.fen, solutionPv);
-        if (lastMover && puzzle.sideToMove !== lastMover) {
+      // Motif-specific validation
+      try {
+        const validationResult = await validatePuzzleByMotif(
+          puzzle,
+          puzzle.fen,
+          solutionPv
+        );
+        
+        if (!validationResult.valid) {
+          console.log(`[Puzzle API] Puzzle ${puzzle.id} failed validation: ${validationResult.reason}`);
           continue; // Skip this puzzle
         }
+      } catch (validationError) {
+        console.error(`[Puzzle API] Validation error for puzzle ${puzzle.id}:`, validationError);
+        // Continue to next puzzle if validation throws
+        continue;
       }
-      // For non-mate puzzles, we skip engine validation for now
-      // (can be added later with Stockfish integration)
 
       // Return valid puzzle
       const puzzleData = {
