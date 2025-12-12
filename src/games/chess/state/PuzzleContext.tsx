@@ -303,9 +303,40 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     setHintsUsed(prev => prev + 1);
   }, [pz, solved, showSolution]);
 
+  // Play all remaining moves in solution (for "Show Solution")
+  const playAll = useCallback(() => {
+    if (!pz || !fen) return;
+    
+    let currentFen = fen;
+    let currentIdx = idx;
+    
+    // Apply all remaining moves in solution
+    for (let i = currentIdx; i < pv.length; i++) {
+      const move = pv[i];
+      const nextFen = applyMoveUci(currentFen, move);
+      if (!nextFen) break;
+      currentFen = nextFen;
+      currentIdx = i + 1;
+    }
+    
+    // Update state to final position
+    setFen(currentFen);
+    setIdx(currentIdx);
+    setSolved(true);
+    setMessage(null);
+    setShowHint(false);
+  }, [pz, fen, idx, pv, applyMoveUci]);
+
   const toggleSolution = useCallback(() => {
-    setShowSolution(prev => !prev);
-  }, []);
+    if (!showSolution) {
+      // Showing solution: play all remaining moves
+      playAll();
+      setShowSolution(true);
+    } else {
+      // Hiding solution: reset puzzle to beginning
+      resetPuzzle();
+    }
+  }, [showSolution, playAll, resetPuzzle]);
 
   return (
     <PuzzleContext.Provider
