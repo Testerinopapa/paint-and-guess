@@ -134,21 +134,32 @@ export async function getRandomPuzzle(req, res) {
       // A puzzle with 2 moves is valid (player makes 1 move, opponent replies, puzzle solved)
       // So we don't need to filter by length here - all puzzles with length >= 1 are valid
 
-      // Motif-specific validation
+      // Motif-specific validation (with timeout to prevent blocking)
       try {
-        const validationResult = await validatePuzzleByMotif(
+        const validationPromise = validatePuzzleByMotif(
           puzzle,
           puzzle.fen,
           solutionPv
         );
+        
+        // Add timeout: 5 seconds max for validation
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Validation timeout")), 5000)
+        );
+        
+        const validationResult = await Promise.race([validationPromise, timeoutPromise]);
         
         if (!validationResult.valid) {
           console.log(`[Puzzle API] Puzzle ${puzzle.id} failed validation: ${validationResult.reason}`);
           continue; // Skip this puzzle
         }
       } catch (validationError) {
-        console.error(`[Puzzle API] Validation error for puzzle ${puzzle.id}:`, validationError);
-        // Continue to next puzzle if validation throws
+        // If validation times out or errors, skip this puzzle but continue searching
+        if (validationError.message === "Validation timeout") {
+          console.log(`[Puzzle API] Validation timeout for puzzle ${puzzle.id}, skipping`);
+        } else {
+          console.error(`[Puzzle API] Validation error for puzzle ${puzzle.id}:`, validationError.message);
+        }
         continue;
       }
 

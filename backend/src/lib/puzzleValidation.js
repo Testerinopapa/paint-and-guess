@@ -458,6 +458,7 @@ export async function validatePuzzleByMotif(puzzle, initialFen, pv) {
   
   // Apply motif-specific validation in priority order
   const motifs = parseMotifs(puzzle.motifs);
+  let specificValidationApplied = false;
   
   // 1. Mate puzzles (fast path, no engine needed)
   if (hasMotif(puzzle.motifs, "mate")) {
@@ -465,59 +466,72 @@ export async function validatePuzzleByMotif(puzzle, initialFen, pv) {
   }
   
   // 2. Material gain puzzles
-  if (hasMotif(puzzle.motifs, ["fork", "pin", "skewer", "hangingpiece", "capturingdefender"])) {
+  const materialGainPatterns = ["fork", "pin", "skewer", "hangingpiece", "capturingdefender"];
+  if (hasMotif(puzzle.motifs, materialGainPatterns)) {
     const result = await validateMaterialGainPuzzle(puzzle, initialFen, finalFen, pv);
     if (!result.valid) return result;
+    specificValidationApplied = true;
   }
   
   // 3. Sacrifice puzzles
   if (hasMotif(puzzle.motifs, "sacrifice")) {
     const result = await validateSacrificePuzzle(puzzle, initialFen, pv);
     if (!result.valid) return result;
+    specificValidationApplied = true;
   }
   
   // 4. Equality puzzles
   if (hasMotif(puzzle.motifs, "equality")) {
     const result = await validateEqualityPuzzle(puzzle, initialFen, finalFen);
     if (!result.valid) return result;
+    specificValidationApplied = true;
   }
   
   // 5. Defensive puzzles
   if (hasMotif(puzzle.motifs, "defensive")) {
     const result = await validateDefensivePuzzle(puzzle, initialFen, pv);
     if (!result.valid) return result;
+    specificValidationApplied = true;
   }
   
   // 6. Advantage/crushing puzzles
-  if (hasMotif(puzzle.motifs, ["advantage", "crushing"])) {
+  const advantagePatterns = ["advantage", "crushing"];
+  if (hasMotif(puzzle.motifs, advantagePatterns)) {
     const result = await validateAdvantagePuzzle(puzzle, finalFen);
     if (!result.valid) return result;
+    specificValidationApplied = true;
   }
   
   // 7. Zugzwang puzzles
   if (hasMotif(puzzle.motifs, "zugzwang")) {
     const result = await validateZugzwangPuzzle(puzzle, finalFen);
     if (!result.valid) return result;
+    specificValidationApplied = true;
   }
   
-  // 8. Endgame puzzles (structural check)
-  const endgameResult = validateEndgamePuzzle(puzzle, initialFen);
-  if (!endgameResult.valid) return endgameResult;
+  // 8. Endgame puzzles (structural check - always apply if present)
+  if (hasMotif(puzzle.motifs, "endgame")) {
+    const endgameResult = validateEndgamePuzzle(puzzle, initialFen);
+    if (!endgameResult.valid) return endgameResult;
+  }
   
   // 9. Default validation for other puzzles (standard evaluation check)
-  const finalEval = await analyzePosition(finalFen, 8);
-  if (finalEval === null) {
-    return { valid: false, reason: "Could not analyze final position" };
+  // Only apply if no specific motif validation was done
+  if (!specificValidationApplied) {
+    const finalEval = await analyzePosition(finalFen, 8);
+    if (finalEval === null) {
+      return { valid: false, reason: "Could not analyze final position" };
+    }
+    
+    // Standard threshold: should gain advantage
+    if (finalEval < 50) {
+      return { 
+        valid: false, 
+        reason: `Final evaluation too low: ${finalEval}cp (need 50+ for standard puzzle)` 
+      };
+    }
   }
   
-  // Standard threshold: should gain advantage
-  if (finalEval < 50) {
-    return { 
-      valid: false, 
-      reason: `Final evaluation too low: ${finalEval}cp (need 50+ for standard puzzle)` 
-    };
-  }
-  
-  return { valid: true, reason: "Standard validation passed" };
+  return { valid: true, reason: "Validation passed" };
 }
 

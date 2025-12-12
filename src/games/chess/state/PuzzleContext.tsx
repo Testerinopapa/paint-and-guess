@@ -117,6 +117,12 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   }, [boardFen, pz?.sideToMove]);
 
   const loadRandomPuzzle = useCallback(async (filters?: PuzzleFilters) => {
+    // Prevent multiple simultaneous calls
+    if (loading) {
+      console.log("[PUZZLE DEBUG] loadRandomPuzzle already in progress, skipping");
+      return;
+    }
+    
     console.log("[PUZZLE DEBUG] loadRandomPuzzle called", { filters, debugEnabled: isDebugEnabled() });
     debugPuzzle.load(filters);
     setLoading(true);

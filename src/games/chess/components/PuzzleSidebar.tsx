@@ -86,7 +86,13 @@ export function PuzzleSidebar({
 
       {/* Main Action Button */}
       <Button
-        onClick={onLoadPuzzle}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!loading) {
+            onLoadPuzzle();
+          }
+        }}
         size="lg"
         className="w-full h-12 text-base font-semibold"
         disabled={loading}
