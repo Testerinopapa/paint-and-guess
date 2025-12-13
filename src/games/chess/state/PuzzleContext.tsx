@@ -226,6 +226,27 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // Validate that the expected move at initialIdx is for the correct side
+      // After auto-advance (if any), the current FEN's turn should match playerSideToUse
+      if (initialFen) {
+        const currentFenRes = parseFen(initialFen);
+        if (currentFenRes.isOk) {
+          const currentTurn = currentFenRes.unwrap().turn;
+          if (currentTurn !== playerSideToUse) {
+            console.error("[PUZZLE] Turn mismatch after initialization:", {
+              currentTurn,
+              playerSideToUse,
+              initialIdx,
+              pvLength: solutionPv.length,
+              puzzleId: puzzle.id
+            });
+            // This is a data quality issue - log it but don't fail completely
+            // The puzzle might still be playable if the move sequence is correct
+            console.warn("[PUZZLE] Puzzle has turn mismatch, but continuing anyway");
+          }
+        }
+      }
+
       // Set state
       setPz(puzzle);
       setFen(initialFen);
@@ -258,7 +279,26 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     
     // Get expected move from solution
     const expected = pv[idx];
-    if (!expected) return false;
+    if (!expected) {
+      console.warn("[PUZZLE] No expected move at index:", { idx, pvLength: pv.length });
+      return false;
+    }
+    
+    // Validate that it's the player's turn to move
+    const currentFenRes = parseFen(fen);
+    if (currentFenRes.isOk) {
+      const currentTurn = currentFenRes.unwrap().turn;
+      if (currentTurn !== playerSide) {
+        console.warn("[PUZZLE] Move attempted on wrong turn:", {
+          currentTurn,
+          playerSide,
+          idx,
+          expected
+        });
+        setMessage(`It's ${currentTurn === 'white' ? 'White' : 'Black'}'s turn, but you are playing as ${playerSide === 'white' ? 'White' : 'Black'}.`);
+        return false;
+      }
+    }
     
     // Compare user move with expected move
     const attempt = `${sourceSquare}${targetSquare}`;
