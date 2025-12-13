@@ -72,7 +72,7 @@ function getPuzzleMotifs(puzzleMotifs) {
 
 /**
  * Build catalog for a specific rating range and motif
- * Simple: just index what's in the database, no validation
+ * Optimized for large datasets - processes in batches
  */
 async function buildCatalogEntry(ratingMin, ratingMax, motif = "all") {
   console.log(`\n📦 Building catalog: rating ${ratingMin}-${ratingMax}, motif: ${motif}`);
@@ -92,25 +92,58 @@ async function buildCatalogEntry(ratingMin, ratingMax, motif = "all") {
     };
   }
   
-  // Get all puzzle IDs matching criteria
-  const puzzles = await prisma.puzzle.findMany({
-    where,
-    select: {
-      id: true,
-    },
-  });
+  // Get count first (faster than fetching all)
+  const totalCount = await prisma.puzzle.count({ where });
+  console.log(`   Found ${totalCount} puzzles`);
   
-  const puzzleIds = puzzles.map(p => p.id);
-  console.log(`   Found ${puzzleIds.length} puzzles`);
+  if (totalCount === 0) {
+    // Delete catalog entry if it exists
+    try {
+      await prisma.puzzleCatalog.deleteMany({
+        where: {
+          ratingMin,
+          ratingMax,
+          motif: motif || "all",
+        },
+      });
+    } catch (e) {
+      // Ignore errors
+    }
+    console.log(`   ⚠️  No puzzles found`);
+    return 0;
+  }
+  
+  // For large datasets, fetch IDs in batches to avoid timeout
+  const BATCH_SIZE = 5000;
+  const puzzleIds = [];
+  let skip = 0;
+  
+  while (skip < totalCount) {
+    const batch = await prisma.puzzle.findMany({
+      where,
+      select: {
+        id: true,
+      },
+      skip,
+      take: BATCH_SIZE,
+    });
+    
+    puzzleIds.push(...batch.map(p => p.id));
+    skip += BATCH_SIZE;
+    
+    if (skip < totalCount) {
+      console.log(`   Progress: ${Math.min(skip, totalCount)}/${totalCount}...`);
+    }
+  }
   
   // Store catalog entry
-  if (puzzleIds.length > 0) {
-    const catalogKey = {
-      ratingMin,
-      ratingMax,
-      motif,
-    };
-    
+  const catalogKey = {
+    ratingMin,
+    ratingMax,
+    motif: motif || "all",
+  };
+  
+  try {
     await prisma.puzzleCatalog.upsert({
       where: {
         ratingMin_ratingMax_motif: catalogKey,
@@ -128,9 +161,9 @@ async function buildCatalogEntry(ratingMin, ratingMax, motif = "all") {
     
     console.log(`   💾 Saved ${puzzleIds.length} puzzles`);
     return puzzleIds.length;
-  } else {
-    console.log(`   ⚠️  No puzzles found`);
-    return 0;
+  } catch (error) {
+    console.error(`   ❌ Error saving catalog entry:`, error.message);
+    throw error;
   }
 }
 

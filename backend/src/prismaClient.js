@@ -18,7 +18,15 @@ const dataDir = path.isAbsolute(configuredDataDir)
 fs.mkdirSync(dataDir, { recursive: true });
 
 const defaultDatabaseUrl = `file:${path.join(dataDir, "rooms.db")}`;
-const databaseUrl = process.env.DATABASE_URL ?? defaultDatabaseUrl;
+let databaseUrl = process.env.DATABASE_URL ?? defaultDatabaseUrl;
+
+// Add SQLite busy timeout for long operations (30 seconds)
+// This helps with catalog building and other bulk operations
+// Prisma SQLite connector supports query parameters
+if (databaseUrl.startsWith("file:") && !databaseUrl.includes("?")) {
+  databaseUrl = `${databaseUrl}?busy_timeout=30000`;
+}
+
 if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = databaseUrl;
 }
@@ -74,6 +82,9 @@ export const prisma = new PrismaClient({
       url: databaseUrl,
     },
   },
+  // Increase timeout for long-running operations (like catalog building)
+  // SQLite doesn't have a built-in timeout, but Prisma has a default
+  log: process.env.PRISMA_LOG === "true" ? ["query", "error", "warn"] : ["error"],
 });
 
 console.log(`[Prisma] Using database URL: ${databaseUrl}`);

@@ -3,9 +3,7 @@ import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-import { parseFen } from "chessops/fen";
-import { setupPosition } from "chessops/variant";
-import { parseUci } from "chessops/util";
+// No normalization - puzzles imported as-is, preserving puzzle intent
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,62 +33,16 @@ try {
   console.log(`   Found ${puzzles.length} puzzles`);
   
   let imported = 0;
+  let updated = 0;
   let skipped = 0;
   let errors = 0;
-  let normalized = 0;
   
-  // Normalize puzzle: ensure sideToMove matches FEN turn
-  function normalizePuzzle(puzzle) {
-    try {
-      const setupRes = parseFen(puzzle.fen);
-      if (!setupRes.isOk) return puzzle; // Invalid FEN, skip normalization
-      
-      const positionResult = setupPosition("chess", setupRes.unwrap());
-      if (!positionResult.isOk) return puzzle; // Can't create position, skip
-      
-      const position = positionResult.unwrap();
-      const fenTurn = position.turn;
-      
-      // Parse PV
-      let solutionPv;
-      try {
-        solutionPv = typeof puzzle.solutionPv === "string"
-          ? JSON.parse(puzzle.solutionPv)
-          : puzzle.solutionPv;
-      } catch {
-        return puzzle; // Invalid PV, skip normalization
-      }
-      
-      if (!Array.isArray(solutionPv) || solutionPv.length === 0) {
-        return puzzle; // Empty PV, skip normalization
-      }
-      
-      const puzzleSideToMove = puzzle.sideToMove || fenTurn;
-      
-      // If sideToMove matches FEN turn, already normalized
-      if (puzzleSideToMove === fenTurn) {
-        return puzzle;
-      }
-      
-      // Mismatch detected - normalize by setting sideToMove to match FEN turn
-      // This is the consensus approach: always align sideToMove with FEN turn
-      // After normalization: sideToMove === fenTurn, and pv[0] should be player's move
-      // If pv[0] is legal for fenTurn, it's already the player's move - perfect
-      // If pv[0] is illegal for fenTurn, it was the player's move for puzzleSideToMove
-      //   In this case, we can't automatically fix it, so we normalize sideToMove anyway
-      //   and the frontend will detect that pv[0] is illegal and handle it
-      return {
-        ...puzzle,
-        sideToMove: fenTurn,
-      };
-    } catch {
-      return puzzle; // Error during normalization, return original
-    }
-  }
-  
+  // Import puzzles as-is, preserving puzzle intent (sideToMove)
+  // Frontend will handle any mismatches between sideToMove and FEN turn
+  // Use upsert to update existing puzzles with original values from source
   for (const puzzle of puzzles) {
     try {
-      // Check if puzzle already exists (by id or by source)
+      // Check if puzzle already exists
       const existing = await prisma.puzzle.findFirst({
         where: {
           OR: [
@@ -101,32 +53,37 @@ try {
       });
       
       if (existing) {
-        skipped++;
-        continue;
+        // Update existing puzzle to restore original puzzle intent
+        await prisma.puzzle.update({
+          where: { id: existing.id },
+          data: {
+            fen: puzzle.fen,
+            sideToMove: puzzle.sideToMove, // Restore original puzzle intent
+            solutionPv: puzzle.solutionPv,
+            motifs: puzzle.motifs,
+            rating: puzzle.rating,
+          },
+        });
+        updated++;
+      } else {
+        // Import new puzzle as-is, preserving original puzzle intent
+        await prisma.puzzle.create({
+          data: {
+            id: puzzle.id,
+            createdAt: new Date(puzzle.createdAt),
+            fen: puzzle.fen,
+            sideToMove: puzzle.sideToMove, // Preserve puzzle intent
+            solutionPv: puzzle.solutionPv,
+            motifs: puzzle.motifs,
+            source: puzzle.source,
+            rating: puzzle.rating,
+          },
+        });
+        imported++;
       }
       
-      // Normalize puzzle before importing
-      const normalizedPuzzle = normalizePuzzle(puzzle);
-      if (normalizedPuzzle.sideToMove !== puzzle.sideToMove) {
-        normalized++;
-      }
-      
-      await prisma.puzzle.create({
-        data: {
-          id: normalizedPuzzle.id,
-          createdAt: new Date(normalizedPuzzle.createdAt),
-          fen: normalizedPuzzle.fen,
-          sideToMove: normalizedPuzzle.sideToMove,
-          solutionPv: normalizedPuzzle.solutionPv,
-          motifs: normalizedPuzzle.motifs,
-          source: normalizedPuzzle.source,
-          rating: normalizedPuzzle.rating,
-        },
-      });
-      imported++;
-      
-      if (imported % 100 === 0) {
-        console.log(`   Progress: ${imported} imported, ${skipped} skipped, ${errors} errors`);
+      if ((imported + updated) % 100 === 0) {
+        console.log(`   Progress: ${imported} imported, ${updated} updated, ${skipped} skipped, ${errors} errors`);
       }
     } catch (error) {
       errors++;
@@ -136,7 +93,7 @@ try {
     }
   }
   
-  console.log(`   ✅ Imported: ${imported}, Skipped: ${skipped}, Errors: ${errors}, Normalized: ${normalized}\n`);
+  console.log(`   ✅ Imported: ${imported}, Updated: ${updated}, Skipped: ${skipped}, Errors: ${errors}\n`);
   
   // Summary
   const finalPuzzleCount = await prisma.puzzle.count();
@@ -145,8 +102,8 @@ try {
   console.log("✅ Import complete!");
   console.log(`   Total Puzzles in database: ${finalPuzzleCount}`);
   
-  // Rebuild catalog if puzzles were imported
-  if (imported > 0) {
+  // Rebuild catalog if puzzles were imported or updated
+  if (imported > 0 || updated > 0) {
     console.log("\n🔄 Rebuilding puzzle catalog...");
     try {
       const { buildPuzzleCatalog } = await import("./build-puzzle-catalog.js");

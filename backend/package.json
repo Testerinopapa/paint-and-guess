@@ -16,6 +16,8 @@
     "test:puzzle-validation": "node scripts/test-puzzle-validation.js",
     "test:puzzle-solutions": "node scripts/test-puzzle-solutions.js",
     "test:puzzle-position": "node scripts/test-puzzle-position-assignment.js",
+    "test:puzzle-normalization": "node scripts/test-puzzle-normalization.js",
+    "test:indexed-puzzles": "node scripts/test-indexed-puzzles.js",
     "validate:all-puzzles": "node scripts/validate-all-puzzles.js",
     "fix:puzzle-move-order": "node scripts/fix-puzzle-move-order.js",
     "normalize:puzzle-pv": "node scripts/normalize-puzzle-pv.js",
