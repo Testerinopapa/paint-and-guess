@@ -18,6 +18,7 @@
     "test:puzzle-position": "node scripts/test-puzzle-position-assignment.js",
     "validate:all-puzzles": "node scripts/validate-all-puzzles.js",
     "fix:puzzle-move-order": "node scripts/fix-puzzle-move-order.js",
+    "normalize:puzzle-pv": "node scripts/normalize-puzzle-pv.js",
     "import:dev-db": "node scripts/import-dev-db.js",
     "import:lichess-zst": "node --max-old-space-size=4096 scripts/import-lichess-zst.js",
     "test:engine": "node scripts/test-engine.js",

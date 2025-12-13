@@ -190,13 +190,13 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       
       const fenTurn = setupRes.unwrap().turn as "white" | "black";
       
-      // If puzzle.sideToMove doesn't match FEN turn, determine PV structure
-      // Case 1: pv[0] is legal for FEN turn = opponent's move, pv[1] is player's move
-      // Case 2: pv[0] is illegal for FEN turn = player's move, pv[1] is opponent's move
+      // After normalization, sideToMove should always match FEN turn
+      // But handle edge cases where normalization hasn't run yet
       let initialFen = puzzle.fen;
       let initialIdx = 0;
       const playerSideToUse = puzzle.sideToMove || fenTurn;
       
+      // If there's still a mismatch (shouldn't happen after normalization), handle it
       if (puzzle.sideToMove && puzzle.sideToMove !== fenTurn && solutionPv.length > 0) {
         // Check if pv[0] is legal for FEN turn
         const firstMoveResult = applyMoveUci(initialFen, solutionPv[0]);
@@ -212,7 +212,6 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
             initialFen = secondMoveResult;
             initialIdx = 2;
           }
-          // If both are illegal, puzzle data is corrupted - start from beginning
         }
       }
 
