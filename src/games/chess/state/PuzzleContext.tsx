@@ -317,29 +317,28 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     setHintsUsed(prev => prev + 1);
   }, [pz, solved, showSolution]);
 
-  // Play all remaining moves in solution (for "Show Solution")
+  // Play all moves in solution from the beginning (for "Show Solution")
   const playAll = useCallback(() => {
-    if (!pz || !fen) return;
+    if (!pz) return;
     
-    let currentFen = fen;
-    let currentIdx = idx;
+    // Start from the puzzle's initial position
+    let currentFen = pz.fen;
     
-    // Apply all remaining moves in solution
-    for (let i = currentIdx; i < pv.length; i++) {
+    // Apply all moves in solution from the beginning
+    for (let i = 0; i < pv.length; i++) {
       const move = pv[i];
       const nextFen = applyMoveUci(currentFen, move);
       if (!nextFen) break;
       currentFen = nextFen;
-      currentIdx = i + 1;
     }
     
     // Update state to final position
     setFen(currentFen);
-    setIdx(currentIdx);
+    setIdx(pv.length);
     setSolved(true);
     setMessage(null);
     setShowHint(false);
-  }, [pz, fen, idx, pv, applyMoveUci]);
+  }, [pz, pv, applyMoveUci]);
 
   const toggleSolution = useCallback(() => {
     if (!showSolution) {

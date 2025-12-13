@@ -209,17 +209,31 @@ export function PuzzleBoard() {
           {showSolution && (
             <div className="max-w-md p-4 bg-muted rounded-lg">
               <p className="text-sm font-semibold mb-2">Solution:</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-1">
                 {pv.map((move, moveIdx) => {
                   const from = move.slice(0, 2);
                   const to = move.slice(2, 4);
+                  // Since playerSide matches FEN turn, and PV starts with FEN turn,
+                  // even indices (0, 2, 4...) are player moves, odd indices are opponent moves
+                  const isPlayerMove = moveIdx % 2 === 0;
+                  const moveNumber = Math.floor(moveIdx / 2) + 1;
+                  const isCompleted = moveIdx < idx;
+                  
                   return (
-                    <Badge
-                      key={moveIdx}
-                      variant={moveIdx < idx ? "default" : "outline"}
-                    >
-                      {from}→{to}
-                    </Badge>
+                    <div key={moveIdx} className="flex items-center gap-2 text-sm">
+                      {isPlayerMove && (
+                        <span className="text-xs font-mono text-muted-foreground w-6">
+                          {moveNumber}.
+                        </span>
+                      )}
+                      {!isPlayerMove && <span className="w-6" />}
+                      <Badge
+                        variant={isCompleted ? "default" : "outline"}
+                        className={`text-xs ${isPlayerMove ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-600 hover:bg-gray-700"}`}
+                      >
+                        {isPlayerMove ? "You" : "Opponent"}: {from}→{to}
+                      </Badge>
+                    </div>
                   );
                 })}
               </div>
