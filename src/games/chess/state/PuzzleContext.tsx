@@ -188,13 +188,38 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      // Simply use the FEN's turn as the player side - no complex calculations
-      const playerSideToUse = setupRes.unwrap().turn as "white" | "black";
+      const fenTurn = setupRes.unwrap().turn as "white" | "black";
+      
+      // If puzzle.sideToMove doesn't match FEN turn, determine PV structure
+      // Case 1: pv[0] is legal for FEN turn = opponent's move, pv[1] is player's move
+      // Case 2: pv[0] is illegal for FEN turn = player's move, pv[1] is opponent's move
+      let initialFen = puzzle.fen;
+      let initialIdx = 0;
+      const playerSideToUse = puzzle.sideToMove || fenTurn;
+      
+      if (puzzle.sideToMove && puzzle.sideToMove !== fenTurn && solutionPv.length > 0) {
+        // Check if pv[0] is legal for FEN turn
+        const firstMoveResult = applyMoveUci(initialFen, solutionPv[0]);
+        if (firstMoveResult) {
+          // pv[0] is opponent's move - advance it
+          initialFen = firstMoveResult;
+          initialIdx = 1;
+        } else if (solutionPv.length > 1) {
+          // pv[0] is illegal - check if pv[1] is legal (opponent's move)
+          const secondMoveResult = applyMoveUci(initialFen, solutionPv[1]);
+          if (secondMoveResult) {
+            // pv[0] is player's move (skip), pv[1] is opponent's move (advance)
+            initialFen = secondMoveResult;
+            initialIdx = 2;
+          }
+          // If both are illegal, puzzle data is corrupted - start from beginning
+        }
+      }
 
-      // Set state - start from the puzzle's initial position
+      // Set state
       setPz(puzzle);
-      setFen(puzzle.fen);
-      setIdx(0);
+      setFen(initialFen);
+      setIdx(initialIdx);
       setSolved(false);
       setPlayerSide(playerSideToUse);
       setMessage(null);
@@ -287,16 +312,29 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
 
     debugPuzzle.reset();
 
-    // Simply reset to initial puzzle state
     const setupRes = parseFen(pz.fen);
-    if (setupRes.isOk) {
-      const playerSideToUse = setupRes.unwrap().turn as "white" | "black";
-      setPlayerSide(playerSideToUse);
+    if (!setupRes.isOk) return;
+    
+    const fenTurn = setupRes.unwrap().turn as "white" | "black";
+    const solutionPv = typeof pz.solutionPv === "string" ? JSON.parse(pz.solutionPv) : pz.solutionPv;
+    
+    // If puzzle.sideToMove doesn't match FEN turn, skip first move
+    let initialFen = pz.fen;
+    let initialIdx = 0;
+    const playerSideToUse = pz.sideToMove || fenTurn;
+    
+    if (pz.sideToMove && pz.sideToMove !== fenTurn && Array.isArray(solutionPv) && solutionPv.length > 0) {
+      const opponentMove = solutionPv[0];
+      const afterOpponentMove = applyMoveUci(initialFen, opponentMove);
+      if (afterOpponentMove) {
+        initialFen = afterOpponentMove;
+        initialIdx = 1;
+      }
     }
 
-    // Reset state
-    setFen(pz.fen);
-    setIdx(0);
+    setPlayerSide(playerSideToUse);
+    setFen(initialFen);
+    setIdx(initialIdx);
     setSolved(false);
     setMessage(null);
     setMistakes(0);
@@ -304,10 +342,10 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     setShowSolution(false);
     setShowHint(false);
     
-    debugState.fen(fen, pz.fen, "reset");
-    debugState.moveIndex(idx, 0, "reset");
+    debugState.fen(initialFen, pz.fen, "reset");
+    debugState.moveIndex(initialIdx, 0, "reset");
     debugState.solved(false);
-  }, [pz, fen, idx, applyMoveUci]);
+  }, [pz, applyMoveUci]);
 
   const showHintAction = useCallback(() => {
     if (!pz || solved || showSolution) {
