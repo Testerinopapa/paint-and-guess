@@ -60,6 +60,34 @@ function isCheckmate(fen) {
 }
 
 /**
+ * Validate solver side consistency - ensures puzzle.sideToMove matches calculated last mover
+ * This is important for auto-advance logic and correct puzzle presentation
+ */
+export function validateSolverSide(puzzle, initialFen, pv) {
+  if (!puzzle.sideToMove) {
+    // If sideToMove is not set, we can't validate - but this is a data quality issue
+    return { valid: true, reason: "sideToMove not set (will be calculated)" };
+  }
+  
+  const setupRes = parseFen(initialFen);
+  if (!setupRes.isOk) {
+    return { valid: false, reason: "Invalid initial FEN" };
+  }
+  
+  const startTurn = setupRes.unwrap().turn;
+  const calculatedLastMover = pv.length % 2 === 1 ? startTurn : (startTurn === "white" ? "black" : "white");
+  
+  if (puzzle.sideToMove !== calculatedLastMover) {
+    return { 
+      valid: false, 
+      reason: `Solver mismatch: puzzle.sideToMove=${puzzle.sideToMove}, calculatedLastMover=${calculatedLastMover}` 
+    };
+  }
+  
+  return { valid: true, reason: "Solver side verified" };
+}
+
+/**
  * Validate mate puzzles - ensures auto-advance compatibility
  * For mate puzzles, we need to verify:
  * 1. Actual checkmate occurs
@@ -80,20 +108,10 @@ export function validateMatePuzzle(puzzle, initialFen, pv) {
     return { valid: false, reason: "Final position is not checkmate" };
   }
   
-  // Verify solver is the one delivering mate (for auto-advance compatibility)
-  const setupRes = parseFen(initialFen);
-  if (!setupRes.isOk) {
-    return { valid: false, reason: "Invalid initial FEN" };
-  }
-  
-  const startTurn = setupRes.unwrap().turn;
-  const lastMover = pv.length % 2 === 1 ? startTurn : (startTurn === "white" ? "black" : "white");
-  
-  if (puzzle.sideToMove !== lastMover) {
-    return { 
-      valid: false, 
-      reason: `Solver mismatch: puzzle.sideToMove=${puzzle.sideToMove}, lastMover=${lastMover}` 
-    };
+  // Verify solver side (reuse the general validation)
+  const solverSideResult = validateSolverSide(puzzle, initialFen, pv);
+  if (!solverSideResult.valid) {
+    return solverSideResult;
   }
   
   return { valid: true, reason: "Mate puzzle verified" };
@@ -105,6 +123,7 @@ export function validateMatePuzzle(puzzle, initialFen, pv) {
  * - FEN format validity
  * - PV format validity
  * - Move legality
+ * - Solver side consistency (for auto-advance)
  * - Mate puzzle compatibility (for auto-advance)
  */
 export function validatePuzzle(puzzle, initialFen, pv) {
@@ -125,7 +144,14 @@ export function validatePuzzle(puzzle, initialFen, pv) {
     return { valid: false, reason: "Could not apply all moves (illegal move detected)" };
   }
   
-  // 4. Validate mate puzzles (for auto-advance compatibility)
+  // 4. Validate solver side consistency (for ALL puzzles, not just mate)
+  // This ensures puzzle.sideToMove matches the calculated last mover
+  const solverSideResult = validateSolverSide(puzzle, initialFen, pv);
+  if (!solverSideResult.valid) {
+    return solverSideResult;
+  }
+  
+  // 5. Validate mate puzzles (additional checks for mate puzzles)
   const mateResult = validateMatePuzzle(puzzle, initialFen, pv);
   if (!mateResult.valid) {
     return mateResult;

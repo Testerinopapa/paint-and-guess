@@ -188,15 +188,20 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         return;
       }
       const startTurn = setupRes.unwrap().turn;
-      const lastMover: "white"|"black" = 
+      
+      // Use puzzle.sideToMove as source of truth if available, otherwise calculate from PV
+      const calculatedLastMover: "white"|"black" = 
         (solutionPv.length % 2 === 1) ? startTurn : (startTurn === 'white' ? 'black' : 'white');
+      
+      // Prefer puzzle.sideToMove from database, but fall back to calculation
+      const playerSideToUse = puzzle.sideToMove || calculatedLastMover;
 
       let initialFen = puzzle.fen;
       let initialIdx = 0;
 
-      // Auto-advance for mate puzzles
-      const isMateMotif = puzzle.motifs.some(m => m.includes("mate"));
-      if (isMateMotif && lastMover !== startTurn && solutionPv[0]) {
+      // Auto-advance for ALL puzzles when player side doesn't match starting turn
+      // This handles cases where the opponent moves first
+      if (playerSideToUse !== startTurn && solutionPv[0]) {
         const n = applyMoveUci(puzzle.fen, solutionPv[0]);
         if (n) { 
           initialFen = n; 
@@ -210,7 +215,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       setFen(initialFen);
       setIdx(initialIdx);
       setSolved(false);
-      setPlayerSide(lastMover);
+      setPlayerSide(playerSideToUse);
       setMessage(null);
       setMistakes(0);
       setHintsUsed(0);
@@ -302,11 +307,15 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     const setupRes = parseFen(pz.fen);
     if (setupRes.isOk) {
       const startTurn = setupRes.unwrap().turn;
-      const isMateMotif = pz.motifs.some(m => m.includes("mate"));
-      const lastMover: "white"|"black" = 
+      
+      // Use puzzle.sideToMove as source of truth if available, otherwise calculate from PV
+      const calculatedLastMover: "white"|"black" = 
         (pv.length % 2 === 1) ? startTurn : (startTurn === 'white' ? 'black' : 'white');
       
-      if (isMateMotif && lastMover !== startTurn && pv[0]) {
+      const playerSideToUse = pz.sideToMove || calculatedLastMover;
+      
+      // Auto-advance for ALL puzzles when player side doesn't match starting turn
+      if (playerSideToUse !== startTurn && pv[0]) {
         const n = applyMoveUci(pz.fen, pv[0]);
         if (n) {
           initialFen = n;
@@ -314,6 +323,9 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
           debugPuzzle.autoAdvance(pv[0].slice(0, 2), pv[0].slice(2, 4), initialFen, initialIdx);
         }
       }
+      
+      // Update playerSide to match initial calculation
+      setPlayerSide(playerSideToUse);
     }
 
     // Reset state

@@ -34,7 +34,7 @@ export function PuzzleSidebar({
   onLoadPuzzle,
   loading,
 }: PuzzleSidebarProps) {
-  const { pz, idx, solved, pv } = usePuzzle();
+  const { pz, idx, solved, pv, playerSide } = usePuzzle();
   const puzzleRating = pz?.rating || 0;
   const streak = 6; // TODO: Implement streak tracking
 
@@ -249,7 +249,7 @@ export function PuzzleSidebar({
           <CardContent className="space-y-2">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="font-semibold">
-                You are: <span className="capitalize ml-1">{pz.sideToMove}</span>
+                You are: <span className="capitalize ml-1">{playerSide}</span>
               </Badge>
             </div>
             {pz.rating && (
