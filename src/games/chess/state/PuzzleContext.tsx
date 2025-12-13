@@ -180,78 +180,22 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Calculate player side (who makes last move)
+      // Validate FEN format
       const setupRes = parseFen(puzzle.fen);
       if (!setupRes.isOk) {
         setError("Invalid puzzle FEN");
         setLoading(false);
         return;
       }
-      const startTurn = setupRes.unwrap().turn;
       
-      // Use puzzle.sideToMove as source of truth if available, otherwise calculate from PV
-      const calculatedLastMover: "white"|"black" = 
-        (solutionPv.length % 2 === 1) ? startTurn : (startTurn === 'white' ? 'black' : 'white');
-      
-      // Prefer puzzle.sideToMove from database, but fall back to calculation
-      const playerSideToUse = puzzle.sideToMove || calculatedLastMover;
+      // Simply use the FEN's turn as the player side - no complex calculations
+      const playerSideToUse = setupRes.unwrap().turn as "white" | "black";
 
-      let initialFen = puzzle.fen;
-      let initialIdx = 0;
-
-      // Auto-advance for ALL puzzles when player side doesn't match starting turn
-      // This handles cases where the opponent moves first
-      if (playerSideToUse !== startTurn && solutionPv[0]) {
-        const n = applyMoveUci(puzzle.fen, solutionPv[0]);
-        if (n) { 
-          initialFen = n; 
-          initialIdx = 1;
-          // Ensure idx is valid - if puzzle only has 1 move, we can't auto-advance
-          if (initialIdx >= solutionPv.length) {
-            // This shouldn't happen, but if it does, don't auto-advance
-            initialFen = puzzle.fen;
-            initialIdx = 0;
-            console.warn("[PUZZLE] Auto-advance would exceed PV length, skipping");
-          } else {
-            debugPuzzle.autoAdvance(solutionPv[0].slice(0, 2), solutionPv[0].slice(2, 4), initialFen, initialIdx);
-          }
-        }
-      }
-
-      // Validate that initialIdx is within bounds
-      if (initialIdx >= solutionPv.length) {
-        console.error("[PUZZLE] Initial index out of bounds:", { initialIdx, pvLength: solutionPv.length });
-        setError("Puzzle configuration error: invalid move index");
-        setLoading(false);
-        return;
-      }
-
-      // Validate that the expected move at initialIdx is for the correct side
-      // After auto-advance (if any), the current FEN's turn should match playerSideToUse
-      if (initialFen) {
-        const currentFenRes = parseFen(initialFen);
-        if (currentFenRes.isOk) {
-          const currentTurn = currentFenRes.unwrap().turn;
-          if (currentTurn !== playerSideToUse) {
-            console.error("[PUZZLE] Turn mismatch after initialization:", {
-              currentTurn,
-              playerSideToUse,
-              initialIdx,
-              pvLength: solutionPv.length,
-              puzzleId: puzzle.id
-            });
-            // This is a data quality issue - log it but don't fail completely
-            // The puzzle might still be playable if the move sequence is correct
-            console.warn("[PUZZLE] Puzzle has turn mismatch, but continuing anyway");
-          }
-        }
-      }
-
-      // Set state
+      // Set state - start from the puzzle's initial position
       setPz(puzzle);
-      setFen(initialFen);
-      setIdx(initialIdx);
-      setSolved(false); // Always start as unsolved
+      setFen(puzzle.fen);
+      setIdx(0);
+      setSolved(false);
       setPlayerSide(playerSideToUse);
       setMessage(null);
       setMistakes(0);
@@ -259,7 +203,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       setShowSolution(false);
       setShowHint(false);
       
-      debugState.fen(puzzle.fen, initialFen, "puzzle loaded");
+      debugState.fen(puzzle.fen, puzzle.fen, "puzzle loaded");
       if (isDebugEnabled()) {
         console.log("[PUZZLE] Puzzle loaded:", puzzle.id);
       }
@@ -280,24 +224,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     // Get expected move from solution
     const expected = pv[idx];
     if (!expected) {
-      console.warn("[PUZZLE] No expected move at index:", { idx, pvLength: pv.length });
       return false;
-    }
-    
-    // Validate that it's the player's turn to move
-    const currentFenRes = parseFen(fen);
-    if (currentFenRes.isOk) {
-      const currentTurn = currentFenRes.unwrap().turn;
-      if (currentTurn !== playerSide) {
-        console.warn("[PUZZLE] Move attempted on wrong turn:", {
-          currentTurn,
-          playerSide,
-          idx,
-          expected
-        });
-        setMessage(`It's ${currentTurn === 'white' ? 'White' : 'Black'}'s turn, but you are playing as ${playerSide === 'white' ? 'White' : 'Black'}.`);
-        return false;
-      }
     }
     
     // Compare user move with expected move
@@ -360,45 +287,16 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
 
     debugPuzzle.reset();
 
-    // Calculate initial FEN (same logic as loadRandomPuzzle)
-    let initialFen = pz.fen;
-    let initialIdx = 0;
-    
+    // Simply reset to initial puzzle state
     const setupRes = parseFen(pz.fen);
     if (setupRes.isOk) {
-      const startTurn = setupRes.unwrap().turn;
-      
-      // Use puzzle.sideToMove as source of truth if available, otherwise calculate from PV
-      const calculatedLastMover: "white"|"black" = 
-        (pv.length % 2 === 1) ? startTurn : (startTurn === 'white' ? 'black' : 'white');
-      
-      const playerSideToUse = pz.sideToMove || calculatedLastMover;
-      
-      // Auto-advance for ALL puzzles when player side doesn't match starting turn
-      if (playerSideToUse !== startTurn && pv[0]) {
-        const n = applyMoveUci(pz.fen, pv[0]);
-        if (n) {
-          initialFen = n;
-          initialIdx = 1;
-          // Ensure idx is valid - if puzzle only has 1 move, we can't auto-advance
-          if (initialIdx >= pv.length) {
-            // This shouldn't happen, but if it does, don't auto-advance
-            initialFen = pz.fen;
-            initialIdx = 0;
-            console.warn("[PUZZLE] Auto-advance would exceed PV length, skipping");
-          } else {
-            debugPuzzle.autoAdvance(pv[0].slice(0, 2), pv[0].slice(2, 4), initialFen, initialIdx);
-          }
-        }
-      }
-      
-      // Update playerSide to match initial calculation
+      const playerSideToUse = setupRes.unwrap().turn as "white" | "black";
       setPlayerSide(playerSideToUse);
     }
 
     // Reset state
-    setFen(initialFen);
-    setIdx(initialIdx);
+    setFen(pz.fen);
+    setIdx(0);
     setSolved(false);
     setMessage(null);
     setMistakes(0);
@@ -406,10 +304,10 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     setShowSolution(false);
     setShowHint(false);
     
-    debugState.fen(fen, initialFen, "reset");
-    debugState.moveIndex(idx, initialIdx, "reset");
+    debugState.fen(fen, pz.fen, "reset");
+    debugState.moveIndex(idx, 0, "reset");
     debugState.solved(false);
-  }, [pz, pv, fen, idx, applyMoveUci]);
+  }, [pz, fen, idx, applyMoveUci]);
 
   const showHintAction = useCallback(() => {
     if (!pz || solved || showSolution) {

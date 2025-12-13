@@ -60,13 +60,13 @@ function isCheckmate(fen) {
 }
 
 /**
- * Validate solver side consistency - ensures puzzle.sideToMove matches calculated last mover
- * This is important for auto-advance logic and correct puzzle presentation
+ * Validate solver side consistency - ensures puzzle.sideToMove matches FEN turn
+ * Simplified: just check that sideToMove matches the FEN's turn
  */
 export function validateSolverSide(puzzle, initialFen, pv) {
   if (!puzzle.sideToMove) {
-    // If sideToMove is not set, we can't validate - but this is a data quality issue
-    return { valid: true, reason: "sideToMove not set (will be calculated)" };
+    // If sideToMove is not set, that's okay - we'll use FEN turn
+    return { valid: true, reason: "sideToMove not set (will use FEN turn)" };
   }
   
   const setupRes = parseFen(initialFen);
@@ -74,24 +74,21 @@ export function validateSolverSide(puzzle, initialFen, pv) {
     return { valid: false, reason: "Invalid initial FEN" };
   }
   
-  const startTurn = setupRes.unwrap().turn;
-  const calculatedLastMover = pv.length % 2 === 1 ? startTurn : (startTurn === "white" ? "black" : "white");
+  const fenTurn = setupRes.unwrap().turn;
   
-  if (puzzle.sideToMove !== calculatedLastMover) {
-    return { 
-      valid: false, 
-      reason: `Solver mismatch: puzzle.sideToMove=${puzzle.sideToMove}, calculatedLastMover=${calculatedLastMover}` 
-    };
+  // Just verify that sideToMove matches the FEN's turn (if set)
+  // This is a basic consistency check, not a complex calculation
+  if (puzzle.sideToMove !== fenTurn) {
+    // This is a warning, not an error - the FEN turn will be used anyway
+    return { valid: true, reason: `sideToMove (${puzzle.sideToMove}) doesn't match FEN turn (${fenTurn}), will use FEN turn` };
   }
   
   return { valid: true, reason: "Solver side verified" };
 }
 
 /**
- * Validate mate puzzles - ensures auto-advance compatibility
- * For mate puzzles, we need to verify:
- * 1. Actual checkmate occurs
- * 2. Solver is the one delivering mate (for auto-advance logic)
+ * Validate mate puzzles - ensures checkmate occurs
+ * For mate puzzles, we just verify that checkmate actually occurs
  */
 export function validateMatePuzzle(puzzle, initialFen, pv) {
   if (!isMatePuzzle(puzzle.motifs)) {
@@ -106,12 +103,6 @@ export function validateMatePuzzle(puzzle, initialFen, pv) {
   
   if (!isCheckmate(finalFen)) {
     return { valid: false, reason: "Final position is not checkmate" };
-  }
-  
-  // Verify solver side (reuse the general validation)
-  const solverSideResult = validateSolverSide(puzzle, initialFen, pv);
-  if (!solverSideResult.valid) {
-    return solverSideResult;
   }
   
   return { valid: true, reason: "Mate puzzle verified" };
@@ -144,12 +135,9 @@ export function validatePuzzle(puzzle, initialFen, pv) {
     return { valid: false, reason: "Could not apply all moves (illegal move detected)" };
   }
   
-  // 4. Validate solver side consistency (for ALL puzzles, not just mate)
-  // This ensures puzzle.sideToMove matches the calculated last mover
-  const solverSideResult = validateSolverSide(puzzle, initialFen, pv);
-  if (!solverSideResult.valid) {
-    return solverSideResult;
-  }
+  // 4. Validate solver side consistency (basic check - FEN turn will be used)
+  // This is just a consistency check, not a strict requirement
+  validateSolverSide(puzzle, initialFen, pv);
   
   // 5. Validate mate puzzles (additional checks for mate puzzles)
   const mateResult = validateMatePuzzle(puzzle, initialFen, pv);
