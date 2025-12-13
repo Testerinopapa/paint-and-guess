@@ -1,6 +1,5 @@
 import { prisma } from "./prismaClient.js";
 import { parseFen } from "chessops/fen";
-import { validatePuzzle } from "./lib/puzzleValidation.js";
 
 const RATING_PRESETS = {
   easy: { min: 0, max: 1400 },
@@ -181,16 +180,7 @@ export async function getRandomPuzzle(req, res) {
         continue;
       }
 
-      // Structural validation (fast, no engine needed)
-      // Lichess already validates puzzle quality, so we only check app-specific compatibility
-      const validationResult = validatePuzzle(puzzle, puzzle.fen, solutionPv);
-      
-      if (!validationResult.valid) {
-        console.log(`[Puzzle API] Puzzle ${puzzle.id} failed validation: ${validationResult.reason}`);
-        continue; // Skip this puzzle
-      }
-
-      // Return valid puzzle
+      // Return puzzle
       const puzzleData = {
         id: puzzle.id,
         createdAt: puzzle.createdAt.toISOString(),
