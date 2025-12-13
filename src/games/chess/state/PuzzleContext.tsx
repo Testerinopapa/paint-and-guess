@@ -188,32 +188,11 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      const fenTurn = setupRes.unwrap().turn as "white" | "black";
-      
-      // After normalization, sideToMove should always match FEN turn
-      // But handle edge cases where normalization hasn't run yet
-      let initialFen = puzzle.fen;
-      let initialIdx = 0;
-      const playerSideToUse = puzzle.sideToMove || fenTurn;
-      
-      // If there's still a mismatch (shouldn't happen after normalization), handle it
-      if (puzzle.sideToMove && puzzle.sideToMove !== fenTurn && solutionPv.length > 0) {
-        // Check if pv[0] is legal for FEN turn
-        const firstMoveResult = applyMoveUci(initialFen, solutionPv[0]);
-        if (firstMoveResult) {
-          // pv[0] is opponent's move - advance it
-          initialFen = firstMoveResult;
-          initialIdx = 1;
-        } else if (solutionPv.length > 1) {
-          // pv[0] is illegal - check if pv[1] is legal (opponent's move)
-          const secondMoveResult = applyMoveUci(initialFen, solutionPv[1]);
-          if (secondMoveResult) {
-            // pv[0] is player's move (skip), pv[1] is opponent's move (advance)
-            initialFen = secondMoveResult;
-            initialIdx = 2;
-          }
-        }
-      }
+      // Load puzzle exactly as stored - no validation or auto-adjustment
+      // Preserve puzzle intent (sideToMove) from database
+      const initialFen = puzzle.fen;
+      const initialIdx = 0;
+      const playerSideToUse = puzzle.sideToMove || setupRes.unwrap().turn;
 
       // Set state
       setPz(puzzle);
@@ -311,25 +290,14 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
 
     debugPuzzle.reset();
 
+    // Reset to puzzle exactly as stored - no validation or auto-adjustment
     const setupRes = parseFen(pz.fen);
     if (!setupRes.isOk) return;
     
     const fenTurn = setupRes.unwrap().turn as "white" | "black";
-    const solutionPv = typeof pz.solutionPv === "string" ? JSON.parse(pz.solutionPv) : pz.solutionPv;
-    
-    // If puzzle.sideToMove doesn't match FEN turn, skip first move
-    let initialFen = pz.fen;
-    let initialIdx = 0;
+    const initialFen = pz.fen;
+    const initialIdx = 0;
     const playerSideToUse = pz.sideToMove || fenTurn;
-    
-    if (pz.sideToMove && pz.sideToMove !== fenTurn && Array.isArray(solutionPv) && solutionPv.length > 0) {
-      const opponentMove = solutionPv[0];
-      const afterOpponentMove = applyMoveUci(initialFen, opponentMove);
-      if (afterOpponentMove) {
-        initialFen = afterOpponentMove;
-        initialIdx = 1;
-      }
-    }
 
     setPlayerSide(playerSideToUse);
     setFen(initialFen);
@@ -344,7 +312,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     debugState.fen(initialFen, pz.fen, "reset");
     debugState.moveIndex(initialIdx, 0, "reset");
     debugState.solved(false);
-  }, [pz, applyMoveUci]);
+  }, [pz]);
 
   const showHintAction = useCallback(() => {
     if (!pz || solved || showSolution) {
