@@ -206,15 +206,31 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         if (n) { 
           initialFen = n; 
           initialIdx = 1;
-          debugPuzzle.autoAdvance(solutionPv[0].slice(0, 2), solutionPv[0].slice(2, 4), initialFen, initialIdx);
+          // Ensure idx is valid - if puzzle only has 1 move, we can't auto-advance
+          if (initialIdx >= solutionPv.length) {
+            // This shouldn't happen, but if it does, don't auto-advance
+            initialFen = puzzle.fen;
+            initialIdx = 0;
+            console.warn("[PUZZLE] Auto-advance would exceed PV length, skipping");
+          } else {
+            debugPuzzle.autoAdvance(solutionPv[0].slice(0, 2), solutionPv[0].slice(2, 4), initialFen, initialIdx);
+          }
         }
+      }
+
+      // Validate that initialIdx is within bounds
+      if (initialIdx >= solutionPv.length) {
+        console.error("[PUZZLE] Initial index out of bounds:", { initialIdx, pvLength: solutionPv.length });
+        setError("Puzzle configuration error: invalid move index");
+        setLoading(false);
+        return;
       }
 
       // Set state
       setPz(puzzle);
       setFen(initialFen);
       setIdx(initialIdx);
-      setSolved(false);
+      setSolved(false); // Always start as unsolved
       setPlayerSide(playerSideToUse);
       setMessage(null);
       setMistakes(0);
@@ -262,27 +278,31 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
       return false;
     }
     
-    // Update state
+    // Calculate indices before updating state
+    const newIdx = idx + 1; // Index after player's move
+    const opponentMoveIdx = newIdx; // Opponent's move index (if exists)
+    const finalIdx = opponentMoveIdx + 1; // Index after opponent's reply (if exists)
+    
+    // Update state with player's move
     setFen(next);
-    setIdx(idx + 1);
+    setIdx(newIdx);
     setMessage(null);
     setShowHint(false);
     
     debugMove.correct(sourceSquare, targetSquare, next, idx);
     
-    // Auto-play opponent reply
-    const nextIdx = idx + 1;
-    if (pv[nextIdx]) {
-      const afterReply = applyMoveUci(next, pv[nextIdx]);
+    // Auto-play opponent reply if it exists
+    if (pv[opponentMoveIdx]) {
+      const afterReply = applyMoveUci(next, pv[opponentMoveIdx]);
       if (afterReply) {
         setFen(afterReply);
-        setIdx(nextIdx + 1);
-        debugMove.autoReply(pv[nextIdx].slice(0, 2), pv[nextIdx].slice(2, 4), afterReply);
+        setIdx(finalIdx);
+        debugMove.autoReply(pv[opponentMoveIdx].slice(0, 2), pv[opponentMoveIdx].slice(2, 4), afterReply);
       }
     }
     
-    // Check if solved
-    const finalIdx = nextIdx + 1;
+    // Check if solved - puzzle is solved when we've reached or exceeded the end of the PV
+    // After opponent's reply (if any), finalIdx should be >= pv.length
     if (finalIdx >= pv.length) {
       setSolved(true);
       debugState.solved(true);
@@ -320,7 +340,15 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         if (n) {
           initialFen = n;
           initialIdx = 1;
-          debugPuzzle.autoAdvance(pv[0].slice(0, 2), pv[0].slice(2, 4), initialFen, initialIdx);
+          // Ensure idx is valid - if puzzle only has 1 move, we can't auto-advance
+          if (initialIdx >= pv.length) {
+            // This shouldn't happen, but if it does, don't auto-advance
+            initialFen = pz.fen;
+            initialIdx = 0;
+            console.warn("[PUZZLE] Auto-advance would exceed PV length, skipping");
+          } else {
+            debugPuzzle.autoAdvance(pv[0].slice(0, 2), pv[0].slice(2, 4), initialFen, initialIdx);
+          }
         }
       }
       
