@@ -463,7 +463,7 @@ io.on("connection", (socket) => {
           leaderboard,
         });
 
-        setTimeout(() => {
+        setTimeout(async () => {
           const nextRoom = triviaRoomRepository.getRoom(roomId);
           if (!nextRoom) return;
 
