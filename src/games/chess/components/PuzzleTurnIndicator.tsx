@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { User, Bot } from "lucide-react";
 
 interface PuzzleTurnIndicatorProps {
   sideToMove: "white" | "black";
@@ -12,27 +11,20 @@ export function PuzzleTurnIndicator({
   playerSide, 
   isPlayerTurn 
 }: PuzzleTurnIndicatorProps) {
-  const displayText = isPlayerTurn 
-    ? "Your turn to move" 
-    : "Opponent's move...";
+  const displayText = `${sideToMove === "white" ? "White" : "Black"} to Move`;
+  const colorClass = sideToMove === "white" 
+    ? "bg-white text-black border-black" 
+    : "bg-black text-white border-white";
 
   return (
     <div className="px-4 py-2 bg-muted/50 border-y flex items-center justify-center">
       <Badge 
-        variant={isPlayerTurn ? "default" : "secondary"} 
-        className="flex items-center gap-2 px-3 py-1"
+        variant="outline" 
+        className={`flex items-center gap-2 px-3 py-1 border-2 font-semibold ${colorClass}`}
       >
-        {isPlayerTurn ? (
-          <User className="w-3.5 h-3.5" />
-        ) : (
-          <Bot className="w-3.5 h-3.5" />
-        )}
-        <span className="text-xs font-medium">
+        <span className="text-xs">
           {displayText}
         </span>
-        {!isPlayerTurn && (
-          <span className="text-xs opacity-75 ml-1">(playing automatically)</span>
-        )}
       </Badge>
     </div>
   );
