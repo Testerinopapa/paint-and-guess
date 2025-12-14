@@ -14,7 +14,9 @@ import { TriviaRoomRepository } from "./triviaRoomRepository.js";
 import { getSampleQuestions, getQuestionsByQuizId, QUIZZES } from "./triviaQuestions.js";
 import { canvaRoomRepository } from "./canvaRoomRepository.js";
 import { whiteboardRoomRepository } from "./whiteboardRoomRepository.js";
+import { recordTriviaGame } from "./services/ratingService.js";
 import authRoutes from "./auth/routes.js";
+import ratingsRoutes from "./api/ratings.js";
 import { getRandomPuzzle, getPuzzles, createPuzzleAttempt } from "./puzzleRoutes.js";
 import { analyzePosition, engineHealth, validatePuzzleMove } from "./api/analyze.js";
 import { generateReport, getReportDetails, getReportById } from "./api/report.js";
@@ -143,6 +145,9 @@ app.use(express.json());
 
 // Authentication routes
 app.use("/api/auth", authRoutes);
+
+// Ratings routes
+app.use("/api/ratings", ratingsRoutes);
 
 app.get("/api/games", async (req, res) => {
   try {
@@ -467,12 +472,34 @@ io.on("connection", (socket) => {
           if (!hasMore) {
             // Game ended - show podium
             const podium = nextRoom.getPodium();
+            const finalScores = nextRoom.toJSON().players;
+            
+            // Record game for rating system
+            try {
+              const playersWithUserIds = finalScores.map((player) => ({
+                userId: null, // Will be enhanced later to link authenticated users
+                name: player.name,
+                score: player.score,
+              }));
+              
+              await recordTriviaGame({
+                roomId: nextRoom.id,
+                quizId: nextRoom.quizId || null,
+                quizName: nextRoom.quizName || null,
+                totalQuestions: nextRoom.questions.length,
+                players: playersWithUserIds,
+              });
+            } catch (error) {
+              console.error("[Trivia] Failed to record game for ratings:", error);
+              // Don't block game completion if rating recording fails
+            }
+            
             io.to(roomId).emit("trivia:phase-changed", {
               phase: nextRoom.phase,
             });
             io.to(roomId).emit("trivia:podium", {
               podium,
-              finalScores: nextRoom.toJSON().players,
+              finalScores,
             });
           } else {
             // Next question - automatically start it
@@ -636,12 +663,37 @@ io.on("connection", (socket) => {
     const hasMore = room.nextQuestion();
     if (!hasMore) {
       const podium = room.getPodium();
+      const finalScores = room.toJSON().players;
+      
+      // Record game for rating system
+      try {
+        // Get user IDs from socket data (if available)
+        // For now, players are anonymous (userId = null)
+        // TODO: Link authenticated users to their socket connections
+        const playersWithUserIds = finalScores.map((player) => ({
+          userId: null, // Will be enhanced later to link authenticated users
+          name: player.name,
+          score: player.score,
+        }));
+        
+        await recordTriviaGame({
+          roomId,
+          quizId: room.quizId || null,
+          quizName: room.quizName || null,
+          totalQuestions: room.questions.length,
+          players: playersWithUserIds,
+        });
+      } catch (error) {
+        console.error("[Trivia] Failed to record game for ratings:", error);
+        // Don't block game completion if rating recording fails
+      }
+      
       io.to(roomId).emit("trivia:phase-changed", {
         phase: room.phase,
       });
       io.to(roomId).emit("trivia:podium", {
         podium,
-        finalScores: room.toJSON().players,
+        finalScores,
       });
     } else {
       io.to(roomId).emit("trivia:phase-changed", {

@@ -15,6 +15,14 @@ model User {
   avatarConfig String? // JSON string of avatar configuration
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Game ratings (ELO-based)
+  chessRating      Int? @default(1500)
+  triviaRating     Int? @default(1500)
+  
+  // Game results
+  whiteChessGames  ChessGame[] @relation("WhiteGames")
+  blackChessGames  ChessGame[] @relation("BlackGames")
 }
 
 model Room {
@@ -79,6 +87,42 @@ model Report {
   tags      String   // JSON array of move tags
   accuracy  Float
 
+  @@index([createdAt])
+}
+
+model ChessGame {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  whiteUserId String?
+  blackUserId String?
+  result      String   // "1-0", "0-1", "1/2-1/2"
+  pgn         String?
+  whiteRatingBefore Int?
+  blackRatingBefore Int?
+  whiteRatingAfter  Int?
+  blackRatingAfter  Int?
+  whiteRatingChange Int?
+  blackRatingChange Int?
+  gameMode    String   // "local", "ai", "online"
+  aiElo       Int?     // If playing against AI
+  
+  whiteUser   User?    @relation("WhiteGames", fields: [whiteUserId], references: [id], onDelete: SetNull)
+  blackUser   User?    @relation("BlackGames", fields: [blackUserId], references: [id], onDelete: SetNull)
+  
+  @@index([whiteUserId, createdAt])
+  @@index([blackUserId, createdAt])
+  @@index([createdAt])
+}
+
+model TriviaGame {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  roomId      String
+  quizId      String?
+  quizName    String?
+  totalQuestions Int
+  players     String   // JSON array of player results: [{userId, name, score, finalRank, ratingBefore, ratingAfter, ratingChange}]
+  
   @@index([createdAt])
 }
 
