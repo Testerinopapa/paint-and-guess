@@ -124,8 +124,11 @@ export function PlayMobileLayout({
         isActive={gameState.turn === "white"}
       />
 
-      {/* Chess Board - Responsive */}
-      <div className="flex-1 overflow-y-auto flex items-center justify-center py-4">
+      {/* Chess Board - Fixed size, no scroll */}
+      <div 
+        className="flex-1 overflow-hidden flex items-center justify-center"
+        style={{ touchAction: 'none' }}
+      >
         <ChessBoard orientation={orientation} responsive={true} />
       </div>
 

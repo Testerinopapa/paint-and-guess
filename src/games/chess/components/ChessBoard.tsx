@@ -186,25 +186,71 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
 
   // Calculate responsive square size if needed
   const [calculatedSquareSize, setCalculatedSquareSize] = useState(DEFAULT_SQUARE_SIZE);
+  const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
   
   useEffect(() => {
     if (responsive && !providedSquareSize) {
       const calculateSize = () => {
-        const viewportWidth = window.innerWidth;
-        const padding = 32; // Total horizontal padding
-        const maxBoardWidth = viewportWidth - padding;
-        const squareSize = Math.floor(maxBoardWidth / 8);
+        // Use container dimensions if available, otherwise fall back to viewport
+        let availableWidth: number;
+        let availableHeight: number;
+        
+        if (containerRef) {
+          const containerRect = containerRef.getBoundingClientRect();
+          availableWidth = containerRect.width;
+          availableHeight = containerRect.height;
+        } else {
+          // Fallback: use viewport with estimated padding
+          availableWidth = window.innerWidth - 32; // 16px padding each side
+          // Estimate vertical space: header + move notation + top panel + bottom panel + action bar
+          availableHeight = window.innerHeight - 320; // Approximate UI elements height
+        }
+        
+        // Calculate square size based on width
+        const squareSizeByWidth = Math.floor(availableWidth / 8);
+        
+        // Calculate square size based on height
+        const squareSizeByHeight = Math.floor(availableHeight / 8);
+        
+        // Use the smaller dimension to ensure board fits perfectly
+        const squareSize = Math.min(squareSizeByWidth, squareSizeByHeight);
+        
         // Ensure minimum size for usability
         const minSize = 35;
-        const maxSize = 80; // Prevent board from being too large on desktop
-        setCalculatedSquareSize(Math.max(minSize, Math.min(squareSize, maxSize)));
+        setCalculatedSquareSize(Math.max(minSize, squareSize));
       };
       
-      calculateSize();
-      window.addEventListener("resize", calculateSize);
-      return () => window.removeEventListener("resize", calculateSize);
+      // Initial calculation with a slight delay to ensure container is measured
+      const initialTimeout = setTimeout(calculateSize, 50);
+      
+      // Recalculate on resize with debounce
+      let resizeTimeout: NodeJS.Timeout;
+      const handleResize = () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(calculateSize, 100);
+      };
+      
+      window.addEventListener("resize", handleResize);
+      
+      // Use ResizeObserver to detect container size changes
+      let resizeObserver: ResizeObserver | null = null;
+      if (containerRef && typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(() => {
+          calculateSize();
+        });
+        resizeObserver.observe(containerRef);
+      }
+      
+      return () => {
+        clearTimeout(initialTimeout);
+        window.removeEventListener("resize", handleResize);
+        clearTimeout(resizeTimeout);
+        if (resizeObserver && containerRef) {
+          resizeObserver.unobserve(containerRef);
+        }
+      };
     }
-  }, [responsive, providedSquareSize]);
+  }, [responsive, providedSquareSize, containerRef]);
 
   const squareSize = providedSquareSize || (responsive ? calculatedSquareSize : DEFAULT_SQUARE_SIZE);
   const boardSize = squareSize * 8;
@@ -449,10 +495,17 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
 
   return (
     <div
+      ref={setContainerRef}
       style={{
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        height: "100%",
+        touchAction: "none", // Prevent dragging/scrolling on mobile
+        userSelect: "none", // Prevent text selection
+        WebkitUserSelect: "none",
       }}
     >
       {/* Chess board */}
@@ -465,6 +518,8 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
           height: boardSize,
           border: "2px solid #333",
           boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+          touchAction: "none", // Prevent dragging/scrolling on mobile
+          flexShrink: 0, // Prevent board from shrinking
         }}
       >
         {squares}
