@@ -4,6 +4,7 @@ import AllGames from "@/pages/AllGames";
 import GameDetail from "@/pages/GameDetail";
 import Library from "@/pages/Library";
 import Friends from "@/pages/Friends";
+import Leaderboard from "@/pages/Leaderboard";
 import Whiteboard from "@/pages/Whiteboard";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
@@ -47,6 +48,7 @@ const AppRoutes = () => {
         <Route index element={<AllGames />} />
         <Route path="library" element={<Library />} />
         <Route path="friends" element={<Friends />} />
+        <Route path="leaderboard" element={<Leaderboard />} />
         <Route path="whiteboard/*" element={<Whiteboard />} />
         <Route path="games/:gameId" element={<GameDetail />} />
         <Route path="games">
