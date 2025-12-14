@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import { Users, Bot } from "lucide-react";
 import type { Opponent } from "../data/opponents";
-import { getOpponentById } from "../data/opponents";
+import { getOpponentById, OPPONENTS } from "../data/opponents";
 import { useIsMobile } from "@/shared/hooks/use-mobile";
 
 function PlayContent() {
@@ -113,15 +113,46 @@ function PlayContent() {
   const handleNewGameMenuStart = (timeLimit?: number, mode?: string) => {
     // Handle mode selection
     if (mode === "ai" || mode === "bot") {
+      // Set AI mode
       setGameModeLocal("ai");
       setGameMode("ai");
+      
+      // Auto-select default opponent (first featured beginner bot, or first available)
+      const defaultOpponent = OPPONENTS.beginner.find(opp => opp.featured) || OPPONENTS.beginner[0];
+      if (defaultOpponent) {
+        setSelectedOpponent(defaultOpponent);
+        setAIConfig({
+          enabled: true, // Start immediately
+          color: defaultOpponent.color || "black",
+          elo: defaultOpponent.elo,
+          depth: defaultOpponent.depth,
+          opponentId: defaultOpponent.id,
+        });
+      }
     } else if (mode === "friend" || mode === "local") {
       setGameModeLocal("local");
       setGameMode("local");
+      // Clear AI config for local mode
+      setAIConfig({
+        enabled: false,
+        color: "black",
+        elo: undefined,
+        depth: undefined,
+        opponentId: undefined,
+      });
+      setSelectedOpponent(null);
     } else if (mode === "tournament" || mode === "coach") {
       // For now, treat as local game - can be extended later
       setGameModeLocal("local");
       setGameMode("local");
+      setAIConfig({
+        enabled: false,
+        color: "black",
+        elo: undefined,
+        depth: undefined,
+        opponentId: undefined,
+      });
+      setSelectedOpponent(null);
     }
     
     // Reset game to start fresh
