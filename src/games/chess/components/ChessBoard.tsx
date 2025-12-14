@@ -4,8 +4,8 @@ import { Chess, Square } from "chess.js";
 import { debugBoard, isDebugEnabled } from "../utils/debug";
 import { ChessPiece } from "../utils/chessPieces";
 
-const SQUARE_SIZE = 60;
-const BOARD_SIZE = SQUARE_SIZE * 8;
+const DEFAULT_SQUARE_SIZE = 60;
+const DEFAULT_BOARD_SIZE = DEFAULT_SQUARE_SIZE * 8;
 
 // Memoized square component - only re-renders when its props change
 interface ChessSquareProps {
@@ -20,6 +20,7 @@ interface ChessSquareProps {
   showRankLabel: boolean;
   orientation: "white" | "black";
   disabled: boolean;
+  squareSize: number;
   onSquareClick: (square: string) => void;
   onMouseDown: (square: string) => void;
   onMouseUp: (square: string) => void;
@@ -37,6 +38,7 @@ const ChessSquare = memo(({
   showRankLabel,
   orientation,
   disabled,
+  squareSize,
   onSquareClick,
   onMouseDown,
   onMouseUp,
@@ -51,8 +53,8 @@ const ChessSquare = memo(({
       onMouseDown={() => onMouseDown(squareName)}
       onMouseUp={() => onMouseUp(squareName)}
       style={{
-        width: SQUARE_SIZE,
-        height: SQUARE_SIZE,
+        width: squareSize,
+        height: squareSize,
         backgroundColor: isSelected 
           ? "#baca44" 
           : isLegalMove 
@@ -113,8 +115,8 @@ const ChessSquare = memo(({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: SQUARE_SIZE,
-          height: SQUARE_SIZE,
+          width: squareSize,
+          height: squareSize,
           position: "absolute",
           top: 0,
           left: 0,
@@ -122,15 +124,15 @@ const ChessSquare = memo(({
         }}>
           <ChessPiece 
             piece={piece} 
-            size={SQUARE_SIZE}
+            size={squareSize}
           />
         </div>
       )}
       {isLegalMove && !piece && (
         <div
           style={{
-            width: 20,
-            height: 20,
+            width: Math.max(12, squareSize * 0.33),
+            height: Math.max(12, squareSize * 0.33),
             borderRadius: "50%",
             backgroundColor: "#000",
             opacity: 0.3,
@@ -161,7 +163,8 @@ const ChessSquare = memo(({
     prevProps.showFileLabel === nextProps.showFileLabel &&
     prevProps.showRankLabel === nextProps.showRankLabel &&
     prevProps.orientation === nextProps.orientation &&
-    prevProps.disabled === nextProps.disabled
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.squareSize === nextProps.squareSize
   );
 });
 
@@ -172,12 +175,39 @@ interface ChessBoardProps {
   orientation?: "white" | "black";
   onMove?: (from: string, to: string) => void;
   disabled?: boolean; // If true, moves are disabled (for puzzle mode when not player's turn)
+  squareSize?: number; // Optional square size. If not provided, uses DEFAULT_SQUARE_SIZE
+  responsive?: boolean; // If true, calculates size based on viewport (mobile-friendly)
 }
 
-export function ChessBoard({ fen, orientation = "white", onMove, disabled = false }: ChessBoardProps) {
+export function ChessBoard({ fen, orientation = "white", onMove, disabled = false, squareSize: providedSquareSize, responsive = false }: ChessBoardProps) {
   // Use useContext directly to safely access ChessContext (may be undefined in puzzle mode)
   // Puzzle mode provides fen prop and doesn't need ChessContext
   const chessContext = useContext(ChessContext);
+
+  // Calculate responsive square size if needed
+  const [calculatedSquareSize, setCalculatedSquareSize] = useState(DEFAULT_SQUARE_SIZE);
+  
+  useEffect(() => {
+    if (responsive && !providedSquareSize) {
+      const calculateSize = () => {
+        const viewportWidth = window.innerWidth;
+        const padding = 32; // Total horizontal padding
+        const maxBoardWidth = viewportWidth - padding;
+        const squareSize = Math.floor(maxBoardWidth / 8);
+        // Ensure minimum size for usability
+        const minSize = 35;
+        const maxSize = 80; // Prevent board from being too large on desktop
+        setCalculatedSquareSize(Math.max(minSize, Math.min(squareSize, maxSize)));
+      };
+      
+      calculateSize();
+      window.addEventListener("resize", calculateSize);
+      return () => window.removeEventListener("resize", calculateSize);
+    }
+  }, [responsive, providedSquareSize]);
+
+  const squareSize = providedSquareSize || (responsive ? calculatedSquareSize : DEFAULT_SQUARE_SIZE);
+  const boardSize = squareSize * 8;
   
   // If fen is provided, we're in puzzle mode and don't need ChessContext
   // If fen is not provided, ChessContext is required
@@ -394,6 +424,7 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
             showRankLabel={showRankLabel}
             orientation={orientation}
             disabled={effectiveDisabled}
+            squareSize={squareSize}
             onSquareClick={handleSquareClick}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
@@ -430,8 +461,8 @@ export function ChessBoard({ fen, orientation = "white", onMove, disabled = fals
           display: "grid",
           gridTemplateColumns: "repeat(8, 1fr)",
           gridTemplateRows: "repeat(8, 1fr)",
-          width: BOARD_SIZE,
-          height: BOARD_SIZE,
+          width: boardSize,
+          height: boardSize,
           border: "2px solid #333",
           boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
         }}

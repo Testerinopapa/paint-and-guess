@@ -3,18 +3,21 @@ import { ChessBoard } from "../components/ChessBoard";
 import { GameInfo } from "../components/GameInfo";
 import { OpponentSelector } from "../components/OpponentSelector";
 import { OpponentProfile } from "../components/OpponentProfile";
+import { PlayMobileLayout } from "../components/PlayMobileLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import { Users, Bot } from "lucide-react";
 import type { Opponent } from "../data/opponents";
 import { getOpponentById } from "../data/opponents";
+import { useIsMobile } from "@/shared/hooks/use-mobile";
 
 function PlayContent() {
   const { gameState, setGameMode, aiConfig, setAIConfig, resetGame } = useChess();
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const [gameMode, setGameModeLocal] = useState<"local" | "ai">("local");
   const [selectedOpponent, setSelectedOpponent] = useState<Opponent | null>(null);
+  const isMobile = useIsMobile();
 
   // Sync selectedOpponent with aiConfig.opponentId when it changes
   useEffect(() => {
@@ -96,6 +99,21 @@ function PlayContent() {
     setSelectedOpponent(null);
   };
 
+  // Render mobile layout on mobile devices
+  if (isMobile) {
+    return (
+      <div className="md:hidden -m-4 md:m-0 h-[calc(100vh-4rem)]">
+        <PlayMobileLayout
+          gameMode={gameMode}
+          selectedOpponent={selectedOpponent}
+          orientation={orientation}
+          onFlipBoard={() => setOrientation(orientation === "white" ? "black" : "white")}
+        />
+      </div>
+    );
+  }
+
+  // Desktop layout
   return (
     <div className="container mx-auto p-8 max-w-7xl">
       {/* Game Mode Selector */}
