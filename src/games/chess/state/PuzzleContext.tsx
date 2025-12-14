@@ -188,11 +188,32 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      // Load puzzle exactly as stored - no validation or auto-adjustment
-      // Preserve puzzle intent (sideToMove) from database
-      const initialFen = puzzle.fen;
-      const initialIdx = 0;
-      const playerSideToUse = puzzle.sideToMove || setupRes.unwrap().turn;
+      // CRITICAL: playerSide MUST come from puzzle.sideToMove (database), never from FEN
+      // FEN turn and sideToMove are DIFFERENT - sideToMove indicates which side solves the puzzle
+      if (!puzzle.sideToMove || (puzzle.sideToMove !== "white" && puzzle.sideToMove !== "black")) {
+        console.error("[PUZZLE] Puzzle missing or invalid sideToMove:", puzzle.sideToMove, "for puzzle", puzzle.id);
+        setError("Puzzle has invalid sideToMove from API");
+        setLoading(false);
+        return;
+      }
+      
+      const playerSideToUse = puzzle.sideToMove; // Always from database, no fallback
+      const fenTurn = setupRes.unwrap().turn as "white" | "black";
+      
+      // Determine initial state: if FEN turn doesn't match playerSide, we need to auto-advance
+      let initialFen = puzzle.fen;
+      let initialIdx = 0;
+      
+      // If FEN turn is NOT the player's turn, auto-play opponent's first move
+      if (fenTurn !== playerSideToUse && solutionPv.length > 0) {
+        const opponentFirstMove = solutionPv[0];
+        const afterOpponentMove = applyMoveUci(initialFen, opponentFirstMove);
+        if (afterOpponentMove) {
+          initialFen = afterOpponentMove;
+          initialIdx = 1; // We've advanced past the opponent's first move
+          debugMove.autoReply(opponentFirstMove.slice(0, 2), opponentFirstMove.slice(2, 4), afterOpponentMove);
+        }
+      }
 
       // Set state
       setPz(puzzle);
@@ -223,6 +244,28 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
   const onPieceDrop = useCallback(({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string }) => {
     // Early returns
     if (!pz || !fen || solved) return false;
+    
+    // CRITICAL: Check if it's the player's turn
+    // Only allow moves when the current FEN turn matches the playerSide
+    try {
+      const setupRes = parseFen(fen);
+      if (setupRes.isOk) {
+        const currentTurn = setupRes.unwrap().turn as "white" | "black";
+        if (currentTurn !== playerSide) {
+          // It's not the player's turn - this shouldn't happen if auto-advance worked correctly
+          console.warn("[PUZZLE] Move attempted when it's not player's turn", {
+            currentTurn,
+            playerSide,
+            fen,
+          });
+          setMessage("Not your turn");
+          return false;
+        }
+      }
+    } catch (error) {
+      console.error("[PUZZLE] Error parsing FEN for turn check:", error);
+      return false;
+    }
     
     // Get expected move from solution
     const expected = pv[idx];
@@ -279,7 +322,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     }
     
     return true; // Accept move
-  }, [pz, fen, pv, idx, solved, applyMoveUci, mistakes]);
+  }, [pz, fen, pv, idx, solved, applyMoveUci, mistakes, playerSide]);
 
 
   const resetPuzzle = useCallback(() => {
@@ -290,14 +333,32 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
 
     debugPuzzle.reset();
 
-    // Reset to puzzle exactly as stored - no validation or auto-adjustment
+    // CRITICAL: playerSide MUST come from puzzle.sideToMove (database), never from FEN
+    if (!pz.sideToMove || (pz.sideToMove !== "white" && pz.sideToMove !== "black")) {
+      console.error("[PUZZLE] Cannot reset: puzzle has invalid sideToMove:", pz.sideToMove);
+      return;
+    }
+    
     const setupRes = parseFen(pz.fen);
     if (!setupRes.isOk) return;
     
+    const playerSideToUse = pz.sideToMove; // Always from database, no fallback
     const fenTurn = setupRes.unwrap().turn as "white" | "black";
-    const initialFen = pz.fen;
-    const initialIdx = 0;
-    const playerSideToUse = pz.sideToMove || fenTurn;
+    
+    // Determine initial state: if FEN turn doesn't match playerSide, we need to auto-advance
+    let initialFen = pz.fen;
+    let initialIdx = 0;
+    
+    // If FEN turn is NOT the player's turn, auto-play opponent's first move
+    if (fenTurn !== playerSideToUse && pv.length > 0) {
+      const opponentFirstMove = pv[0];
+      const afterOpponentMove = applyMoveUci(initialFen, opponentFirstMove);
+      if (afterOpponentMove) {
+        initialFen = afterOpponentMove;
+        initialIdx = 1; // We've advanced past the opponent's first move
+        debugMove.autoReply(opponentFirstMove.slice(0, 2), opponentFirstMove.slice(2, 4), afterOpponentMove);
+      }
+    }
 
     setPlayerSide(playerSideToUse);
     setFen(initialFen);
@@ -312,7 +373,7 @@ export function PuzzleProvider({ children }: { children: ReactNode }) {
     debugState.fen(initialFen, pz.fen, "reset");
     debugState.moveIndex(initialIdx, 0, "reset");
     debugState.solved(false);
-  }, [pz]);
+  }, [pz, pv, applyMoveUci]);
 
   const showHintAction = useCallback(() => {
     if (!pz || solved || showSolution) {
