@@ -13,6 +13,7 @@ import { Timer, Trophy, Users, Bot, GraduationCap, ArrowLeft } from "lucide-reac
 interface NewGameMenuProps {
   onStartGame: (timeLimit?: number, mode?: string) => void;
   onCancel?: () => void;
+  onSelectBot?: (timeLimit?: number) => void; // Callback for bot selection menu
 }
 
 type PlayMode = "local" | "ai" | "friend" | "tournament" | "coach";
@@ -28,16 +29,26 @@ const TIME_OPTIONS = [
   { label: "Unlimited", value: 0 },
 ];
 
-export function NewGameMenu({ onStartGame, onCancel }: NewGameMenuProps) {
+export function NewGameMenu({ onStartGame, onCancel, onSelectBot }: NewGameMenuProps) {
   const navigate = useNavigate();
   const [timeLimit, setTimeLimit] = useState<number>(10);
   const [selectedMode, setSelectedMode] = useState<PlayMode | null>(null);
 
   const handleModeSelect = (mode: PlayMode) => {
     setSelectedMode(mode);
-    // For now, immediately start the game with the selected mode
-    // In the future, this could navigate to different setup screens
-    onStartGame(timeLimit, mode);
+    
+    // For bot mode, show bot selection menu instead of starting immediately
+    if (mode === "ai" || mode === "bot") {
+      if (onSelectBot) {
+        onSelectBot(timeLimit);
+      } else {
+        // Fallback: start with default bot if no bot selection handler
+        onStartGame(timeLimit, mode);
+      }
+    } else {
+      // For other modes, start immediately
+      onStartGame(timeLimit, mode);
+    }
   };
 
   const handleStartGame = () => {

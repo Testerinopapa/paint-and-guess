@@ -5,6 +5,7 @@ import { OpponentSelector } from "../components/OpponentSelector";
 import { OpponentProfile } from "../components/OpponentProfile";
 import { PlayMobileLayout } from "../components/PlayMobileLayout";
 import { NewGameMenu } from "../components/NewGameMenu";
+import { BotSelectionMenu } from "../components/BotSelectionMenu";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
@@ -19,6 +20,8 @@ function PlayContent() {
   const [gameMode, setGameModeLocal] = useState<"local" | "ai">("local");
   const [selectedOpponent, setSelectedOpponent] = useState<Opponent | null>(null);
   const [showNewGameMenu, setShowNewGameMenu] = useState(false);
+  const [showBotSelection, setShowBotSelection] = useState(false);
+  const [pendingTimeLimit, setPendingTimeLimit] = useState<number | undefined>(undefined);
   const isMobile = useIsMobile();
 
   // On mobile, show new game menu initially when no moves have been made
@@ -110,25 +113,43 @@ function PlayContent() {
     setSelectedOpponent(null);
   };
 
+  const handleBotSelection = (timeLimit?: number) => {
+    // Show bot selection menu
+    setPendingTimeLimit(timeLimit);
+    setShowBotSelection(true);
+    setShowNewGameMenu(false);
+  };
+
+  const handleBotSelected = (opponent: Opponent) => {
+    // Set AI mode with selected opponent
+    setGameModeLocal("ai");
+    setGameMode("ai");
+    setSelectedOpponent(opponent);
+    setAIConfig({
+      enabled: true, // Start immediately
+      color: opponent.color || "black",
+      elo: opponent.elo,
+      depth: opponent.depth,
+      opponentId: opponent.id,
+    });
+    
+    // Reset game to start fresh
+    resetGame();
+    
+    // Hide bot selection menu
+    setShowBotSelection(false);
+    
+    // TODO: Store timeLimit in context for timer functionality
+    console.log("Starting game with bot:", opponent.name, "time limit:", pendingTimeLimit, "minutes");
+  };
+
   const handleNewGameMenuStart = (timeLimit?: number, mode?: string) => {
     // Handle mode selection
     if (mode === "ai" || mode === "bot") {
-      // Set AI mode
-      setGameModeLocal("ai");
-      setGameMode("ai");
-      
-      // Auto-select default opponent (first featured beginner bot, or first available)
-      const defaultOpponent = OPPONENTS.beginner.find(opp => opp.featured) || OPPONENTS.beginner[0];
-      if (defaultOpponent) {
-        setSelectedOpponent(defaultOpponent);
-        setAIConfig({
-          enabled: true, // Start immediately
-          color: defaultOpponent.color || "black",
-          elo: defaultOpponent.elo,
-          depth: defaultOpponent.depth,
-          opponentId: defaultOpponent.id,
-        });
-      }
+      // Bot selection is now handled separately via handleBotSelection
+      // This shouldn't be called directly for bot mode anymore
+      handleBotSelection(timeLimit);
+      return;
     } else if (mode === "friend" || mode === "local") {
       setGameModeLocal("local");
       setGameMode("local");
@@ -165,6 +186,22 @@ function PlayContent() {
     console.log("Starting game with time limit:", timeLimit, "minutes");
   };
 
+  // Render bot selection menu if showing
+  if (isMobile && showBotSelection) {
+    return (
+      <div className="md:hidden -m-4 md:m-0 h-[calc(100vh-4rem)]">
+        <BotSelectionMenu
+          onSelectBot={handleBotSelected}
+          onCancel={() => {
+            setShowBotSelection(false);
+            setShowNewGameMenu(true);
+          }}
+          timeLimit={pendingTimeLimit}
+        />
+      </div>
+    );
+  }
+
   // Render new game menu on mobile if no game started
   if (shouldShowNewGameMenu) {
     return (
@@ -172,6 +209,7 @@ function PlayContent() {
         <NewGameMenu
           onStartGame={handleNewGameMenuStart}
           onCancel={() => setShowNewGameMenu(false)}
+          onSelectBot={handleBotSelection}
         />
       </div>
     );
