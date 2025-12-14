@@ -20,6 +20,7 @@ import ratingsRoutes from "./api/ratings.js";
 import { getRandomPuzzle, getPuzzles, createPuzzleAttempt } from "./puzzleRoutes.js";
 import { analyzePosition, engineHealth, validatePuzzleMove } from "./api/analyze.js";
 import { generateReport, getReportDetails, getReportById } from "./api/report.js";
+import prisma from "./db/prisma.js";
 
 const LOG_LEVELS = {
   error: 0,
@@ -1340,6 +1341,39 @@ process.on("SIGTERM", cleanup);
     }
   } catch (error) {
     logger.error("[GameRegistry] Startup validation failed", error);
+  }
+})();
+
+// Log registered users on startup
+(async () => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const userCount = users.length;
+    console.log(`\n[Auth] Registered Users: ${userCount}`);
+    
+    if (userCount > 0) {
+      console.log(`[Auth] User List:`);
+      users.forEach((user, index) => {
+        const createdDate = new Date(user.createdAt).toISOString().split("T")[0];
+        console.log(`  ${index + 1}. ${user.username} (${user.email}) - Created: ${createdDate}`);
+      });
+    } else {
+      console.log(`[Auth] No users registered yet.`);
+    }
+    console.log(""); // Empty line for readability
+  } catch (error) {
+    logger.error("[Auth] Failed to fetch users on startup", error);
   }
 })();
 
