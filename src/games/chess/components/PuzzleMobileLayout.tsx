@@ -6,6 +6,7 @@ import { ChessBoard } from "./ChessBoard";
 import { NotificationBanner } from "./NotificationBanner";
 import { PuzzleScoreSection } from "./PuzzleScoreSection";
 import { PuzzleActionBar } from "./PuzzleActionBar";
+import { PuzzleTurnIndicator } from "./PuzzleTurnIndicator";
 import { useState, useMemo } from "react";
 
 export function PuzzleMobileLayout() {
@@ -17,6 +18,7 @@ export function PuzzleMobileLayout() {
     solved,
     message,
     playerSide,
+    sideToMove,
     pv,
     boardFen,
     loading,
@@ -51,6 +53,9 @@ export function PuzzleMobileLayout() {
   
   // Next puzzle number (placeholder - could be based on puzzle count)
   const nextPuzzleNumber = pz ? 7 : undefined;
+
+  // Determine if it's the player's turn
+  const isPlayerTurn = sideToMove === playerSide && !solved && !showSolution;
 
   const handleMove = (from: string, to: string) => {
     return onPieceDrop({ sourceSquare: from, targetSquare: to });
@@ -118,6 +123,15 @@ export function PuzzleMobileLayout() {
           streak={streak}
           progress={progress}
           nextPuzzleNumber={nextPuzzleNumber}
+        />
+      )}
+
+      {/* Turn Indicator */}
+      {pz && !solved && !showSolution && (
+        <PuzzleTurnIndicator
+          sideToMove={sideToMove}
+          playerSide={playerSide}
+          isPlayerTurn={isPlayerTurn}
         />
       )}
 
