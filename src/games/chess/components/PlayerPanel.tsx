@@ -32,7 +32,7 @@ export function PlayerPanel({
         <Avatar className="w-10 h-10 flex-shrink-0">
           <AvatarImage src={avatar} alt={name} />
           <AvatarFallback className="text-sm">
-            {name[0]?.toUpperCase() || color === "white" ? "W" : "B"}
+            {name[0]?.toUpperCase() || (color === "white" ? "W" : "B")}
           </AvatarFallback>
         </Avatar>
         
