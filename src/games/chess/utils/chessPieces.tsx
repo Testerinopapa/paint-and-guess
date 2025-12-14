@@ -141,10 +141,11 @@ export const BlackBishop = createPieceComponent(({ size = 60, className }: Piece
   <svg width={size} height={size} viewBox="0 0 45 45" preserveAspectRatio="xMidYMid meet" className={className} style={{ display: "block", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
     <g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <g fill="#000" stroke="#000" strokeLinecap="butt" strokeWidth="1.5">
-        <path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.35.49-2.32.47-3-.5 1.35-1.46 3-2 3-2z"/>
-        <path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-10.5-11 1-10.5 8.5-5 10.5-2.5 0-2.5 1.5-2.5 4 0 0-.5.5 0 2zM11.5 14.5c.5 2.5 1.5 3 3.5 3.5 2 1.5 2.5 1.5 2.5 1.5s.5 0 2.5-1.5c2-.5 3-1 3.5-3.5 0 0 .5-1.5-1-2.5-1.5-1-3.5-1-3.5-1s-2 0-3.5 1c-1.5 1-1 2.5-1 2.5z"/>
+        <path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.46-13.5-1-3.39 1.46-10.11.03-13.5 1-1.35.49-2.32.47-3-.5 1.35-1.46 3-2 3-2z" fill="#000"/>
+        <path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-10.5-11 1-10.5 8.5-5 10.5-2.5 0-2.5 1.5-2.5 4 0 0-.5.5 0 2zM11.5 14.5c.5 2.5 1.5 3 3.5 3.5 2 1.5 2.5 1.5 2.5 1.5s.5 0 2.5-1.5c2-.5 3-1 3.5-3.5 0 0 .5-1.5-1-2.5-1.5-1-3.5-1-3.5-1s-2 0-3.5 1c-1.5 1-1 2.5-1 2.5z" fill="#000"/>
       </g>
-      <path d="M17.5 11h10M15 14.5h15" stroke="#fff" strokeLinejoin="miter" strokeWidth="1.5"/>
+      <path d="M17.5 11h10" fill="none" stroke="#fff" strokeLinejoin="miter" strokeWidth="1.5"/>
+      <path d="M15 14.5h15" fill="none" stroke="#fff" strokeLinejoin="miter" strokeWidth="1.5"/>
     </g>
   </svg>
 ), "BlackBishop");
