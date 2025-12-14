@@ -241,44 +241,117 @@ export function PuzzleSidebar({
       </Button>
 
       {/* Current Puzzle Info */}
-      {pz && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Current Puzzle</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="font-semibold">
-                You are: <span className="capitalize ml-1">{playerSide}</span>
-              </Badge>
-            </div>
-            {pz.rating && (
-              <div className="text-sm text-muted-foreground">
-                Rating: {pz.rating}
+      {pz && (() => {
+        // Get database solutionPv directly (source of truth)
+        const dbSolutionPv = typeof pz.solutionPv === "string" 
+          ? JSON.parse(pz.solutionPv) 
+          : pz.solutionPv;
+        const solutionLength = Array.isArray(dbSolutionPv) ? dbSolutionPv.length : 0;
+        
+        // Format creation date from database
+        const createdAt = pz.createdAt ? new Date(pz.createdAt).toLocaleDateString() : null;
+        
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Current Puzzle</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {/* Puzzle ID from database */}
+              <div className="text-xs text-muted-foreground font-mono">
+                ID: <code className="bg-muted px-1 rounded">{pz.id}</code>
               </div>
-            )}
-            {pz.motifs.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {pz.motifs.slice(0, 3).map((m, moveIdx) => (
-                  <Badge key={moveIdx} variant="secondary" className="text-xs">
-                    {m}
-                  </Badge>
-                ))}
+              
+              {/* FEN from database */}
+              <div className="text-xs text-muted-foreground font-mono break-all">
+                FEN: <code className="bg-muted px-1 rounded">{pz.fen}</code>
               </div>
-            )}
-            {!solved && (
-              <div className="text-sm text-muted-foreground">
-                Move {idx + 1} / {pv.length}
+              
+              {/* Side to Move from database - display raw value */}
+              <div className="text-xs text-muted-foreground">
+                Side to Move: <span className="font-semibold capitalize">{pz.sideToMove || "N/A"}</span>
               </div>
-            )}
-            {solved && (
-              <Badge variant="default" className="bg-green-600">
-                ✓ Solved!
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-      )}
+              
+              {/* Rating from database */}
+              {pz.rating !== null && pz.rating !== undefined && (
+                <div className="text-sm text-muted-foreground">
+                  Rating: <span className="font-semibold">{pz.rating}</span>
+                </div>
+              )}
+              
+              {/* Source from database */}
+              {pz.source && (
+                <div className="text-xs text-muted-foreground">
+                  Source: <span className="font-mono">{pz.source}</span>
+                </div>
+              )}
+              
+              {/* Creation date from database */}
+              {createdAt && (
+                <div className="text-xs text-muted-foreground">
+                  Created At: {createdAt}
+                </div>
+              )}
+              
+              {/* Motifs from database */}
+              {pz.motifs && pz.motifs.length > 0 && (
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground">Themes:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {pz.motifs.slice(0, 5).map((m, moveIdx) => (
+                      <Badge key={moveIdx} variant="secondary" className="text-xs">
+                        {m}
+                      </Badge>
+                    ))}
+                    {pz.motifs.length > 5 && (
+                      <Badge variant="secondary" className="text-xs">
+                        +{pz.motifs.length - 5} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Solution PV from database */}
+              <div className="text-xs text-muted-foreground">
+                Solution PV: <span className="font-semibold">{solutionLength}</span> moves
+              </div>
+              
+              {/* Solution moves list */}
+              {solutionLength > 0 && (
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <div className="font-semibold mb-1">Moves:</div>
+                  <div className="font-mono bg-muted p-2 rounded break-all">
+                    {dbSolutionPv.map((move, moveIdx) => (
+                      <span key={moveIdx}>
+                        {moveIdx + 1}. {move}
+                        {moveIdx < dbSolutionPv.length - 1 ? ' ' : ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Progress using database solutionPv */}
+              {!solved && solutionLength > 0 && (
+                <div className="space-y-1">
+                  <div className="text-sm text-muted-foreground">
+                    Move <span className="font-semibold">{idx + 1}</span> / <span className="font-semibold">{solutionLength}</span>
+                  </div>
+                  <Progress value={(idx / solutionLength) * 100} className="h-2" />
+                </div>
+              )}
+              
+              {/* Solved state */}
+              {solved && (
+                <Badge variant="default" className="bg-green-600">
+                  ✓ Solved!
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })()}
     </div>
   );
 }
