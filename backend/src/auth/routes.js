@@ -74,6 +74,33 @@ router.post("/register", async (req, res) => {
     // Generate token
     const token = generateToken(user.id, user.email);
 
+    // Log updated user list after registration
+    try {
+      const allUsers = await prisma.user.findMany({
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          createdAt: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      const userCount = allUsers.length;
+      console.log(`\n[Auth] ✅ New user registered!`);
+      console.log(`[Auth] Registered Users: ${userCount}`);
+      console.log(`[Auth] User List:`);
+      allUsers.forEach((u, index) => {
+        const createdDate = new Date(u.createdAt).toISOString().split("T")[0];
+        console.log(`  ${index + 1}. ${u.username} (${u.email}) - Created: ${createdDate}`);
+      });
+      console.log(""); // Empty line for readability
+    } catch (logError) {
+      // Don't fail registration if logging fails
+      logger.warn("[Auth] Failed to log user list after registration", logError);
+    }
 
     res.status(201).json({
       message: "User registered successfully",
