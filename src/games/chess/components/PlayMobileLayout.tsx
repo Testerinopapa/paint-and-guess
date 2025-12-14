@@ -16,6 +16,7 @@ interface PlayMobileLayoutProps {
   selectedOpponent?: { id: string } | null;
   orientation: "white" | "black";
   onFlipBoard?: () => void;
+  onNewGame?: () => void;
 }
 
 export function PlayMobileLayout({
@@ -23,6 +24,7 @@ export function PlayMobileLayout({
   selectedOpponent,
   orientation,
   onFlipBoard,
+  onNewGame,
 }: PlayMobileLayoutProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -169,6 +171,7 @@ export function PlayMobileLayout({
         onOpenChange={setOptionsMenuOpen}
         onDraw={handleDraw}
         onAbort={handleAbort}
+        onNewGame={onNewGame}
         gameInProgress={isGameInProgress}
         hasMoves={gameState.moves.length > 0}
       />

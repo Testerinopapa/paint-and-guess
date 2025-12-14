@@ -4,6 +4,7 @@ import { GameInfo } from "../components/GameInfo";
 import { OpponentSelector } from "../components/OpponentSelector";
 import { OpponentProfile } from "../components/OpponentProfile";
 import { PlayMobileLayout } from "../components/PlayMobileLayout";
+import { NewGameMenu } from "../components/NewGameMenu";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
@@ -17,7 +18,17 @@ function PlayContent() {
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const [gameMode, setGameModeLocal] = useState<"local" | "ai">("local");
   const [selectedOpponent, setSelectedOpponent] = useState<Opponent | null>(null);
+  const [showNewGameMenu, setShowNewGameMenu] = useState(false);
   const isMobile = useIsMobile();
+
+  // On mobile, show new game menu initially when no moves have been made
+  useEffect(() => {
+    if (isMobile && gameState.moves.length === 0 && !aiConfig.enabled) {
+      setShowNewGameMenu(true);
+    }
+  }, [isMobile, gameState.moves.length, aiConfig.enabled]);
+
+  const shouldShowNewGameMenu = isMobile && showNewGameMenu && gameState.moves.length === 0;
 
   // Sync selectedOpponent with aiConfig.opponentId when it changes
   useEffect(() => {
@@ -99,6 +110,42 @@ function PlayContent() {
     setSelectedOpponent(null);
   };
 
+  const handleNewGameMenuStart = (timeLimit?: number, mode?: string) => {
+    // Handle mode selection
+    if (mode === "ai" || mode === "bot") {
+      setGameModeLocal("ai");
+      setGameMode("ai");
+    } else if (mode === "friend" || mode === "local") {
+      setGameModeLocal("local");
+      setGameMode("local");
+    } else if (mode === "tournament" || mode === "coach") {
+      // For now, treat as local game - can be extended later
+      setGameModeLocal("local");
+      setGameMode("local");
+    }
+    
+    // Reset game to start fresh
+    resetGame();
+    
+    // Hide the menu
+    setShowNewGameMenu(false);
+    
+    // TODO: Store timeLimit in context for timer functionality
+    console.log("Starting game with time limit:", timeLimit, "minutes");
+  };
+
+  // Render new game menu on mobile if no game started
+  if (shouldShowNewGameMenu) {
+    return (
+      <div className="md:hidden -m-4 md:m-0 h-[calc(100vh-4rem)]">
+        <NewGameMenu
+          onStartGame={handleNewGameMenuStart}
+          onCancel={() => setShowNewGameMenu(false)}
+        />
+      </div>
+    );
+  }
+
   // Render mobile layout on mobile devices
   if (isMobile) {
     return (
@@ -108,6 +155,7 @@ function PlayContent() {
           selectedOpponent={selectedOpponent}
           orientation={orientation}
           onFlipBoard={() => setOrientation(orientation === "white" ? "black" : "white")}
+          onNewGame={() => setShowNewGameMenu(true)}
         />
       </div>
     );

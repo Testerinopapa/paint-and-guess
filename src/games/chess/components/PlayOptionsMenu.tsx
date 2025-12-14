@@ -24,6 +24,7 @@ interface PlayOptionsMenuProps {
   onOpenChange: (open: boolean) => void;
   onDraw: () => void;
   onAbort: () => void;
+  onNewGame?: () => void;
   gameInProgress: boolean;
   hasMoves: boolean;
 }
@@ -33,6 +34,7 @@ export function PlayOptionsMenu({
   onOpenChange,
   onDraw,
   onAbort,
+  onNewGame,
   gameInProgress,
   hasMoves,
 }: PlayOptionsMenuProps) {
@@ -81,6 +83,26 @@ export function PlayOptionsMenu({
           </SheetHeader>
           
           <div className="mt-6 space-y-3">
+            {/* New Game Button */}
+            {onNewGame && (
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-3 h-12 bg-green-50 hover:bg-green-100 border-green-200"
+                onClick={() => {
+                  onNewGame();
+                  onOpenChange(false);
+                }}
+              >
+                <span className="text-xl">♟️</span>
+                <div className="flex flex-col items-start">
+                  <span className="font-medium">New Game</span>
+                  <span className="text-xs text-muted-foreground">
+                    Start a new game with custom settings
+                  </span>
+                </div>
+              </Button>
+            )}
+
             {/* Offer Draw Button */}
             <Button
               variant="outline"
