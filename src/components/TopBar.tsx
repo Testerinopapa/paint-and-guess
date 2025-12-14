@@ -2,8 +2,9 @@ import { Search, Bell, ChevronDown, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { AvatarPreview } from "@/games/paint-and-guess/components/avatar/preview";
+import { AvatarCustomizer } from "@/games/paint-and-guess/components/AvatarCustomizer";
 import { useState, useEffect } from "react";
-import { createDefaultAvatarConfig } from "@/lib/avatar/config";
+import { createDefaultAvatarConfig, AvatarConfig, saveAvatarConfig, encodeAvatarConfig } from "@/lib/avatar/config";
 import { safeLoadAvatarConfig } from "@/lib/avatar/validation";
 import {
   DropdownMenu,
@@ -13,14 +14,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Settings, LogOut } from "lucide-react";
+import { Settings, LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const TopBar = ({ onMenuClick }: { onMenuClick: () => void }) => {
   const sections = ["My Games", "Store", "Community"];
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, updateAvatar } = useAuth();
   const navigate = useNavigate();
   const [avatarConfig, setAvatarConfig] = useState(() => createDefaultAvatarConfig());
+  const [avatarCustomizerOpen, setAvatarCustomizerOpen] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -36,9 +38,45 @@ const TopBar = ({ onMenuClick }: { onMenuClick: () => void }) => {
     }
   }, [user]);
 
+  // Listen for avatar updates from other tabs/components
+  useEffect(() => {
+    const handleAvatarUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<AvatarConfig>).detail;
+      if (detail) {
+        setAvatarConfig(detail);
+      }
+    };
+
+    window.addEventListener("avatar-config-updated", handleAvatarUpdate as EventListener);
+    return () => {
+      window.removeEventListener("avatar-config-updated", handleAvatarUpdate as EventListener);
+    };
+  }, []);
+
   const handleLogout = async () => {
     await logout();
     navigate("/login");
+  };
+
+  const handleSaveAvatar = async (config: AvatarConfig) => {
+    // Save to localStorage with user-specific key if authenticated
+    const userId = user?.id || null;
+    saveAvatarConfig(config, true, userId);
+    setAvatarConfig(config);
+    
+    // Dispatch event for other components to sync
+    window.dispatchEvent(new CustomEvent("avatar-config-updated", { detail: config }));
+    
+    // Sync to backend if authenticated
+    if (isAuthenticated && user?.id) {
+      try {
+        const encodedConfig = encodeAvatarConfig(config);
+        await updateAvatar(encodedConfig);
+      } catch (error) {
+        console.error('Failed to sync avatar to backend:', error);
+        // Don't throw - local save succeeded, backend sync can be retried later
+      }
+    }
   };
 
   return (
@@ -95,6 +133,10 @@ const TopBar = ({ onMenuClick }: { onMenuClick: () => void }) => {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setAvatarCustomizerOpen(true)}>
+                <User className="mr-2 h-4 w-4" />
+                Customize Avatar
+              </DropdownMenuItem>
               <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
@@ -107,11 +149,25 @@ const TopBar = ({ onMenuClick }: { onMenuClick: () => void }) => {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <button className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full"></div>
-            <span className="text-sm font-medium text-foreground">Player</span>
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-all">
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <AvatarPreview config={avatarConfig} size={32} />
+                </div>
+                <span className="text-sm font-medium text-foreground">Player</span>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Guest Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setAvatarCustomizerOpen(true)}>
+                <User className="mr-2 h-4 w-4" />
+                Customize Avatar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
         
         {isAuthenticated && user ? (
@@ -126,6 +182,10 @@ const TopBar = ({ onMenuClick }: { onMenuClick: () => void }) => {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setAvatarCustomizerOpen(true)}>
+                <User className="mr-2 h-4 w-4" />
+                Customize Avatar
+              </DropdownMenuItem>
               <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
@@ -138,11 +198,33 @@ const TopBar = ({ onMenuClick }: { onMenuClick: () => void }) => {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <button className="sm:hidden p-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full"></div>
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="sm:hidden p-2">
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <AvatarPreview config={avatarConfig} size={32} />
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Guest Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setAvatarCustomizerOpen(true)}>
+                <User className="mr-2 h-4 w-4" />
+                Customize Avatar
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
+
+      {/* Avatar Customizer Dialog */}
+      <AvatarCustomizer
+        open={avatarCustomizerOpen}
+        onOpenChange={setAvatarCustomizerOpen}
+        onSave={handleSaveAvatar}
+        initialConfig={avatarConfig}
+      />
     </header>
   );
 };
