@@ -2,10 +2,13 @@ import { useState } from "react";
 import { PuzzleProvider, usePuzzle } from "../state/PuzzleContext";
 import { PuzzleBoard } from "../components/PuzzleBoard";
 import { PuzzleSidebar } from "../components/PuzzleSidebar";
+import { PuzzleMobileLayout } from "../components/PuzzleMobileLayout";
+import { useIsMobile } from "@/shared/hooks/use-mobile";
 import type { PuzzleDifficulty, PuzzleFilters } from "../state/puzzleTypes";
 
 function PuzzlesContent() {
   const { loadRandomPuzzle, loading } = usePuzzle();
+  const isMobile = useIsMobile();
   const [difficulty, setDifficulty] = useState<PuzzleDifficulty>("medium");
   const [minRating, setMinRating] = useState<string>("");
   const [maxRating, setMaxRating] = useState<string>("");
@@ -21,6 +24,16 @@ function PuzzlesContent() {
     loadRandomPuzzle(filters);
   };
 
+  // Render mobile layout on mobile devices
+  if (isMobile) {
+    return (
+      <div className="md:hidden -m-4 md:m-0 h-[calc(100vh-4rem)]">
+        <PuzzleMobileLayout />
+      </div>
+    );
+  }
+
+  // Desktop layout
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)] w-full gap-4 p-4">
       {/* Center: Chess Board */}
