@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Menu } from "lucide-react";
 import { useChess } from "../state/ChessContext";
 import { ChessBoard } from "./ChessBoard";
 import { PlayerPanel } from "./PlayerPanel";
 import { MoveNotation } from "./MoveNotation";
 import { PlayActionBar } from "./PlayActionBar";
+import { PlayOptionsMenu } from "./PlayOptionsMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { getOpponentById } from "../data/opponents";
 
@@ -25,7 +26,8 @@ export function PlayMobileLayout({
 }: PlayMobileLayoutProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { gameState, aiConfig } = useChess();
+  const { gameState, aiConfig, offerDraw, abortGame } = useChess();
+  const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
 
   // Get opponent info if AI mode
   const opponent = selectedOpponent?.id ? getOpponentById(selectedOpponent.id) : null;
@@ -56,9 +58,18 @@ export function PlayMobileLayout({
   const opponentTimer = "10:00";
 
   const handleOptions = () => {
-    // TODO: Open options/settings sheet
-    console.log("Options clicked");
+    setOptionsMenuOpen(true);
   };
+
+  const handleDraw = () => {
+    offerDraw();
+  };
+
+  const handleAbort = () => {
+    abortGame();
+  };
+
+  const isGameInProgress = !gameState.inCheckmate && !gameState.inStalemate && !gameState.inDraw && gameState.moves.length > 0;
 
   const handleChat = () => {
     // TODO: Open chat interface
@@ -106,7 +117,7 @@ export function PlayMobileLayout({
           onClick={handleOptions}
           className="h-9 w-9"
         >
-          <Search className="h-5 w-5" />
+          <Menu className="h-5 w-5" />
         </Button>
       </header>
 
@@ -150,6 +161,16 @@ export function PlayMobileLayout({
         onMakeMove={handleMakeMove}
         onBack={handleBack}
         onForward={handleForward}
+      />
+
+      {/* Options Menu */}
+      <PlayOptionsMenu
+        open={optionsMenuOpen}
+        onOpenChange={setOptionsMenuOpen}
+        onDraw={handleDraw}
+        onAbort={handleAbort}
+        gameInProgress={isGameInProgress}
+        hasMoves={gameState.moves.length > 0}
       />
     </div>
   );

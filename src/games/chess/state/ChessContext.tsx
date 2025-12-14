@@ -17,6 +17,8 @@ interface ChessContextType {
   isGameOver: () => boolean;
   setGameMode: (mode: GameMode) => void;
   setPlayers: (white?: string, black?: string) => void;
+  offerDraw: () => void; // Offer/accept draw - ends game as draw
+  abortGame: () => void; // Abort game - resets to new game
   // AI functionality
   aiConfig: AIConfig;
   setAIConfig: (config: AIConfig) => void;
@@ -129,6 +131,21 @@ export function ChessProvider({ children }: { children: ReactNode }) {
     setGame(newGame);
     setGameState(initialState);
   }, [gameMode, whitePlayer, blackPlayer]);
+
+  const offerDraw = useCallback(() => {
+    // In local games, offering a draw immediately ends the game as a draw
+    // We manually set the game state to draw
+    setGameState((prev) => ({
+      ...prev,
+      status: "draw",
+      inDraw: true,
+    }));
+  }, []);
+
+  const abortGame = useCallback(() => {
+    // Abort the game by resetting to a new game
+    resetGame();
+  }, [resetGame]);
 
   const loadFromFen = useCallback((fen: string) => {
     try {
@@ -513,6 +530,8 @@ export function ChessProvider({ children }: { children: ReactNode }) {
         isGameOver,
         setGameMode,
         setPlayers,
+        offerDraw,
+        abortGame,
         // AI functionality
         aiConfig,
         setAIConfig,
