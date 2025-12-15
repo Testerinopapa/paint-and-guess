@@ -36,6 +36,11 @@ let dbPath = databaseUrl.startsWith("file:")
   ? databaseUrl.replace(/^file:/, "") 
   : databaseUrl;
 
+// Remove query parameters (e.g., ?busy_timeout=30000)
+if (dbPath.includes("?")) {
+  dbPath = dbPath.split("?")[0];
+}
+
 // Handle relative paths
 if (!path.isAbsolute(dbPath)) {
   dbPath = path.resolve(dataDir, dbPath);
