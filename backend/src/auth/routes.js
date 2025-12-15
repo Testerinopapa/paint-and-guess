@@ -141,17 +141,40 @@ router.post("/register", async (req, res) => {
     // Git commit and push after successful registration
     try {
       // Use the actual database file path from Prisma configuration
-      const actualDbPath = dbPath;
+      let actualDbPath = dbPath;
       console.log(`[Git] Repo root: ${repoRoot}`);
-      console.log(`[Git] Database file path: ${actualDbPath}`);
+      console.log(`[Git] Database file path from config: ${actualDbPath}`);
       
-      // Check if file exists
+      // Check if file exists, if not try alternative locations
       if (!fs.existsSync(actualDbPath)) {
-        throw new Error(`Database file not found at: ${actualDbPath}`);
+        console.log(`[Git] Database file not found at config path, searching alternatives...`);
+        
+        // Try common locations
+        const alternatives = [
+          path.join(repoRoot, "backend", "prisma", "data", "rooms.db"),
+          path.join(repoRoot, "backend", "data", "rooms.db"),
+          path.join(repoRoot, "prisma", "data", "rooms.db"),
+          path.join(repoRoot, "data", "rooms.db"),
+        ];
+        
+        let found = false;
+        for (const altPath of alternatives) {
+          if (fs.existsSync(altPath)) {
+            console.log(`[Git] Database file found at: ${altPath}`);
+            actualDbPath = altPath;
+            found = true;
+            break;
+          }
+        }
+        
+        if (!found) {
+          throw new Error(`Database file not found at: ${actualDbPath} or any alternative locations`);
+        }
       }
       
       // Calculate relative path from repo root to database file
       const relativeDbPath = path.relative(repoRoot, actualDbPath);
+      console.log(`[Git] Using database file: ${actualDbPath}`);
       console.log(`[Git] Relative path from repo root: ${relativeDbPath}`);
       console.log(`[Git] Committing database changes...`);
       
