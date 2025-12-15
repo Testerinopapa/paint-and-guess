@@ -11,7 +11,8 @@ import { fileURLToPath } from "url";
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const repoRoot = path.resolve(__dirname, "../..");
+// Go up 3 levels from backend/src/auth to reach project root
+const repoRoot = path.resolve(__dirname, "../../..");
 
 const router = express.Router();
 
@@ -138,8 +139,13 @@ router.post("/register", async (req, res) => {
 
     // Git commit and push after successful registration
     try {
+      const dbFilePath = path.join(repoRoot, "backend", "data", "rooms.db");
+      console.log(`[Git] Repo root: ${repoRoot}`);
+      console.log(`[Git] Database file path: ${dbFilePath}`);
       console.log(`[Git] Committing database changes...`);
-      await execAsync("git add -f backend/data/rooms.db", { cwd: repoRoot });
+      
+      // Use absolute path to ensure we're adding the correct file
+      await execAsync(`git add -f "${dbFilePath}"`, { cwd: repoRoot });
       await execAsync('git commit -m "Added new user to db"', { cwd: repoRoot });
       console.log(`[Git] ✅ Committed database changes`);
       
