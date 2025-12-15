@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Compass, Package, User, Save, Sword, Eye, MessageCircle, Sparkles, Map } from "lucide-react";
+import { Compass, User, Save, Map } from "lucide-react";
 import { motion } from "framer-motion";
 import Draggable from "react-draggable";
 import { useState, useRef, useEffect } from "react";
@@ -13,8 +13,6 @@ import {
 
 interface ActionPanelProps {
   onAction: (action: string) => void;
-  onCommand?: (command: string) => void;
-  availableCommands: string[];
   onOpenPlayerPanel?: () => void;
   onOpenStoryWindow?: () => void;
   onOpenWorldMap?: () => void;
@@ -27,14 +25,8 @@ const mainActions = [
   { label: "Save", icon: Save, action: "save" },
 ];
 
-const commandIcons: Record<string, any> = {
-  attack: Sword,
-  investigate: Eye,
-  talk: MessageCircle,
-  cast: Sparkles,
-};
 
-export const ActionPanel = ({ onAction, onCommand, availableCommands, onOpenPlayerPanel, onOpenStoryWindow, onOpenWorldMap }: ActionPanelProps) => {
+export const ActionPanel = ({ onAction, onOpenPlayerPanel, onOpenStoryWindow, onOpenWorldMap }: ActionPanelProps) => {
   // Initialize with fallback positions
   const [defaultPos, setDefaultPos] = useState(() => {
     if (typeof window !== "undefined") {
@@ -366,35 +358,6 @@ export const ActionPanel = ({ onAction, onCommand, availableCommands, onOpenPlay
           </div>
         </div>
 
-      <div className="space-y-2 flex-shrink-0">
-        <h3 className="text-sm font-bold text-accent uppercase tracking-wider mb-3">
-          Available Commands
-        </h3>
-        <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar">
-          {availableCommands.map((command, index) => {
-            const Icon = commandIcons[command.toLowerCase().split(" ")[0]] || Sparkles;
-            return (
-              <motion.div
-                key={command}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.02, x: 5 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button
-                  onClick={() => onCommand ? onCommand(command) : onAction(command)}
-                  variant="outline"
-                  className="w-full justify-start gap-3 h-10 text-sm bg-muted/30 hover:bg-muted/50"
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{command}</span>
-                </Button>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
       </motion.div>
     </>
   );

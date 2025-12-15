@@ -257,8 +257,6 @@ export default function RpgIndex() {
           <div className="lg:col-span-12">
             <ActionPanel 
               onAction={handleAction} 
-              onCommand={handleCommand}
-              availableCommands={availableCommands}
               onOpenPlayerPanel={() => setPlayerPanelOpen(true)}
               onOpenStoryWindow={() => setStoryWindowOpen(true)}
               onOpenWorldMap={() => setWorldMapOpen(true)}
