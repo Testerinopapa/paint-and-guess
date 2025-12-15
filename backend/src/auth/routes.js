@@ -176,6 +176,21 @@ router.post("/register", async (req, res) => {
       const relativeDbPath = path.relative(repoRoot, actualDbPath);
       console.log(`[Git] Using database file: ${actualDbPath}`);
       console.log(`[Git] Relative path from repo root: ${relativeDbPath}`);
+      
+      // Configure git user identity if not already set
+      try {
+        await execAsync('git config user.email', { cwd: repoRoot });
+      } catch (e) {
+        // Email not set, set it
+        await execAsync('git config user.email "latin007protocol171@aol.com"', { cwd: repoRoot });
+      }
+      try {
+        await execAsync('git config user.name', { cwd: repoRoot });
+      } catch (e) {
+        // Name not set, set it
+        await execAsync('git config user.name "TesterinoPapa"', { cwd: repoRoot });
+      }
+      
       console.log(`[Git] Committing database changes...`);
       
       // Use relative path for git add
