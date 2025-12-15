@@ -1,6 +1,6 @@
 import express from "express";
 import { z } from "zod";
-import prisma from "../db/prisma.js";
+import { prisma } from "../prismaClient.js";
 import { hashPassword, comparePassword, generateToken, authenticate } from "./utils.js";
 import { logger } from "./logger.js";
 

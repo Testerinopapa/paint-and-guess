@@ -20,7 +20,7 @@ import ratingsRoutes from "./api/ratings.js";
 import { getRandomPuzzle, getPuzzles, createPuzzleAttempt } from "./puzzleRoutes.js";
 import { analyzePosition, engineHealth, validatePuzzleMove } from "./api/analyze.js";
 import { generateReport, getReportDetails, getReportById } from "./api/report.js";
-import prisma from "./db/prisma.js";
+import { prisma } from "./prismaClient.js";
 
 const LOG_LEVELS = {
   error: 0,
