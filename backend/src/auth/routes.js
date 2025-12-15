@@ -208,6 +208,25 @@ router.post("/register", async (req, res) => {
       }
       
       if (hasOrigin) {
+        // Configure git credentials if token is available
+        const gitToken = process.env.GIT_TOKEN || process.env.GITHUB_TOKEN;
+        if (gitToken) {
+          try {
+            // Get the remote URL
+            const { stdout: remoteUrl } = await execAsync('git remote get-url origin', { cwd: repoRoot });
+            const url = remoteUrl.trim();
+            
+            // If it's an HTTPS URL and doesn't already have a token, add it
+            if (url.startsWith('https://') && !url.includes('@')) {
+              const urlWithToken = url.replace('https://', `https://${gitToken}@`);
+              await execAsync(`git remote set-url origin "${urlWithToken}"`, { cwd: repoRoot });
+              console.log(`[Git] Configured remote with token authentication`);
+            }
+          } catch (e) {
+            console.log(`[Git] ⚠️  Could not configure token authentication: ${e.message}`);
+          }
+        }
+        
         // Check current branch or use default
         let branchName = 'main';
         try {
