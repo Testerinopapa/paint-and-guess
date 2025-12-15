@@ -4,7 +4,13 @@ services:
     env: node
     plan: free
     rootDir: backend
-    buildCommand: npm install && npm run prisma:generate && npm run prisma:migrate
+    buildCommand: |
+      cd .. && 
+      (git remote get-url origin 2>/dev/null || git remote add origin ${GIT_REPO_URL:-https://github.com/your-username/paint-and-guess.git}) && 
+      cd backend && 
+      npm install && 
+      npm run prisma:generate && 
+      npm run prisma:migrate
     startCommand: npm run start
     envVars:
       - key: NODE_VERSION
