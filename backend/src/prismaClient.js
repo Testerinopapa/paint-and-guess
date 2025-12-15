@@ -9,7 +9,7 @@ const configuredDataDir =
   process.env.ROOMS_DATA_DIR ||
   process.env.RENDER_DISK_PATH ||
   process.env.RENDER_PERSISTENT_DISK_PATH ||
-  path.join(__dirname, "..", "data");
+  path.join(__dirname, "..", "prisma", "data");
 
 const dataDir = path.isAbsolute(configuredDataDir)
   ? configuredDataDir
