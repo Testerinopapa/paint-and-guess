@@ -198,32 +198,50 @@ router.post("/register", async (req, res) => {
       await execAsync('git commit -m "Added new user to db"', { cwd: repoRoot });
       console.log(`[Git] ✅ Committed database changes`);
       
-      // Check current branch or use default
-      let branchName = 'main';
+      // Check if origin remote exists
+      let hasOrigin = false;
       try {
-        const { stdout } = await execAsync('git rev-parse --abbrev-ref HEAD', { cwd: repoRoot });
-        branchName = stdout.trim();
-        // If in detached HEAD state, try to get the branch from remote
-        if (branchName === 'HEAD') {
-          try {
-            const { stdout: remoteBranch } = await execAsync('git symbolic-ref --short HEAD 2>/dev/null || git branch -r --contains HEAD | head -1 | sed "s/origin\\///" | xargs', { cwd: repoRoot });
-            const branch = remoteBranch.trim();
-            if (branch && !branch.includes('HEAD')) {
-              branchName = branch.replace('origin/', '');
-            }
-          } catch (e) {
-            // Default to main if we can't determine branch
-            branchName = 'main';
-          }
-        }
+        await execAsync('git remote get-url origin', { cwd: repoRoot });
+        hasOrigin = true;
       } catch (e) {
-        // Default to main if we can't determine branch
-        branchName = 'main';
+        console.log(`[Git] ⚠️  No 'origin' remote configured, skipping push`);
       }
       
-      console.log(`[Git] Pushing to origin/${branchName}...`);
-      await execAsync(`git push origin HEAD:${branchName}`, { cwd: repoRoot });
-      console.log(`[Git] ✅ Pushed to origin/${branchName}`);
+      if (hasOrigin) {
+        // Check current branch or use default
+        let branchName = 'main';
+        try {
+          // Try to get branch from environment or git config
+          branchName = process.env.GIT_BRANCH || process.env.RENDER_GIT_BRANCH || 'main';
+          
+          // Try to get actual branch name
+          try {
+            const { stdout } = await execAsync('git rev-parse --abbrev-ref HEAD', { cwd: repoRoot });
+            const detectedBranch = stdout.trim();
+            if (detectedBranch && detectedBranch !== 'HEAD') {
+              branchName = detectedBranch;
+            }
+          } catch (e) {
+            // Try alternative method
+            try {
+              const { stdout } = await execAsync('git branch --show-current', { cwd: repoRoot });
+              const detectedBranch = stdout.trim();
+              if (detectedBranch) {
+                branchName = detectedBranch;
+              }
+            } catch (e2) {
+              // Keep default
+            }
+          }
+        } catch (e) {
+          // Default to main
+          branchName = 'main';
+        }
+        
+        console.log(`[Git] Pushing to origin/${branchName}...`);
+        await execAsync(`git push origin HEAD:${branchName}`, { cwd: repoRoot });
+        console.log(`[Git] ✅ Pushed to origin/${branchName}`);
+      }
     } catch (gitError) {
       // Don't fail registration if git fails
       logger.warn("[Git] Failed to commit/push database changes", { 
