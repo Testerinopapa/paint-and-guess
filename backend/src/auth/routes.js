@@ -3,6 +3,15 @@ import { z } from "zod";
 import { prisma } from "../prismaClient.js";
 import { hashPassword, comparePassword, generateToken, authenticate } from "./utils.js";
 import { logger } from "./logger.js";
+import { exec } from "child_process";
+import { promisify } from "util";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const execAsync = promisify(exec);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, "../..");
 
 const router = express.Router();
 
@@ -125,6 +134,26 @@ router.post("/register", async (req, res) => {
     } catch (logError) {
       // Don't fail registration if logging fails
       logger.warn("[Auth] Failed to log user list after registration", logError);
+    }
+
+    // Git commit and push after successful registration
+    try {
+      console.log(`[Git] Committing database changes...`);
+      await execAsync("git add -f backend/data/rooms.db", { cwd: repoRoot });
+      await execAsync('git commit -m "Added new user to db"', { cwd: repoRoot });
+      console.log(`[Git] ✅ Committed database changes`);
+      
+      console.log(`[Git] Pushing to origin...`);
+      await execAsync("git push origin", { cwd: repoRoot });
+      console.log(`[Git] ✅ Pushed to origin`);
+    } catch (gitError) {
+      // Don't fail registration if git fails
+      logger.warn("[Git] Failed to commit/push database changes", { 
+        error: gitError.message,
+        stdout: gitError.stdout,
+        stderr: gitError.stderr 
+      });
+      console.log(`[Git] ⚠️  Git operation failed (registration still succeeded): ${gitError.message}`);
     }
 
     res.status(201).json({
