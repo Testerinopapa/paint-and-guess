@@ -1,12 +1,13 @@
 import express from "express";
 import { z } from "zod";
-import { prisma } from "../prismaClient.js";
+import { prisma, dbPath } from "../prismaClient.js";
 import { hashPassword, comparePassword, generateToken, authenticate } from "./utils.js";
 import { logger } from "./logger.js";
 import { exec } from "child_process";
 import { promisify } from "util";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
@@ -139,13 +140,23 @@ router.post("/register", async (req, res) => {
 
     // Git commit and push after successful registration
     try {
-      const dbFilePath = path.join(repoRoot, "backend", "data", "rooms.db");
+      // Use the actual database file path from Prisma configuration
+      const actualDbPath = dbPath;
       console.log(`[Git] Repo root: ${repoRoot}`);
-      console.log(`[Git] Database file path: ${dbFilePath}`);
+      console.log(`[Git] Database file path: ${actualDbPath}`);
+      
+      // Check if file exists
+      if (!fs.existsSync(actualDbPath)) {
+        throw new Error(`Database file not found at: ${actualDbPath}`);
+      }
+      
+      // Calculate relative path from repo root to database file
+      const relativeDbPath = path.relative(repoRoot, actualDbPath);
+      console.log(`[Git] Relative path from repo root: ${relativeDbPath}`);
       console.log(`[Git] Committing database changes...`);
       
-      // Use absolute path to ensure we're adding the correct file
-      await execAsync(`git add -f "${dbFilePath}"`, { cwd: repoRoot });
+      // Use relative path for git add
+      await execAsync(`git add -f "${relativeDbPath}"`, { cwd: repoRoot });
       await execAsync('git commit -m "Added new user to db"', { cwd: repoRoot });
       console.log(`[Git] ✅ Committed database changes`);
       

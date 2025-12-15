@@ -87,6 +87,9 @@ export const prisma = new PrismaClient({
   log: process.env.PRISMA_LOG === "true" ? ["query", "error", "warn"] : ["error"],
 });
 
+// Export database file path for use in other modules
+export { dbPath };
+
 console.log(`[Prisma] Using database URL: ${databaseUrl}`);
 
 // Test connection on startup
