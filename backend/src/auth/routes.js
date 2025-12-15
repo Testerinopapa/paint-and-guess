@@ -54,26 +54,47 @@ router.post("/register", async (req, res) => {
     // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        email: email.toLowerCase(),
-        username: username.toLowerCase(),
-        password: hashedPassword,
-        avatarConfig: avatarConfig || null,
-      },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        avatarConfig: true,
-        createdAt: true,
-      },
-    });
+    // Create user in database
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: {
+          email: email.toLowerCase(),
+          username: username.toLowerCase(),
+          password: hashedPassword,
+          avatarConfig: avatarConfig || null,
+        },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          avatarConfig: true,
+          createdAt: true,
+        },
+      });
+      
+      // Verify user was actually written to database by reading it back
+      const verifiedUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          createdAt: true,
+        },
+      });
 
-    // Log database write confirmation
-    const createdDate = new Date(user.createdAt).toISOString().split("T")[0];
-    console.log(`[Auth] 💾 User saved to database: ${user.username} (${user.email}) - ID: ${user.id} - Created: ${createdDate}`);
+      if (!verifiedUser) {
+        throw new Error("User creation failed: user not found in database after creation");
+      }
+
+      const createdDate = new Date(user.createdAt).toISOString().split("T")[0];
+      console.log(`[Auth] 💾 User saved to database: ${user.username} (${user.email}) - ID: ${user.id} - Created: ${createdDate}`);
+      console.log(`[Auth] ✅ Database write verified: User exists in database`);
+    } catch (dbError) {
+      logger.error("[Auth] Database write failed", { error: dbError.message, stack: dbError.stack });
+      throw new Error(`Failed to save user to database: ${dbError.message}`);
+    }
 
     // Generate token
     const token = generateToken(user.id, user.email);
