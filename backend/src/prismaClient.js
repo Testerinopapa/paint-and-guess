@@ -17,33 +17,42 @@ const dataDir = path.isAbsolute(configuredDataDir)
 
 fs.mkdirSync(dataDir, { recursive: true });
 
-const defaultDatabaseUrl = `file:${path.join(dataDir, "rooms.db")}`;
-let databaseUrl = process.env.DATABASE_URL ?? defaultDatabaseUrl;
+// Use DATABASE_URL from environment if set, otherwise construct default
+const defaultDatabaseUrl = process.env.DATABASE_URL 
+  ? process.env.DATABASE_URL
+  : `file:${path.join(dataDir, "rooms.db")}`;
 
-// Add SQLite busy timeout for long operations (30 seconds)
-// This helps with catalog building and other bulk operations
-// Prisma SQLite connector supports query parameters
+// Extract the actual file path from DATABASE_URL (before adding query params)
+let dbPath = defaultDatabaseUrl.startsWith("file:") 
+  ? defaultDatabaseUrl.replace(/^file:/, "") 
+  : defaultDatabaseUrl;
+
+// Remove query parameters if any
+if (dbPath.includes("?")) {
+  dbPath = dbPath.split("?")[0];
+}
+
+// Resolve to absolute path if relative
+// If DATABASE_URL was set, resolve relative to project root (backend directory)
+// Otherwise resolve relative to dataDir
+if (!path.isAbsolute(dbPath)) {
+  if (process.env.DATABASE_URL) {
+    // DATABASE_URL was set - resolve relative to backend directory
+    dbPath = path.resolve(path.join(__dirname, ".."), dbPath);
+  } else {
+    // Default path - resolve relative to dataDir
+    dbPath = path.resolve(dataDir, dbPath);
+  }
+}
+
+// Now construct the databaseUrl with query params for Prisma
+let databaseUrl = defaultDatabaseUrl;
 if (databaseUrl.startsWith("file:") && !databaseUrl.includes("?")) {
   databaseUrl = `${databaseUrl}?busy_timeout=30000`;
 }
 
 if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = databaseUrl;
-}
-
-// Extract file path from SQLite URL (file:./path/to.db or file:/absolute/path/to.db)
-let dbPath = databaseUrl.startsWith("file:") 
-  ? databaseUrl.replace(/^file:/, "") 
-  : databaseUrl;
-
-// Remove query parameters (e.g., ?busy_timeout=30000)
-if (dbPath.includes("?")) {
-  dbPath = dbPath.split("?")[0];
-}
-
-// Handle relative paths
-if (!path.isAbsolute(dbPath)) {
-  dbPath = path.resolve(dataDir, dbPath);
 }
 
 // Check if old JSON file exists and warn
