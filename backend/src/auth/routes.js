@@ -71,6 +71,10 @@ router.post("/register", async (req, res) => {
       },
     });
 
+    // Log database write confirmation
+    const createdDate = new Date(user.createdAt).toISOString().split("T")[0];
+    console.log(`[Auth] 💾 User saved to database: ${user.username} (${user.email}) - ID: ${user.id} - Created: ${createdDate}`);
+
     // Generate token
     const token = generateToken(user.id, user.email);
 
