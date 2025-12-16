@@ -19,6 +19,7 @@ import TriviaBlitzRoom from "@/games/trivia-blitz/pages/Room";
 import { TriviaBlitzApp } from "@/games/trivia-blitz/pages/TriviaBlitzApp";
 import { CanvaLobby, CanvaRoom, CanvaApp } from "@/games/canva";
 import ChessIndex from "@/games/chess/pages/Index";
+import SemanticIndex from "@/games/semantic/pages/Index";
 
 const AppRoutes = () => {
   return (
@@ -68,6 +69,9 @@ const AppRoutes = () => {
           </Route>
           <Route path="chess">
             <Route index element={<ChessIndex />} />
+          </Route>
+          <Route path="semantic">
+            <Route index element={<SemanticIndex />} />
           </Route>
         </Route>
       </Route>

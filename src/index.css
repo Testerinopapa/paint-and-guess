@@ -70,6 +70,15 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 210 20% 95%;
     --sidebar-border: 220 15% 12%;
     --sidebar-ring: 189 85% 55%;
+    
+    /* Semantic game similarity colors */
+    --similarity-perfect: 142 76% 36%;
+    --similarity-excellent: 142 71% 45%;
+    --similarity-great: 45 93% 47%;
+    --similarity-good: 35 91% 55%;
+    --similarity-medium: 25 95% 53%;
+    --similarity-poor: 14 90% 55%;
+    --similarity-cold: 4 90% 58%;
   }
 
   .dark {
@@ -111,6 +120,15 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Semantic game similarity colors for dark mode */
+    --similarity-perfect: 142 71% 45%;
+    --similarity-excellent: 142 65% 50%;
+    --similarity-great: 45 88% 55%;
+    --similarity-good: 35 86% 60%;
+    --similarity-medium: 25 90% 58%;
+    --similarity-poor: 14 85% 60%;
+    --similarity-cold: 4 85% 63%;
   }
 }
 

@@ -5,6 +5,7 @@ import { getRpgPreviewEntry } from "@/games/rpg/hubEntry";
 import { getTriviaBlitzPreviewEntry } from "@/games/trivia-blitz/hubEntry";
 import { getCanvaPreviewEntry } from "@/games/canva/hubEntry";
 import { getChessPreviewEntry } from "@/games/chess/hubEntry";
+import { getSemanticPreviewEntry } from "@/games/semantic/hubEntry";
 
 const now = new Date().toISOString();
 
@@ -18,6 +19,7 @@ export const fallbackRegistry = registryResponseSchema.parse({
     getTriviaBlitzPreviewEntry(),
     getCanvaPreviewEntry(),
     getChessPreviewEntry(),
+    getSemanticPreviewEntry(),
     {
       id: "mystery-mashup",
       version: "0.3.0",

@@ -68,6 +68,15 @@ export default {
         toolbar: {
           bg: "hsl(var(--toolbar-bg))",
         },
+        similarity: {
+          perfect: "hsl(var(--similarity-perfect))",
+          excellent: "hsl(var(--similarity-excellent))",
+          great: "hsl(var(--similarity-great))",
+          good: "hsl(var(--similarity-good))",
+          medium: "hsl(var(--similarity-medium))",
+          poor: "hsl(var(--similarity-poor))",
+          cold: "hsl(var(--similarity-cold))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
