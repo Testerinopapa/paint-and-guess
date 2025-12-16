@@ -18,5 +18,6 @@ export interface PuzzleRushStats {
   averageTimePerPuzzle: number;
   strikesUsed: number;
   finalRating: number; // rating of the last puzzle attempted
+  mode: PuzzleRushMode; // mode that was used for this session
 }
 

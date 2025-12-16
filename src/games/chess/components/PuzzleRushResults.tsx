@@ -116,10 +116,20 @@ export function PuzzleRushResults({ open, onOpenChange, stats, onPlayAgain }: Pu
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              onOpenChange(false);
+            }}
+          >
             Close
           </Button>
-          <Button onClick={onPlayAgain}>
+          <Button 
+            onClick={() => {
+              onPlayAgain();
+              onOpenChange(false);
+            }}
+          >
             Play Again
           </Button>
         </DialogFooter>

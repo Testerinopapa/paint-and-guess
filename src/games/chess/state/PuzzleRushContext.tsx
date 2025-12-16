@@ -81,6 +81,7 @@ export function PuzzleRushProvider({ children }: { children: ReactNode }) {
           averageTimePerPuzzle: averageTime,
           strikesUsed: session.strikes,
           finalRating: session.baseRating + (session.currentPuzzleNumber * DIFFICULTY_INCREMENT),
+          mode: session.mode,
         };
 
         setStats(finalStats);

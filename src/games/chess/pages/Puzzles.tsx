@@ -12,7 +12,7 @@ import type { PuzzleDifficulty, PuzzleFilters } from "../state/puzzleTypes";
 
 function PuzzlesContent() {
   const { loadRandomPuzzle, loading } = usePuzzle();
-  const { stats } = usePuzzleRush();
+  const { stats, session, startSession } = usePuzzleRush();
   const isMobile = useIsMobile();
   const [difficulty, setDifficulty] = useState<PuzzleDifficulty>("medium");
   const [minRating, setMinRating] = useState<string>("");
@@ -41,8 +41,13 @@ function PuzzlesContent() {
 
   // Watch for session end to show results
   useEffect(() => {
+    // Only auto-open when stats are first set (new session ended)
     if (stats && !showResults) {
       setShowResults(true);
+    }
+    // Reset showResults when stats are cleared (new session started)
+    if (!stats && showResults) {
+      setShowResults(false);
     }
   }, [stats, showResults]);
 
@@ -57,7 +62,10 @@ function PuzzlesContent() {
         stats={stats}
         onPlayAgain={() => {
           setShowResults(false);
-          // Will be handled by PuzzleSidebar when user clicks Puzzle Rush again
+          // Restart with the same mode as the previous session
+          if (stats?.mode) {
+            startSession(stats.mode, loadRandomPuzzle);
+          }
         }}
       />
       <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)] w-full gap-4 p-4">
