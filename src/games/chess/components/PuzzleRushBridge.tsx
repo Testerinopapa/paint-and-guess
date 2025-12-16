@@ -7,11 +7,12 @@ import { usePuzzleRush } from "../state/PuzzleRushContext";
  * Watches for puzzle solve/fail events and updates rush session accordingly
  */
 export function PuzzleRushBridge() {
-  const { solved, mistakes, loadRandomPuzzle } = usePuzzle();
+  const { solved, mistakes, pz, loadRandomPuzzle } = usePuzzle();
   const { isActive, onPuzzleSolved, onPuzzleFailed } = usePuzzleRush();
   
   const lastSolvedRef = useRef(false);
   const lastMistakesRef = useRef(0);
+  const currentPuzzleIdRef = useRef<string | null>(null);
 
   // Reset tracking when puzzle changes
   useEffect(() => {
