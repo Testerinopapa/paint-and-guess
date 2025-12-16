@@ -23,6 +23,9 @@ model User {
   // Game results
   whiteChessGames  ChessGame[] @relation("WhiteGames")
   blackChessGames  ChessGame[] @relation("BlackGames")
+  
+  // Puzzle attempts
+  puzzleAttempts   PuzzleAttempt[]
 }
 
 model Room {
@@ -65,14 +68,18 @@ model PuzzleAttempt {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   puzzleId  String
+  userId    String?  // Optional: null for anonymous attempts
   timeMs    Int
   mistakes  Int
   solved    Boolean
   rating    Int?
 
   puzzle    Puzzle   @relation(fields: [puzzleId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([puzzleId, createdAt])
+  @@index([userId, solved])
+  @@index([userId, puzzleId, solved]) // Index for efficient lookups of solved puzzles per user
 }
 
 model Report {
