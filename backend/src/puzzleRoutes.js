@@ -119,31 +119,32 @@ export async function getRandomPuzzle(req, res) {
             });
             
             if (puzzle) {
-            // Parse solution PV
-            let solutionPv;
-            try {
-              solutionPv = typeof puzzle.solutionPv === "string"
-                ? JSON.parse(puzzle.solutionPv)
-                : puzzle.solutionPv;
-            } catch (error) {
-              console.error("[Puzzle API] Error parsing solution PV:", error);
-              // Fall through to fallback method
-            }
-            
-            if (Array.isArray(solutionPv) && solutionPv.length > 0) {
-              // Return puzzle from catalog
-              const puzzleData = {
-                id: puzzle.id,
-                createdAt: puzzle.createdAt.toISOString(),
-                fen: puzzle.fen,
-                sideToMove: puzzle.sideToMove,
-                solutionPv: solutionPv,
-                motifs: typeof puzzle.motifs === "string" ? JSON.parse(puzzle.motifs) : puzzle.motifs,
-                source: puzzle.source,
-                rating: puzzle.rating,
-              };
-              console.log(`[Puzzle API] Returning puzzle from catalog: ${puzzle.id} (${catalogEntry.count} available)`);
-              return res.json(puzzleData);
+              // Parse solution PV
+              let solutionPv;
+              try {
+                solutionPv = typeof puzzle.solutionPv === "string"
+                  ? JSON.parse(puzzle.solutionPv)
+                  : puzzle.solutionPv;
+              } catch (error) {
+                console.error("[Puzzle API] Error parsing solution PV:", error);
+                // Fall through to fallback method
+              }
+              
+              if (Array.isArray(solutionPv) && solutionPv.length > 0) {
+                // Return puzzle from catalog
+                const puzzleData = {
+                  id: puzzle.id,
+                  createdAt: puzzle.createdAt.toISOString(),
+                  fen: puzzle.fen,
+                  sideToMove: puzzle.sideToMove,
+                  solutionPv: solutionPv,
+                  motifs: typeof puzzle.motifs === "string" ? JSON.parse(puzzle.motifs) : puzzle.motifs,
+                  source: puzzle.source,
+                  rating: puzzle.rating,
+                };
+                console.log(`[Puzzle API] Returning puzzle from catalog: ${puzzle.id} (${catalogEntry.count} available)`);
+                return res.json(puzzleData);
+              }
             }
           }
         }

@@ -79,7 +79,7 @@ model PuzzleAttempt {
 
   @@index([puzzleId, createdAt])
   @@index([userId, solved])
-  @@index([userId, puzzleId, solved]) // Index for efficient lookups of solved puzzles per user
+  @@unique([userId, puzzleId, solved]) // Prevent duplicate solved records per user
 }
 
 model Report {
