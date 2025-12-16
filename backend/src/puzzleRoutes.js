@@ -1,6 +1,6 @@
 import { prisma } from "./prismaClient.js";
 import { parseFen } from "chessops/fen";
-import { extractTokenFromHeader, verifyToken } from "../auth/utils.js";
+import { extractTokenFromHeader, verifyToken } from "./auth/utils.js";
 
 const RATING_PRESETS = {
   easy: { min: 0, max: 1400 },
