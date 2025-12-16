@@ -69,7 +69,7 @@ export function PuzzleRushBridge() {
         
         // Trigger strike with a small delay to ensure state is stable
         const timeoutId = setTimeout(() => {
-          onPuzzleFailed(loadRandomPuzzle);
+          onPuzzleFailed();
         }, 500);
         
         return () => clearTimeout(timeoutId);
@@ -86,7 +86,7 @@ export function PuzzleRushBridge() {
       // Keep the ref in sync when mistakes haven't changed
       // (no-op, but ensures ref stays current)
     }
-  }, [mistakes, isActive, onPuzzleFailed, loadRandomPuzzle, solved, pz]);
+  }, [mistakes, isActive, onPuzzleFailed, solved, pz]);
 
   return null; // This component doesn't render anything
 }

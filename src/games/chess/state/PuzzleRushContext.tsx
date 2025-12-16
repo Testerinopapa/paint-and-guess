@@ -15,7 +15,7 @@ interface PuzzleRushContextType {
   startSession: (mode: PuzzleRushMode, loadPuzzle: (filters?: PuzzleFilters) => Promise<void>) => void;
   endSession: () => void;
   onPuzzleSolved: (loadPuzzle: (filters?: PuzzleFilters) => Promise<void>) => void;
-  onPuzzleFailed: (loadPuzzle: (filters?: PuzzleFilters) => Promise<void>) => void;
+  onPuzzleFailed: () => void;
 }
 
 const PuzzleRushContext = createContext<PuzzleRushContextType | undefined>(undefined);
@@ -202,7 +202,7 @@ export function PuzzleRushProvider({ children }: { children: ReactNode }) {
     }
   }, [session]);
 
-  const onPuzzleFailed = useCallback((loadPuzzle: (filters?: PuzzleFilters) => Promise<void>) => {
+  const onPuzzleFailed = useCallback(() => {
     // Use functional update to ensure we have the latest session state
     setSession((currentSession) => {
       if (!currentSession || !currentSession.isActive) return currentSession;
@@ -215,22 +215,12 @@ export function PuzzleRushProvider({ children }: { children: ReactNode }) {
         endSession();
         return currentSession; // endSession will handle the update
       } else {
-        // Continue with a strike
+        // Continue with a strike - just update the strikes count
+        // Don't load a new puzzle, let the user continue with the current puzzle
         const updatedSession: PuzzleRushSession = {
           ...currentSession,
           strikes: newStrikes,
         };
-
-        // Load next puzzle (same difficulty level, but new puzzle)
-        const ratingRange = calculateRatingRange(currentSession.currentPuzzleNumber);
-        const filters: PuzzleFilters = {
-          minRating: ratingRange.min,
-          maxRating: ratingRange.max,
-        };
-        
-        setTimeout(() => {
-          loadPuzzle(filters);
-        }, 1000);
 
         return updatedSession;
       }
