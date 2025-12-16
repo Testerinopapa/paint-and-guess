@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { PuzzleProvider, usePuzzle } from "../state/PuzzleContext";
-import { PuzzleRushProvider } from "../state/PuzzleRushContext";
+import { PuzzleRushProvider, usePuzzleRush } from "../state/PuzzleRushContext";
 import { PuzzleBoard } from "../components/PuzzleBoard";
 import { PuzzleSidebar } from "../components/PuzzleSidebar";
 import { PuzzleMobileLayout } from "../components/PuzzleMobileLayout";
