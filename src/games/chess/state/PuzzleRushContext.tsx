@@ -40,18 +40,15 @@ function calculateRatingRange(puzzleNumber: number): { min: number; max: number 
 export function PuzzleRushProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<PuzzleRushSession | null>(null);
   const [stats, setStats] = useState<PuzzleRushStats | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastPuzzleSolvedRef = useRef(false);
   const lastMistakesRef = useRef(0);
 
-  // Calculate time remaining
-  const timeRemaining = session && session.timeLimit !== null && session.isActive
-    ? Math.max(0, Math.floor((session.timeLimit - (Date.now() - session.startTime)) / 1000))
-    : null;
-
-  // Check if session should end due to time
+  // Real-time timer update and session end check
   useEffect(() => {
     if (!session || !session.isActive) {
+      setTimeRemaining(null);
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
         timerIntervalRef.current = null;
@@ -61,39 +58,46 @@ export function PuzzleRushProvider({ children }: { children: ReactNode }) {
 
     // For survival mode, no timer
     if (session.timeLimit === null) {
+      setTimeRemaining(null);
       return;
     }
 
-    // Set up timer interval
-    timerIntervalRef.current = setInterval(() => {
-      setSession((currentSession) => {
-        if (!currentSession || !currentSession.isActive) return currentSession;
-        const elapsed = Date.now() - currentSession.startTime;
-        if (elapsed >= currentSession.timeLimit!) {
-          // Time's up - end session
-          const endTime = Date.now();
-          const totalTime = endTime - currentSession.startTime;
-          const averageTime = currentSession.score > 0 ? totalTime / currentSession.score : 0;
+    // Update timer every second for real-time display
+    const updateTimer = () => {
+      const elapsed = Date.now() - session.startTime;
+      const remaining = Math.max(0, Math.floor((session.timeLimit! - elapsed) / 1000));
+      setTimeRemaining(remaining);
 
-          const finalStats: PuzzleRushStats = {
-            puzzlesSolved: currentSession.score,
-            totalTime: totalTime,
-            averageTimePerPuzzle: averageTime,
-            strikesUsed: currentSession.strikes,
-            finalRating: currentSession.baseRating + (currentSession.currentPuzzleNumber * DIFFICULTY_INCREMENT),
-          };
+      // Check if time's up
+      if (elapsed >= session.timeLimit!) {
+        // Time's up - end session
+        const endTime = Date.now();
+        const totalTime = endTime - session.startTime;
+        const averageTime = session.score > 0 ? totalTime / session.score : 0;
 
-          setStats(finalStats);
+        const finalStats: PuzzleRushStats = {
+          puzzlesSolved: session.score,
+          totalTime: totalTime,
+          averageTimePerPuzzle: averageTime,
+          strikesUsed: session.strikes,
+          finalRating: session.baseRating + (session.currentPuzzleNumber * DIFFICULTY_INCREMENT),
+        };
 
-          return {
-            ...currentSession,
-            endTime,
-            isActive: false,
-          };
-        }
-        return currentSession;
-      });
-    }, 100); // Check every 100ms for smooth countdown
+        setStats(finalStats);
+        setSession({
+          ...session,
+          endTime,
+          isActive: false,
+        });
+        setTimeRemaining(0);
+      }
+    };
+
+    // Initial update
+    updateTimer();
+
+    // Set up interval to update every second for real-time display
+    timerIntervalRef.current = setInterval(updateTimer, 1000);
 
     return () => {
       if (timerIntervalRef.current) {
