@@ -227,6 +227,29 @@ const fallbackRegistry = registrySchema.parse({
         priority: 95,
       },
     },
+    {
+      id: "semantic",
+      version: "1.0.0",
+      name: { default: "Semantic" },
+      description: { default: "Guess the secret word by entering semantically similar words. Each guess receives a rank based on similarity to the target word." },
+      status: "stable",
+      supportedPlayers: { min: 1, max: 1, recommended: 1 },
+      monetization: "free",
+      category: ["word", "puzzle"],
+      badges: ["new"],
+      assets: { thumbnail: "/placeholder.svg" },
+      featureFlags: [],
+      visibleIf: ["public"],
+      route: { slug: "semantic" },
+      plugin: {
+        previewComponent: "semanticPreview",
+        moduleId: "@/games/semantic",
+      },
+      navigation: {
+        category: "puzzle",
+        priority: 90,
+      },
+    },
   ],
 });
 
