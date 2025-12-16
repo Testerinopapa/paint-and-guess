@@ -32,17 +32,22 @@ export function PuzzleRushBridge() {
       return;
     }
 
+    // Only process if we have an active puzzle
+    if (!pz) return;
+
     // Detect transition from unsolved to solved
     if (solved && !lastSolvedRef.current) {
       lastSolvedRef.current = true;
+      console.log("[PUZZLE RUSH] Puzzle solved! Incrementing score and loading next puzzle");
       // Small delay to ensure state is stable and user sees the success
       setTimeout(() => {
         onPuzzleSolved(loadRandomPuzzle);
       }, 800);
-    } else if (!solved) {
+    } else if (!solved && lastSolvedRef.current) {
+      // Puzzle was reset (new puzzle loaded)
       lastSolvedRef.current = false;
     }
-  }, [solved, isActive, onPuzzleSolved, loadRandomPuzzle]);
+  }, [solved, isActive, onPuzzleSolved, loadRandomPuzzle, pz]);
 
   // Watch for mistakes (strikes)
   // Track mistakes per puzzle - when mistakes increase, it's a strike

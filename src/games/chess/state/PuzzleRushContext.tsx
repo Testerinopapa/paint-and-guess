@@ -139,32 +139,37 @@ export function PuzzleRushProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const onPuzzleSolved = useCallback((loadPuzzle: (filters?: PuzzleFilters) => Promise<void>) => {
-    if (!session || !session.isActive) return;
+    // Use functional update to ensure we have the latest session state
+    setSession((currentSession) => {
+      if (!currentSession || !currentSession.isActive) return currentSession;
 
-    const newScore = session.score + 1;
-    const newPuzzleNumber = session.currentPuzzleNumber + 1;
+      const newScore = currentSession.score + 1;
+      const newPuzzleNumber = currentSession.currentPuzzleNumber + 1;
 
-    // Update session
-    const updatedSession: PuzzleRushSession = {
-      ...session,
-      score: newScore,
-      currentPuzzleNumber: newPuzzleNumber,
-    };
+      console.log("[PUZZLE RUSH] Puzzle solved! Score:", newScore, "Puzzle #:", newPuzzleNumber);
 
-    setSession(updatedSession);
+      // Update session
+      const updatedSession: PuzzleRushSession = {
+        ...currentSession,
+        score: newScore,
+        currentPuzzleNumber: newPuzzleNumber,
+      };
 
-    // Load next puzzle with increased difficulty
-    const ratingRange = calculateRatingRange(newPuzzleNumber);
-    const filters: PuzzleFilters = {
-      minRating: ratingRange.min,
-      maxRating: ratingRange.max,
-    };
-    
-    // Small delay before loading next puzzle
-    setTimeout(() => {
-      loadPuzzle(filters);
-    }, 1000);
-  }, [session]);
+      // Load next puzzle with increased difficulty (outside of setState to avoid timing issues)
+      const ratingRange = calculateRatingRange(newPuzzleNumber);
+      const filters: PuzzleFilters = {
+        minRating: ratingRange.min,
+        maxRating: ratingRange.max,
+      };
+      
+      // Small delay before loading next puzzle to let user see success
+      setTimeout(() => {
+        loadPuzzle(filters);
+      }, 1000);
+
+      return updatedSession;
+    });
+  }, []);
 
   const endSession = useCallback(() => {
     if (!session) return;
@@ -197,33 +202,39 @@ export function PuzzleRushProvider({ children }: { children: ReactNode }) {
   }, [session]);
 
   const onPuzzleFailed = useCallback((loadPuzzle: (filters?: PuzzleFilters) => Promise<void>) => {
-    if (!session || !session.isActive) return;
+    // Use functional update to ensure we have the latest session state
+    setSession((currentSession) => {
+      if (!currentSession || !currentSession.isActive) return currentSession;
 
-    const newStrikes = session.strikes + 1;
+      const newStrikes = currentSession.strikes + 1;
+      console.log("[PUZZLE RUSH] Puzzle failed! Strikes:", newStrikes);
 
-    if (newStrikes >= 3) {
-      // End session - 3 strikes
-      endSession();
-    } else {
-      // Continue with a strike
-      const updatedSession: PuzzleRushSession = {
-        ...session,
-        strikes: newStrikes,
-      };
-      setSession(updatedSession);
+      if (newStrikes >= 3) {
+        // End session - 3 strikes
+        endSession();
+        return currentSession; // endSession will handle the update
+      } else {
+        // Continue with a strike
+        const updatedSession: PuzzleRushSession = {
+          ...currentSession,
+          strikes: newStrikes,
+        };
 
-      // Load next puzzle (same difficulty level, but new puzzle)
-      const ratingRange = calculateRatingRange(session.currentPuzzleNumber);
-      const filters: PuzzleFilters = {
-        minRating: ratingRange.min,
-        maxRating: ratingRange.max,
-      };
-      
-      setTimeout(() => {
-        loadPuzzle(filters);
-      }, 1000);
-    }
-  }, [session, endSession]);
+        // Load next puzzle (same difficulty level, but new puzzle)
+        const ratingRange = calculateRatingRange(currentSession.currentPuzzleNumber);
+        const filters: PuzzleFilters = {
+          minRating: ratingRange.min,
+          maxRating: ratingRange.max,
+        };
+        
+        setTimeout(() => {
+          loadPuzzle(filters);
+        }, 1000);
+
+        return updatedSession;
+      }
+    });
+  }, [endSession]);
 
   return (
     <PuzzleRushContext.Provider
