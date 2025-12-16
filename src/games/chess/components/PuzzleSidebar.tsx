@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from "@/components/ui/select";
 import { usePuzzle } from "../state/PuzzleContext";
+import { usePuzzleRush } from "../state/PuzzleRushContext";
+import { PuzzleRushDialog } from "./PuzzleRushDialog";
 import { Settings, Puzzle, Flame, Calendar, Shield, Book, BarChart3, Filter } from "lucide-react";
 import type { PuzzleDifficulty } from "../state/puzzleTypes";
 
@@ -34,9 +37,15 @@ export function PuzzleSidebar({
   onLoadPuzzle,
   loading,
 }: PuzzleSidebarProps) {
-  const { pz, idx, solved, pv, playerSide } = usePuzzle();
+  const { pz, idx, solved, pv, playerSide, loadRandomPuzzle } = usePuzzle();
+  const { startSession, isActive } = usePuzzleRush();
+  const [showRushDialog, setShowRushDialog] = useState(false);
   const puzzleRating = pz?.rating || 0;
   const streak = 6; // TODO: Implement streak tracking
+
+  const handleStartRush = (mode: "standard-3min" | "standard-5min" | "survival") => {
+    startSession(mode, loadRandomPuzzle);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -215,10 +224,20 @@ export function PuzzleSidebar({
           <CardTitle className="text-lg">More Puzzles</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Button variant="outline" className="w-full justify-start" disabled>
+          <Button
+            variant="outline"
+            className="w-full justify-start"
+            onClick={() => setShowRushDialog(true)}
+            disabled={isActive}
+          >
             <Flame className="mr-2 h-4 w-4" />
             Puzzle Rush
           </Button>
+          <PuzzleRushDialog
+            open={showRushDialog}
+            onOpenChange={setShowRushDialog}
+            onStart={handleStartRush}
+          />
           <Button variant="outline" className="w-full justify-start" disabled>
             <Calendar className="mr-2 h-4 w-4" />
             Daily Puzzle
