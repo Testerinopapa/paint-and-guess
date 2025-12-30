@@ -1,0 +1,7 @@
+# Database files - use "ours" strategy during merges (keeps current branch version)
+*.db merge=ours
+backend/prisma/data/*.db merge=ours
+
+# Database journal files - same strategy
+*.db-journal merge=ours
+
