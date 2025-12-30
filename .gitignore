@@ -32,6 +32,8 @@ test-screenshots/
 test-screenshots-drawable/
 test-screenshots-multiplayer/
 test-results-*.json
+test-results/
+playwright-report/
 
 # Persistent data
 backend/data/
