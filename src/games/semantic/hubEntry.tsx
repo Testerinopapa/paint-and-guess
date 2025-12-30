@@ -16,7 +16,8 @@ export function getSemanticPreviewEntry(): NormalizedGameEntry {
     category: ["word", "puzzle"],
     badges: ["new"],
     assets: {
-      thumbnail: "/placeholder.svg",
+      thumbnail: "/games/semantic-card.png",
+      background: "/games/semantic-card.png",
     },
     navigation: {
       category: "puzzle",
